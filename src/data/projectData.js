@@ -111,7 +111,35 @@ export const projectInfo = {
     ]
   },
 
-  // 6. PLANIMETRÍA TÉCNICA
+  // 6. ESTRATEGIA DE REUBICACIÓN & BIOCLIMÁTICA
+  strategy: {
+    title: "Estrategia de Reubicación & Criterios Bioclimáticos",
+    description: "La propuesta plantea retirar los asentamientos críticos de la línea de vulnerabilidad marina y reubicarlos en la meseta central segura de la isla (+22 m.s.n.m.), consolidando un nodo cívico y educativo articulado mediante senderos bioclimáticos y terrazas de absorción pluvial.",
+    pillars: [
+      {
+        step: "01",
+        title: "Cota de Impregnación Cero",
+        desc: "Implantación en la meseta central a cota +22.00 m.s.n.m., fuera del alcance de la erosión y aumento del nivel del mar para los próximos 100 años."
+      },
+      {
+        step: "02",
+        title: "Célula Hídrica Colectiva",
+        desc: "La cubierta del colegio funciona como un macro-embudo captador de agua de lluvia conectado a un aljibe modular de 450.000 L."
+      },
+      {
+        step: "03",
+        title: "Materialidad Caribeña Resiliente",
+        desc: "Estructura en madera tratada, bloques de tierra comprimida (BTC) con áridos locales y celosías cerámicas para ventilación cruzada continua."
+      },
+      {
+        step: "04",
+        title: "Paisajismo Fitodepurador",
+        desc: "Borduras de vegetación xerófila costera y vetiver que fijan el suelo y tratan las aguas grises antes de su infiltración."
+      }
+    ]
+  },
+
+  // 7. PLANIMETRÍA TÉCNICA
   blueprints: [
     {
       id: "masterplan-reubicacion",

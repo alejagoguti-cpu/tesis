@@ -8,18 +8,26 @@ import {
   Info, 
   Layers,
   Compass,
-  ArrowUpRight
+  ArrowUpRight,
+  Home,
+  GraduationCap
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 import L from 'leaflet';
 
-// Fix Leaflet marker icons in Vite/React
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
+// Fix Leaflet marker icons safely in Vite/React
+if (typeof window !== 'undefined' && L && L.Icon && L.Icon.Default && L.Icon.Default.prototype) {
+  try {
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    });
+  } catch (e) {
+    // safe fallback
+  }
+}
 
 export default function DiagnosisMap() {
   const mapContainerRef = useRef(null);
@@ -161,8 +169,9 @@ export default function DiagnosisMap() {
         {/* 3 Pillars of Problem */}
         <div className="grid md:grid-cols-3 gap-6">
           {projectInfo.diagnosis.points.map((point) => {
-            const isErosion = point.id === 'erosion';
             const isWater = point.id === 'agua';
+            const isHousing = point.id === 'vivienda';
+            const isEducation = point.id === 'educacion';
             return (
               <div
                 key={point.id}
@@ -172,12 +181,13 @@ export default function DiagnosisMap() {
                   <div className="flex items-center justify-between">
                     <div className={`p-3 rounded-xl ${
                       isWater ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
-                      isErosion ? 'bg-red-500/10 text-red-600 dark:text-red-400' :
+                      isHousing ? 'bg-red-500/10 text-red-600 dark:text-red-400' :
                       'bg-caribbean-500/10 text-caribbean-600 dark:text-caribbean-400'
                     }`}>
                       {isWater && <Droplets className="w-6 h-6" />}
-                      {isErosion && <Waves className="w-6 h-6" />}
-                      {!isWater && !isErosion && <AlertTriangle className="w-6 h-6" />}
+                      {isHousing && <Home className="w-6 h-6" />}
+                      {isEducation && <GraduationCap className="w-6 h-6" />}
+                      {!isWater && !isHousing && !isEducation && <AlertTriangle className="w-6 h-6" />}
                     </div>
                     <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-architectural-100 dark:bg-architectural-800 text-architectural-600 dark:text-architectural-300 font-semibold">
                       {point.badge}
