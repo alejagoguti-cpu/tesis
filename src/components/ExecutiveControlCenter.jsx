@@ -93,6 +93,14 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
               <Map className="w-4 h-4" />
               <span>Cartografía & Riesgo</span>
             </button>
+
+            <button
+              onClick={() => onSelectModule('simulations')}
+              className="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-mono font-semibold border border-amber-500/30 transition-all"
+            >
+              <Activity className="w-4 h-4" />
+              <span>Simuladores Dinámicos (Lab 08)</span>
+            </button>
           </div>
 
         </div>

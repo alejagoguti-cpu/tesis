@@ -284,6 +284,7 @@ export const projectInfo = {
     { id: "bioclimatic", number: "04", title: "Estrategia Bioclimática", icon: "Wind", badge: "Sostenible", desc: "Vientos alisios N-NE, aleros 2.5m y celosías BTC" },
     { id: "3dviewer", number: "05", title: "Visor 3D WebGL / BIM", icon: "Box", badge: "Interactivo", desc: "Equipamiento, Vivienda, Masterplan + Despiece & Speckle" },
     { id: "cad", number: "06", title: "Planimetría CAD & Plotter", icon: "Printer", badge: "Vectorial", desc: "Pliegos DIN A1, cotas, cianotipo e impresión técnica" },
-    { id: "water", number: "07", title: "Soberanía Hídrica", icon: "Droplets", badge: "Hidráulico", desc: "Aljibe 450.000 L, filtrado en 5 fases y solar UV" }
+    { id: "water", number: "07", title: "Soberanía Hídrica", icon: "Droplets", badge: "Hidráulico", desc: "Aljibe 450.000 L, filtrado en 5 fases y solar UV" },
+    { id: "simulations", number: "08", title: "Laboratorio de Simulaciones", icon: "Activity", badge: "Modelamiento", desc: "Simuladores dinámicos de cambio climático, balance hídrico y perturbación" }
   ]
 };

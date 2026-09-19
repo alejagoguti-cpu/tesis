@@ -8,6 +8,7 @@ import {
   Box,
   Printer,
   Droplets,
+  Activity,
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
@@ -30,7 +31,8 @@ const iconMap = {
   Wind,
   Box,
   Printer,
-  Droplets
+  Droplets,
+  Activity
 };
 
 export default function DashboardSidebar({
