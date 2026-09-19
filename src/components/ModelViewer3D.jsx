@@ -13,11 +13,15 @@ import {
   Link, 
   ExternalLink,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  Home,
+  GraduationCap,
+  Compass
 } from 'lucide-react';
 
 export default function ModelViewer3D() {
   const mountRef = useRef(null);
+  const [selected3DModel, setSelected3DModel] = useState('colegio'); // 'colegio' | 'vivienda' | 'masterplan'
   const [wireframe, setWireframe] = useState(false);
   const [explodedView, setExplodedView] = useState(false);
   const [sunIntensity, setSunIntensity] = useState(1.2);
@@ -37,6 +41,7 @@ export default function ModelViewer3D() {
   const sceneRef = useRef(null);
   const cameraRef = useRef(null);
   const rendererRef = useRef(null);
+  const currentModelGroupRef = useRef(null);
   const objectsRef = useRef({
     roof: null,
     structure: null,
@@ -45,6 +50,269 @@ export default function ModelViewer3D() {
     dirLight: null,
   });
 
+  // Re-build 3D Model whenever selected3DModel changes
+  const buildModel = (modelType) => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+
+    // Remove existing model group if any
+    if (currentModelGroupRef.current) {
+      scene.remove(currentModelGroupRef.current);
+      currentModelGroupRef.current = null;
+    }
+
+    const modelGroup = new THREE.Group();
+    objectsRef.current.roof = null;
+    objectsRef.current.structure = null;
+    objectsRef.current.cistern = null;
+    objectsRef.current.louvers = null;
+
+    // =========================================================================
+    // MODEL 1: EQUIPAMIENTO EDUCATIVO & DISPENSARIO HÍDRICO (350 Estudiantes)
+    // =========================================================================
+    if (modelType === 'colegio') {
+      // A. Cisterna Subterránea (450.000 L)
+      const cisternGeo = new THREE.BoxGeometry(14, 3, 9);
+      const cisternMat = new THREE.MeshStandardMaterial({
+        color: 0x0284c7,
+        transparent: true,
+        opacity: 0.85,
+        roughness: 0.2,
+        metalness: 0.4,
+      });
+      const cisternMesh = new THREE.Mesh(cisternGeo, cisternMat);
+      cisternMesh.position.set(0, -1.5, 0);
+      cisternMesh.castShadow = true;
+      cisternMesh.receiveShadow = true;
+      modelGroup.add(cisternMesh);
+      objectsRef.current.cistern = cisternMesh;
+
+      // B. Plataforma / Losa Cívica Nivel +0.00
+      const slabGeo = new THREE.BoxGeometry(22, 0.4, 15);
+      const slabMat = new THREE.MeshStandardMaterial({ color: 0xdce1e7, roughness: 0.8 });
+      const slabMesh = new THREE.Mesh(slabGeo, slabMat);
+      slabMesh.position.set(0, 0.2, 0);
+      slabMesh.castShadow = true;
+      slabMesh.receiveShadow = true;
+      modelGroup.add(slabMesh);
+
+      // C. Aulas & Volúmenes de Concreto / BTC
+      const classroomsGroup = new THREE.Group();
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0xf3f4f6, roughness: 0.9 });
+      
+      // Bloque Aulas Izquierda (1-3)
+      const leftWing = new THREE.Mesh(new THREE.BoxGeometry(6, 3.6, 12), wallMat);
+      leftWing.position.set(-7, 2.0, 0);
+      leftWing.castShadow = true;
+      classroomsGroup.add(leftWing);
+
+      // Bloque Talleres / Comedor Derecha
+      const rightWing = new THREE.Mesh(new THREE.BoxGeometry(6, 3.6, 12), wallMat);
+      rightWing.position.set(7, 2.0, 0);
+      rightWing.castShadow = true;
+      classroomsGroup.add(rightWing);
+
+      modelGroup.add(classroomsGroup);
+
+      // D. Estructura de Madera / Pórticos Centrales
+      const structureGroup = new THREE.Group();
+      const timberMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.6 });
+      const colGeo = new THREE.BoxGeometry(0.35, 5.2, 0.35);
+
+      const colPositions = [
+        [-3, 2.8, -6], [0, 2.8, -6], [3, 2.8, -6],
+        [-3, 2.8, 0],  [0, 2.8, 0],  [3, 2.8, 0],
+        [-3, 2.8, 6],  [0, 2.8, 6],  [3, 2.8, 6],
+      ];
+      colPositions.forEach(pos => {
+        const col = new THREE.Mesh(colGeo, timberMat);
+        col.position.set(pos[0], pos[1], pos[2]);
+        col.castShadow = true;
+        structureGroup.add(col);
+      });
+      modelGroup.add(structureGroup);
+      objectsRef.current.structure = structureGroup;
+
+      // E. Celosías de Arcilla / Louvers
+      const louversGroup = new THREE.Group();
+      const louverMat = new THREE.MeshStandardMaterial({ color: 0xd97736, roughness: 0.7 });
+      for (let i = 0; i < 10; i++) {
+        const louver = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.8, 0.8), louverMat);
+        louver.position.set(-3.9, 2.2, -4.5 + i * 1.0);
+        louver.castShadow = true;
+        louversGroup.add(louver);
+      }
+      modelGroup.add(louversGroup);
+      objectsRef.current.louvers = louversGroup;
+
+      // F. Cubierta en Mariposa (Captación Pluvial 1.850 m²)
+      const roofGroup = new THREE.Group();
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0x1e9fa8, metalness: 0.4, roughness: 0.3 });
+      
+      const wingNorth = new THREE.Mesh(new THREE.BoxGeometry(24, 0.3, 8), roofMat);
+      wingNorth.position.set(0, 5.8, -4);
+      wingNorth.rotation.x = 0.18;
+      wingNorth.castShadow = true;
+      roofGroup.add(wingNorth);
+
+      const wingSouth = new THREE.Mesh(new THREE.BoxGeometry(24, 0.3, 8), roofMat);
+      wingSouth.position.set(0, 5.8, 4);
+      wingSouth.rotation.x = -0.18;
+      wingSouth.castShadow = true;
+      roofGroup.add(wingSouth);
+
+      // Canal central de drenaje
+      const canal = new THREE.Mesh(new THREE.BoxGeometry(24, 0.35, 0.8), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8 }));
+      canal.position.set(0, 5.15, 0);
+      roofGroup.add(canal);
+
+      modelGroup.add(roofGroup);
+      objectsRef.current.roof = roofGroup;
+    }
+
+    // =========================================================================
+    // MODEL 2: PROTOTIPO DE VIVIENDA RESILIENTE (54 m² - 86 m²)
+    // =========================================================================
+    else if (modelType === 'vivienda') {
+      // A. Pilotes Palafíticos (+0.60m sobre terreno)
+      const stiltsGroup = new THREE.Group();
+      const stiltMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
+      const stiltGeo = new THREE.CylinderGeometry(0.2, 0.2, 1.2, 16);
+
+      const stiltCoords = [
+        [-5, 0.6, -3.5], [-1.5, 0.6, -3.5], [2, 0.6, -3.5], [5.5, 0.6, -3.5],
+        [-5, 0.6, 0],    [-1.5, 0.6, 0],    [2, 0.6, 0],    [5.5, 0.6, 0],
+        [-5, 0.6, 3.5],  [-1.5, 0.6, 3.5],  [2, 0.6, 3.5],  [5.5, 0.6, 3.5],
+      ];
+      stiltCoords.forEach(pos => {
+        const stilt = new THREE.Mesh(stiltGeo, stiltMat);
+        stilt.position.set(pos[0], pos[1], pos[2]);
+        stilt.castShadow = true;
+        stiltsGroup.add(stilt);
+      });
+      modelGroup.add(stiltsGroup);
+
+      // B. Deck / Plataforma de Madera Elevada (54m² base + terraza)
+      const deckMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(11.5, 0.3, 8),
+        new THREE.MeshStandardMaterial({ color: 0x9a6b43, roughness: 0.7 })
+      );
+      deckMesh.position.set(0, 1.35, 0);
+      deckMesh.castShadow = true;
+      deckMesh.receiveShadow = true;
+      modelGroup.add(deckMesh);
+
+      // C. Paredes Modulares en Madera & BTC
+      const housingWalls = new THREE.Group();
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.8 });
+
+      // Módulo Habitaciones y Estar (54 m²)
+      const mainVolume = new THREE.Mesh(new THREE.BoxGeometry(7, 2.8, 6.5), wallMat);
+      mainVolume.position.set(-1.5, 2.9, 0);
+      mainVolume.castShadow = true;
+      housingWalls.add(mainVolume);
+
+      // Módulo de Expansión Progresiva (Taller / 2da Etapa +32m²)
+      const expVolume = new THREE.Mesh(
+        new THREE.BoxGeometry(3.5, 2.6, 5),
+        new THREE.MeshStandardMaterial({ color: 0xd97736, transparent: true, opacity: 0.75, roughness: 0.6 })
+      );
+      expVolume.position.set(3.8, 2.8, 0);
+      expVolume.castShadow = true;
+      housingWalls.add(expVolume);
+
+      modelGroup.add(housingWalls);
+      objectsRef.current.structure = housingWalls;
+
+      // D. Pórtico de Sombra & Celosías
+      const louversGroup = new THREE.Group();
+      const louverMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.7 });
+      for (let i = 0; i < 6; i++) {
+        const bar = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.4, 0.4), louverMat);
+        bar.position.set(-1.5, 2.7, 3.4 + i * 0.1);
+        bar.rotation.y = 0.4;
+        louversGroup.add(bar);
+      }
+      modelGroup.add(louversGroup);
+      objectsRef.current.louvers = louversGroup;
+
+      // E. Tanque Aljibe Doméstico (2.500 L)
+      const tankGroup = new THREE.Group();
+      const tankGeo = new THREE.CylinderGeometry(0.9, 0.9, 2.2, 24);
+      const tankMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.5, roughness: 0.3 });
+      const tank = new THREE.Mesh(tankGeo, tankMat);
+      tank.position.set(4.5, 2.5, -2.8);
+      tank.castShadow = true;
+      tankGroup.add(tank);
+      modelGroup.add(tankGroup);
+      objectsRef.current.cistern = tankGroup;
+
+      // F. Cubierta Inclinada Captadora de Vivienda
+      const roofGroup = new THREE.Group();
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0x0f766e, metalness: 0.4, roughness: 0.3 });
+      const roofSlab = new THREE.Mesh(new THREE.BoxGeometry(13, 0.2, 9), roofMat);
+      roofSlab.position.set(0, 4.7, 0);
+      roofSlab.rotation.z = -0.12; // Pendiente hacia canaleta del tanque
+      roofSlab.castShadow = true;
+      roofGroup.add(roofSlab);
+      modelGroup.add(roofGroup);
+      objectsRef.current.roof = roofGroup;
+    }
+
+    // =========================================================================
+    // MODEL 3: MASTERPLAN URBANO / ASENTAMIENTO MESETA (+22m)
+    // =========================================================================
+    else if (modelType === 'masterplan') {
+      // Topografía de Meseta Central (+22m)
+      const plateauGeo = new THREE.CylinderGeometry(26, 28, 2, 32);
+      const plateauMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
+      const plateau = new THREE.Mesh(plateauGeo, plateauMat);
+      plateau.position.set(0, -1, 0);
+      plateau.receiveShadow = true;
+      modelGroup.add(plateau);
+
+      // Central School Hub (Colegio)
+      const schoolHub = new THREE.Mesh(
+        new THREE.BoxGeometry(10, 2.5, 7),
+        new THREE.MeshStandardMaterial({ color: 0x1e9fa8, roughness: 0.4, metalness: 0.3 })
+      );
+      schoolHub.position.set(0, 1.25, 0);
+      schoolHub.castShadow = true;
+      modelGroup.add(schoolHub);
+      objectsRef.current.structure = schoolHub;
+
+      // 120 Houses Clusters Simulation
+      const housesGroup = new THREE.Group();
+      const houseGeo = new THREE.BoxGeometry(2.2, 1.2, 1.8);
+      const houseMat = new THREE.MeshStandardMaterial({ color: 0xd97736, roughness: 0.7 });
+
+      const ringCount = 20;
+      for (let i = 0; i < ringCount; i++) {
+        const angle = (i / ringCount) * Math.PI * 2;
+        const radius = 13 + (i % 2) * 5;
+        const house = new THREE.Mesh(houseGeo, houseMat);
+        house.position.set(Math.cos(angle) * radius, 0.6, Math.sin(angle) * radius);
+        house.rotation.y = -angle;
+        house.castShadow = true;
+        housesGroup.add(house);
+      }
+      modelGroup.add(housesGroup);
+      objectsRef.current.louvers = housesGroup;
+
+      // Aljibe central bajo plaza
+      const tankGeo = new THREE.CylinderGeometry(3.5, 3.5, 1.8, 32);
+      const tankMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, transparent: true, opacity: 0.8 });
+      const mainCistern = new THREE.Mesh(tankGeo, tankMat);
+      mainCistern.position.set(0, 0, -6.5);
+      modelGroup.add(mainCistern);
+      objectsRef.current.cistern = mainCistern;
+    }
+
+    scene.add(modelGroup);
+    currentModelGroupRef.current = modelGroup;
+  };
+
+  // Initialize Three.js WebGL Scene
   useEffect(() => {
     if (!mountRef.current) return;
 
@@ -85,117 +353,22 @@ export default function ModelViewer3D() {
     objectsRef.current.dirLight = dirLight;
 
     // 5. Grid Helper & Ground Plane
-    const gridHelper = new THREE.GridHelper(40, 40, 0x1e9fa8, 0x273543);
+    const gridHelper = new THREE.GridHelper(50, 50, 0x1e9fa8, 0x273543);
     gridHelper.position.y = -0.05;
     scene.add(gridHelper);
 
-    const groundGeo = new THREE.PlaneGeometry(60, 60);
-    const groundMat = new THREE.MeshStandardMaterial({
-      color: 0x141a21,
-      roughness: 0.9,
-      metalness: 0.1,
-    });
+    const groundGeo = new THREE.PlaneGeometry(80, 80);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x141a21, roughness: 0.9, metalness: 0.1 });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.06;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // 6. BUILD PARAMETRIC MODEL (Tierrabomba Community Hub)
-    const buildingGroup = new THREE.Group();
+    // Build initial model
+    buildModel(selected3DModel);
 
-    // A. Foundation & Underground Cistern (Tanque Aljibe 450m³)
-    const cisternGeo = new THREE.BoxGeometry(10, 3, 7);
-    const cisternMat = new THREE.MeshStandardMaterial({
-      color: 0x0284c7,
-      transparent: true,
-      opacity: 0.85,
-      roughness: 0.2,
-      metalness: 0.3,
-    });
-    const cisternMesh = new THREE.Mesh(cisternGeo, cisternMat);
-    cisternMesh.position.set(0, -1.5, 0);
-    cisternMesh.castShadow = true;
-    cisternMesh.receiveShadow = true;
-    buildingGroup.add(cisternMesh);
-    objectsRef.current.cistern = cisternMesh;
-
-    // B. Floor Slab & Platform (Cota +0.00)
-    const slabGeo = new THREE.BoxGeometry(16, 0.4, 12);
-    const slabMat = new THREE.MeshStandardMaterial({ color: 0xdce1e7, roughness: 0.8 });
-    const slabMesh = new THREE.Mesh(slabGeo, slabMat);
-    slabMesh.position.set(0, 0.2, 0);
-    slabMesh.castShadow = true;
-    slabMesh.receiveShadow = true;
-    buildingGroup.add(slabMesh);
-
-    // C. Structural Timber Columns / Portals
-    const columnsGroup = new THREE.Group();
-    const colGeo = new THREE.BoxGeometry(0.35, 4.5, 0.35);
-    const colMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.6 });
-
-    const colPositions = [
-      [-6, 2.45, -4.5], [-2, 2.45, -4.5], [2, 2.45, -4.5], [6, 2.45, -4.5],
-      [-6, 2.45, 0],    [-2, 2.45, 0],    [2, 2.45, 0],    [6, 2.45, 0],
-      [-6, 2.45, 4.5],  [-2, 2.45, 4.5],  [2, 2.45, 4.5],  [6, 2.45, 4.5],
-    ];
-    colPositions.forEach(pos => {
-      const col = new THREE.Mesh(colGeo, colMat);
-      col.position.set(pos[0], pos[1], pos[2]);
-      col.castShadow = true;
-      columnsGroup.add(col);
-    });
-    buildingGroup.add(columnsGroup);
-    objectsRef.current.structure = columnsGroup;
-
-    // D. Architectural Louvers / Celosías de Arcilla
-    const louversGroup = new THREE.Group();
-    const louverMat = new THREE.MeshStandardMaterial({ color: 0xd97736, roughness: 0.7 });
-    for (let i = 0; i < 8; i++) {
-      const wallBlock = new THREE.Mesh(new THREE.BoxGeometry(0.2, 3.2, 0.8), louverMat);
-      wallBlock.position.set(-6, 1.8, -3.5 + i * 1.0);
-      wallBlock.castShadow = true;
-      louversGroup.add(wallBlock);
-    }
-    buildingGroup.add(louversGroup);
-    objectsRef.current.louvers = louversGroup;
-
-    // E. Rain-Harvesting Butterfly / Inverted Roof (Cubierta Captadora Pluvial)
-    const roofGroup = new THREE.Group();
-    const roofWingGeo = new THREE.BoxGeometry(18, 0.25, 7);
-    const roofMat = new THREE.MeshStandardMaterial({
-      color: 0x1e9fa8,
-      metalness: 0.4,
-      roughness: 0.3,
-    });
-
-    // North wing
-    const northWing = new THREE.Mesh(roofWingGeo, roofMat);
-    northWing.position.set(0, 5.2, -3.2);
-    northWing.rotation.x = 0.15; // Slope towards center
-    northWing.castShadow = true;
-    roofGroup.add(northWing);
-
-    // South wing
-    const southWing = new THREE.Mesh(roofWingGeo, roofMat);
-    southWing.position.set(0, 5.2, 3.2);
-    southWing.rotation.x = -0.15; // Slope towards center
-    southWing.castShadow = true;
-    roofGroup.add(southWing);
-
-    // Central gutter / canal central
-    const gutterGeo = new THREE.BoxGeometry(18, 0.3, 0.6);
-    const gutterMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8 });
-    const gutter = new THREE.Mesh(gutterGeo, gutterMat);
-    gutter.position.set(0, 4.75, 0);
-    roofGroup.add(gutter);
-
-    buildingGroup.add(roofGroup);
-    objectsRef.current.roof = roofGroup;
-
-    scene.add(buildingGroup);
-
-    // 7. Mouse Orbit Controls (Native smooth implementation)
+    // 6. Smooth Mouse Orbit Controls
     let isDragging = false;
     let previousMousePosition = { x: 0, y: 0 };
     let spherical = { radius: 36, theta: 0.8, phi: 1.1 };
@@ -231,7 +404,7 @@ export default function ModelViewer3D() {
 
     const onWheel = (e) => {
       e.preventDefault();
-      spherical.radius = Math.max(12, Math.min(60, spherical.radius + e.deltaY * 0.03));
+      spherical.radius = Math.max(10, Math.min(70, spherical.radius + e.deltaY * 0.03));
       updateCameraPosition();
     };
 
@@ -249,11 +422,10 @@ export default function ModelViewer3D() {
     };
     animate();
 
-    // Window resize handler
     const handleResize = () => {
-      if (!mountRef.current) return;
-      const w = mountRef.current.clientWidth;
-      const h = mountRef.current.clientHeight;
+      if (!mountRef.current || !renderer || !camera) return;
+      const w = mountRef.current.clientWidth || 800;
+      const h = mountRef.current.clientHeight || 540;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
@@ -271,6 +443,12 @@ export default function ModelViewer3D() {
     };
   }, []);
 
+  // Update model when selected3DModel changes
+  useEffect(() => {
+    buildModel(selected3DModel);
+    setExplodedView(false);
+  }, [selected3DModel]);
+
   // Update Wireframe mode
   useEffect(() => {
     if (!sceneRef.current) return;
@@ -285,16 +463,13 @@ export default function ModelViewer3D() {
   useEffect(() => {
     const roof = objectsRef.current.roof;
     const cistern = objectsRef.current.cistern;
-    if (!roof || !cistern) return;
-
-    if (explodedView) {
-      roof.position.y = 3.5;
-      cistern.position.y = -3.5;
-    } else {
-      roof.position.y = 0;
-      cistern.position.y = 0;
+    if (roof) {
+      roof.position.y = explodedView ? (selected3DModel === 'colegio' ? 8.5 : 7.2) : (selected3DModel === 'colegio' ? 0 : 0);
     }
-  }, [explodedView]);
+    if (cistern) {
+      cistern.position.y = explodedView ? (selected3DModel === 'colegio' ? -4.5 : 0.5) : (selected3DModel === 'colegio' ? 0 : 0);
+    }
+  }, [explodedView, selected3DModel]);
 
   // Update Layers Visibility
   useEffect(() => {
@@ -330,54 +505,88 @@ export default function ModelViewer3D() {
       {/* Background glow */}
       <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-caribbean-500/10 blur-[150px] rounded-full pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-3">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-caribbean-500/20 text-caribbean-300 text-xs font-semibold border border-caribbean-400/30">
               <Layers className="w-3.5 h-3.5" />
-              <span>Entorno 3D & Modelo BIM</span>
+              <span>Visor 3D de Arquitectura & BIM</span>
             </div>
             <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-white tracking-tight">
-              Visor Interactivo del Proyecto
+              Modelos 3D del Proyecto: Equipamiento & Viviendas
             </h2>
             <p className="text-architectural-400 text-sm max-w-2xl">
-              Navega la maqueta digital del equipamiento comunitario: realiza órbita (click y arrastra), zoom (rueda del ratón) y controla el despiece estructural y la simulación solar.
+              Inspecciona en 360° la volumetría del <b>Equipamiento Educativo</b>, el <b>Prototipo de Vivienda Resiliente</b> o el <b>Masterplan</b>. Puedes realizar despiece estructural, simular soleamiento o conectar tu archivo Revit.
             </p>
           </div>
 
-          {/* Tab navigation between Native 3D, Speckle / Revit Stream and Guide */}
-          <div className="flex items-center p-1 rounded-2xl bg-architectural-900 border border-architectural-800 self-start">
+          {/* Model Switcher Buttons: Colegio / Vivienda / Masterplan */}
+          <div className="flex flex-wrap items-center p-1.5 rounded-2xl bg-architectural-900 border border-architectural-800 self-start gap-1">
             <button
-              onClick={() => setActiveTab('interactive')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === 'interactive' 
-                  ? 'bg-caribbean-600 text-white shadow-md' 
+              onClick={() => setSelected3DModel('colegio')}
+              className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                selected3DModel === 'colegio'
+                  ? 'bg-caribbean-600 text-white shadow-md'
                   : 'text-architectural-400 hover:text-white'
               }`}
             >
-              Visor 3D WebGL
+              <GraduationCap className="w-4 h-4" />
+              <span>1. Equipamiento Educativo</span>
+            </button>
+            <button
+              onClick={() => setSelected3DModel('vivienda')}
+              className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                selected3DModel === 'vivienda'
+                  ? 'bg-caribbean-600 text-white shadow-md'
+                  : 'text-architectural-400 hover:text-white'
+              }`}
+            >
+              <Home className="w-4 h-4" />
+              <span>2. Vivienda Resiliente</span>
+            </button>
+            <button
+              onClick={() => setSelected3DModel('masterplan')}
+              className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                selected3DModel === 'masterplan'
+                  ? 'bg-caribbean-600 text-white shadow-md'
+                  : 'text-architectural-400 hover:text-white'
+              }`}
+            >
+              <Compass className="w-4 h-4" />
+              <span>3. Masterplan (+22m)</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Sub-navigation tabs: 3D WebGL vs Conectar Revit/Speckle vs Guía */}
+        <div className="flex items-center justify-between border-b border-architectural-800 pb-3">
+          <div className="flex items-center space-x-3 text-xs font-mono text-caribbean-400">
+            <span className="w-2 h-2 rounded-full bg-caribbean-400 animate-pulse" />
+            <span>
+              {selected3DModel === 'colegio' && 'Visualizando: Complejo Pedagógico & Aljibe 450.000 L'}
+              {selected3DModel === 'vivienda' && 'Visualizando: Prototipo Vivienda Palafítica 54m² - 86m²'}
+              {selected3DModel === 'masterplan' && 'Visualizando: Conjunto Urbano 120 Viviendas + Colegio'}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setActiveTab('interactive')}
+              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                activeTab === 'interactive' ? 'bg-architectural-800 text-white' : 'text-architectural-500 hover:text-architectural-300'
+              }`}
+            >
+              Visor 3D
             </button>
             <button
               onClick={() => setActiveTab('speckle')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === 'speckle' 
-                  ? 'bg-caribbean-600 text-white shadow-md' 
-                  : 'text-architectural-400 hover:text-white'
+              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                activeTab === 'speckle' ? 'bg-architectural-800 text-white' : 'text-architectural-500 hover:text-architectural-300'
               }`}
             >
-              Conectar Revit / Speckle
-            </button>
-            <button
-              onClick={() => setActiveTab('guide')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === 'guide' 
-                  ? 'bg-caribbean-600 text-white shadow-md' 
-                  : 'text-architectural-400 hover:text-white'
-              }`}
-            >
-              Guía de Integración
+              Conectar Revit
             </button>
           </div>
         </div>
@@ -392,9 +601,13 @@ export default function ModelViewer3D() {
 
             {/* Viewport Floating Top Bar */}
             <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-              <div className="flex items-center space-x-2 bg-architectural-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-architectural-800 pointer-events-auto text-xs font-mono">
+              <div className="flex items-center space-x-2 bg-architectural-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-architectural-800 pointer-events-auto text-xs font-mono">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-architectural-300">Equipamiento Educativo + Aljibe 450m³</span>
+                <span className="text-architectural-200">
+                  {selected3DModel === 'colegio' && 'Equipamiento Educativo Bioclimático'}
+                  {selected3DModel === 'vivienda' && 'Prototipo Vivienda Resiliente (+0.60m)'}
+                  {selected3DModel === 'masterplan' && 'Masterplan Asentamiento Seguro'}
+                </span>
               </div>
 
               <div className="flex items-center space-x-2 pointer-events-auto">
@@ -421,7 +634,7 @@ export default function ModelViewer3D() {
             {/* Viewport Floating Bottom Navigation Hint */}
             <div className="absolute bottom-4 left-4 pointer-events-none">
               <div className="bg-architectural-950/75 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-architectural-800 text-[11px] text-architectural-400 flex items-center space-x-3">
-                <span>🖱️ <b>Click izquierdo:</b> Rotar</span>
+                <span>🖱️ <b>Click izquierdo:</b> Rotar 360°</span>
                 <span>🔍 <b>Scroll:</b> Zoom</span>
               </div>
             </div>
@@ -445,16 +658,16 @@ export default function ModelViewer3D() {
                     : 'bg-architectural-800 hover:bg-architectural-700 text-white border border-architectural-700'
                 }`}
               >
-                {explodedView ? 'Colapsar Modelo' : 'Despiezar Cubierta & Aljibe'}
+                {explodedView ? 'Colapsar Modelo' : 'Despiezar Estructura'}
               </button>
               <p className="text-[11px] text-architectural-400 leading-tight">
-                Separa verticalmente la cubierta captadora y la cisterna subterránea para inspeccionar el interior.
+                Separa los elementos constructivos (cubierta, cerramientos, aljibe) para observar la espacialidad interna.
               </p>
             </div>
 
             {/* Layer Visibility Filters */}
             <div className="p-5 rounded-2xl bg-architectural-900/90 border border-architectural-800 space-y-3">
-              <span className="text-xs font-bold font-mono text-architectural-300 uppercase block">Capas del Proyecto</span>
+              <span className="text-xs font-bold font-mono text-architectural-300 uppercase block">Capas del Modelo</span>
               <div className="space-y-2">
                 
                 <button
@@ -477,7 +690,7 @@ export default function ModelViewer3D() {
                       : 'bg-architectural-950 text-architectural-500 border border-architectural-800 line-through'
                   }`}
                 >
-                  <span>Estructura de Madera</span>
+                  <span>Estructura / Módulos</span>
                   {activeLayers.structure ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                 </button>
 
@@ -501,7 +714,7 @@ export default function ModelViewer3D() {
                       : 'bg-architectural-950 text-architectural-500 border border-architectural-800 line-through'
                   }`}
                 >
-                  <span>Aljibe Subterráneo 450m³</span>
+                  <span>Sistema Hídrico (Aljibes)</span>
                   {activeLayers.cistern ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                 </button>
 
@@ -538,10 +751,10 @@ export default function ModelViewer3D() {
         <div className={activeTab === 'speckle' ? 'p-8 rounded-3xl bg-architectural-900 border border-architectural-800 space-y-6' : 'hidden'}>
           <div className="max-w-2xl space-y-2">
             <h3 className="font-display font-bold text-2xl text-white">
-              Incrustar tu Modelo Directo desde Revit
+              Incrustar tu Archivo Revit (.rvt)
             </h3>
             <p className="text-sm text-architectural-400">
-              Puedes enlazar tu modelo exportado desde Revit con **Speckle** o **Autodesk Platform Services**. Pega el enlace público de tu modelo a continuación para verlo aquí mismo:
+              Pega el enlace público de tu modelo exportado desde Revit con **Speckle** o **Autodesk Platform Services** para renderizarlo directamente:
             </p>
           </div>
 
@@ -583,46 +796,11 @@ export default function ModelViewer3D() {
                 </div>
                 <h4 className="font-semibold text-white text-sm">Esperando enlace de Revit / Speckle</h4>
                 <p className="text-xs text-architectural-400">
-                  Pega el enlace de tu stream o presiona el botón "Cargar Modelo Demo" para ver cómo se renderiza tu proyecto.
+                  Pega el enlace de tu stream o presiona el botón "Cargar Modelo Demo" para visualizar tu proyecto.
                 </p>
               </div>
             )}
           </div>
-        </div>
-
-        {/* Tab 3: Step by Step Guide for Revit Export */}
-        <div className={activeTab === 'guide' ? 'grid md:grid-cols-3 gap-6' : 'hidden'}>
-          
-          <div className="p-6 rounded-2xl bg-architectural-900 border border-architectural-800 space-y-4">
-            <div className="w-8 h-8 rounded-xl bg-caribbean-500/20 text-caribbean-300 flex items-center justify-center font-mono font-bold text-sm">
-              1
-            </div>
-            <h4 className="font-display font-bold text-lg text-white">Instalar Conector Speckle en Revit</h4>
-            <p className="text-xs text-architectural-400 leading-relaxed">
-              Descarga el instalador gratuito de <b>Speckle Manager</b> e instala el plugin para tu versión de Autodesk Revit (2022, 2023, 2024 o 2025).
-            </p>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-architectural-900 border border-architectural-800 space-y-4">
-            <div className="w-8 h-8 rounded-xl bg-caribbean-500/20 text-caribbean-300 flex items-center justify-center font-mono font-bold text-sm">
-              2
-            </div>
-            <h4 className="font-display font-bold text-lg text-white">Enviar Modelo (Send to Stream)</h4>
-            <p className="text-xs text-architectural-400 leading-relaxed">
-              Abre tu archivo <code className="text-caribbean-300 font-mono">.rvt</code>, selecciona la vista 3D que deseas exportar y haz clic en <b>Send</b> en la pestaña de Speckle.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-architectural-900 border border-architectural-800 space-y-4">
-            <div className="w-8 h-8 rounded-xl bg-caribbean-500/20 text-caribbean-300 flex items-center justify-center font-mono font-bold text-sm">
-              3
-            </div>
-            <h4 className="font-display font-bold text-lg text-white">Copiar Enlace Embebido</h4>
-            <p className="text-xs text-architectural-400 leading-relaxed">
-              En el visor de Speckle web, ve a <b>Compartir &gt; Embeber (Embed)</b>, copia el URL y pégalo en el archivo de datos de esta web. ¡El jurado podrá explorarlo con un clic!
-            </p>
-          </div>
-
         </div>
 
       </div>
