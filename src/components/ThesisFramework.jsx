@@ -35,7 +35,9 @@ import {
   Check,
   MapPin,
   Sliders,
-  Eye
+  Eye,
+  Eraser,
+  RefreshCw
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 import L from 'leaflet';
@@ -83,12 +85,7 @@ export const DEFAULT_DELIMITATIONS = {
     [10.3440, -75.5630],
     [10.3480, -75.5740]
   ],
-  custom: [
-    [10.3600, -75.5800],
-    [10.3620, -75.5700],
-    [10.3550, -75.5680],
-    [10.3520, -75.5780]
-  ]
+  custom: []
 };
 
 export const ZONE_CONFIG = {
@@ -193,7 +190,7 @@ export const FRAMEWORK_STEPS = [
 function calculatePolygonAreaHa(coords) {
   if (!coords || coords.length < 3) return 0;
   let area = 0;
-  const radius = 6378137; // Earth radius in meters
+  const radius = 6378137;
   const degToRad = Math.PI / 180;
 
   for (let i = 0; i < coords.length; i++) {
@@ -203,7 +200,7 @@ function calculatePolygonAreaHa(coords) {
             (2 + Math.sin(p1[0] * degToRad) + Math.sin(p2[0] * degToRad));
   }
   area = Math.abs((area * radius * radius) / 2.0);
-  return Number((area / 10000).toFixed(2)); // convert m² to Hectáreas
+  return Number((area / 10000).toFixed(2));
 }
 
 // Helper: Calculate perimeter or polyline length in km
@@ -230,6 +227,8 @@ export default function ThesisFramework({ onSelectModule }) {
   // =========================================================================
   const [isEditMode, setIsEditMode] = useState(false);
   const [activeZoneKey, setActiveZoneKey] = useState('island'); // 'island' | 'erosion' | 'plateau' | 'custom'
+  const [toolMode, setToolMode] = useState('add'); // 'add' | 'delete' | 'drag'
+  
   const [delimitations, setDelimitations] = useState(() => {
     try {
       const saved = localStorage.getItem('thesis_custom_delimitations');
@@ -247,6 +246,7 @@ export default function ThesisFramework({ onSelectModule }) {
   const [showExportModal, setShowExportModal] = useState(false);
   const [saveToast, setSaveToast] = useState(false);
   const [copyToast, setCopyToast] = useState(false);
+  const [deleteToast, setDeleteToast] = useState(false);
 
   // Map Refs
   const mapRef = useRef(null);
@@ -311,17 +311,8 @@ export default function ThesisFramework({ onSelectModule }) {
       map.invalidateSize();
     }, 150);
 
-    // Click handler for adding nodes in Edit Mode
-    map.on('click', (e) => {
-      // In edit mode, clicking the map appends a new vertex
-      setDelimitations(prev => {
-        // Read isEditMode from current state closure or trigger directly
-        return prev;
-      });
-    });
-
     // 1. Island Perimeter Polygon
-    const islandLayer = L.polygon(delimitations.island, {
+    const islandLayer = L.polygon(delimitations.island || [], {
       color: '#ea580c',
       weight: 3.5,
       dashArray: '8, 8',
@@ -334,7 +325,7 @@ export default function ThesisFramework({ onSelectModule }) {
     });
 
     // 2. Coastal Erosion Line
-    const erosionLayer = L.polyline(delimitations.erosion, {
+    const erosionLayer = L.polyline(delimitations.erosion || [], {
       color: '#dc2626',
       weight: 6,
       opacity: 0.9,
@@ -369,7 +360,7 @@ export default function ThesisFramework({ onSelectModule }) {
     });
 
     // 4. Safe Plateau Polygon (+22m)
-    const masterplanLayer = L.polygon(delimitations.plateau, {
+    const masterplanLayer = L.polygon(delimitations.plateau || [], {
       color: '#0d9488',
       weight: 3.5,
       fillColor: '#0d9488',
@@ -434,6 +425,8 @@ export default function ThesisFramework({ onSelectModule }) {
 
     const onMapClick = (e) => {
       if (!isEditMode) return;
+      if (toolMode !== 'add') return;
+      
       const { lat, lng } = e.latlng;
       const newCoord = [Number(lat.toFixed(5)), Number(lng.toFixed(5))];
       
@@ -450,7 +443,7 @@ export default function ThesisFramework({ onSelectModule }) {
     return () => {
       map.off('click', onMapClick);
     };
-  }, [isEditMode, activeZoneKey]);
+  }, [isEditMode, activeZoneKey, toolMode]);
 
   // =========================================================================
   // 2. SYNCHRONIZE LEAFLET GEOMETRY WITH DELIMITATION STATE
@@ -472,7 +465,7 @@ export default function ThesisFramework({ onSelectModule }) {
   }, [delimitations]);
 
   // =========================================================================
-  // 3. RENDER INTERACTIVE DRAGGABLE NODE HANDLERS IN EDIT MODE
+  // 3. RENDER INTERACTIVE DRAGGABLE & DELETABLE NODE HANDLERS IN EDIT MODE
   // =========================================================================
   useEffect(() => {
     const group = nodeMarkersGroupRef.current;
@@ -491,13 +484,13 @@ export default function ThesisFramework({ onSelectModule }) {
       const nodeIcon = L.divIcon({
         className: 'delimitation-node-handle',
         html: `
-          <div class="relative flex items-center justify-center cursor-grab active:cursor-grabbing group">
-            <div class="absolute -inset-2 rounded-full ${isSelected ? 'bg-amber-400/50 animate-ping' : 'bg-white/30 group-hover:bg-white/50'} transition-colors"></div>
-            <div class="w-7 h-7 rounded-full border-2 border-white shadow-2xl flex items-center justify-center text-white text-[10px] font-mono font-black transition-transform group-hover:scale-125" style="background-color: ${isSelected ? '#f59e0b' : zoneCfg.color}">
-              ${idx + 1}
+          <div class="relative flex items-center justify-center cursor-pointer group">
+            <div class="absolute -inset-2.5 rounded-full ${isSelected ? 'bg-amber-400/60 animate-ping' : toolMode === 'delete' ? 'bg-red-500/40 animate-pulse' : 'bg-white/40 group-hover:bg-white/70'} transition-all"></div>
+            <div class="w-7 h-7 rounded-full border-2 border-white shadow-2xl flex items-center justify-center text-white text-[10px] font-mono font-black transition-transform group-hover:scale-125" style="background-color: ${toolMode === 'delete' ? '#dc2626' : isSelected ? '#f59e0b' : zoneCfg.color}">
+              ${toolMode === 'delete' ? '✕' : (idx + 1)}
             </div>
-            <div class="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap px-1.5 py-0.5 rounded bg-slate-900 text-[9px] text-white font-mono pointer-events-none z-50 shadow-md">
-              Arrastrar o Clic para Borrar
+            <div class="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap px-2 py-0.5 rounded-md bg-slate-900 text-[10px] text-white font-mono pointer-events-none z-50 shadow-xl border border-white/20">
+              ${toolMode === 'delete' ? 'Clic para Borrar Nodo' : 'Arrastra o Clic para Borrar'}
             </div>
           </div>
         `,
@@ -507,8 +500,8 @@ export default function ThesisFramework({ onSelectModule }) {
 
       const marker = L.marker(coord, {
         icon: nodeIcon,
-        draggable: true,
-        zIndexOffset: 1000 + idx
+        draggable: toolMode !== 'delete',
+        zIndexOffset: 2000 + idx
       });
 
       // Drag event updates coordinate in real-time
@@ -525,15 +518,45 @@ export default function ThesisFramework({ onSelectModule }) {
         });
       });
 
-      // Click node to select or remove
+      // Click node handler: delete or select
       marker.on('click', (e) => {
+        // Prevent map click from adding another node!
         L.DomEvent.stopPropagation(e);
-        setSelectedNodeIndex(idx);
+        if (e.originalEvent) e.originalEvent.stopPropagation();
+
+        if (toolMode === 'delete') {
+          // Direct delete
+          setDelimitations(prev => {
+            const zoneCoords = [...(prev[activeZoneKey] || [])];
+            zoneCoords.splice(idx, 1);
+            return { ...prev, [activeZoneKey]: zoneCoords };
+          });
+          setSelectedNodeIndex(null);
+          setDeleteToast(true);
+          setTimeout(() => setDeleteToast(false), 2000);
+        } else {
+          // Select or toggle
+          setSelectedNodeIndex(isSelected ? null : idx);
+        }
+      });
+
+      // Right click immediately deletes node
+      marker.on('contextmenu', (e) => {
+        L.DomEvent.stopPropagation(e);
+        if (e.originalEvent) e.originalEvent.preventDefault();
+        setDelimitations(prev => {
+          const zoneCoords = [...(prev[activeZoneKey] || [])];
+          zoneCoords.splice(idx, 1);
+          return { ...prev, [activeZoneKey]: zoneCoords };
+        });
+        setSelectedNodeIndex(null);
+        setDeleteToast(true);
+        setTimeout(() => setDeleteToast(false), 2000);
       });
 
       group.addLayer(marker);
     });
-  }, [isEditMode, activeZoneKey, delimitations, selectedNodeIndex]);
+  }, [isEditMode, activeZoneKey, delimitations, selectedNodeIndex, toolMode]);
 
   // =========================================================================
   // 4. STEP NAVIGATION & AUTOPLAY (NON-EDIT MODE)
@@ -613,7 +636,7 @@ export default function ThesisFramework({ onSelectModule }) {
   }, [mapLayerType]);
 
   // =========================================================================
-  // 5. EDITOR ACTIONS: ADD, UNDO, CLEAR, RESET, SAVE
+  // 5. EDITOR ACTIONS: ADD, DELETE, CLEAR, RESET, SAVE
   // =========================================================================
   const handleUndoLastNode = () => {
     setDelimitations(prev => {
@@ -624,31 +647,34 @@ export default function ThesisFramework({ onSelectModule }) {
     setSelectedNodeIndex(null);
   };
 
-  const handleRemoveSelectedNode = () => {
-    if (selectedNodeIndex === null) return;
+  const handleRemoveSpecificNode = (nodeIdx) => {
     setDelimitations(prev => {
       const zoneCoords = [...(prev[activeZoneKey] || [])];
-      zoneCoords.splice(selectedNodeIndex, 1);
+      zoneCoords.splice(nodeIdx, 1);
       return { ...prev, [activeZoneKey]: zoneCoords };
     });
-    setSelectedNodeIndex(null);
+    if (selectedNodeIndex === nodeIdx) setSelectedNodeIndex(null);
+    setDeleteToast(true);
+    setTimeout(() => setDeleteToast(false), 2000);
   };
 
-  const handleClearZone = () => {
-    if (window.confirm(`¿Seguro que deseas limpiar todos los nodos de ${activeZoneConfig.name}?`)) {
-      setDelimitations(prev => ({ ...prev, [activeZoneKey]: [] }));
-      setSelectedNodeIndex(null);
-    }
+  const handleClearZoneInstant = () => {
+    // Immediate clear with 1 click - no blocking confirms!
+    setDelimitations(prev => ({
+      ...prev,
+      [activeZoneKey]: []
+    }));
+    setSelectedNodeIndex(null);
+    setDeleteToast(true);
+    setTimeout(() => setDeleteToast(false), 2000);
   };
 
   const handleResetToDefault = () => {
-    if (window.confirm(`¿Restablecer ${activeZoneConfig.name} a las coordenadas iniciales?`)) {
-      setDelimitations(prev => ({
-        ...prev,
-        [activeZoneKey]: DEFAULT_DELIMITATIONS[activeZoneKey] || []
-      }));
-      setSelectedNodeIndex(null);
-    }
+    setDelimitations(prev => ({
+      ...prev,
+      [activeZoneKey]: DEFAULT_DELIMITATIONS[activeZoneKey] || []
+    }));
+    setSelectedNodeIndex(null);
   };
 
   const handleSaveDelimitation = () => {
@@ -673,10 +699,8 @@ export default function ThesisFramework({ onSelectModule }) {
     const coords = delimitations[activeZoneKey] || [];
     const isPoly = activeZoneConfig.type === 'polygon';
     
-    // GeoJSON format uses [longitude, latitude]
     const geoJsonCoords = coords.map(c => [c[1], c[0]]);
     if (isPoly && geoJsonCoords.length > 0) {
-      // close ring
       geoJsonCoords.push([coords[0][1], coords[0][0]]);
     }
 
@@ -711,7 +735,9 @@ export default function ThesisFramework({ onSelectModule }) {
   };
 
   return (
-    <div className={`relative w-full h-screen overflow-hidden animate-fade-in select-none ${isEditMode ? 'cursor-crosshair' : ''}`}>
+    <div className={`relative w-full h-screen overflow-hidden animate-fade-in select-none ${
+      isEditMode ? (toolMode === 'delete' ? 'cursor-not-allowed' : 'cursor-crosshair') : ''
+    }`}>
       
       {/* 1. FULLSCREEN SATELLITE MAP */}
       <div ref={mapRef} className="absolute inset-0 w-full h-full z-0" />
@@ -734,7 +760,7 @@ export default function ThesisFramework({ onSelectModule }) {
                 {isEditMode ? 'EDITOR DE DELIMITACIÓN' : 'MARCO DE TESIS'}
               </span>
               <span className="text-[10px] font-mono text-slate-500 font-bold">
-                {isEditMode ? `${zoneStats.count} Nodos Activos` : `Paso 0${currentStep.step} de 04`}
+                {isEditMode ? `${zoneStats.count} Puntos` : `Paso 0${currentStep.step} de 04`}
               </span>
             </div>
             <h2 className="font-serif font-bold text-xs sm:text-sm text-slate-900 truncate">
@@ -746,7 +772,10 @@ export default function ThesisFramework({ onSelectModule }) {
         {/* Middle Mode Switcher: View Mode vs Edit Mode */}
         <div className="glass-hud p-1.5 rounded-2xl pointer-events-auto flex items-center gap-1.5 self-start md:self-center shadow-xl">
           <button
-            onClick={() => setIsEditMode(!isEditMode)}
+            onClick={() => {
+              setIsEditMode(!isEditMode);
+              setSelectedNodeIndex(null);
+            }}
             className={`inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
               isEditMode
                 ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400/40'
@@ -754,7 +783,7 @@ export default function ThesisFramework({ onSelectModule }) {
             }`}
           >
             <Edit3 className="w-3.5 h-3.5 text-amber-300" />
-            <span>{isEditMode ? 'Modo Edición: Activo' : 'Delimitar con Nodos'}</span>
+            <span>{isEditMode ? 'Cerrar Editor' : 'Delimitar con Nodos'}</span>
           </button>
 
           {!isEditMode && (
@@ -824,13 +853,13 @@ export default function ThesisFramework({ onSelectModule }) {
       {/* 3. NODE DELIMITATION EDITOR TOOLBAR (FLOATING LEFT PANEL IN EDIT MODE)    */}
       {/* ========================================================================= */}
       {isEditMode && (
-        <div className="absolute top-24 left-4 z-[400] glass-panel p-4 rounded-3xl space-y-4 pointer-events-auto text-slate-900 w-80 shadow-2xl animate-scale-up max-h-[calc(100vh-8rem)] overflow-y-auto">
+        <div className="absolute top-24 left-4 z-[400] glass-panel p-4 rounded-3xl space-y-4 pointer-events-auto text-slate-900 w-84 shadow-2xl animate-scale-up max-h-[calc(100vh-8rem)] overflow-y-auto">
           
           <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 rounded-full bg-amber-500 animate-ping" />
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-700">
-                Herramienta de Delimitación 1:1
+                Herramientas de Edición 1:1
               </span>
             </div>
             <button
@@ -840,6 +869,47 @@ export default function ThesisFramework({ onSelectModule }) {
             >
               <X className="w-4 h-4" />
             </button>
+          </div>
+
+          {/* Tool Modes: Add vs Move vs Delete */}
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase block px-1">
+              Modo de Herramienta:
+            </span>
+            <div className="grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-2xl text-xs font-mono">
+              <button
+                onClick={() => setToolMode('add')}
+                className={`py-1.5 px-2 rounded-xl font-bold flex items-center justify-center space-x-1 transition-all ${
+                  toolMode === 'add' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Clic en el mapa añade puntos"
+              >
+                <Plus className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Añadir</span>
+              </button>
+
+              <button
+                onClick={() => setToolMode('drag')}
+                className={`py-1.5 px-2 rounded-xl font-bold flex items-center justify-center space-x-1 transition-all ${
+                  toolMode === 'drag' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Arrastrar puntos existentes"
+              >
+                <Move className="w-3.5 h-3.5 text-blue-400" />
+                <span>Mover</span>
+              </button>
+
+              <button
+                onClick={() => setToolMode('delete')}
+                className={`py-1.5 px-2 rounded-xl font-bold flex items-center justify-center space-x-1 transition-all ${
+                  toolMode === 'delete' ? 'bg-red-600 text-white shadow-sm' : 'text-red-700 hover:bg-red-50'
+                }`}
+                title="Clic en cualquier nodo lo borra"
+              >
+                <Eraser className="w-3.5 h-3.5" />
+                <span>Borrador</span>
+              </button>
+            </div>
           </div>
 
           {/* Zone Selector Pills */}
@@ -879,42 +949,19 @@ export default function ThesisFramework({ onSelectModule }) {
             </div>
           </div>
 
-          {/* Real-time Zone Metrics */}
-          <div className="p-3 rounded-2xl bg-amber-50/90 border border-amber-200/90 space-y-1.5 text-xs font-mono">
-            <div className="flex items-center justify-between text-amber-950 font-bold">
-              <span>{activeZoneConfig.badge}</span>
-              <span className="text-amber-700">{zoneStats.count} Nodos</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              {activeZoneConfig.type === 'polygon' && (
-                <div className="p-2 rounded-xl bg-white border border-amber-200/60 text-center">
-                  <span className="text-[9px] text-slate-500 uppercase block">Área Calculada</span>
-                  <span className="font-bold text-xs text-slate-900">{zoneStats.areaHa} Ha</span>
-                </div>
-              )}
-              <div className="p-2 rounded-xl bg-white border border-amber-200/60 text-center">
-                <span className="text-[9px] text-slate-500 uppercase block">Perímetro / Longitud</span>
-                <span className="font-bold text-xs text-slate-900">{zoneStats.lengthKm} km</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Instructions Box */}
-          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 space-y-1">
-            <div className="font-bold text-slate-800 flex items-center space-x-1 font-mono text-[10px] uppercase">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              <span>Instrucciones de Trazado:</span>
-            </div>
-            <ul className="space-y-1 list-disc list-inside text-[11px] leading-relaxed">
-              <li><b>Clic en el mapa:</b> Añade un nuevo nodo de inmediato.</li>
-              <li><b>Arrastra cualquier punto:</b> Ajusta su posición con precisión.</li>
-              <li><b>Clic en Guardar:</b> Guarda en memoria y exporta JSON.</li>
-            </ul>
-          </div>
-
-          {/* Node Edit Actions */}
+          {/* Quick Clear Actions (NO BLOCKS) */}
           <div className="space-y-2 pt-1 border-t border-slate-200">
             <div className="grid grid-cols-2 gap-1.5">
+              <button
+                onClick={handleClearZoneInstant}
+                disabled={activeNodes.length === 0}
+                className="px-3 py-2 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white text-xs font-mono font-bold flex items-center justify-center space-x-1.5 shadow-sm transition-all hover:scale-102"
+                title="Borra todos los puntos de esta zona para empezar de cero"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Vaciar / Borrar Todo</span>
+              </button>
+
               <button
                 onClick={handleUndoLastNode}
                 disabled={activeNodes.length === 0}
@@ -922,44 +969,67 @@ export default function ThesisFramework({ onSelectModule }) {
                 title="Deshacer el último nodo añadido"
               >
                 <Undo2 className="w-3.5 h-3.5" />
-                <span>Deshacer</span>
-              </button>
-
-              <button
-                onClick={handleRemoveSelectedNode}
-                disabled={selectedNodeIndex === null}
-                className="px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 disabled:opacity-40 text-red-700 border border-red-200 text-xs font-mono font-bold flex items-center justify-center space-x-1.5 transition-colors"
-                title="Borrar nodo seleccionado"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Borrar Nodo</span>
+                <span>Deshacer Último</span>
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-1.5">
               <button
-                onClick={handleClearZone}
-                disabled={activeNodes.length === 0}
-                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-600 text-[11px] font-mono font-bold transition-colors"
+                onClick={handleResetToDefault}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-mono font-bold transition-colors flex items-center justify-center space-x-1"
+                title="Cargar polígono predeterminado"
               >
-                Limpiar Zona
+                <RefreshCw className="w-3 h-3" />
+                <span>Restablecer</span>
               </button>
 
               <button
-                onClick={handleResetToDefault}
-                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-mono font-bold transition-colors"
+                onClick={handleSaveDelimitation}
+                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-mono font-bold transition-colors flex items-center justify-center space-x-1 shadow-sm"
               >
-                Restablecer
+                <Save className="w-3 h-3" />
+                <span>Guardar (Save)</span>
               </button>
             </div>
+          </div>
 
-            <button
-              onClick={handleSaveDelimitation}
-              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold flex items-center justify-center space-x-2 shadow-lg transition-all hover:scale-[1.02]"
-            >
-              <Save className="w-4 h-4" />
-              <span>Guardar Delimitación (Save)</span>
-            </button>
+          {/* Interactive Vertex List (Click trash on any vertex) */}
+          <div className="space-y-1.5 pt-1 border-t border-slate-200">
+            <div className="flex items-center justify-between text-[10px] font-mono font-bold text-slate-500 uppercase px-1">
+              <span>Lista de Vértices ({activeNodes.length}):</span>
+              <span className="text-amber-700">Clic en ✕ para quitar</span>
+            </div>
+
+            {activeNodes.length === 0 ? (
+              <div className="p-4 rounded-2xl bg-amber-50/70 border border-dashed border-amber-300 text-center text-xs text-amber-900 font-mono">
+                Zona vacía. Haz clic en el mapa satelital para trazar tu delimitación.
+              </div>
+            ) : (
+              <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
+                {activeNodes.map((coord, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-[11px] font-mono hover:border-amber-400 group transition-colors"
+                  >
+                    <div className="flex items-center space-x-1.5">
+                      <span className="w-4 h-4 rounded-full bg-slate-900 text-white text-[9px] flex items-center justify-center font-bold">
+                        {idx + 1}
+                      </span>
+                      <span className="text-slate-700">
+                        [{coord[0]}, {coord[1]}]
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveSpecificNode(idx)}
+                      className="p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      title={`Eliminar vértice #${idx + 1}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
         </div>
@@ -1011,7 +1081,7 @@ export default function ThesisFramework({ onSelectModule }) {
       {!isEditMode && (
         <div className="absolute bottom-20 left-4 z-[400] hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-900/90 text-white text-[11px] font-mono backdrop-blur-md shadow-lg border border-white/20 pointer-events-none">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>{currentStep.hint} &bull; Puedes usar el botón <b>Delimitar con Nodos</b> arriba</span>
+          <span>{currentStep.hint} &bull; Pulsa <b>Delimitar con Nodos</b> para trazar</span>
         </div>
       )}
 
@@ -1020,6 +1090,14 @@ export default function ThesisFramework({ onSelectModule }) {
         <div className="fixed top-20 right-4 z-[1000] bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-2xl font-mono text-xs flex items-center space-x-2 animate-scale-up border border-emerald-400">
           <CheckCircle2 className="w-4 h-4" />
           <span>¡Delimitación guardada exitosamente en tu navegador!</span>
+        </div>
+      )}
+
+      {/* Delete / Clear Success Toast */}
+      {deleteToast && (
+        <div className="fixed top-20 right-4 z-[1000] bg-red-600 text-white px-4 py-2.5 rounded-2xl shadow-2xl font-mono text-xs flex items-center space-x-2 animate-scale-up border border-red-400">
+          <Trash2 className="w-4 h-4" />
+          <span>Vértice eliminado / Zona vaciada. Listo para nuevo trazado.</span>
         </div>
       )}
 
