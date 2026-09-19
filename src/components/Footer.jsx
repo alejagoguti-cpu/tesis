@@ -58,7 +58,7 @@ export default function Footer() {
               Datos Académicos
             </h4>
             <div className="space-y-1 text-xs text-architectural-400">
-              <p><b className="text-white">Tesista:</b> {projectInfo.author}</p>
+              <p><b className="text-white">Tesistas:</b> {projectInfo.author}</p>
               <p><b className="text-white">Asesoría:</b> {projectInfo.tutors}</p>
               <p><b className="text-white">Programa:</b> Arquitectura</p>
             </div>

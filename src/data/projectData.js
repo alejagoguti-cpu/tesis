@@ -4,7 +4,7 @@ export const projectInfo = {
   location: "Isla de Tierrabomba, Cartagena de Indias, Colombia",
   university: "Universidad / Facultad de Arquitectura y Urbanismo",
   year: "2026",
-  author: "Alejandro Gutiérrez",
+  author: "Alejandra Gómez & Ana Casas",
   tutors: "Directores y Asesores de Tesis",
   githubRepo: "https://github.com/alejagoguti-cpu/tesis",
   

@@ -101,5 +101,5 @@ Existen dos maneras muy sencillas de mostrar tu geometría exacta de Revit:
 
 ---
 
-**Autor:** Alejandro Gutiérrez  
+**Autoras:** Alejandra Gómez & Ana Casas  
 **Tesis de Grado en Arquitectura & Urbanismo (2026)**

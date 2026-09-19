@@ -74,7 +74,7 @@ export default function Hero({ onExplore3D, onExploreBlueprints, onExploreDiagno
             {/* Authors metadata snippet */}
             <div className="pt-4 border-t border-architectural-200 dark:border-architectural-800 flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-architectural-500 dark:text-architectural-400">
               <div>
-                <span className="font-semibold text-architectural-700 dark:text-architectural-300">Tesista:</span> {projectInfo.author}
+                <span className="font-semibold text-architectural-700 dark:text-architectural-300">Tesistas:</span> {projectInfo.author}
               </div>
               <div className="h-3 w-px bg-architectural-300 dark:bg-architectural-700 hidden sm:block" />
               <div>
