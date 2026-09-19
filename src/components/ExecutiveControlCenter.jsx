@@ -244,12 +244,71 @@ export const BAY_HOTSPOTS = [
   }
 ];
 
+// Corregimiento urban settlement & vulnerable housing polygons
+export const CORREGIMIENTO_HOUSES_OUTLINE = [
+  [10.3672, -75.5840],
+  [10.3662, -75.5822],
+  [10.3648, -75.5815],
+  [10.3630, -75.5812],
+  [10.3615, -75.5818],
+  [10.3590, -75.5832],
+  [10.3565, -75.5848],
+  [10.3540, -75.5872],
+  [10.3525, -75.5885],
+  [10.3528, -75.5902],
+  [10.3552, -75.5912],
+  [10.3580, -75.5910],
+  [10.3605, -75.5885],
+  [10.3625, -75.5865],
+  [10.3645, -75.5860],
+  [10.3668, -75.5845]
+];
+
+export const VULNERABLE_HOUSING_STRIP = [
+  [10.3655, -75.5860],
+  [10.3635, -75.5866],
+  [10.3610, -75.5885],
+  [10.3585, -75.5910],
+  [10.3555, -75.5914],
+  [10.3535, -75.5898],
+  [10.3542, -75.5885],
+  [10.3565, -75.5895],
+  [10.3590, -75.5888],
+  [10.3615, -75.5868],
+  [10.3640, -75.5848]
+];
+
+export const URBAN_HOUSE_BLOCKS = [
+  // Sector Norte - Muelle
+  [
+    [10.3668, -75.5840],
+    [10.3658, -75.5825],
+    [10.3642, -75.5832],
+    [10.3652, -75.5848]
+  ],
+  // Sector Central - Plaza & Equipamiento
+  [
+    [10.3640, -75.5852],
+    [10.3632, -75.5822],
+    [10.3605, -75.5830],
+    [10.3612, -75.5862]
+  ],
+  // Sector Sur - Borde de Riesgo 120 Casas
+  [
+    [10.3600, -75.5872],
+    [10.3585, -75.5838],
+    [10.3550, -75.5855],
+    [10.3558, -75.5898]
+  ]
+];
+
 export default function ExecutiveControlCenter({ onSelectModule }) {
   const [selectedYear, setSelectedYear] = useState(1690); // Default to first historical map (1690) as requested
   const [activeHotspotModal, setActiveHotspotModal] = useState(null);
   const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
   const [showHistoricalGalleryModal, setShowHistoricalGalleryModal] = useState(false);
   const [selectedGalleryMap, setSelectedGalleryMap] = useState(HISTORICAL_MAPS_DATA[4]); // default 1915
+  const [highlightRelocationHouses, setHighlightRelocationHouses] = useState(false);
 
   // Historical Map Canvas Interaction State
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -263,6 +322,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
   const tileLayerRef = useRef(null);
   const labelsLayerRef = useRef(null);
   const markersRef = useRef([]);
+  const relocationGroupRef = useRef(null);
 
   const currentTimelineData = TIMELINE_EPOCHS.find(y => y.year === selectedYear) || TIMELINE_EPOCHS[6];
   const isHistoricalMode = currentTimelineData.type === 'historical';
@@ -297,6 +357,71 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
     }
   }, [selectedYear, isHistoricalMode]);
 
+  // Synchronize Relocation Houses Contour on Satellite Map
+  useEffect(() => {
+    const map = bayMapInstanceRef.current;
+    const group = relocationGroupRef.current;
+    if (!map || !group) return;
+
+    group.clearLayers();
+
+    if (highlightRelocationHouses && selectedYear >= 2026) {
+      // 1. Zoom into the corregimiento houses
+      map.flyTo([10.3600, -75.5860], 16.5, {
+        animate: true,
+        duration: 1.8
+      });
+
+      // 2. Corregimiento Houses Perimeter (Amber contour)
+      L.polygon(CORREGIMIENTO_HOUSES_OUTLINE, {
+        color: '#f59e0b',
+        weight: 3.5,
+        dashArray: '8, 6',
+        fillColor: '#f59e0b',
+        fillOpacity: 0.05
+      }).addTo(group);
+
+      // 3. Vulnerable Houses in Coastal Erosion Zone (120 Houses - Red dashed outline)
+      L.polygon(VULNERABLE_HOUSING_STRIP, {
+        color: '#ef4444',
+        weight: 4.5,
+        dashArray: '6, 4',
+        fillColor: '#ef4444',
+        fillOpacity: 0.18
+      }).addTo(group);
+
+      // 4. Urban House Sub-Blocks
+      URBAN_HOUSE_BLOCKS.forEach(block => {
+        L.polygon(block, {
+          color: '#fb923c',
+          weight: 2,
+          fillColor: '#fb923c',
+          fillOpacity: 0.12
+        }).addTo(group);
+      });
+
+      // 5. Floating Pin Marker over the vulnerable houses
+      const housePinIcon = L.divIcon({
+        className: 'custom-relocation-pin',
+        html: `
+          <div class="relative flex flex-col items-center pointer-events-none animate-bounce">
+            <div class="px-3 py-1 rounded-2xl bg-slate-950/95 text-white border-2 border-red-500 shadow-2xl flex items-center space-x-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+              <span class="font-mono font-bold text-xs text-red-300">120 Casas en Borde de Socavación</span>
+            </div>
+            <div class="w-0.5 h-4 bg-red-500"></div>
+          </div>
+        `,
+        iconSize: [230, 45],
+        iconAnchor: [115, 45]
+      });
+
+      L.marker([10.3585, -75.5895], { icon: housePinIcon, zIndexOffset: 2500 }).addTo(group);
+    } else if (!highlightRelocationHouses && selectedYear >= 2026 && bayMapInstanceRef.current) {
+      map.flyTo([10.365, -75.550], 13, { animate: true, duration: 1.2 });
+    }
+  }, [highlightRelocationHouses, selectedYear]);
+
   // Initialize Fullscreen Leaflet Map with High-Res Satellite Aerial Imagery for modern years
   useEffect(() => {
     if (!bayMapRef.current || bayMapInstanceRef.current) return;
@@ -316,6 +441,9 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
 
     tileLayerRef.current = satLayer;
     labelsLayerRef.current = null;
+
+    // Relocation Layer Group
+    relocationGroupRef.current = L.layerGroup().addTo(map);
 
     // Add Interactive Hotspot Pins on the Map
     BAY_HOTSPOTS.forEach(spot => {
@@ -661,6 +789,27 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
         </div>
       </div>
 
+      {/* Floating Center Notification when Housing Contour is Active */}
+      {highlightRelocationHouses && selectedYear >= 2026 && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[450] animate-fade-in pointer-events-auto">
+          <div className="glass-panel px-4 py-2 rounded-full border border-terracotta-500/80 shadow-2xl flex items-center space-x-3 backdrop-blur-md">
+            <div className="p-1 rounded-full bg-red-100 text-red-600 animate-pulse">
+              <Home className="w-4 h-4" />
+            </div>
+            <span className="text-xs font-mono font-bold text-slate-900">
+              🏘️ 120 Casas del Corregimiento Contorneadas &bull; Borde de Socavación Sujeto a Reubicación (+22m)
+            </span>
+            <button
+              onClick={() => setHighlightRelocationHouses(false)}
+              className="p-1 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
+              title="Quitar contorno"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ========================================================================= */}
       {/* 4. FLOATING BOTTOM: 6 THESIS KPI STRIP (Only visible in 2026 and 2050)    */}
       {/* ========================================================================= */}
@@ -668,22 +817,33 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
         <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none animate-fade-in">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 max-w-7xl mx-auto pointer-events-auto">
             
-            {/* KPI 1: Housing */}
+            {/* KPI 1: Housing - Toggles Corregimiento Housing Contour on Satellite Map */}
             <div 
-              onClick={() => onSelectModule && onSelectModule('programs')}
-              className="glass-card p-3 rounded-2xl hover:border-terracotta-500 cursor-pointer group"
+              onClick={() => setHighlightRelocationHouses(prev => !prev)}
+              className={`glass-card p-3 rounded-2xl cursor-pointer group transition-all duration-300 ${
+                highlightRelocationHouses
+                  ? 'border-terracotta-600 ring-2 ring-terracotta-400 bg-terracotta-50/60 shadow-2xl scale-105'
+                  : 'hover:border-terracotta-500 hover:scale-102 shadow-lg'
+              }`}
+              title="Haz clic para contornear las 120 casas del corregimiento en riesgo"
             >
               <div className="flex items-center justify-between mb-1">
-                <div className="p-1.5 rounded-lg bg-terracotta-50 text-terracotta-600">
+                <div className={`p-1.5 rounded-lg transition-colors ${
+                  highlightRelocationHouses ? 'bg-terracotta-600 text-white' : 'bg-terracotta-50 text-terracotta-600'
+                }`}>
                   <Home className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-terracotta-50 text-terracotta-700">
-                  MOD 04
+                <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded transition-colors ${
+                  highlightRelocationHouses ? 'bg-terracotta-600 text-white' : 'bg-terracotta-50 text-terracotta-700'
+                }`}>
+                  {highlightRelocationHouses ? 'CONTORNEADO' : 'MOD 04'}
                 </span>
               </div>
               <p className="text-[10px] font-mono text-slate-500">Reubicación</p>
               <h4 className="font-serif font-bold text-lg text-slate-900">120 Casas</h4>
-              <p className="text-[9px] text-slate-500 truncate">Meseta segura +22m</p>
+              <p className="text-[9px] text-slate-500 truncate">
+                {highlightRelocationHouses ? '✨ Clic para quitar' : 'Meseta segura +22m'}
+              </p>
             </div>
 
             {/* KPI 2: School */}
