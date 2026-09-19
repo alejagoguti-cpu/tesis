@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+/* Custom scrollbar for sleek architectural feel */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e9fa8;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #19676e;
+}
+
+/* Grid background pattern for architectural aesthetic */
+.bg-cad-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(126, 143, 159, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(126, 143, 159, 0.1) 1px, transparent 1px);
+}
+
+.dark .bg-cad-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+
+/* Blueprint blueprint mode */
+.blueprint-mode {
+  background-color: #0b1e36;
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px),
+    linear-gradient(to right, rgba(0, 168, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 168, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px, 100px 100px, 100px 100px;
+}
