@@ -72,7 +72,7 @@ export const HOTSPOTS_DATA = [
     category: "Suelo Seguro",
     categoryColor: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
     badge: "Inmune a Inundación",
-    coords: [10.3520, -75.5640],
+    coords: [10.3730, -75.5759],
     elevation: "+22.00 m.s.n.m.",
     summary: "Plataforma geológica estable de 65 Hectáreas fuera del alcance del aumento del nivel del mar para los próximos 100 años.",
     metrics: [
@@ -93,7 +93,7 @@ export const HOTSPOTS_DATA = [
     category: "Dotacional",
     categoryColor: "bg-caribbean-500/10 text-caribbean-700 border-caribbean-500/20",
     badge: "350 Estudiantes",
-    coords: [10.3510, -75.5620],
+    coords: [10.3738, -75.5750],
     elevation: "+22.50 m.s.n.m.",
     summary: "Complejo de 1.850 m² con 6 aulas bioclimáticas, talleres de pesca y carpintería ribereña, biblioteca y ágora central comunitaria.",
     metrics: [
@@ -114,7 +114,7 @@ export const HOTSPOTS_DATA = [
     category: "Infraestructura Hídrica",
     categoryColor: "bg-blue-500/10 text-blue-700 border-blue-500/20",
     badge: "450.000 L Reserva",
-    coords: [10.3505, -75.5630],
+    coords: [10.3725, -75.5760],
     elevation: "+20.00 m (Subterráneo)",
     summary: "Cisterna comunitaria compartimentada alimentada por macro-cubierta invertida de 1.850 m² con tren de filtración y desinfección solar UV.",
     metrics: [
@@ -201,11 +201,18 @@ export default function DiagnosisMap({ onNavigateModule }) {
 
     // Safe Plateau Polygon (+22m)
     const safePlateau = L.polygon([
-      [10.3560, -75.5680],
-      [10.3570, -75.5580],
-      [10.3480, -75.5520],
-      [10.3440, -75.5580],
-      [10.3460, -75.5720]
+      [10.37487, -75.57396],
+      [10.37523, -75.57534],
+      [10.37447, -75.57662],
+      [10.37320, -75.57731],
+      [10.37194, -75.57758],
+      [10.37113, -75.57727],
+      [10.37054, -75.57691],
+      [10.37134, -75.57638],
+      [10.37221, -75.57595],
+      [10.37264, -75.57516],
+      [10.37348, -75.57450],
+      [10.37419, -75.57408]
     ], {
       color: '#0d9488',
       fillColor: '#0d9488',

@@ -239,11 +239,18 @@ export const DEFAULT_DELIMITATIONS = {
     [10.34204, -75.59229]
   ],
   plateau: [
-    [10.3560, -75.5720],
-    [10.3590, -75.5600],
-    [10.3510, -75.5560],
-    [10.3440, -75.5630],
-    [10.3480, -75.5740]
+    [10.37487, -75.57396],
+    [10.37523, -75.57534],
+    [10.37447, -75.57662],
+    [10.37320, -75.57731],
+    [10.37194, -75.57758],
+    [10.37113, -75.57727],
+    [10.37054, -75.57691],
+    [10.37134, -75.57638],
+    [10.37221, -75.57595],
+    [10.37264, -75.57516],
+    [10.37348, -75.57450],
+    [10.37419, -75.57408]
   ],
   custom: []
 };
@@ -336,8 +343,8 @@ export const FRAMEWORK_STEPS = [
     title: "4. Meseta Segura (+22m)",
     badge: "Paso 04 // Masterplan",
     targetName: "Suelo Firme Libre de Socavación",
-    center: [10.352, -75.565],
-    zoom: 14,
+    center: [10.3730, -75.5759],
+    zoom: 15.5,
     highlight: "masterplan",
     modalType: "solution",
     btnLabel: "Criterios del Masterplan",
@@ -707,7 +714,7 @@ export default function ThesisFramework({ onSelectModule }) {
       iconAnchor: [18, 18]
     });
 
-    const plateauMarker = L.marker([10.352, -75.565], { icon: plateauIcon }).addTo(map);
+    const plateauMarker = L.marker([10.3730, -75.5759], { icon: plateauIcon }).addTo(map);
     plateauMarker.on('click', () => {
       if (!isEditMode) setActiveModal('solution');
     });

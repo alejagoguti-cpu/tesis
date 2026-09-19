@@ -19,11 +19,11 @@ export const HOUSING_CENSUS_120 = Array.from({ length: 120 }, (_, index) => {
   const coastalLng = -75.5815 + (index * 0.00008) + (Math.cos(index * 0.35) * 0.0005);
 
   // Relocation coordinates in the Plateau (+22m)
-  // Grid layout in plateau approx 10.350 to 10.354, -75.566 to -75.560
+  // Grid layout in plateau approx 10.371 to 10.375, -75.577 to -75.574
   const row = Math.floor(index / 10);
   const col = index % 10;
-  const plateauLat = 10.3505 + (row * 0.00032) + (Math.sin(col) * 0.00004);
-  const plateauLng = -75.5660 + (col * 0.00055) + (Math.cos(row) * 0.00004);
+  const plateauLat = 10.3716 + (row * 0.00022) + (Math.sin(col) * 0.00003);
+  const plateauLng = -75.5768 + (col * 0.00025) + (Math.cos(row) * 0.00003);
 
   // Typology distribution: ~60% Typology A (54 m²), ~40% Typology B (72 m² productiva)
   const isTypologyB = num % 3 === 0 || num % 5 === 0;

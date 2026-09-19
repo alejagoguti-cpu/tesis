@@ -217,7 +217,7 @@ export const BAY_HOTSPOTS = [
   {
     id: "tierrabomba_plateau",
     name: "Tierrabomba: Meseta Segura +22m (Tesis)",
-    coords: [10.3520, -75.5640],
+    coords: [10.3730, -75.5759],
     category: "Propuesta de Tesis",
     badge: "Masterplan Resiliente",
     summary: "Ubicación estratégica del plan maestro: 120 viviendas de madera y BTC, colegio bioclimático y aljibe de 450.000 L.",
