@@ -54,33 +54,34 @@ export default function BlueprintPlotter() {
   };
 
   return (
-    <section id="planos" className="py-24 bg-sand-50 dark:bg-deepsea-950 border-t border-sand-300/40 dark:border-deepsea-800/60 transition-colors duration-500">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-4">
-            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-caribbean-500/10 text-caribbean-700 dark:text-caribbean-300 text-xs font-mono font-medium border border-caribbean-500/20">
-              <Printer className="w-3.5 h-3.5" />
-              <span>PLANIMETRÍA TÉCNICA &bull; EXPEDIENTE CAD</span>
-            </div>
-            <h2 className="font-serif font-bold text-3xl sm:text-4xl text-deepsea-950 dark:text-sand-100 tracking-tight leading-tight">
-              Visor de Planimetría & Plotter Vectorial
-            </h2>
-            <p className="text-deepsea-900/70 dark:text-sand-300/70 text-base font-light max-w-2xl leading-relaxed">
-              Exploración de planimetría técnica a escala con inspección de cotas, secciones constructivas e impresión directa a formato DIN vectorial.
-            </p>
+    <div className="space-y-8 py-2 animate-fade-in">
+      
+      {/* Chapter Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+        <div className="space-y-1.5">
+          <div className="flex items-center space-x-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-900 animate-pulse" />
+            <span className="font-mono text-xs font-bold text-slate-700 uppercase tracking-widest">
+              Capítulo 06 // Planimetría Técnica & CAD
+            </span>
           </div>
-
-          {/* Print / Plot Master Button */}
-          <button
-            onClick={handlePrint}
-            className="inline-flex items-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-terracotta-600 hover:bg-terracotta-500 text-white font-mono text-xs font-semibold shadow-lg shadow-terracotta-600/20 self-start transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Printer className="w-4 h-4" />
-            <span>Plotear / Imprimir ({selectedBlueprint.scale})</span>
-          </button>
+          <h2 className="font-serif font-bold text-2xl sm:text-3xl text-slate-900 tracking-tight">
+            Visor de Planimetría & Plotter Vectorial
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-600 font-light max-w-2xl">
+            Exploración de planimetría técnica a escala con inspección de cotas, secciones constructivas e impresión directa a formato DIN vectorial.
+          </p>
         </div>
+
+        {/* Print / Plot Master Button */}
+        <button
+          onClick={handlePrint}
+          className="inline-flex items-center space-x-2.5 px-6 py-3 rounded-2xl bg-terracotta-600 hover:bg-terracotta-500 text-white font-mono text-xs font-bold shadow-md shadow-terracotta-600/20 self-start md:self-center transition-all hover:scale-[1.02] active:scale-[0.98]"
+        >
+          <Printer className="w-4 h-4" />
+          <span>Plotear / Imprimir ({selectedBlueprint.scale})</span>
+        </button>
+      </div>
 
         {/* Blueprint Selector Tabs */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
@@ -450,6 +451,5 @@ export default function BlueprintPlotter() {
         </div>
 
       </div>
-    </section>
   );
 }

@@ -500,65 +500,62 @@ export default function ModelViewer3D() {
   };
 
   return (
-    <section id="visor3d" className="py-20 bg-architectural-950 text-white relative overflow-hidden">
+    <div className="space-y-8 py-2 animate-fade-in">
       
-      {/* Background glow */}
-      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-caribbean-500/10 blur-[150px] rounded-full pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-3">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-caribbean-500/20 text-caribbean-300 text-xs font-semibold border border-caribbean-400/30">
-              <Layers className="w-3.5 h-3.5" />
-              <span>Visor 3D de Arquitectura & BIM</span>
-            </div>
-            <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-white tracking-tight">
-              Modelos 3D del Proyecto: Equipamiento & Viviendas
-            </h2>
-            <p className="text-architectural-400 text-sm max-w-2xl">
-              Inspecciona en 360° la volumetría del <b>Equipamiento Educativo</b>, el <b>Prototipo de Vivienda Resiliente</b> o el <b>Masterplan</b>. Puedes realizar despiece estructural, simular soleamiento o conectar tu archivo Revit.
-            </p>
+      {/* Chapter Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+        <div className="space-y-1.5">
+          <div className="flex items-center space-x-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-teal-600 animate-pulse" />
+            <span className="font-mono text-xs font-bold text-teal-700 uppercase tracking-widest">
+              Capítulo 05 // Modelado BIM & Volumetría 3D
+            </span>
           </div>
-
-          {/* Model Switcher Buttons: Colegio / Vivienda / Masterplan */}
-          <div className="flex flex-wrap items-center p-1.5 rounded-2xl bg-architectural-900 border border-architectural-800 self-start gap-1">
-            <button
-              onClick={() => setSelected3DModel('colegio')}
-              className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                selected3DModel === 'colegio'
-                  ? 'bg-caribbean-600 text-white shadow-md'
-                  : 'text-architectural-400 hover:text-white'
-              }`}
-            >
-              <GraduationCap className="w-4 h-4" />
-              <span>1. Equipamiento Educativo</span>
-            </button>
-            <button
-              onClick={() => setSelected3DModel('vivienda')}
-              className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                selected3DModel === 'vivienda'
-                  ? 'bg-caribbean-600 text-white shadow-md'
-                  : 'text-architectural-400 hover:text-white'
-              }`}
-            >
-              <Home className="w-4 h-4" />
-              <span>2. Vivienda Resiliente</span>
-            </button>
-            <button
-              onClick={() => setSelected3DModel('masterplan')}
-              className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                selected3DModel === 'masterplan'
-                  ? 'bg-caribbean-600 text-white shadow-md'
-                  : 'text-architectural-400 hover:text-white'
-              }`}
-            >
-              <Compass className="w-4 h-4" />
-              <span>3. Masterplan (+22m)</span>
-            </button>
-          </div>
+          <h2 className="font-serif font-bold text-2xl sm:text-3xl text-slate-900 tracking-tight">
+            Modelos 3D del Proyecto: Equipamiento & Viviendas
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-600 font-light max-w-2xl">
+            Inspecciona en 360° la volumetría del <b>Equipamiento Educativo</b>, el <b>Prototipo de Vivienda Resiliente</b> o el <b>Masterplan</b>. Puedes realizar despiece estructural, simular soleamiento o conectar tu archivo Revit.
+          </p>
         </div>
+
+        {/* Model Switcher Buttons: Colegio / Vivienda / Masterplan */}
+        <div className="flex flex-wrap items-center p-1.5 rounded-2xl bg-slate-100 border border-slate-200 self-start md:self-center gap-1">
+          <button
+            onClick={() => setSelected3DModel('colegio')}
+            className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
+              selected3DModel === 'colegio'
+                ? 'bg-teal-600 text-white shadow-md'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <GraduationCap className="w-4 h-4" />
+            <span>1. Equipamiento Educativo</span>
+          </button>
+          <button
+            onClick={() => setSelected3DModel('vivienda')}
+            className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
+              selected3DModel === 'vivienda'
+                ? 'bg-terracotta-600 text-white shadow-md'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Home className="w-4 h-4" />
+            <span>2. Vivienda Resiliente</span>
+          </button>
+          <button
+            onClick={() => setSelected3DModel('masterplan')}
+            className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
+              selected3DModel === 'masterplan'
+                ? 'bg-slate-900 text-white shadow-md'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Compass className="w-4 h-4" />
+            <span>3. Masterplan (+22m)</span>
+          </button>
+        </div>
+      </div>
 
         {/* Sub-navigation tabs: 3D WebGL vs Conectar Revit/Speckle vs Guía */}
         <div className="flex items-center justify-between border-b border-architectural-800 pb-3">
@@ -800,10 +797,9 @@ export default function ModelViewer3D() {
                 </p>
               </div>
             )}
-          </div>
         </div>
 
       </div>
-    </section>
+    </div>
   );
 }

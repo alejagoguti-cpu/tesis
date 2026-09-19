@@ -123,7 +123,7 @@ export default function App() {
               {/* Module 01: Marco Académico */}
               {activeModule === 'framework' && (
                 <SafeSection name="Marco Académico">
-                  <ThesisFramework />
+                  <ThesisFramework onSelectModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
@@ -137,42 +137,42 @@ export default function App() {
               {/* Module 03: Viviendas & Equipamiento */}
               {activeModule === 'programs' && (
                 <SafeSection name="Programa Arquitectónico">
-                  <HousingRelocation />
+                  <HousingRelocation onSelectModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
               {/* Module 04: Estrategia Bioclimática */}
               {activeModule === 'bioclimatic' && (
                 <SafeSection name="Estrategia Bioclimática">
-                  <StrategyRelocation />
+                  <StrategyRelocation onSelectModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
               {/* Module 05: Visor 3D WebGL / BIM */}
               {activeModule === '3dviewer' && (
                 <SafeSection name="Visor 3D BIM">
-                  <ModelViewer3D />
+                  <ModelViewer3D onSelectModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
               {/* Module 06: Planimetría CAD & Plotter */}
               {activeModule === 'cad' && (
                 <SafeSection name="Planimetría Técnica CAD">
-                  <BlueprintPlotter />
+                  <BlueprintPlotter onSelectModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
               {/* Module 07: Soberanía Hídrica */}
               {activeModule === 'water' && (
                 <SafeSection name="Soberanía Hídrica">
-                  <WaterSustainability />
+                  <WaterSustainability onSelectModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
               {/* Module 08: Laboratorio de Simulaciones & Modelamiento */}
               {activeModule === 'simulations' && (
                 <SafeSection name="Laboratorio de Simulaciones">
-                  <SimulationLab />
+                  <SimulationLab onSelectModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
