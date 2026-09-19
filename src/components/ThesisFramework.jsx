@@ -399,12 +399,22 @@ export default function ThesisFramework({ onSelectModule }) {
   const [copyToast, setCopyToast] = useState(false);
   const [deleteToast, setDeleteToast] = useState(false);
 
+  // Cinematic Intro Animation State
+  const [isIntroAnimating, setIsIntroAnimating] = useState(true);
+  const [animProgress, setAnimProgress] = useState(0);
+
   // Map Refs
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const tileLayerRef = useRef(null);
   const labelsLayerRef = useRef(null);
   
+  // Animation Refs
+  const animationTimerRef = useRef(null);
+  const animatingLayerRef = useRef(null);
+  const animatingGlowRef = useRef(null);
+  const tracerMarkerRef = useRef(null);
+
   // Dynamic Map Layers Refs
   const layersRef = useRef({
     islandLayer: null,
@@ -433,14 +443,148 @@ export default function ThesisFramework({ onSelectModule }) {
   }, [activeNodes, activeZoneConfig]);
 
   // =========================================================================
+  // CINEMATIC INTRO: SMOOTH SLOW ZOOM + ANIMATED BOUNDARY TRACING
+  // =========================================================================
+  const startCinematicIntro = (targetMap) => {
+    const map = targetMap || mapInstanceRef.current;
+    if (!map) return;
+
+    const islandCoords = delimitations.island || [];
+    if (islandCoords.length < 3) return;
+
+    // Clear any previous running animation
+    if (animationTimerRef.current) {
+      clearInterval(animationTimerRef.current);
+      animationTimerRef.current = null;
+    }
+    if (animatingGlowRef.current) {
+      map.removeLayer(animatingGlowRef.current);
+      animatingGlowRef.current = null;
+    }
+    if (animatingLayerRef.current) {
+      map.removeLayer(animatingLayerRef.current);
+      animatingLayerRef.current = null;
+    }
+    if (tracerMarkerRef.current) {
+      map.removeLayer(tracerMarkerRef.current);
+      tracerMarkerRef.current = null;
+    }
+
+    setIsIntroAnimating(true);
+    setAnimProgress(0);
+
+    // Hide static island polygon initially
+    if (layersRef.current.islandLayer) {
+      layersRef.current.islandLayer.setStyle({
+        opacity: 0,
+        fillOpacity: 0
+      });
+    }
+
+    // 1. Set initial camera wide overview (Cartagena Bay + Tierrabomba)
+    map.setView([10.370, -75.542], 12, { animate: false });
+
+    // 2. Slow cinematic camera glide
+    map.flyTo([10.352, -75.572], 13.2, {
+      animate: true,
+      duration: 3.8,
+      easeLinearity: 0.25
+    });
+
+    // 3. Create animated polyline & glow polyline
+    const glowLine = L.polyline([], {
+      color: '#f59e0b',
+      weight: 8,
+      opacity: 0.5,
+      lineCap: 'round',
+      lineJoin: 'round'
+    }).addTo(map);
+
+    const mainLine = L.polyline([], {
+      color: '#ea580c',
+      weight: 4,
+      opacity: 1,
+      lineCap: 'round',
+      lineJoin: 'round'
+    }).addTo(map);
+
+    const leadIcon = L.divIcon({
+      className: 'custom-anim-lead-node',
+      html: `
+        <div class="relative flex items-center justify-center pointer-events-none">
+          <div class="absolute -inset-2 rounded-full bg-amber-400 animate-ping opacity-80"></div>
+          <div class="w-4 h-4 rounded-full bg-amber-400 border-2 border-white shadow-xl flex items-center justify-center">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-950"></div>
+          </div>
+        </div>
+      `,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+
+    const leadMarker = L.marker(islandCoords[0], {
+      icon: leadIcon,
+      zIndexOffset: 3000
+    }).addTo(map);
+
+    animatingGlowRef.current = glowLine;
+    animatingLayerRef.current = mainLine;
+    tracerMarkerRef.current = leadMarker;
+
+    // Total animation time ~3200ms divided across coords length
+    const totalPoints = islandCoords.length;
+    const intervalMs = Math.max(16, Math.floor(3200 / totalPoints));
+    let stepIndex = 1;
+
+    animationTimerRef.current = setInterval(() => {
+      stepIndex++;
+      const currentPts = islandCoords.slice(0, stepIndex);
+      
+      // If reached last point, close the loop to coordinate 0
+      if (stepIndex >= totalPoints) {
+        currentPts.push(islandCoords[0]);
+      }
+
+      glowLine.setLatLngs(currentPts);
+      mainLine.setLatLngs(currentPts);
+      
+      const currentHead = islandCoords[Math.min(stepIndex - 1, totalPoints - 1)];
+      leadMarker.setLatLng(currentHead);
+
+      const pct = Math.min(100, Math.round((stepIndex / totalPoints) * 100));
+      setAnimProgress(pct);
+
+      if (stepIndex >= totalPoints + 1) {
+        clearInterval(animationTimerRef.current);
+        animationTimerRef.current = null;
+
+        // Smoothly reveal full polygon with soft pulse
+        setTimeout(() => {
+          if (layersRef.current.islandLayer) {
+            layersRef.current.islandLayer.setStyle({
+              opacity: 1,
+              fillOpacity: 0.25,
+              weight: 3.5
+            });
+          }
+          if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
+          if (animatingLayerRef.current) map.removeLayer(animatingLayerRef.current);
+          if (tracerMarkerRef.current) map.removeLayer(tracerMarkerRef.current);
+          setIsIntroAnimating(false);
+        }, 300);
+      }
+    }, intervalMs);
+  };
+
+  // =========================================================================
   // 1. INITIALIZE LEAFLET MAP
   // =========================================================================
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
     const map = L.map(mapRef.current, {
-      center: currentStep.center,
-      zoom: currentStep.zoom,
+      center: [10.370, -75.542],
+      zoom: 12,
       zoomControl: false,
       attributionControl: false
     });
@@ -462,13 +606,14 @@ export default function ThesisFramework({ onSelectModule }) {
       map.invalidateSize();
     }, 150);
 
-    // 1. Island Perimeter Polygon
+    // 1. Island Perimeter Polygon (Initially hidden for animation)
     const islandLayer = L.polygon(delimitations.island || [], {
       color: '#ea580c',
       weight: 3.5,
       dashArray: '8, 8',
       fillColor: '#ea580c',
-      fillOpacity: 0.15
+      fillOpacity: 0,
+      opacity: 0
     }).addTo(map);
 
     islandLayer.on('click', () => {
@@ -563,7 +708,11 @@ export default function ThesisFramework({ onSelectModule }) {
 
     mapInstanceRef.current = map;
 
+    // Trigger smooth slow zoom & animated island tracing on mount!
+    startCinematicIntro(map);
+
     return () => {
+      if (animationTimerRef.current) clearInterval(animationTimerRef.current);
       map.remove();
       mapInstanceRef.current = null;
     };
@@ -713,23 +862,86 @@ export default function ThesisFramework({ onSelectModule }) {
   // 4. STEP NAVIGATION & AUTOPLAY (NON-EDIT MODE)
   // =========================================================================
   useEffect(() => {
-    if (isEditMode) return;
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    map.flyTo(currentStep.center, currentStep.zoom, {
-      animate: true,
-      duration: 1.2
-    });
-
-    const { islandLayer, erosionLayer, masterplanLayer } = layersRef.current;
-
-    if (islandLayer) {
-      islandLayer.setStyle({
-        fillOpacity: currentStep.step === 1 ? 0.35 : 0.1,
-        weight: currentStep.step === 1 ? 5 : 2
-      });
+    if (isEditMode) {
+      // Cancel animation if running
+      if (animationTimerRef.current) {
+        clearInterval(animationTimerRef.current);
+        animationTimerRef.current = null;
+      }
+      if (animatingGlowRef.current) {
+        map.removeLayer(animatingGlowRef.current);
+        animatingGlowRef.current = null;
+      }
+      if (animatingLayerRef.current) {
+        map.removeLayer(animatingLayerRef.current);
+        animatingLayerRef.current = null;
+      }
+      if (tracerMarkerRef.current) {
+        map.removeLayer(tracerMarkerRef.current);
+        tracerMarkerRef.current = null;
+      }
+      if (layersRef.current.islandLayer) {
+        layersRef.current.islandLayer.setStyle({
+          opacity: 1,
+          fillOpacity: 0.15,
+          weight: 3.5
+        });
+      }
+      setIsIntroAnimating(false);
+      return;
     }
+
+    if (currentStepIndex === 0) {
+      // Step 1: Delimitación Territorial
+      if (!isIntroAnimating && layersRef.current.islandLayer) {
+        map.flyTo(currentStep.center, currentStep.zoom, {
+          animate: true,
+          duration: 1.2
+        });
+        layersRef.current.islandLayer.setStyle({
+          opacity: 1,
+          fillOpacity: 0.35,
+          weight: 5
+        });
+      }
+    } else {
+      // Steps 2, 3, 4: Cancel animation if running
+      if (animationTimerRef.current) {
+        clearInterval(animationTimerRef.current);
+        animationTimerRef.current = null;
+      }
+      if (animatingGlowRef.current) {
+        map.removeLayer(animatingGlowRef.current);
+        animatingGlowRef.current = null;
+      }
+      if (animatingLayerRef.current) {
+        map.removeLayer(animatingLayerRef.current);
+        animatingLayerRef.current = null;
+      }
+      if (tracerMarkerRef.current) {
+        map.removeLayer(tracerMarkerRef.current);
+        tracerMarkerRef.current = null;
+      }
+      setIsIntroAnimating(false);
+
+      map.flyTo(currentStep.center, currentStep.zoom, {
+        animate: true,
+        duration: 1.2
+      });
+
+      if (layersRef.current.islandLayer) {
+        layersRef.current.islandLayer.setStyle({
+          opacity: 1,
+          fillOpacity: 0.1,
+          weight: 2
+        });
+      }
+    }
+
+    const { erosionLayer, masterplanLayer } = layersRef.current;
 
     if (erosionLayer) {
       erosionLayer.setStyle({
@@ -744,7 +956,7 @@ export default function ThesisFramework({ onSelectModule }) {
         weight: currentStep.step === 4 ? 5 : 2
       });
     }
-  }, [currentStepIndex, isEditMode]);
+  }, [currentStepIndex, isEditMode, isIntroAnimating]);
 
   // Autoplay sequence timer
   useEffect(() => {
@@ -940,6 +1152,23 @@ export default function ThesisFramework({ onSelectModule }) {
           {!isEditMode && (
             <>
               <button
+                onClick={() => {
+                  setCurrentStepIndex(0);
+                  setIsPlaying(false);
+                  startCinematicIntro();
+                }}
+                className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shadow-sm ${
+                  isIntroAnimating
+                    ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-400/50 scale-105'
+                    : 'bg-amber-500 hover:bg-amber-400 text-slate-950 hover:scale-102'
+                }`}
+                title="Repetir animación cinemática de zoom y trazado perimetral"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{isIntroAnimating ? 'Animando...' : 'Animar Trazo'}</span>
+              </button>
+
+              <button
                 onClick={() => setIsPlaying(!isPlaying)}
                 className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
                   isPlaying
@@ -955,7 +1184,7 @@ export default function ThesisFramework({ onSelectModule }) {
                 onClick={() => setActiveModal(currentStep.modalType)}
                 className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-mono font-bold transition-colors"
               >
-                <Sparkles className="w-3.5 h-3.5 text-terracotta-600" />
+                <BookOpen className="w-3.5 h-3.5 text-terracotta-600" />
                 <span>Ficha Académica</span>
               </button>
             </>
@@ -999,6 +1228,24 @@ export default function ThesisFramework({ onSelectModule }) {
         </div>
 
       </div>
+
+      {/* Floating Center Cinematic Animation Status Pill */}
+      {isIntroAnimating && !isEditMode && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[450] pointer-events-none animate-fade-in">
+          <div className="glass-hud px-4 py-2 rounded-full border border-amber-400/60 shadow-2xl flex items-center space-x-3 backdrop-blur-md">
+            <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
+            <span className="text-xs font-mono font-bold text-slate-900 tracking-wide">
+              Delimitando Isla Tierrabomba: <span className="text-amber-600 font-black">{animProgress}%</span>
+            </span>
+            <div className="w-20 bg-slate-200/80 h-2 rounded-full overflow-hidden border border-slate-300">
+              <div 
+                className="bg-amber-500 h-full transition-all duration-100 ease-out rounded-full" 
+                style={{ width: `${animProgress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* 3. NODE DELIMITATION EDITOR TOOLBAR (FLOATING LEFT PANEL IN EDIT MODE)    */}
@@ -1198,8 +1445,13 @@ export default function ThesisFramework({ onSelectModule }) {
                 <button
                   key={step.id}
                   onClick={() => {
-                    setCurrentStepIndex(idx);
                     setIsPlaying(false);
+                    if (idx === 0) {
+                      setCurrentStepIndex(0);
+                      startCinematicIntro();
+                    } else {
+                      setCurrentStepIndex(idx);
+                    }
                   }}
                   className={`glass-card p-3 rounded-2xl text-left transition-all flex flex-col justify-between ${
                     isActive
