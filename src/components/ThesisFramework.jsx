@@ -365,27 +365,27 @@ export default function ThesisFramework({ onSelectModule }) {
       <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
         {/* Module Title Card */}
-        <div className="bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center space-x-3 max-w-lg">
-          <div className="w-10 h-10 rounded-xl bg-terracotta-600 text-white flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
-            01
+        <div className="glass-hud px-4 py-2.5 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-lg shadow-xl">
+          <div className="w-9 h-9 rounded-xl bg-terracotta-600 text-white flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-md">
+            02
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-terracotta-50 text-terracotta-700 border border-terracotta-200">
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-terracotta-50/90 text-terracotta-700 border border-terracotta-200/80">
                 MARCO DE TESIS
               </span>
               <span className="text-[10px] font-mono text-slate-500 font-bold">
                 Paso 0{currentStep.step} de 04
               </span>
             </div>
-            <h2 className="font-serif font-bold text-sm text-slate-900 truncate">
+            <h2 className="font-serif font-bold text-xs sm:text-sm text-slate-900 truncate">
               {currentStep.targetName}
             </h2>
           </div>
         </div>
 
         {/* Playback Controls & Direct Modal Open CTA */}
-        <div className="bg-white/95 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center gap-2 self-start md:self-center">
+        <div className="glass-hud p-1.5 rounded-2xl pointer-events-auto flex items-center gap-2 self-start md:self-center shadow-xl">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
             className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
@@ -403,7 +403,7 @@ export default function ThesisFramework({ onSelectModule }) {
               setCurrentStepIndex(0);
               setIsPlaying(false);
             }}
-            className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+            className="p-1.5 rounded-xl bg-slate-100/80 hover:bg-slate-200 text-slate-700 transition-colors"
             title="Reiniciar al Paso 1"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -419,7 +419,7 @@ export default function ThesisFramework({ onSelectModule }) {
         </div>
 
         {/* Aerial Satellite / Carto Layer Toggle Button */}
-        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center gap-1 self-start md:self-auto">
+        <div className="glass-hud p-1 rounded-2xl pointer-events-auto flex items-center gap-1 self-start md:self-auto shadow-xl">
           <button
             onClick={() => setMapLayerType('satellite')}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
@@ -458,15 +458,15 @@ export default function ThesisFramework({ onSelectModule }) {
                   setCurrentStepIndex(idx);
                   setIsPlaying(false);
                 }}
-                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between backdrop-blur-md ${
+                className={`glass-card p-3 rounded-2xl text-left transition-all flex flex-col justify-between ${
                   isActive
-                    ? 'bg-white/95 border-terracotta-500 shadow-2xl ring-2 ring-terracotta-400/30 scale-105'
-                    : 'bg-white/90 hover:bg-white border-slate-200/90 shadow-lg'
+                    ? 'border-terracotta-500 shadow-2xl ring-2 ring-terracotta-400/30 scale-105'
+                    : 'border-white/80 shadow-lg'
                 }`}
               >
                 <div className="flex items-center justify-between w-full mb-1">
                   <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
-                    isActive ? 'bg-terracotta-100 text-terracotta-800' : 'bg-slate-100 text-slate-600'
+                    isActive ? 'bg-terracotta-100 text-terracotta-800' : 'bg-slate-100/90 text-slate-600'
                   }`}>
                     PASO 0{step.step}
                   </span>

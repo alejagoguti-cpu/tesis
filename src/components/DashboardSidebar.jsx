@@ -72,7 +72,7 @@ export default function DashboardSidebar({
               const rect = e.currentTarget.getBoundingClientRect();
               setTooltipPos({ top: rect.top + rect.height / 2 });
               setHoveredModule({
-                number: "00",
+                number: "01",
                 title: "Tierrabomba Resiliente",
                 desc: "Tesis de Grado en Arquitectura 2026 // Alejandra Gómez & Ana Casas",
                 badge: "Masterplan +22m"
@@ -158,9 +158,9 @@ export default function DashboardSidebar({
           style={{ top: `${tooltipPos.top}px` }}
           className="fixed left-20 -translate-y-1/2 z-[99999] pointer-events-none transition-all duration-150 animate-fade-in"
         >
-          <div className="bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 max-w-xs whitespace-normal flex flex-col space-y-1">
+          <div className="glass-dark text-white px-4 py-3 rounded-2xl shadow-2xl border border-white/20 max-w-xs whitespace-normal flex flex-col space-y-1.5">
             <div className="flex items-center space-x-2">
-              <span className="px-1.5 py-0.5 rounded bg-terracotta-500 text-white text-[10px] font-mono font-bold">
+              <span className="px-1.5 py-0.5 rounded bg-terracotta-500 text-white text-[10px] font-mono font-bold shadow-xs">
                 MOD {hoveredModule.number}
               </span>
               <h4 className="font-bold text-xs text-white">
@@ -168,12 +168,12 @@ export default function DashboardSidebar({
               </h4>
             </div>
 
-            <p className="text-[11px] text-slate-300 leading-snug">
+            <p className="text-[11px] text-slate-200 leading-snug font-sans">
               {hoveredModule.desc}
             </p>
 
             {hoveredModule.badge && (
-              <span className="text-[10px] font-mono text-teal-400 font-semibold pt-0.5">
+              <span className="text-[10px] font-mono text-teal-300 font-semibold pt-0.5">
                 &bull; {hoveredModule.badge}
               </span>
             )}

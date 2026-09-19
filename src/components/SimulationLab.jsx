@@ -542,9 +542,9 @@ export default function SimulationLab({ onSelectModule }) {
       <div className="absolute top-4 left-4 right-4 z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
         {/* Module Title Card */}
-        <div className="bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center space-x-3 max-w-lg">
+        <div className="glass-hud px-4 py-3 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-lg">
           <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
-            08
+            09
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
@@ -565,7 +565,7 @@ export default function SimulationLab({ onSelectModule }) {
         </div>
 
         {/* Engine Switcher Bar */}
-        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex flex-wrap items-center gap-1 self-start md:self-center">
+        <div className="glass-hud p-1 rounded-2xl pointer-events-auto flex flex-wrap items-center gap-1 self-start md:self-center">
           
           <button
             onClick={() => setActiveEngine('relationalNetwork')}
@@ -622,7 +622,7 @@ export default function SimulationLab({ onSelectModule }) {
       {/* ========================================================================= */}
       {/* 3. FLOATING LEFT PANEL: PARAMETRIC CONTROLS & PERTURBATIONS               */}
       {/* ========================================================================= */}
-      <div className="absolute top-24 left-4 z-30 bg-white/95 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-2xl space-y-4 pointer-events-auto text-slate-900 w-72 max-h-[calc(100vh-8rem)] overflow-y-auto">
+      <div className="absolute top-24 left-4 z-30 glass-panel p-4 rounded-3xl space-y-4 pointer-events-auto text-slate-900 w-72 max-h-[calc(100vh-8rem)] overflow-y-auto">
         
         {/* Controls for Engine 0: Relational Network */}
         {activeEngine === 'relationalNetwork' && (
@@ -847,7 +847,7 @@ export default function SimulationLab({ onSelectModule }) {
       {/* ========================================================================= */}
       {/* 4. FLOATING RIGHT PANEL: REAL-TIME QUANTITATIVE KPI RESULTS               */}
       {/* ========================================================================= */}
-      <div className="absolute top-24 right-4 z-30 bg-white/95 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-2xl space-y-3 pointer-events-auto text-slate-900 w-72">
+      <div className="absolute top-24 right-4 z-30 glass-panel p-4 rounded-3xl space-y-3 pointer-events-auto text-slate-900 w-72">
         <div className="text-[10px] font-mono uppercase tracking-wider text-teal-700 font-bold border-b border-slate-100 pb-2 flex items-center justify-between">
           <span>Resultados Cuantitativos</span>
           <Activity className="w-3.5 h-3.5" />
@@ -917,7 +917,7 @@ export default function SimulationLab({ onSelectModule }) {
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full p-6 sm:p-8 space-y-5 animate-scale-up text-slate-900"
+            className="glass-panel rounded-3xl max-w-xl w-full p-6 sm:p-8 space-y-5 animate-scale-up text-slate-900"
           >
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div className="space-y-1">

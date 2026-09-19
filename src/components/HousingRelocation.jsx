@@ -454,27 +454,27 @@ export default function HousingRelocation({ onSelectModule }) {
       <div className="absolute top-4 left-4 right-4 z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
         {/* Module Title Card */}
-        <div className="bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center space-x-3 max-w-lg">
-          <div className="w-10 h-10 rounded-xl bg-terracotta-600 text-white flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
-            03
+        <div className="glass-hud px-4 py-2.5 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-lg shadow-xl">
+          <div className="w-9 h-9 rounded-xl bg-terracotta-600 text-white flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-md">
+            04
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-terracotta-50 text-terracotta-700 border border-terracotta-200">
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-terracotta-50/90 text-terracotta-700 border border-terracotta-200/80">
                 PROGRAMA ARQUITECTÓNICO // REUBICACIÓN
               </span>
-              <span className="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+              <span className="text-[9px] font-mono text-emerald-700 font-bold bg-emerald-50/90 px-1.5 py-0.5 rounded border border-emerald-200/80">
                 120 VIVIENDAS 1:1
               </span>
             </div>
-            <h2 className="font-bold text-sm text-slate-900 truncate">
+            <h2 className="font-bold text-xs sm:text-sm text-slate-900 truncate">
               {activeMainView === 'census120' ? 'Censo & Cuantificación 1:1 (120 Familias)' : selectedPlanType === 'vivienda' ? 'Prototipo de Vivienda Resiliente (+0.60m)' : 'Equipamiento Educativo & Ágora Hídrica'}
             </h2>
           </div>
         </div>
 
         {/* View & Plan Switcher */}
-        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex flex-wrap items-center gap-1 self-start md:self-center">
+        <div className="glass-hud p-1 rounded-2xl pointer-events-auto flex flex-wrap items-center gap-1 self-start md:self-center shadow-xl">
           
           {/* Main View: Plan vs Census */}
           <button

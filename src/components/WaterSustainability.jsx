@@ -225,9 +225,9 @@ export default function WaterSustainability({ onSelectModule }) {
       <div className="relative z-[400] p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
         {/* Module Header Card */}
-        <div className="bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center space-x-3 shrink-0">
+        <div className="glass-hud px-4 py-2.5 rounded-2xl pointer-events-auto flex items-center space-x-3 shrink-0">
           <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-md">
-            07
+            08
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
@@ -245,7 +245,7 @@ export default function WaterSustainability({ onSelectModule }) {
         </div>
 
         {/* View Mode Selector Tabs */}
-        <div className="bg-white/95 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center gap-1 self-start md:self-auto">
+        <div className="glass-hud p-1.5 rounded-2xl pointer-events-auto flex items-center gap-1 self-start md:self-auto">
           <button
             onClick={() => setActiveTab('circuito')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
@@ -284,13 +284,13 @@ export default function WaterSustainability({ onSelectModule }) {
         </div>
 
         {/* Quick Link to Simulation Lab */}
-        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center gap-1 self-start md:self-auto shrink-0">
+        <div className="glass-hud p-1 rounded-2xl pointer-events-auto flex items-center gap-1 self-start md:self-auto shrink-0">
           <button
             onClick={() => onSelectModule && onSelectModule('simulations')}
             className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition-colors shadow-sm"
           >
             <Zap className="w-3.5 h-3.5 text-amber-600" />
-            <span>Simulador Sequía (Lab 06)</span>
+            <span>Simulador Sequía (Lab 09)</span>
           </button>
         </div>
 
@@ -308,7 +308,7 @@ export default function WaterSustainability({ onSelectModule }) {
           <div className="w-full h-full flex flex-col justify-between items-center py-2 animate-fade-in">
             
             {/* Upper Schematic Pipeline Flow SVG */}
-            <div className="w-full bg-white/90 backdrop-blur-md p-6 rounded-3xl border border-slate-200/90 shadow-2xl relative overflow-hidden flex-1 flex flex-col justify-center">
+            <div className="w-full glass-panel p-6 rounded-3xl relative overflow-hidden flex-1 flex flex-col justify-center">
               
               {/* Circuit Header info */}
               <div className="flex items-center justify-between mb-4">
@@ -861,7 +861,7 @@ export default function WaterSustainability({ onSelectModule }) {
       {selectedNodeModal && (
         <div className="fixed inset-0 z-[1200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
           <div 
-            className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full p-6 sm:p-8 space-y-6 animate-scale-up max-h-[90vh] overflow-y-auto"
+            className="glass-panel rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 animate-scale-up max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

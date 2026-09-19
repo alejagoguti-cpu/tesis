@@ -559,9 +559,9 @@ export default function ModelViewer3D({ onSelectModule }) {
       <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
         {/* Module Title Card */}
-        <div className="bg-slate-900/90 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-700/80 shadow-2xl pointer-events-auto flex items-center space-x-3 max-w-lg text-white">
+        <div className="glass-dark px-4 py-3 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-lg text-white">
           <div className="w-10 h-10 rounded-xl bg-teal-500 text-slate-950 flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
-            05
+            06
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
@@ -579,7 +579,7 @@ export default function ModelViewer3D({ onSelectModule }) {
         </div>
 
         {/* 3D Model Switcher Bar */}
-        <div className="bg-slate-900/90 backdrop-blur-md p-1 rounded-2xl border border-slate-700/80 shadow-2xl pointer-events-auto flex items-center gap-1 self-start md:self-center text-white">
+        <div className="glass-dark p-1 rounded-2xl pointer-events-auto flex items-center gap-1 self-start md:self-center text-white">
           <button
             onClick={() => setSelected3DModel('colegio')}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
@@ -616,7 +616,7 @@ export default function ModelViewer3D({ onSelectModule }) {
         </div>
 
         {/* Quick Actions HUD */}
-        <div className="bg-slate-900/90 backdrop-blur-md p-1 rounded-2xl border border-slate-700/80 shadow-2xl pointer-events-auto flex items-center gap-1 text-white">
+        <div className="glass-dark p-1 rounded-2xl pointer-events-auto flex items-center gap-1 text-white">
           <button
             onClick={resetCamera}
             className="p-2 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
@@ -653,7 +653,7 @@ export default function ModelViewer3D({ onSelectModule }) {
       </div>
 
       {/* Floating Left: Interactive Layer Toggles */}
-      <div className="absolute top-24 left-4 z-[400] bg-slate-900/90 backdrop-blur-md p-3 rounded-2xl border border-slate-700/80 shadow-2xl space-y-2 pointer-events-auto text-white max-w-[200px]">
+      <div className="absolute top-24 left-4 z-[400] glass-dark p-3 rounded-2xl space-y-2 pointer-events-auto text-white max-w-[200px]">
         <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold px-1">
           Capas 3D Visibles
         </div>
@@ -691,12 +691,12 @@ export default function ModelViewer3D({ onSelectModule }) {
           }`}
         >
           <span>Celosías & Ventilación</span>
-          {activeLayers.louvers ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+        {activeLayers.louvers ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
         </button>
       </div>
 
       {/* Floating Right: Sun & Solar Angle Slider */}
-      <div className="absolute top-24 right-4 z-[400] bg-slate-900/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-700/80 shadow-2xl space-y-2 pointer-events-auto text-white w-56">
+      <div className="absolute top-24 right-4 z-[400] glass-dark p-3.5 rounded-2xl space-y-2 pointer-events-auto text-white w-56">
         <div className="flex items-center justify-between text-xs font-mono">
           <span className="flex items-center space-x-1.5 text-slate-300 font-bold">
             <Sun className="w-3.5 h-3.5 text-amber-400" />
@@ -721,7 +721,7 @@ export default function ModelViewer3D({ onSelectModule }) {
 
       {/* Floating Bottom Center: Orbit & Zoom Instruction Pill */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[400] pointer-events-none">
-        <div className="bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-700/80 shadow-2xl text-xs font-mono text-slate-300 flex items-center space-x-4">
+        <div className="glass-dark px-4 py-2 rounded-2xl text-xs font-mono text-slate-300 flex items-center space-x-4">
           <span className="flex items-center space-x-1.5"><RotateCcw className="w-3.5 h-3.5 text-teal-400" /><span><b>Arrastrar:</b> Rotar 360°</span></span>
           <span className="text-slate-600">|</span>
           <span className="flex items-center space-x-1.5"><Maximize2 className="w-3.5 h-3.5 text-teal-400" /><span><b>Scroll:</b> Zoom</span></span>

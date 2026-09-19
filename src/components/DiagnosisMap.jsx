@@ -375,27 +375,27 @@ export default function DiagnosisMap({ onNavigateModule }) {
       <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
         {/* Module Title Card */}
-        <div className="bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center space-x-3 max-w-lg">
-          <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
-            02
+        <div className="glass-hud px-4 py-2.5 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-lg shadow-xl">
+          <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-md">
+            03
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-red-50/90 text-red-700 border border-red-200/80">
                 SIG DIAGNÓSTICO // MIDAS CARTAGENA
               </span>
-              <span className="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+              <span className="text-[9px] font-mono text-emerald-700 font-bold bg-emerald-50/90 px-1.5 py-0.5 rounded border border-emerald-200/80">
                 120 VIVIENDAS 1:1
               </span>
             </div>
-            <h2 className="font-bold text-sm text-slate-900 truncate">
+            <h2 className="font-bold text-xs sm:text-sm text-slate-900 truncate">
               Vulnerabilidad, Censo 1:1 & Suelo Seguro (+22m)
             </h2>
           </div>
         </div>
 
         {/* GIS Layer Filters Bar */}
-        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex flex-wrap items-center gap-1 self-start md:self-center">
+        <div className="glass-hud p-1 rounded-2xl pointer-events-auto flex flex-wrap items-center gap-1 self-start md:self-center shadow-xl">
           
           <button
             onClick={() => {
@@ -474,7 +474,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
         </div>
 
         {/* Aerial Satellite / Carto Layer Toggle Button */}
-        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center gap-1 self-start md:self-auto">
+        <div className="glass-hud p-1 rounded-2xl pointer-events-auto flex items-center gap-1 self-start md:self-auto shadow-xl">
           <button
             onClick={() => setMapLayerType('satellite')}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
@@ -516,10 +516,10 @@ export default function DiagnosisMap({ onNavigateModule }) {
                       mapInstanceRef.current.map.flyTo(spot.coords, 15, { animate: true, duration: 1 });
                     }
                   }}
-                  className={`flex items-center space-x-2 px-3.5 py-2 rounded-2xl text-xs font-mono backdrop-blur-md transition-all border shadow-lg ${
+                  className={`glass-card flex items-center space-x-2 px-3.5 py-2 rounded-2xl text-xs font-mono transition-all border shadow-lg ${
                     isSelected
-                      ? 'bg-slate-900 text-white font-bold scale-105 border-slate-900'
-                      : 'bg-white/90 hover:bg-white text-slate-800 border-slate-200/80'
+                      ? '!bg-slate-900 !text-white font-bold scale-105 border-slate-900'
+                      : 'text-slate-800'
                   }`}
                 >
                   <span className="w-2 h-2 rounded-full bg-terracotta-500" />
@@ -534,7 +534,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
 
       {/* Floating Bottom-Left Legend HUD */}
       <div className="absolute top-24 left-4 z-[400] hidden lg:block pointer-events-none">
-        <div className="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto space-y-2 text-xs font-mono">
+        <div className="glass-panel p-3.5 rounded-2xl pointer-events-auto space-y-2 text-xs font-mono shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
             <span className="text-[10px] font-bold text-slate-500 uppercase">Capas Territoriales</span>
             <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">MIDAS</span>

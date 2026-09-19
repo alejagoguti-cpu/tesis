@@ -289,9 +289,9 @@ export default function BlueprintPlotter({ onSelectModule }) {
       <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
         {/* Module Title Card */}
-        <div className="bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center space-x-3 max-w-lg">
+        <div className="glass-hud px-4 py-3 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-lg">
           <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
-            06
+            07
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
@@ -309,7 +309,7 @@ export default function BlueprintPlotter({ onSelectModule }) {
         </div>
 
         {/* Blueprint Selector Pills */}
-        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex flex-wrap items-center gap-1 self-start md:self-center">
+        <div className="glass-hud p-1 rounded-2xl pointer-events-auto flex flex-wrap items-center gap-1 self-start md:self-center">
           {projectInfo.blueprints.map((bp) => {
             const isSelected = selectedBlueprint.id === bp.id;
             return (
@@ -333,7 +333,7 @@ export default function BlueprintPlotter({ onSelectModule }) {
         </div>
 
         {/* Print / Plot Quick Action */}
-        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center gap-1">
+        <div className="glass-hud p-1 rounded-2xl pointer-events-auto flex items-center gap-1">
           <button
             onClick={handlePrint}
             className="px-4 py-2 rounded-xl bg-terracotta-600 hover:bg-terracotta-700 text-white text-xs font-mono font-bold shadow-sm transition-all flex items-center space-x-1.5"
@@ -347,7 +347,7 @@ export default function BlueprintPlotter({ onSelectModule }) {
 
       {/* Floating Bottom Center: CAD Toolbar Controls */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[400] pointer-events-none">
-        <div className="bg-white/95 backdrop-blur-md px-3 py-2 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center space-x-2 text-xs font-mono text-slate-800">
+        <div className="glass-hud px-3 py-2 rounded-2xl pointer-events-auto flex items-center space-x-2 text-xs font-mono text-slate-800">
           
           <button
             onClick={handleZoomIn}
@@ -419,7 +419,7 @@ export default function BlueprintPlotter({ onSelectModule }) {
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-xl w-full shadow-2xl relative text-slate-900 space-y-5"
+            className="glass-panel rounded-3xl p-6 sm:p-8 max-w-xl w-full relative text-slate-900 space-y-5"
           >
             <div className="flex items-start justify-between">
               <div>

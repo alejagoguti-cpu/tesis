@@ -252,9 +252,9 @@ export default function StrategyRelocation({ onSelectModule }) {
       <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
         {/* Module Title Card */}
-        <div className="bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center space-x-3 max-w-lg">
+        <div className="glass-hud px-4 py-3 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-lg">
           <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
-            04
+            05
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
@@ -272,7 +272,7 @@ export default function StrategyRelocation({ onSelectModule }) {
         </div>
 
         {/* Dynamic Controls */}
-        <div className="bg-white/95 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center gap-2 self-start md:self-center">
+        <div className="glass-hud p-1.5 rounded-2xl pointer-events-auto flex items-center gap-2 self-start md:self-center">
           <button
             onClick={() => setShowWindVectors(!showWindVectors)}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
@@ -292,7 +292,7 @@ export default function StrategyRelocation({ onSelectModule }) {
             className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-mono font-bold flex items-center space-x-1.5 shadow-sm transition-all"
           >
             <Activity className="w-3.5 h-3.5" />
-            <span>Túnel CFD (Lab 08)</span>
+            <span>Túnel CFD (Lab 09)</span>
           </button>
 
           <button
@@ -305,7 +305,7 @@ export default function StrategyRelocation({ onSelectModule }) {
         </div>
 
         {/* Aerial Satellite / Carto Layer Toggle Button */}
-        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center gap-1 self-start md:self-auto">
+        <div className="glass-hud p-1 rounded-2xl pointer-events-auto flex items-center gap-1 self-start md:self-auto">
           <button
             onClick={() => setMapLayerType('satellite')}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
@@ -346,10 +346,10 @@ export default function StrategyRelocation({ onSelectModule }) {
                     bioMapInstanceRef.current.flyTo(strat.coords, 15, { animate: true, duration: 1 });
                   }
                 }}
-                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between backdrop-blur-md shadow-xl ${
+                className={`p-3 rounded-2xl text-left transition-all flex flex-col justify-between ${
                   isSelected
-                    ? 'bg-white/95 border-teal-500 ring-2 ring-teal-400/30 scale-105 shadow-2xl'
-                    : 'bg-white/90 hover:bg-white border-slate-200/80'
+                    ? 'glass-card border-teal-500 ring-2 ring-teal-400/30 scale-105 shadow-2xl'
+                    : 'glass-card'
                 }`}
               >
                 <div className="space-y-1">
@@ -379,7 +379,7 @@ export default function StrategyRelocation({ onSelectModule }) {
       {activeModal && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
           <div 
-            className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full p-6 sm:p-8 space-y-6 animate-scale-up max-h-[90vh] overflow-y-auto"
+            className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6 animate-scale-up max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
@@ -442,7 +442,7 @@ export default function StrategyRelocation({ onSelectModule }) {
                   }}
                   className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-mono font-bold shadow-sm transition-colors flex items-center space-x-1.5"
                 >
-                  <span>Simular en Lab 08</span>
+                  <span>Simular en Lab 09</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </button>
 

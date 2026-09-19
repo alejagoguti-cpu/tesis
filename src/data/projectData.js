@@ -277,14 +277,14 @@ export const projectInfo = {
 
   // 11. NAVEGACIÓN DEL DASHBOARD
   dashboardModules: [
-    { id: "overview", number: "00", title: "Centro de Control & KPIs", icon: "LayoutDashboard", badge: "Ejecutivo", desc: "Monitoreo general, métricas de impacto y telemetría" },
-    { id: "framework", number: "01", title: "Marco de Tesis", icon: "BookOpen", badge: "Académico", desc: "Problema, Justificación y Objetivos OE-01 a OE-04" },
-    { id: "gis", number: "02", title: "GIS & Diagnóstico", icon: "Map", badge: "Territorial", desc: "Cartografía de erosión costera y cota segura +22m" },
-    { id: "programs", number: "03", title: "Viviendas & Colegio", icon: "Home", badge: "Arquitectura", desc: "120 Viviendas Palafíticas + Equipamiento Educativo" },
-    { id: "bioclimatic", number: "04", title: "Estrategia Bioclimática", icon: "Wind", badge: "Sostenible", desc: "Vientos alisios N-NE, aleros 2.5m y celosías BTC" },
-    { id: "3dviewer", number: "05", title: "Visor 3D WebGL / BIM", icon: "Box", badge: "Interactivo", desc: "Equipamiento, Vivienda, Masterplan + Despiece & Speckle" },
-    { id: "cad", number: "06", title: "Planimetría CAD & Plotter", icon: "Printer", badge: "Vectorial", desc: "Pliegos DIN A1, cotas, cianotipo e impresión técnica" },
-    { id: "water", number: "07", title: "Soberanía Hídrica", icon: "Droplets", badge: "Hidráulico", desc: "Aljibe 450.000 L, filtrado en 5 fases y solar UV" },
-    { id: "simulations", number: "08", title: "Laboratorio de Simulaciones", icon: "Activity", badge: "Modelamiento", desc: "Simuladores dinámicos de cambio climático, balance hídrico y perturbación" }
+    { id: "overview", number: "01", title: "Centro de Control & KPIs", icon: "LayoutDashboard", badge: "Ejecutivo", desc: "Monitoreo general, métricas de impacto y telemetría" },
+    { id: "framework", number: "02", title: "Marco de Tesis", icon: "BookOpen", badge: "Académico", desc: "Problema, Justificación y Objetivos OE-01 a OE-04" },
+    { id: "gis", number: "03", title: "GIS & Diagnóstico", icon: "Map", badge: "Territorial", desc: "Cartografía de erosión costera y cota segura +22m" },
+    { id: "programs", number: "04", title: "Viviendas & Colegio", icon: "Home", badge: "Arquitectura", desc: "120 Viviendas Palafíticas + Equipamiento Educativo" },
+    { id: "bioclimatic", number: "05", title: "Estrategia Bioclimática", icon: "Wind", badge: "Sostenible", desc: "Vientos alisios N-NE, aleros 2.5m y celosías BTC" },
+    { id: "3dviewer", number: "06", title: "Visor 3D WebGL / BIM", icon: "Box", badge: "Interactivo", desc: "Equipamiento, Vivienda, Masterplan + Despiece & Speckle" },
+    { id: "cad", number: "07", title: "Planimetría CAD & Plotter", icon: "Printer", badge: "Vectorial", desc: "Pliegos DIN A1, cotas, cianotipo e impresión técnica" },
+    { id: "water", number: "08", title: "Soberanía Hídrica", icon: "Droplets", badge: "Hidráulico", desc: "Aljibe 450.000 L, filtrado en 5 fases y solar UV" },
+    { id: "simulations", number: "09", title: "Laboratorio de Simulaciones", icon: "Activity", badge: "Modelamiento", desc: "Simuladores dinámicos de cambio climático, balance hídrico y perturbación" }
   ]
 };
