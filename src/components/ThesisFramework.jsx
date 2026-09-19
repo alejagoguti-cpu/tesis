@@ -367,8 +367,8 @@ function calculatePolylineLengthKm(coords) {
 }
 
 export default function ThesisFramework({ onSelectModule }) {
-  // Navigation & Step States
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  // Navigation & Step States: starts at null for clean panoramic zoom approach
+  const [currentStepIndex, setCurrentStepIndex] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
   const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
@@ -399,8 +399,9 @@ export default function ThesisFramework({ onSelectModule }) {
   const [copyToast, setCopyToast] = useState(false);
   const [deleteToast, setDeleteToast] = useState(false);
 
-  // Cinematic Intro Animation State
-  const [isIntroAnimating, setIsIntroAnimating] = useState(true);
+  // Cinematic Intro Animation States
+  const [isIntroZooming, setIsIntroZooming] = useState(true);
+  const [isIntroAnimating, setIsIntroAnimating] = useState(false);
   const [animProgress, setAnimProgress] = useState(0);
 
   // Map Refs
@@ -428,7 +429,20 @@ export default function ThesisFramework({ onSelectModule }) {
   const nodeMarkersGroupRef = useRef(null);
 
   const { academicFramework } = projectInfo;
-  const currentStep = FRAMEWORK_STEPS[currentStepIndex];
+  const currentStep = currentStepIndex !== null ? FRAMEWORK_STEPS[currentStepIndex] : {
+    step: 0,
+    id: "overview",
+    title: "Inspección Panorámica",
+    badge: "MOD 02 // Territorio",
+    targetName: "Isla Tierrabomba (Cartagena)",
+    center: [10.352, -75.572],
+    zoom: 13.2,
+    highlight: "overview",
+    modalType: "problem",
+    btnLabel: "Planteamiento del Problema",
+    description: "Inspección aérea y aproximación espacial al territorio insular de Tierrabomba.",
+    hint: "Haz clic en la Card 01 para proyectar la delimitación de la isla"
+  };
 
   // Active Zone Metadata
   const activeZoneConfig = ZONE_CONFIG[activeZoneKey];
@@ -443,9 +457,9 @@ export default function ThesisFramework({ onSelectModule }) {
   }, [activeNodes, activeZoneConfig]);
 
   // =========================================================================
-  // CINEMATIC INTRO: SMOOTH SLOW ZOOM + ANIMATED BOUNDARY TRACING
+  // ANIMATED BOUNDARY TRACING (RUNS WHEN CARD 01 IS PRESSED)
   // =========================================================================
-  const startCinematicIntro = (targetMap) => {
+  const startIslandTraceAnimation = (targetMap) => {
     const map = targetMap || mapInstanceRef.current;
     if (!map) return;
 
@@ -481,28 +495,24 @@ export default function ThesisFramework({ onSelectModule }) {
       });
     }
 
-    // 1. Set initial camera wide overview (Cartagena Bay + Tierrabomba)
-    map.setView([10.370, -75.542], 12, { animate: false });
-
-    // 2. Slow cinematic camera glide
+    // Ensure camera is perfectly framed on Tierrabomba
     map.flyTo([10.352, -75.572], 13.2, {
       animate: true,
-      duration: 3.8,
-      easeLinearity: 0.25
+      duration: 1.2
     });
 
-    // 3. Create animated polyline & glow polyline
+    // Create animated polyline & glow polyline
     const glowLine = L.polyline([], {
       color: '#f59e0b',
       weight: 8,
-      opacity: 0.5,
+      opacity: 0.55,
       lineCap: 'round',
       lineJoin: 'round'
     }).addTo(map);
 
     const mainLine = L.polyline([], {
       color: '#ea580c',
-      weight: 4,
+      weight: 4.5,
       opacity: 1,
       lineCap: 'round',
       lineJoin: 'round'
@@ -512,8 +522,8 @@ export default function ThesisFramework({ onSelectModule }) {
       className: 'custom-anim-lead-node',
       html: `
         <div class="relative flex items-center justify-center pointer-events-none">
-          <div class="absolute -inset-2 rounded-full bg-amber-400 animate-ping opacity-80"></div>
-          <div class="w-4 h-4 rounded-full bg-amber-400 border-2 border-white shadow-xl flex items-center justify-center">
+          <div class="absolute -inset-2.5 rounded-full bg-amber-400 animate-ping opacity-85"></div>
+          <div class="w-4.5 h-4.5 rounded-full bg-amber-400 border-2 border-white shadow-2xl flex items-center justify-center">
             <div class="w-1.5 h-1.5 rounded-full bg-slate-950"></div>
           </div>
         </div>
@@ -531,9 +541,9 @@ export default function ThesisFramework({ onSelectModule }) {
     animatingLayerRef.current = mainLine;
     tracerMarkerRef.current = leadMarker;
 
-    // Total animation time ~3200ms divided across coords length
+    // Total animation time ~2800ms divided across coords length
     const totalPoints = islandCoords.length;
-    const intervalMs = Math.max(16, Math.floor(3200 / totalPoints));
+    const intervalMs = Math.max(16, Math.floor(2800 / totalPoints));
     let stepIndex = 1;
 
     animationTimerRef.current = setInterval(() => {
@@ -563,8 +573,8 @@ export default function ThesisFramework({ onSelectModule }) {
           if (layersRef.current.islandLayer) {
             layersRef.current.islandLayer.setStyle({
               opacity: 1,
-              fillOpacity: 0.25,
-              weight: 3.5
+              fillOpacity: 0.35,
+              weight: 5
             });
           }
           if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
@@ -582,9 +592,10 @@ export default function ThesisFramework({ onSelectModule }) {
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
+    // Start wide from Cartagena Bay
     const map = L.map(mapRef.current, {
       center: [10.370, -75.542],
-      zoom: 12,
+      zoom: 11.8,
       zoomControl: false,
       attributionControl: false
     });
@@ -606,7 +617,7 @@ export default function ThesisFramework({ onSelectModule }) {
       map.invalidateSize();
     }, 150);
 
-    // 1. Island Perimeter Polygon (Initially hidden for animation)
+    // 1. Island Perimeter Polygon (Initially hidden, revealed on Card 01 click!)
     const islandLayer = L.polygon(delimitations.island || [], {
       color: '#ea580c',
       weight: 3.5,
@@ -624,7 +635,7 @@ export default function ThesisFramework({ onSelectModule }) {
     const erosionLayer = L.polyline(delimitations.erosion || [], {
       color: '#dc2626',
       weight: 6,
-      opacity: 0.9,
+      opacity: 0,
       dashArray: '10, 6'
     }).addTo(map);
 
@@ -660,7 +671,8 @@ export default function ThesisFramework({ onSelectModule }) {
       color: '#0d9488',
       weight: 3.5,
       fillColor: '#0d9488',
-      fillOpacity: 0.3
+      fillOpacity: 0,
+      opacity: 0
     }).addTo(map);
 
     masterplanLayer.on('click', () => {
@@ -708,8 +720,18 @@ export default function ThesisFramework({ onSelectModule }) {
 
     mapInstanceRef.current = map;
 
-    // Trigger smooth slow zoom & animated island tracing on mount!
-    startCinematicIntro(map);
+    // Smooth, slow cinematic camera zoom into Tierrabomba over 4.2 seconds!
+    // No delimitations are shown during this initial approach.
+    setTimeout(() => {
+      map.flyTo([10.352, -75.572], 13.2, {
+        animate: true,
+        duration: 4.2,
+        easeLinearity: 0.25
+      });
+      setTimeout(() => {
+        setIsIntroZooming(false);
+      }, 4300);
+    }, 200);
 
     return () => {
       if (animationTimerRef.current) clearInterval(animationTimerRef.current);
@@ -891,6 +913,11 @@ export default function ThesisFramework({ onSelectModule }) {
         });
       }
       setIsIntroAnimating(false);
+      return;
+    }
+
+    // If still in initial overview approach (no card clicked yet)
+    if (currentStepIndex === null) {
       return;
     }
 
@@ -1155,14 +1182,14 @@ export default function ThesisFramework({ onSelectModule }) {
                 onClick={() => {
                   setCurrentStepIndex(0);
                   setIsPlaying(false);
-                  startCinematicIntro();
+                  startIslandTraceAnimation();
                 }}
                 className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shadow-sm ${
                   isIntroAnimating
                     ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-400/50 scale-105'
                     : 'bg-amber-500 hover:bg-amber-400 text-slate-950 hover:scale-102'
                 }`}
-                title="Repetir animación cinemática de zoom y trazado perimetral"
+                title="Trazar delimitación perimetral de la isla"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>{isIntroAnimating ? 'Animando...' : 'Animar Trazo'}</span>
@@ -1441,6 +1468,7 @@ export default function ThesisFramework({ onSelectModule }) {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-5xl mx-auto pointer-events-auto">
             {FRAMEWORK_STEPS.map((step, idx) => {
               const isActive = currentStepIndex === idx;
+              const isFirstStepPrompt = currentStepIndex === null && idx === 0;
               return (
                 <button
                   key={step.id}
@@ -1448,7 +1476,7 @@ export default function ThesisFramework({ onSelectModule }) {
                     setIsPlaying(false);
                     if (idx === 0) {
                       setCurrentStepIndex(0);
-                      startCinematicIntro();
+                      startIslandTraceAnimation();
                     } else {
                       setCurrentStepIndex(idx);
                     }
@@ -1456,22 +1484,34 @@ export default function ThesisFramework({ onSelectModule }) {
                   className={`glass-card p-3 rounded-2xl text-left transition-all flex flex-col justify-between ${
                     isActive
                       ? 'border-terracotta-500 shadow-2xl ring-2 ring-terracotta-400/30 scale-105'
-                      : 'border-white/80 shadow-lg'
+                      : isFirstStepPrompt
+                        ? 'border-amber-400 shadow-xl ring-2 ring-amber-400/80 animate-pulse scale-102 bg-amber-50/20'
+                        : 'border-white/80 shadow-lg'
                   }`}
                 >
                   <div className="flex items-center justify-between w-full mb-1">
                     <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
-                      isActive ? 'bg-terracotta-100 text-terracotta-800' : 'bg-slate-100/90 text-slate-600'
+                      isActive 
+                        ? 'bg-terracotta-100 text-terracotta-800' 
+                        : isFirstStepPrompt
+                          ? 'bg-amber-100 text-amber-900 font-black'
+                          : 'bg-slate-100/90 text-slate-600'
                     }`}>
                       PASO 0{step.step}
                     </span>
-                    <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-terracotta-500 animate-ping' : 'bg-slate-300'}`} />
+                    <span className={`w-2 h-2 rounded-full ${
+                      isActive 
+                        ? 'bg-terracotta-500 animate-ping' 
+                        : isFirstStepPrompt
+                          ? 'bg-amber-500 animate-ping'
+                          : 'bg-slate-300'
+                    }`} />
                   </div>
                   <h4 className="font-serif font-bold text-xs text-slate-900 line-clamp-1">
                     {step.title}
                   </h4>
                   <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">
-                    {step.btnLabel}
+                    {isFirstStepPrompt ? '✨ Clic para trazar' : step.btnLabel}
                   </p>
                 </button>
               );
@@ -1484,7 +1524,11 @@ export default function ThesisFramework({ onSelectModule }) {
       {!isEditMode && (
         <div className="absolute bottom-20 left-4 z-[400] hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-900/90 text-white text-[11px] font-mono backdrop-blur-md shadow-lg border border-white/20 pointer-events-none">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>{currentStep.hint} &bull; Pulsa <b>Delimitar con Nodos</b> para trazar</span>
+          <span>
+            {currentStepIndex === null 
+              ? '👉 Haz clic en el Paso 01 (Delimitación Territorial) para proyectar el contorno de la isla' 
+              : `${currentStep.hint} • Pulsa Delimitar con Nodos para editar`}
+          </span>
         </div>
       )}
 
