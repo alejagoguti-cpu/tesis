@@ -48,14 +48,14 @@ export default function DashboardHeader({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white/90 dark:bg-deepsea-950/90 backdrop-blur-md border-b border-sand-300/80 dark:border-deepsea-800 transition-colors duration-300">
+    <header className="sticky top-0 z-30 bg-white/95 dark:bg-deepsea-950/90 backdrop-blur-md border-b border-slate-200 dark:border-deepsea-800 transition-colors duration-300">
       <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         
         {/* Left: Mobile Toggle & Breadcrumbs */}
         <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
           <button
             onClick={() => setMobileSidebarOpen(true)}
-            className="lg:hidden p-2 rounded-xl bg-sand-200 dark:bg-deepsea-800 text-deepsea-900 dark:text-sand-100 hover:bg-sand-300 dark:hover:bg-deepsea-700 transition-colors"
+            className="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-deepsea-800 text-slate-900 dark:text-sand-100 hover:bg-slate-200 dark:hover:bg-deepsea-700 transition-colors"
             aria-label="Abrir Menú"
           >
             <Menu className="w-5 h-5" />
@@ -66,12 +66,12 @@ export default function DashboardHeader({
             <span className="text-terracotta-600 dark:text-terracotta-400 font-bold hidden sm:inline">
               TESIS 2026
             </span>
-            <span className="text-sand-400 hidden sm:inline">/</span>
+            <span className="text-slate-400 dark:text-sand-400 hidden sm:inline">/</span>
             <div className="flex items-center space-x-1.5 overflow-hidden">
-              <span className="px-1.5 py-0.5 rounded bg-sand-200 dark:bg-deepsea-800 text-deepsea-800 dark:text-sand-300 font-bold text-[10px]">
+              <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-deepsea-800 text-slate-800 dark:text-sand-300 font-bold text-[10px]">
                 MOD {currentModuleData.number}
               </span>
-              <h2 className="font-display font-bold text-sm text-deepsea-950 dark:text-sand-100 truncate">
+              <h2 className="font-display font-bold text-sm text-slate-900 dark:text-sand-100 truncate">
                 {currentModuleData.title}
               </h2>
             </div>
@@ -82,13 +82,13 @@ export default function DashboardHeader({
         <div className="flex items-center space-x-2 sm:space-x-3">
           
           {/* Quick View Mode Toggle (Dashboard vs Monograph) */}
-          <div className="hidden md:flex p-1 rounded-xl bg-sand-200/80 dark:bg-deepsea-900 border border-sand-300/60 dark:border-deepsea-800 text-xs font-mono">
+          <div className="hidden md:flex p-1 rounded-xl bg-slate-100 dark:bg-deepsea-900 border border-slate-200 dark:border-deepsea-800 text-xs font-mono">
             <button
               onClick={() => setViewMode('dashboard')}
               className={`px-3 py-1 rounded-lg transition-all ${
                 viewMode === 'dashboard'
-                  ? 'bg-terracotta-600 text-white font-bold shadow-sm'
-                  : 'text-deepsea-700 dark:text-sand-400 hover:text-deepsea-950 dark:hover:text-white'
+                  ? 'bg-white dark:bg-terracotta-600 text-slate-900 dark:text-white font-bold shadow-sm'
+                  : 'text-slate-600 dark:text-sand-400 hover:text-slate-900'
               }`}
             >
               Dashboard
@@ -97,8 +97,8 @@ export default function DashboardHeader({
               onClick={() => setViewMode('monograph')}
               className={`px-3 py-1 rounded-lg transition-all ${
                 viewMode === 'monograph'
-                  ? 'bg-terracotta-600 text-white font-bold shadow-sm'
-                  : 'text-deepsea-700 dark:text-sand-400 hover:text-deepsea-950 dark:hover:text-white'
+                  ? 'bg-white dark:bg-terracotta-600 text-slate-900 dark:text-white font-bold shadow-sm'
+                  : 'text-slate-600 dark:text-sand-400 hover:text-slate-900'
               }`}
             >
               Expediente
@@ -110,8 +110,8 @@ export default function DashboardHeader({
             onClick={handleToggleFullscreen}
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-mono transition-all ${
               presentationMode
-                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40'
-                : 'bg-sand-100 dark:bg-deepsea-900 text-deepsea-800 dark:text-sand-300 border-sand-300/80 dark:border-deepsea-800 hover:border-terracotta-400'
+                ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/40'
+                : 'bg-white dark:bg-deepsea-900 text-slate-700 dark:text-sand-300 border-slate-200 dark:border-deepsea-800 hover:border-terracotta-500 shadow-xs'
             }`}
             title="Modo Sustentación / Pantalla Completa para jurados"
           >
@@ -124,7 +124,7 @@ export default function DashboardHeader({
           {/* Print Dossier Quick Action */}
           <button
             onClick={() => window.print()}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-sand-100 dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 text-deepsea-800 dark:text-sand-300 hover:text-terracotta-600 dark:hover:text-terracotta-400 text-xs font-mono transition-colors"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-deepsea-900 border border-slate-200 dark:border-deepsea-800 text-slate-700 dark:text-sand-300 hover:text-terracotta-600 dark:hover:text-terracotta-400 text-xs font-mono transition-colors shadow-xs"
             title="Imprimir o guardar dossier en PDF"
           >
             <Printer className="w-3.5 h-3.5" />
@@ -134,21 +134,21 @@ export default function DashboardHeader({
           {/* Dark / Light Theme Toggle */}
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-xl bg-sand-100 dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 text-deepsea-800 dark:text-sand-300 hover:text-terracotta-600 dark:hover:text-terracotta-400 transition-colors"
-            title={darkMode ? 'Cambiar a Modo Sand / Cálido' : 'Cambiar a Modo Deep Sea / Oscuro'}
+            className="p-2 rounded-xl bg-white dark:bg-deepsea-900 border border-slate-200 dark:border-deepsea-800 text-slate-700 dark:text-sand-300 hover:text-terracotta-600 dark:hover:text-terracotta-400 transition-colors shadow-xs"
+            title={darkMode ? 'Cambiar a Modo Blanco / Claro' : 'Cambiar a Modo Deep Sea / Oscuro'}
             aria-label="Cambiar tema"
           >
-            {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-deepsea-800" />}
+            {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
           </button>
 
           {/* Tesistas Author Chip */}
-          <div className="hidden lg:flex items-center space-x-2 pl-2 border-l border-sand-300 dark:border-deepsea-800 text-xs font-mono text-deepsea-800 dark:text-sand-300">
-            <div className="w-7 h-7 rounded-lg bg-terracotta-500/10 border border-terracotta-500/30 flex items-center justify-center text-terracotta-600 dark:text-terracotta-400 font-bold text-[10px]">
+          <div className="hidden lg:flex items-center space-x-2 pl-2 border-l border-slate-200 dark:border-deepsea-800 text-xs font-mono text-slate-700 dark:text-sand-300">
+            <div className="w-7 h-7 rounded-lg bg-terracotta-500/10 border border-terracotta-500/20 flex items-center justify-center text-terracotta-600 dark:text-terracotta-400 font-bold text-[10px]">
               TG
             </div>
             <div className="text-left leading-none">
-              <p className="font-bold text-deepsea-950 dark:text-sand-100 text-[11px]">{projectInfo.author}</p>
-              <p className="text-[10px] text-deepsea-700/60 dark:text-sand-400 mt-0.5">Tesistas Arquitectura</p>
+              <p className="font-bold text-slate-900 dark:text-sand-100 text-[11px]">{projectInfo.author}</p>
+              <p className="text-[10px] text-slate-500 dark:text-sand-400 mt-0.5">Tesistas Arquitectura</p>
             </div>
           </div>
 

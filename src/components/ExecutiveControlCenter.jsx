@@ -110,12 +110,12 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-terracotta-500" />
-            <h3 className="font-serif font-bold text-xl text-deepsea-950 dark:text-sand-100">
+            <span className="w-2.5 h-2.5 rounded-full bg-terracotta-600" />
+            <h3 className="font-serif font-bold text-xl text-slate-900 dark:text-sand-100">
               Indicadores Clave del Plan Maestro (KPIs)
             </h3>
           </div>
-          <span className="text-xs font-mono text-deepsea-700/60 dark:text-sand-400">
+          <span className="text-xs font-mono text-slate-500 dark:text-sand-400">
             Parámetros de Diseño Tesis 2026
           </span>
         </div>
@@ -125,7 +125,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
           {/* KPI 1: Housing */}
           <div 
             onClick={() => onSelectModule('programs')}
-            className="p-6 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm hover:shadow-md hover:border-terracotta-500 transition-all cursor-pointer group"
+            className="p-6 rounded-2xl bg-white dark:bg-deepsea-900 border border-slate-200 dark:border-deepsea-800 shadow-sm hover:shadow-md hover:border-terracotta-500 transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="p-3 rounded-xl bg-terracotta-500/10 text-terracotta-600 dark:text-terracotta-400 group-hover:scale-110 transition-transform">
@@ -135,19 +135,19 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                 MÓDULO 03
               </span>
             </div>
-            <p className="text-xs font-mono text-deepsea-700/60 dark:text-sand-400">Reubicación Habitacional</p>
-            <h4 className="font-serif font-bold text-3xl text-deepsea-950 dark:text-sand-100 mt-1">
+            <p className="text-xs font-mono text-slate-500 dark:text-sand-400">Reubicación Habitacional</p>
+            <h4 className="font-serif font-bold text-3xl text-slate-900 dark:text-sand-100 mt-1">
               120 Viviendas
             </h4>
-            <p className="text-xs text-deepsea-800/70 dark:text-sand-300/70 mt-2 font-light leading-relaxed">
-              Tipologías progresivas de 54 a 86 m² con elevación palafítica (+0.60m) en estructura de madera y celosías BTC.
+            <p className="text-xs text-slate-600 dark:text-sand-300 mt-2 font-light leading-relaxed">
+              Tipologías progresivas de 54 a 86 m² con elevación palafítica (+0.60m) en madera y celosías BTC.
             </p>
           </div>
 
           {/* KPI 2: School */}
           <div 
             onClick={() => onSelectModule('programs')}
-            className="p-6 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm hover:shadow-md hover:border-caribbean-500 transition-all cursor-pointer group"
+            className="p-6 rounded-2xl bg-white dark:bg-deepsea-900 border border-slate-200 dark:border-deepsea-800 shadow-sm hover:shadow-md hover:border-caribbean-500 transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="p-3 rounded-xl bg-caribbean-500/10 text-caribbean-600 dark:text-caribbean-400 group-hover:scale-110 transition-transform">
@@ -157,11 +157,11 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                 DOTACIONAL
               </span>
             </div>
-            <p className="text-xs font-mono text-deepsea-700/60 dark:text-sand-400">Equipamiento Educativo</p>
-            <h4 className="font-serif font-bold text-3xl text-deepsea-950 dark:text-sand-100 mt-1">
+            <p className="text-xs font-mono text-slate-500 dark:text-sand-400">Equipamiento Educativo</p>
+            <h4 className="font-serif font-bold text-3xl text-slate-900 dark:text-sand-100 mt-1">
               350 Estudiantes
             </h4>
-            <p className="text-xs text-deepsea-800/70 dark:text-sand-300/70 mt-2 font-light leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-sand-300 mt-2 font-light leading-relaxed">
               1.850 m² de aulas pasivas, talleres de pesca y carpintería náutica con ágora cívica central.
             </p>
           </div>
@@ -169,7 +169,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
           {/* KPI 3: Water */}
           <div 
             onClick={() => onSelectModule('water')}
-            className="p-6 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm hover:shadow-md hover:border-blue-500 transition-all cursor-pointer group"
+            className="p-6 rounded-2xl bg-white dark:bg-deepsea-900 border border-slate-200 dark:border-deepsea-800 shadow-sm hover:shadow-md hover:border-blue-500 transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="p-3 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
@@ -179,11 +179,11 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                 MÓDULO 07
               </span>
             </div>
-            <p className="text-xs font-mono text-deepsea-700/60 dark:text-sand-400">Reserva Hídrica Autónoma</p>
-            <h4 className="font-serif font-bold text-3xl text-deepsea-950 dark:text-sand-100 mt-1">
+            <p className="text-xs font-mono text-slate-500 dark:text-sand-400">Reserva Hídrica Autónoma</p>
+            <h4 className="font-serif font-bold text-3xl text-slate-900 dark:text-sand-100 mt-1">
               450.000 Litros
             </h4>
-            <p className="text-xs text-deepsea-800/70 dark:text-sand-300/70 mt-2 font-light leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-sand-300 mt-2 font-light leading-relaxed">
               Aljibe central inmune a salinización con filtrado solar UV y 90 días de autonomía de sequía.
             </p>
           </div>
@@ -191,7 +191,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
           {/* KPI 4: Erosion Rate */}
           <div 
             onClick={() => onSelectModule('gis')}
-            className="p-6 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm hover:shadow-md hover:border-emerald-500 transition-all cursor-pointer group"
+            className="p-6 rounded-2xl bg-white dark:bg-deepsea-900 border border-slate-200 dark:border-deepsea-800 shadow-sm hover:shadow-md hover:border-emerald-500 transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
@@ -201,19 +201,19 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                 TERRITORIO
               </span>
             </div>
-            <p className="text-xs font-mono text-deepsea-700/60 dark:text-sand-400">Cota Segura de Relocalización</p>
-            <h4 className="font-serif font-bold text-3xl text-deepsea-950 dark:text-sand-100 mt-1">
+            <p className="text-xs font-mono text-slate-500 dark:text-sand-400">Cota Segura de Relocalización</p>
+            <h4 className="font-serif font-bold text-3xl text-slate-900 dark:text-sand-100 mt-1">
               +22.00 m.s.n.m.
             </h4>
-            <p className="text-xs text-deepsea-800/70 dark:text-sand-300/70 mt-2 font-light leading-relaxed">
-              Retiro de la franja costera con pérdida anual de 1.8 m/año. Cero riesgo de socavación marina.
+            <p className="text-xs text-slate-600 dark:text-sand-300 mt-2 font-light leading-relaxed">
+              Retiro de la franja costera con pérdida de 1.8 m/año. Cero riesgo de socavación marina.
             </p>
           </div>
 
           {/* KPI 5: Solar */}
           <div 
             onClick={() => onSelectModule('bioclimatic')}
-            className="p-6 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm hover:shadow-md hover:border-amber-500 transition-all cursor-pointer group"
+            className="p-6 rounded-2xl bg-white dark:bg-deepsea-900 border border-slate-200 dark:border-deepsea-800 shadow-sm hover:shadow-md hover:border-amber-500 transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="p-3 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
@@ -223,11 +223,11 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                 ENERGÍA
               </span>
             </div>
-            <p className="text-xs font-mono text-deepsea-700/60 dark:text-sand-400">Matriz Energética Renovable</p>
-            <h4 className="font-serif font-bold text-3xl text-deepsea-950 dark:text-sand-100 mt-1">
+            <p className="text-xs font-mono text-slate-500 dark:text-sand-400">Matriz Energética Renovable</p>
+            <h4 className="font-serif font-bold text-3xl text-slate-900 dark:text-sand-100 mt-1">
               100% Fotovoltaica
             </h4>
-            <p className="text-xs text-deepsea-800/70 dark:text-sand-300/70 mt-2 font-light leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-sand-300 mt-2 font-light leading-relaxed">
               Radiación de 5.85 kWh/m²/día con acumulación LiFePO4 para bombeo e iluminación comunal.
             </p>
           </div>
@@ -235,7 +235,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
           {/* KPI 6: Bioclimatic Comfort */}
           <div 
             onClick={() => onSelectModule('bioclimatic')}
-            className="p-6 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm hover:shadow-md hover:border-teal-500 transition-all cursor-pointer group"
+            className="p-6 rounded-2xl bg-white dark:bg-deepsea-900 border border-slate-200 dark:border-deepsea-800 shadow-sm hover:shadow-md hover:border-teal-500 transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="p-3 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform">
@@ -245,11 +245,11 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                 BIOCLIMÁTICA
               </span>
             </div>
-            <p className="text-xs font-mono text-deepsea-700/60 dark:text-sand-400">Confort Pasivo Caribeño</p>
-            <h4 className="font-serif font-bold text-3xl text-deepsea-950 dark:text-sand-100 mt-1">
+            <p className="text-xs font-mono text-slate-500 dark:text-sand-400">Confort Pasivo Caribeño</p>
+            <h4 className="font-serif font-bold text-3xl text-slate-900 dark:text-sand-100 mt-1">
               -5 °C Sensación
             </h4>
-            <p className="text-xs text-deepsea-800/70 dark:text-sand-300/70 mt-2 font-light leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-sand-300 mt-2 font-light leading-relaxed">
               Aleros de 2.5m, ventilación cruzada con alisios N-NE y celosías cerámicas transpirables.
             </p>
           </div>

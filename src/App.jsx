@@ -43,7 +43,7 @@ class SafeSection extends Component {
 }
 
 export default function App() {
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
   const [activeModule, setActiveModule] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -67,7 +67,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-sand-50 dark:bg-deepsea-950 text-deepsea-950 dark:text-sand-100 font-sans transition-colors duration-300 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-deepsea-950 text-slate-900 dark:text-sand-100 font-sans transition-colors duration-300 flex flex-col">
       
       {/* Sidebar Navigation */}
       {!presentationMode && (
@@ -130,7 +130,7 @@ export default function App() {
               {/* Module 02: GIS & Diagnóstico */}
               {activeModule === 'gis' && (
                 <SafeSection name="Diagnóstico Territorial">
-                  <DiagnosisMap />
+                  <DiagnosisMap onNavigateModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
