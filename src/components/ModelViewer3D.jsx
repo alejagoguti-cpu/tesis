@@ -48,8 +48,8 @@ export default function ModelViewer3D() {
   useEffect(() => {
     if (!mountRef.current) return;
 
-    const width = mountRef.current.clientWidth;
-    const height = mountRef.current.clientHeight;
+    const width = mountRef.current.clientWidth || 800;
+    const height = mountRef.current.clientHeight || 540;
 
     // 1. Scene
     const scene = new THREE.Scene();
@@ -383,253 +383,247 @@ export default function ModelViewer3D() {
         </div>
 
         {/* Tab 1: Interactive WebGL 3D Model with Controls */}
-        {activeTab === 'interactive' && (
-          <div className="grid lg:grid-cols-12 gap-6">
+        <div className={activeTab === 'interactive' ? 'grid lg:grid-cols-12 gap-6' : 'hidden'}>
+          
+          {/* 3D Canvas viewport */}
+          <div className="lg:col-span-9 relative rounded-3xl overflow-hidden bg-architectural-900 border border-architectural-800 shadow-2xl h-[540px]">
             
-            {/* 3D Canvas viewport */}
-            <div className="lg:col-span-9 relative rounded-3xl overflow-hidden bg-architectural-900 border border-architectural-800 shadow-2xl h-[540px]">
-              
-              <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+            <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
-              {/* Viewport Floating Top Bar */}
-              <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-                <div className="flex items-center space-x-2 bg-architectural-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-architectural-800 pointer-events-auto text-xs font-mono">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-architectural-300">Equipamiento Central + Aljibe</span>
-                </div>
-
-                <div className="flex items-center space-x-2 pointer-events-auto">
-                  <button
-                    onClick={resetCamera}
-                    className="p-2 rounded-xl bg-architectural-950/80 backdrop-blur-md hover:bg-architectural-800 text-architectural-300 hover:text-white border border-architectural-800 transition-colors"
-                    title="Restablecer vista de cámara"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setWireframe(!wireframe)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium backdrop-blur-md border transition-all ${
-                      wireframe 
-                        ? 'bg-caribbean-500 text-white border-caribbean-400' 
-                        : 'bg-architectural-950/80 text-architectural-300 hover:text-white border-architectural-800'
-                    }`}
-                  >
-                    Wireframe: {wireframe ? 'ON' : 'OFF'}
-                  </button>
-                </div>
+            {/* Viewport Floating Top Bar */}
+            <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+              <div className="flex items-center space-x-2 bg-architectural-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-architectural-800 pointer-events-auto text-xs font-mono">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-architectural-300">Equipamiento Educativo + Aljibe 450m³</span>
               </div>
 
-              {/* Viewport Floating Bottom Navigation Hint */}
-              <div className="absolute bottom-4 left-4 pointer-events-none">
-                <div className="bg-architectural-950/75 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-architectural-800 text-[11px] text-architectural-400 flex items-center space-x-3">
-                  <span>🖱️ <b>Click izquierdo:</b> Rotar</span>
-                  <span>🔍 <b>Scroll:</b> Zoom</span>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Side Control Panel */}
-            <div className="lg:col-span-3 space-y-4">
-              
-              {/* Despiece / Exploded View card */}
-              <div className="p-5 rounded-2xl bg-architectural-900/90 border border-architectural-800 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold font-mono text-architectural-300 uppercase">Vista de Despiece</span>
-                  <Box className="w-4 h-4 text-caribbean-400" />
-                </div>
+              <div className="flex items-center space-x-2 pointer-events-auto">
                 <button
-                  onClick={() => setExplodedView(!explodedView)}
-                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold transition-all ${
-                    explodedView 
-                      ? 'bg-gradient-to-r from-clay-500 to-clay-600 text-white shadow-lg shadow-clay-600/20' 
-                      : 'bg-architectural-800 hover:bg-architectural-700 text-white border border-architectural-700'
+                  onClick={resetCamera}
+                  className="p-2 rounded-xl bg-architectural-950/80 backdrop-blur-md hover:bg-architectural-800 text-architectural-300 hover:text-white border border-architectural-800 transition-colors"
+                  title="Restablecer vista de cámara"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setWireframe(!wireframe)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium backdrop-blur-md border transition-all ${
+                    wireframe 
+                      ? 'bg-caribbean-500 text-white border-caribbean-400' 
+                      : 'bg-architectural-950/80 text-architectural-300 hover:text-white border-architectural-800'
                   }`}
                 >
-                  {explodedView ? 'Colapsar Modelo' : 'Despiezar Cubierta & Aljibe'}
+                  Wireframe: {wireframe ? 'ON' : 'OFF'}
                 </button>
-                <p className="text-[11px] text-architectural-400 leading-tight">
-                  Separa verticalmente la cubierta captadora y la cisterna subterránea para inspeccionar el interior.
-                </p>
               </div>
+            </div>
 
-              {/* Layer Visibility Filters */}
-              <div className="p-5 rounded-2xl bg-architectural-900/90 border border-architectural-800 space-y-3">
-                <span className="text-xs font-bold font-mono text-architectural-300 uppercase block">Capas del Proyecto</span>
-                <div className="space-y-2">
-                  
-                  <button
-                    onClick={() => toggleLayer('roof')}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                      activeLayers.roof 
-                        ? 'bg-caribbean-950/60 text-caribbean-300 border border-caribbean-800/80' 
-                        : 'bg-architectural-950 text-architectural-500 border border-architectural-800 line-through'
-                    }`}
-                  >
-                    <span>Cubierta Captadora</span>
-                    {activeLayers.roof ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                  </button>
-
-                  <button
-                    onClick={() => toggleLayer('structure')}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                      activeLayers.structure 
-                        ? 'bg-caribbean-950/60 text-caribbean-300 border border-caribbean-800/80' 
-                        : 'bg-architectural-950 text-architectural-500 border border-architectural-800 line-through'
-                    }`}
-                  >
-                    <span>Estructura de Madera</span>
-                    {activeLayers.structure ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                  </button>
-
-                  <button
-                    onClick={() => toggleLayer('louvers')}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                      activeLayers.louvers 
-                        ? 'bg-caribbean-950/60 text-caribbean-300 border border-caribbean-800/80' 
-                        : 'bg-architectural-950 text-architectural-500 border border-architectural-800 line-through'
-                    }`}
-                  >
-                    <span>Celosías & Fachadas</span>
-                    {activeLayers.louvers ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                  </button>
-
-                  <button
-                    onClick={() => toggleLayer('cistern')}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                      activeLayers.cistern 
-                        ? 'bg-caribbean-950/60 text-caribbean-300 border border-caribbean-800/80' 
-                        : 'bg-architectural-950 text-architectural-500 border border-architectural-800 line-through'
-                    }`}
-                  >
-                    <span>Aljibe Subterráneo 450m³</span>
-                    {activeLayers.cistern ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                  </button>
-
-                </div>
+            {/* Viewport Floating Bottom Navigation Hint */}
+            <div className="absolute bottom-4 left-4 pointer-events-none">
+              <div className="bg-architectural-950/75 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-architectural-800 text-[11px] text-architectural-400 flex items-center space-x-3">
+                <span>🖱️ <b>Click izquierdo:</b> Rotar</span>
+                <span>🔍 <b>Scroll:</b> Zoom</span>
               </div>
-
-              {/* Sun & Shadows simulation */}
-              <div className="p-5 rounded-2xl bg-architectural-900/90 border border-architectural-800 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold font-mono text-architectural-300 uppercase">Simulación Solar</span>
-                  <Sun className="w-4 h-4 text-amber-400" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-[11px] text-architectural-400">
-                    <span>Azimut solar:</span>
-                    <span className="font-mono text-caribbean-400">{sunAngle}°</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="360"
-                    value={sunAngle}
-                    onChange={(e) => setSunAngle(Number(e.target.value))}
-                    className="w-full accent-caribbean-500 cursor-pointer h-1.5 bg-architectural-800 rounded-lg"
-                  />
-                </div>
-              </div>
-
             </div>
 
           </div>
-        )}
+
+          {/* Side Control Panel */}
+          <div className="lg:col-span-3 space-y-4">
+            
+            {/* Despiece / Exploded View card */}
+            <div className="p-5 rounded-2xl bg-architectural-900/90 border border-architectural-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold font-mono text-architectural-300 uppercase">Vista de Despiece</span>
+                <Box className="w-4 h-4 text-caribbean-400" />
+              </div>
+              <button
+                onClick={() => setExplodedView(!explodedView)}
+                className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold transition-all ${
+                  explodedView 
+                    ? 'bg-gradient-to-r from-clay-500 to-clay-600 text-white shadow-lg shadow-clay-600/20' 
+                    : 'bg-architectural-800 hover:bg-architectural-700 text-white border border-architectural-700'
+                }`}
+              >
+                {explodedView ? 'Colapsar Modelo' : 'Despiezar Cubierta & Aljibe'}
+              </button>
+              <p className="text-[11px] text-architectural-400 leading-tight">
+                Separa verticalmente la cubierta captadora y la cisterna subterránea para inspeccionar el interior.
+              </p>
+            </div>
+
+            {/* Layer Visibility Filters */}
+            <div className="p-5 rounded-2xl bg-architectural-900/90 border border-architectural-800 space-y-3">
+              <span className="text-xs font-bold font-mono text-architectural-300 uppercase block">Capas del Proyecto</span>
+              <div className="space-y-2">
+                
+                <button
+                  onClick={() => toggleLayer('roof')}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                    activeLayers.roof 
+                      ? 'bg-caribbean-950/60 text-caribbean-300 border border-caribbean-800/80' 
+                      : 'bg-architectural-950 text-architectural-500 border border-architectural-800 line-through'
+                  }`}
+                >
+                  <span>Cubierta Captadora</span>
+                  {activeLayers.roof ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                </button>
+
+                <button
+                  onClick={() => toggleLayer('structure')}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                    activeLayers.structure 
+                      ? 'bg-caribbean-950/60 text-caribbean-300 border border-caribbean-800/80' 
+                      : 'bg-architectural-950 text-architectural-500 border border-architectural-800 line-through'
+                  }`}
+                >
+                  <span>Estructura de Madera</span>
+                  {activeLayers.structure ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                </button>
+
+                <button
+                  onClick={() => toggleLayer('louvers')}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                    activeLayers.louvers 
+                      ? 'bg-caribbean-950/60 text-caribbean-300 border border-caribbean-800/80' 
+                      : 'bg-architectural-950 text-architectural-500 border border-architectural-800 line-through'
+                  }`}
+                >
+                  <span>Celosías & Fachadas</span>
+                  {activeLayers.louvers ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                </button>
+
+                <button
+                  onClick={() => toggleLayer('cistern')}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                    activeLayers.cistern 
+                      ? 'bg-caribbean-950/60 text-caribbean-300 border border-caribbean-800/80' 
+                      : 'bg-architectural-950 text-architectural-500 border border-architectural-800 line-through'
+                  }`}
+                >
+                  <span>Aljibe Subterráneo 450m³</span>
+                  {activeLayers.cistern ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                </button>
+
+              </div>
+            </div>
+
+            {/* Sun & Shadows simulation */}
+            <div className="p-5 rounded-2xl bg-architectural-900/90 border border-architectural-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold font-mono text-architectural-300 uppercase">Simulación Solar</span>
+                <Sun className="w-4 h-4 text-amber-400" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-[11px] text-architectural-400">
+                  <span>Azimut solar:</span>
+                  <span className="font-mono text-caribbean-400">{sunAngle}°</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="360"
+                  value={sunAngle}
+                  onChange={(e) => setSunAngle(Number(e.target.value))}
+                  className="w-full accent-caribbean-500 cursor-pointer h-1.5 bg-architectural-800 rounded-lg"
+                />
+              </div>
+            </div>
+
+          </div>
+
+        </div>
 
         {/* Tab 2: Speckle / Revit Live Stream Embed */}
-        {activeTab === 'speckle' && (
-          <div className="p-8 rounded-3xl bg-architectural-900 border border-architectural-800 space-y-6">
-            <div className="max-w-2xl space-y-2">
-              <h3 className="font-display font-bold text-2xl text-white">
-                Incrustar tu Modelo Directo desde Revit
-              </h3>
-              <p className="text-sm text-architectural-400">
-                Puedes enlazar tu modelo exportado desde Revit con **Speckle** o **Autodesk Platform Services**. Pega el enlace público de tu modelo a continuación para verlo aquí mismo:
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="text"
-                placeholder="Ejemplo: https://app.speckle.systems/projects/YOUR_PROJECT_ID/models/YOUR_MODEL_ID#embed=%7B%22isEnabled%22%3Atrue%7D"
-                value={speckleUrl}
-                onChange={(e) => setSpeckleUrl(e.target.value)}
-                className="flex-1 px-4 py-3 rounded-xl bg-architectural-950 border border-architectural-700 text-white text-xs font-mono focus:outline-none focus:border-caribbean-500"
-              />
-              <button
-                onClick={() => {
-                  if (!speckleUrl) {
-                    setSpeckleUrl('https://app.speckle.systems/projects/92b620fb17/models/76327a3b4d#embed=%7B%22isEnabled%22%3Atrue%7D');
-                  }
-                }}
-                className="px-5 py-3 rounded-xl bg-caribbean-600 hover:bg-caribbean-500 text-white font-semibold text-xs whitespace-nowrap transition-colors"
-              >
-                Cargar Modelo Demo
-              </button>
-            </div>
-
-            {/* Embedded Iframe */}
-            <div className="h-[500px] w-full rounded-2xl overflow-hidden border border-architectural-800 bg-architectural-950 flex items-center justify-center">
-              {speckleUrl ? (
-                <iframe
-                  title="Speckle Revit Viewer"
-                  src={speckleUrl}
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                />
-              ) : (
-                <div className="text-center space-y-3 p-6 max-w-md">
-                  <div className="w-12 h-12 rounded-2xl bg-architectural-800 flex items-center justify-center mx-auto text-caribbean-400">
-                    <Box className="w-6 h-6" />
-                  </div>
-                  <h4 className="font-semibold text-white text-sm">Esperando enlace de Revit / Speckle</h4>
-                  <p className="text-xs text-architectural-400">
-                    Pega el enlace de tu stream o presiona el botón "Cargar Modelo Demo" para ver cómo se renderiza tu proyecto.
-                  </p>
-                </div>
-              )}
-            </div>
+        <div className={activeTab === 'speckle' ? 'p-8 rounded-3xl bg-architectural-900 border border-architectural-800 space-y-6' : 'hidden'}>
+          <div className="max-w-2xl space-y-2">
+            <h3 className="font-display font-bold text-2xl text-white">
+              Incrustar tu Modelo Directo desde Revit
+            </h3>
+            <p className="text-sm text-architectural-400">
+              Puedes enlazar tu modelo exportado desde Revit con **Speckle** o **Autodesk Platform Services**. Pega el enlace público de tu modelo a continuación para verlo aquí mismo:
+            </p>
           </div>
-        )}
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              placeholder="Ejemplo: https://app.speckle.systems/projects/YOUR_PROJECT_ID/models/YOUR_MODEL_ID#embed=%7B%22isEnabled%22%3Atrue%7D"
+              value={speckleUrl}
+              onChange={(e) => setSpeckleUrl(e.target.value)}
+              className="flex-1 px-4 py-3 rounded-xl bg-architectural-950 border border-architectural-700 text-white text-xs font-mono focus:outline-none focus:border-caribbean-500"
+            />
+            <button
+              onClick={() => {
+                if (!speckleUrl) {
+                  setSpeckleUrl('https://app.speckle.systems/projects/92b620fb17/models/76327a3b4d#embed=%7B%22isEnabled%22%3Atrue%7D');
+                }
+              }}
+              className="px-5 py-3 rounded-xl bg-caribbean-600 hover:bg-caribbean-500 text-white font-semibold text-xs whitespace-nowrap transition-colors"
+            >
+              Cargar Modelo Demo
+            </button>
+          </div>
+
+          {/* Embedded Iframe */}
+          <div className="h-[500px] w-full rounded-2xl overflow-hidden border border-architectural-800 bg-architectural-950 flex items-center justify-center">
+            {speckleUrl ? (
+              <iframe
+                title="Speckle Revit Viewer"
+                src={speckleUrl}
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              />
+            ) : (
+              <div className="text-center space-y-3 p-6 max-w-md">
+                <div className="w-12 h-12 rounded-2xl bg-architectural-800 flex items-center justify-center mx-auto text-caribbean-400">
+                  <Box className="w-6 h-6" />
+                </div>
+                <h4 className="font-semibold text-white text-sm">Esperando enlace de Revit / Speckle</h4>
+                <p className="text-xs text-architectural-400">
+                  Pega el enlace de tu stream o presiona el botón "Cargar Modelo Demo" para ver cómo se renderiza tu proyecto.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Tab 3: Step by Step Guide for Revit Export */}
-        {activeTab === 'guide' && (
-          <div className="grid md:grid-cols-3 gap-6">
-            
-            <div className="p-6 rounded-2xl bg-architectural-900 border border-architectural-800 space-y-4">
-              <div className="w-8 h-8 rounded-xl bg-caribbean-500/20 text-caribbean-300 flex items-center justify-center font-mono font-bold text-sm">
-                1
-              </div>
-              <h4 className="font-display font-bold text-lg text-white">Instalar Conector Speckle en Revit</h4>
-              <p className="text-xs text-architectural-400 leading-relaxed">
-                Descarga el instalador gratuito de <b>Speckle Manager</b> e instala el plugin para tu versión de Autodesk Revit (2022, 2023, 2024 o 2025).
-              </p>
+        <div className={activeTab === 'guide' ? 'grid md:grid-cols-3 gap-6' : 'hidden'}>
+          
+          <div className="p-6 rounded-2xl bg-architectural-900 border border-architectural-800 space-y-4">
+            <div className="w-8 h-8 rounded-xl bg-caribbean-500/20 text-caribbean-300 flex items-center justify-center font-mono font-bold text-sm">
+              1
             </div>
-
-            <div className="p-6 rounded-2xl bg-architectural-900 border border-architectural-800 space-y-4">
-              <div className="w-8 h-8 rounded-xl bg-caribbean-500/20 text-caribbean-300 flex items-center justify-center font-mono font-bold text-sm">
-                2
-              </div>
-              <h4 className="font-display font-bold text-lg text-white">Enviar Modelo (Send to Stream)</h4>
-              <p className="text-xs text-architectural-400 leading-relaxed">
-                Abre tu archivo <code className="text-caribbean-300 font-mono">.rvt</code>, selecciona la vista 3D que deseas exportar y haz clic en <b>Send</b> en la pestaña de Speckle.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-architectural-900 border border-architectural-800 space-y-4">
-              <div className="w-8 h-8 rounded-xl bg-caribbean-500/20 text-caribbean-300 flex items-center justify-center font-mono font-bold text-sm">
-                3
-              </div>
-              <h4 className="font-display font-bold text-lg text-white">Copiar Enlace Embebido</h4>
-              <p className="text-xs text-architectural-400 leading-relaxed">
-                En el visor de Speckle web, ve a <b>Compartir &gt; Embeber (Embed)</b>, copia el URL y pégalo en el archivo de datos de esta web. ¡El jurado podrá explorarlo con un clic!
-              </p>
-            </div>
-
+            <h4 className="font-display font-bold text-lg text-white">Instalar Conector Speckle en Revit</h4>
+            <p className="text-xs text-architectural-400 leading-relaxed">
+              Descarga el instalador gratuito de <b>Speckle Manager</b> e instala el plugin para tu versión de Autodesk Revit (2022, 2023, 2024 o 2025).
+            </p>
           </div>
-        )}
+
+          <div className="p-6 rounded-2xl bg-architectural-900 border border-architectural-800 space-y-4">
+            <div className="w-8 h-8 rounded-xl bg-caribbean-500/20 text-caribbean-300 flex items-center justify-center font-mono font-bold text-sm">
+              2
+            </div>
+            <h4 className="font-display font-bold text-lg text-white">Enviar Modelo (Send to Stream)</h4>
+            <p className="text-xs text-architectural-400 leading-relaxed">
+              Abre tu archivo <code className="text-caribbean-300 font-mono">.rvt</code>, selecciona la vista 3D que deseas exportar y haz clic en <b>Send</b> en la pestaña de Speckle.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-architectural-900 border border-architectural-800 space-y-4">
+            <div className="w-8 h-8 rounded-xl bg-caribbean-500/20 text-caribbean-300 flex items-center justify-center font-mono font-bold text-sm">
+              3
+            </div>
+            <h4 className="font-display font-bold text-lg text-white">Copiar Enlace Embebido</h4>
+            <p className="text-xs text-architectural-400 leading-relaxed">
+              En el visor de Speckle web, ve a <b>Compartir &gt; Embeber (Embed)</b>, copia el URL y pégalo en el archivo de datos de esta web. ¡El jurado podrá explorarlo con un clic!
+            </p>
+          </div>
+
+        </div>
 
       </div>
     </section>

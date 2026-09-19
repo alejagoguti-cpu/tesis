@@ -13,16 +13,32 @@ import {
 import { projectInfo } from '../data/projectData';
 import L from 'leaflet';
 
+// Fix Leaflet marker icons in Vite/React
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
 export default function DiagnosisMap() {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const [activeLayer, setActiveLayer] = useState('all'); // 'all', 'erosion', 'water', 'relocation'
   const [selectedPoint, setSelectedPoint] = useState(null);
 
-  // Coordinate center for Tierrabomba Island: [10.348, -75.575]
+  // Coordinate center for Tierrabomba Island: [10.3510, -75.5720]
   useEffect(() => {
     if (!mapContainerRef.current) return;
-    if (mapInstanceRef.current) return;
+    
+    // Clean up if already initialized
+    if (mapInstanceRef.current?.map) {
+      mapInstanceRef.current.map.remove();
+      mapInstanceRef.current = null;
+    }
+    if (mapContainerRef.current._leaflet_id) {
+      delete mapContainerRef.current._leaflet_id;
+    }
 
     // Initialize Leaflet Map
     const map = L.map(mapContainerRef.current, {
