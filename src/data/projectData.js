@@ -229,5 +229,61 @@ export const projectInfo = {
         capacity: "75% recirculación de aguas grises"
       }
     ]
-  }
+  },
+
+  // 9. TELEMETRÍA & SENSORES TERRITORIALES (DASHBOARD)
+  telemetry: {
+    wind: { value: "18.4 nudos", direction: "N-NE", status: "Alisios Activos", icon: "Wind" },
+    temperature: { value: "29.5 °C", apparent: "34.0 °C", humidity: "78%", icon: "Thermometer" },
+    tide: { value: "+0.42 m", level: "Pleamar Media", erosionRisk: "Alto en Cota 0.00", icon: "Waves" },
+    solarRadiation: { value: "5.85 kWh/m²/día", uvIndex: "11 (Extremo)", pvYield: "100% Cobertura", icon: "Sun" },
+    waterReserve: { current: "450.000 L", autonomy: "90 días de sequía", quality: "Óptima (Solar UV)", icon: "Droplets" },
+    erosionRate: { annual: "1.8 m/año", retreatTotal: "18 m en 10 años", relocationGain: "+22.00 m cota", icon: "ShieldAlert" }
+  },
+
+  // 10. MATRIZ COMPARATIVA DE IMPACTO (SITUACIÓN ACTUAL VS PROPUESTA TESIS)
+  impactMatrix: [
+    {
+      factor: "Seguridad Territorial",
+      current: "120 viviendas en franja de socavación activa (pérdida de 1.8m/año)",
+      proposed: "Reubicación a meseta +22.00 m.s.n.m. inmune a marea y cambio climático",
+      delta: "+100% Seguridad Estructural"
+    },
+    {
+      factor: "Abastecimiento Hídrico",
+      current: "0% red pública. Compra precaria a barcazas de Cartagena ($8.000 / pimpina)",
+      proposed: "Cisterna de 450.000 L con captación dual de 8.330 m² y solar UV",
+      delta: "Autosuficiencia 365 días"
+    },
+    {
+      factor: "Equipamiento Dotacional",
+      current: "Sede escolar precaria sin agua continua ni espacios de formación marítima",
+      proposed: "Complejo bioclimático de 1.850 m² para 350 alumnos + talleres de pesca",
+      delta: "+350 Cupos Escolares & Cívicos"
+    },
+    {
+      factor: "Confort Térmico & Clima",
+      current: "Viviendas de zinc con temperaturas interiores de hasta 38 °C",
+      proposed: "Pórticos de madera, aleros de 2.5m y celosías BTC con ventilación cruzada",
+      delta: "-5 °C Sensación Térmica Pasiva"
+    },
+    {
+      factor: "Energía & Sostenibilidad",
+      current: "Microcortes eléctricos diarios y dependencia de diésel contaminante",
+      proposed: "Sistema 100% solar fotovoltaico con acumulación en baterías LiFePO4",
+      delta: "100% Energía Renovable"
+    }
+  ],
+
+  // 11. NAVEGACIÓN DEL DASHBOARD
+  dashboardModules: [
+    { id: "overview", number: "00", title: "Centro de Control & KPIs", icon: "LayoutDashboard", badge: "Ejecutivo", desc: "Monitoreo general, métricas de impacto y telemetría" },
+    { id: "framework", number: "01", title: "Marco de Tesis", icon: "BookOpen", badge: "Académico", desc: "Problema, Justificación y Objetivos OE-01 a OE-04" },
+    { id: "gis", number: "02", title: "GIS & Diagnóstico", icon: "Map", badge: "Territorial", desc: "Cartografía de erosión costera y cota segura +22m" },
+    { id: "programs", number: "03", title: "Viviendas & Colegio", icon: "Home", badge: "Arquitectura", desc: "120 Viviendas Palafíticas + Equipamiento Educativo" },
+    { id: "bioclimatic", number: "04", title: "Estrategia Bioclimática", icon: "Wind", badge: "Sostenible", desc: "Vientos alisios N-NE, aleros 2.5m y celosías BTC" },
+    { id: "3dviewer", number: "05", title: "Visor 3D WebGL / BIM", icon: "Box", badge: "Interactivo", desc: "Equipamiento, Vivienda, Masterplan + Despiece & Speckle" },
+    { id: "cad", number: "06", title: "Planimetría CAD & Plotter", icon: "Printer", badge: "Vectorial", desc: "Pliegos DIN A1, cotas, cianotipo e impresión técnica" },
+    { id: "water", number: "07", title: "Soberanía Hídrica", icon: "Droplets", badge: "Hidráulico", desc: "Aljibe 450.000 L, filtrado en 5 fases y solar UV" }
+  ]
 };
