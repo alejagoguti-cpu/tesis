@@ -235,14 +235,26 @@ export default function SimulationLab({ onSelectModule }) {
             <svg viewBox="0 0 800 400" className="w-full h-full drop-shadow-2xl">
               {/* Grid Status Node */}
               <circle cx="250" cy="200" r="60" fill={gridFailureActive ? "#7f1d1d" : "#064e3b"} stroke={gridFailureActive ? "#ef4444" : "#10b981"} strokeWidth="3" />
-              <text x="250" y="195" textAnchor="middle" fill="#ffffff" fontSize="24">{gridFailureActive ? "⚡❌" : "⚡✅"}</text>
+              {gridFailureActive ? (
+                <g transform="translate(236, 175)" stroke="#ef4444" strokeWidth="3" fill="none" strokeLinecap="round">
+                  <line x1="0" y1="0" x2="28" y2="28" />
+                  <line x1="28" y1="0" x2="0" y2="28" />
+                </g>
+              ) : (
+                <g transform="translate(236, 175)" stroke="#10b981" strokeWidth="3" fill="none" strokeLinecap="round">
+                  <polyline points="4,16 12,24 26,8" />
+                </g>
+              )}
               <text x="250" y="225" textAnchor="middle" fill="#ffffff" fontSize="10" fontFamily="monospace" fontWeight="bold">
                 RED CARTAGENA
               </text>
 
               {/* Community Autonomous Microgrid */}
               <circle cx="550" cy="200" r="80" fill="#064e3b" stroke="#10b981" strokeWidth="4" />
-              <text x="550" y="185" textAnchor="middle" fill="#ffffff" fontSize="32">☀️🔋</text>
+              <g transform="translate(534, 160)" stroke="#10b981" strokeWidth="2.5" fill="none">
+                <circle cx="16" cy="16" r="8" fill="#10b981" fillOpacity="0.3" />
+                <path d="M16 2v4M16 26v4M2 16h4M26 16h4M6 6l3 3M23 23l3 3M6 26l3-3M23 6l3 3" />
+              </g>
               <text x="550" y="220" textAnchor="middle" fill="#ffffff" fontSize="12" fontFamily="monospace" fontWeight="bold">
                 ISLA AUTÓNOMA
               </text>

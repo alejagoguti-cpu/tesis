@@ -165,22 +165,30 @@ export default function StrategyRelocation({ onSelectModule }) {
     labelsLayerRef.current = labelsLayer;
 
     // Add strategy zone pins
-    BIOCLIMATIC_STRATEGIES.forEach((strat) => {
       const pinIcon = L.divIcon({
         className: 'strat-pin',
         html: `
           <div class="relative flex items-center justify-center cursor-pointer group">
-            <div class="absolute -inset-2 rounded-full opacity-50 animate-ping" style="background-color: ${strat.color};"></div>
-            <div class="w-10 h-10 rounded-2xl border-2 border-white shadow-2xl flex items-center justify-center text-white font-bold text-sm transition-transform group-hover:scale-110" style="background-color: ${strat.color};">
-              ${strat.id === 'rompeolas' ? '🌊' : strat.id === 'humedales' ? '💧' : strat.id === 'ventilacion' ? '🍃' : strat.id === 'sombras' ? '☀️' : '🌳'}
+            <div class="absolute -inset-2 rounded-full opacity-40 animate-ping" style="background-color: ${strat.color};"></div>
+            <div class="w-8 h-8 rounded-xl border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-110" style="background-color: ${strat.color};">
+              ${strat.id === 'rompeolas' 
+                ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>'
+                : strat.id === 'humedales' 
+                  ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>'
+                  : strat.id === 'ventilacion' 
+                    ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>'
+                    : strat.id === 'sombras' 
+                      ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>'
+                      : '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 3v18M8 7l4-4 4 4M5 12l7-5 7 5M3 17l9-6 9 6"/></svg>'
+              }
             </div>
             <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-900/95 text-[10px] text-white font-mono font-bold shadow-xl border border-white/20 pointer-events-none">
               ${strat.title.split('.')[1]}
             </div>
           </div>
         `,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
       });
 
       const marker = L.marker(strat.coords, { icon: pinIcon }).addTo(map);
@@ -308,7 +316,8 @@ export default function StrategyRelocation({ onSelectModule }) {
                 : 'text-slate-600 hover:text-slate-950'
             }`}
           >
-            <span>🛰️ Vista Aérea</span>
+            <Layers className="w-3.5 h-3.5" />
+            <span>Vista Aérea</span>
           </button>
           <button
             onClick={() => setMapLayerType('carto')}
@@ -318,7 +327,8 @@ export default function StrategyRelocation({ onSelectModule }) {
                 : 'text-slate-600 hover:text-slate-950'
             }`}
           >
-            <span>🗺️ Plano</span>
+            <Compass className="w-3.5 h-3.5" />
+            <span>Plano</span>
           </button>
         </div>
 

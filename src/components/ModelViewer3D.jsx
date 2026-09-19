@@ -722,9 +722,9 @@ export default function ModelViewer3D({ onSelectModule }) {
       {/* Floating Bottom Center: Orbit & Zoom Instruction Pill */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[400] pointer-events-none">
         <div className="bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-700/80 shadow-2xl text-xs font-mono text-slate-300 flex items-center space-x-4">
-          <span>🖱️ <b>Arrastrar:</b> Rotar 360°</span>
+          <span className="flex items-center space-x-1.5"><RotateCcw className="w-3.5 h-3.5 text-teal-400" /><span><b>Arrastrar:</b> Rotar 360°</span></span>
           <span className="text-slate-600">|</span>
-          <span>🔍 <b>Scroll:</b> Zoom</span>
+          <span className="flex items-center space-x-1.5"><Maximize2 className="w-3.5 h-3.5 text-teal-400" /><span><b>Scroll:</b> Zoom</span></span>
           <span className="text-slate-600">|</span>
           <button 
             onClick={() => setShowInfoModal(true)}

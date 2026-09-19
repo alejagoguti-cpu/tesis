@@ -81,7 +81,10 @@ export default function WaterSustainability({ onSelectModule }) {
               strokeWidth={activeStepIndex === 0 ? "4" : "2"}
               className="transition-all duration-300 group-hover:scale-105" 
             />
-            <text x="160" y="248" textAnchor="middle" fill="#ffffff" fontSize="24">🌧️</text>
+            <g transform="translate(148, 230)" stroke="#ffffff" strokeWidth="2" fill="none" strokeLinecap="round">
+              <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+              <path d="M16 14v6M8 14v6M12 16v6" />
+            </g>
             <text x="160" y="278" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="monospace" fontWeight="bold">
               1. CAPTACIÓN
             </text>
@@ -107,7 +110,9 @@ export default function WaterSustainability({ onSelectModule }) {
               strokeWidth={activeStepIndex === 1 ? "4" : "2"}
               className="transition-all duration-300 group-hover:scale-105" 
             />
-            <text x="320" y="248" textAnchor="middle" fill="#ffffff" fontSize="24">🌪️</text>
+            <g transform="translate(308, 230)" stroke="#ffffff" strokeWidth="2" fill="none" strokeLinecap="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </g>
             <text x="320" y="278" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="monospace" fontWeight="bold">
               2. DESARENADOR
             </text>
@@ -133,7 +138,13 @@ export default function WaterSustainability({ onSelectModule }) {
               strokeWidth={activeStepIndex === 2 ? "5" : "3"}
               className="transition-all duration-300 group-hover:scale-105" 
             />
-            <text x="480" y="245" textAnchor="middle" fill="#ffffff" fontSize="28">🏛️</text>
+            <g transform="translate(466, 226)" stroke="#ffffff" strokeWidth="2" fill="none" strokeLinecap="round">
+              <line x1="3" y1="21" x2="21" y2="21" />
+              <line x1="6" y1="21" x2="6" y2="10" />
+              <line x1="18" y1="21" x2="18" y2="10" />
+              <line x1="12" y1="21" x2="12" y2="10" />
+              <polygon points="12 2 2 7 22 7" />
+            </g>
             <text x="480" y="278" textAnchor="middle" fill="#ffffff" fontSize="12" fontFamily="monospace" fontWeight="bold">
               3. ALJIBE CENTRAL
             </text>
@@ -159,7 +170,10 @@ export default function WaterSustainability({ onSelectModule }) {
               strokeWidth={activeStepIndex === 3 ? "4" : "2"}
               className="transition-all duration-300 group-hover:scale-105" 
             />
-            <text x="660" y="248" textAnchor="middle" fill="#ffffff" fontSize="24">☀️</text>
+            <g transform="translate(648, 230)" stroke="#ffffff" strokeWidth="2" fill="none" strokeLinecap="round">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+            </g>
             <text x="660" y="278" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="monospace" fontWeight="bold">
               4. SOLAR UV
             </text>
@@ -185,7 +199,10 @@ export default function WaterSustainability({ onSelectModule }) {
               strokeWidth={activeStepIndex === 4 ? "4" : "2"}
               className="transition-all duration-300 group-hover:scale-105" 
             />
-            <text x="840" y="248" textAnchor="middle" fill="#ffffff" fontSize="24">🌿</text>
+            <g transform="translate(828, 230)" stroke="#ffffff" strokeWidth="2" fill="none" strokeLinecap="round">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+            </g>
             <text x="840" y="278" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="monospace" fontWeight="bold">
               5. HUMEDAL & HUERTO
             </text>

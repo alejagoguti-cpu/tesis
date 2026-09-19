@@ -288,9 +288,16 @@ export default function DiagnosisMap({ onNavigateModule }) {
         className: 'custom-gis-pin',
         html: `
           <div class="relative flex items-center justify-center cursor-pointer group">
-            <div class="absolute -inset-2 rounded-full ${isPlateau ? 'bg-emerald-400/50 animate-pulse' : isErosion ? 'bg-red-500/50 animate-ping' : isWater ? 'bg-blue-400/50 animate-pulse' : 'bg-slate-400/40'}"></div>
-            <div class="w-9 h-9 rounded-2xl ${isPlateau ? 'bg-emerald-600' : isErosion ? 'bg-red-600' : isWater ? 'bg-blue-600' : 'bg-slate-900'} border-2 border-white shadow-2xl flex items-center justify-center text-white text-xs font-bold transition-transform group-hover:scale-110">
-              ${isPlateau ? '✨' : isErosion ? '⚠️' : isWater ? '💧' : '📍'}
+            <div class="absolute -inset-2 rounded-full ${isPlateau ? 'bg-emerald-400/40 animate-pulse' : isErosion ? 'bg-red-500/40 animate-ping' : isWater ? 'bg-blue-400/40 animate-pulse' : 'bg-slate-400/30'}"></div>
+            <div class="w-8 h-8 rounded-xl ${isPlateau ? 'bg-emerald-600' : isErosion ? 'bg-red-600' : isWater ? 'bg-blue-600' : 'bg-slate-900'} border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-110">
+              ${isPlateau 
+                ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>' 
+                : isErosion 
+                  ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' 
+                  : isWater 
+                    ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>' 
+                    : '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>'
+              }
             </div>
             <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-900/95 text-[10px] text-white font-mono font-bold shadow-xl border border-white/20 pointer-events-none">
               ${spot.name.split('(')[0]}
@@ -418,33 +425,36 @@ export default function DiagnosisMap({ onNavigateModule }) {
           </button>
           <button
             onClick={() => setActiveLayerFilter('risk')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               activeLayerFilter === 'risk'
                 ? 'bg-red-600 text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-950'
             }`}
           >
-            ⚠️ Riesgo Borde
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span>Riesgo Borde</span>
           </button>
           <button
             onClick={() => setActiveLayerFilter('relocation')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               activeLayerFilter === 'relocation'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-950'
             }`}
           >
-            ✨ Meseta +22m
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Meseta +22m</span>
           </button>
           <button
             onClick={() => setActiveLayerFilter('water')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               activeLayerFilter === 'water'
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-950'
             }`}
           >
-            💧 Agua & Aljibe
+            <Droplets className="w-3.5 h-3.5" />
+            <span>Agua & Aljibe</span>
           </button>
         </div>
 
@@ -458,7 +468,8 @@ export default function DiagnosisMap({ onNavigateModule }) {
                 : 'text-slate-600 hover:text-slate-950'
             }`}
           >
-            <span>🛰️ Vista Aérea</span>
+            <Layers className="w-3.5 h-3.5" />
+            <span>Vista Aérea</span>
           </button>
           <button
             onClick={() => setMapLayerType('carto')}
@@ -468,7 +479,8 @@ export default function DiagnosisMap({ onNavigateModule }) {
                 : 'text-slate-600 hover:text-slate-950'
             }`}
           >
-            <span>🗺️ Plano</span>
+            <Compass className="w-3.5 h-3.5" />
+            <span>Plano</span>
           </button>
         </div>
 

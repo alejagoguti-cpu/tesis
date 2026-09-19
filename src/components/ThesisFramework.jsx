@@ -210,17 +210,17 @@ export default function ThesisFramework({ onSelectModule }) {
       className: 'custom-school-pin',
       html: `
         <div class="relative flex items-center justify-center cursor-pointer group">
-          <div class="absolute -inset-2 rounded-full bg-red-500/50 animate-ping"></div>
-          <div class="w-10 h-10 rounded-2xl bg-red-600 border-2 border-white shadow-2xl flex items-center justify-center text-white font-bold text-sm">
-            🏫
+          <div class="absolute -inset-2 rounded-full bg-red-500/40 animate-ping"></div>
+          <div class="w-8 h-8 rounded-xl bg-red-600 border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-110">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
           </div>
-          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-900/95 text-[10px] text-white font-mono font-bold shadow-xl border border-white/20">
+          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-900/95 text-[10px] text-white font-mono font-bold shadow-xl border border-white/20 pointer-events-none">
             Colegio Actual (+1.5m)
           </div>
         </div>
       `,
-      iconSize: [40, 40],
-      iconAnchor: [20, 20]
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
     });
 
     const schoolMarker = L.marker([10.362, -75.581], { icon: schoolIcon }).addTo(map);
@@ -244,17 +244,17 @@ export default function ThesisFramework({ onSelectModule }) {
       className: 'custom-plateau-pin',
       html: `
         <div class="relative flex items-center justify-center cursor-pointer group">
-          <div class="absolute -inset-2 rounded-full bg-teal-400/50 animate-pulse"></div>
-          <div class="w-10 h-10 rounded-2xl bg-teal-600 border-2 border-white shadow-2xl flex items-center justify-center text-white font-bold text-sm">
-            ✨
+          <div class="absolute -inset-2 rounded-full bg-teal-400/40 animate-pulse"></div>
+          <div class="w-8 h-8 rounded-xl bg-teal-600 border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-110">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
           </div>
-          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-teal-950/95 text-[10px] text-teal-300 font-mono font-bold shadow-xl border border-white/20">
+          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-teal-950/95 text-[10px] text-teal-300 font-mono font-bold shadow-xl border border-white/20 pointer-events-none">
             Meseta Segura +22m
           </div>
         </div>
       `,
-      iconSize: [40, 40],
-      iconAnchor: [20, 20]
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
     });
 
     const plateauMarker = L.marker([10.352, -75.565], { icon: plateauIcon }).addTo(map);
@@ -432,7 +432,8 @@ export default function ThesisFramework({ onSelectModule }) {
                 : 'text-slate-600 hover:text-slate-950'
             }`}
           >
-            <span>🛰️ Vista Aérea</span>
+            <Layers className="w-3.5 h-3.5" />
+            <span>Vista Aérea</span>
           </button>
           <button
             onClick={() => setMapLayerType('carto')}
@@ -442,7 +443,8 @@ export default function ThesisFramework({ onSelectModule }) {
                 : 'text-slate-600 hover:text-slate-950'
             }`}
           >
-            <span>🗺️ Plano</span>
+            <Compass className="w-3.5 h-3.5" />
+            <span>Plano</span>
           </button>
         </div>
 
