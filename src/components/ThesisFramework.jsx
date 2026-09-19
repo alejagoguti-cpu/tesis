@@ -166,19 +166,15 @@ export default function ThesisFramework({ onSelectModule }) {
       attributionControl: false
     });
 
-    // Aerial Satellite Imagery without API key (Esri World Imagery)
-    const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      maxZoom: 19,
-      attribution: 'Esri, Maxar'
-    }).addTo(map);
-
-    const labelsLayer = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-      maxZoom: 19,
-      opacity: 0.85
+    // High-Resolution Satellite Aerial Layer (Zero API Key, No Watermark)
+    const satLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+      maxZoom: 20,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+      attribution: 'Google Satellite Imagery'
     }).addTo(map);
 
     tileLayerRef.current = satLayer;
-    labelsLayerRef.current = labelsLayer;
+    labelsLayerRef.current = null;
 
     // 1. Island Perimeter Polygon
     const islandLayer = L.polygon(TIERRABOMBA_ISLAND_POLYGON, {
@@ -338,14 +334,12 @@ export default function ThesisFramework({ onSelectModule }) {
     if (labelsLayerRef.current) map.removeLayer(labelsLayerRef.current);
 
     if (mapLayerType === 'satellite') {
-      tileLayerRef.current = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19
+      tileLayerRef.current = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: 'Google Satellite Imagery'
       }).addTo(map);
-
-      labelsLayerRef.current = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        opacity: 0.85
-      }).addTo(map);
+      labelsLayerRef.current = null;
     } else {
       tileLayerRef.current = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
