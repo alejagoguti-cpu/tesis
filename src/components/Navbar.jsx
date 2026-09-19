@@ -6,6 +6,8 @@ import {
   Compass, 
   Droplets, 
   Printer, 
+  BookOpen,
+  Home,
   Moon, 
   Sun, 
   Menu, 
@@ -34,11 +36,12 @@ export default function Navbar({ darkMode, setDarkMode, activeSection, setActive
 
   const navLinks = [
     { id: 'hero', label: 'Inicio', icon: Building2 },
-    { id: 'diagnostico', label: 'Diagnóstico & Mapa', icon: MapPin },
-    { id: 'estrategia', label: 'Estrategia', icon: Compass },
-    { id: 'visor3d', label: 'Visor 3D (Revit)', icon: Layers },
-    { id: 'planos', label: 'Planimetría / Plotter', icon: Printer },
-    { id: 'sostenibilidad', label: 'Ciclo Hídrico', icon: Droplets },
+    { id: 'marco-tesis', label: '1. Justificación & Objetivos', icon: BookOpen },
+    { id: 'diagnostico', label: '2. Diagnóstico & Mapa', icon: MapPin },
+    { id: 'reubicacion-proyectos', label: '3. Vivienda & Colegio', icon: Home },
+    { id: 'visor3d', label: '4. Visor 3D (Revit)', icon: Layers },
+    { id: 'planos', label: '5. Planimetría / Plotter', icon: Printer },
+    { id: 'sostenibilidad', label: '6. Memoria Hídrica', icon: Droplets },
   ];
 
   const scrollTo = (id) => {

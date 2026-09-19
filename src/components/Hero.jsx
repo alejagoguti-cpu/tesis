@@ -40,7 +40,7 @@ export default function Hero({ onExplore3D, onExploreBlueprints, onExploreDiagno
 
             {/* Subtitle / Description */}
             <p className="text-base sm:text-lg text-architectural-600 dark:text-architectural-300 leading-relaxed max-w-2xl font-normal">
-              Propuesta arquitectónica y territorial para la <strong className="text-architectural-900 dark:text-white font-semibold">reubicación de equipamiento comunitario</strong> autosuficiente en <span className="underline decoration-caribbean-400 underline-offset-4">Tierrabomba</span>, mitigando la erosión costera y garantizando el acceso colectivo al agua potable.
+              Tesis de grado: <strong className="text-architectural-900 dark:text-white font-semibold">Reubicación de 120 viviendas resilientes</strong> y diseño de un <strong className="text-architectural-900 dark:text-white font-semibold">equipamiento educativo bioclimático</strong> en la meseta segura de <span className="underline decoration-caribbean-400 underline-offset-4">Tierrabomba</span>, mitigando la erosión costera con autosuficiencia hídrica.
             </p>
 
             {/* CTAs */}
@@ -59,7 +59,7 @@ export default function Hero({ onExplore3D, onExploreBlueprints, onExploreDiagno
                 className="inline-flex items-center space-x-2 px-5 py-3.5 rounded-2xl bg-white dark:bg-architectural-900 border border-architectural-300 dark:border-architectural-700 hover:border-caribbean-400 dark:hover:border-caribbean-500 text-architectural-800 dark:text-architectural-200 font-semibold text-sm shadow-sm transition-all hover:scale-[1.02]"
               >
                 <Printer className="w-4 h-4 text-caribbean-500" />
-                <span>Ver Planos / Plotter</span>
+                <span>Planimetría / Plotter</span>
               </button>
 
               <button
@@ -67,7 +67,7 @@ export default function Hero({ onExplore3D, onExploreBlueprints, onExploreDiagno
                 className="inline-flex items-center space-x-1.5 px-4 py-3.5 rounded-2xl text-architectural-600 dark:text-architectural-400 hover:text-caribbean-600 dark:hover:text-caribbean-400 text-sm font-medium transition-colors"
               >
                 <Compass className="w-4 h-4" />
-                <span>Diagnóstico</span>
+                <span>Diagnóstico & Objetivos</span>
               </button>
             </div>
 

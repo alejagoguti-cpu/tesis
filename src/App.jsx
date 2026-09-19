@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import ThesisFramework from './components/ThesisFramework';
 import DiagnosisMap from './components/DiagnosisMap';
+import HousingRelocation from './components/HousingRelocation';
 import StrategyRelocation from './components/StrategyRelocation';
 import ModelViewer3D from './components/ModelViewer3D';
 import BlueprintPlotter from './components/BlueprintPlotter';
@@ -42,17 +44,28 @@ export default function App() {
         <Hero 
           onExplore3D={() => scrollToSection('visor3d')}
           onExploreBlueprints={() => scrollToSection('planos')}
-          onExploreDiagnosis={() => scrollToSection('diagnostico')}
+          onExploreDiagnosis={() => scrollToSection('marco-tesis')}
         />
 
+        {/* Capítulo 1: Planteamiento, Justificación & Objetivos */}
+        <ThesisFramework />
+
+        {/* Capítulo 2: Diagnóstico & Cartografía de Riesgo */}
         <DiagnosisMap />
 
+        {/* Capítulo 3: Reubicación de Viviendas & Equipamiento Educativo */}
+        <HousingRelocation />
+
+        {/* Capítulo 4: Criterios Bioclimáticos & Masterplan */}
         <StrategyRelocation />
 
+        {/* Capítulo 5: Visor 3D Interactivo (Revit / BIM) */}
         <ModelViewer3D />
 
+        {/* Capítulo 6: Módulo de Planimetría & Plotter Técnico */}
         <BlueprintPlotter />
 
+        {/* Capítulo 7: Memoria Técnica del Sistema Hídrico */}
         <WaterSustainability />
       </main>
 

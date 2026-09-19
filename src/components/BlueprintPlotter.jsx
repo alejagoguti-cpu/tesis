@@ -249,65 +249,125 @@ export default function BlueprintPlotter() {
                       <path d="M 30,200 Q 170,120 300,160 T 570,180" strokeWidth="1" strokeDasharray="3 3" opacity="0.4" />
 
                       {/* Coastal erosion threshold */}
-                      <path d="M 40,240 Q 200,210 400,250 T 560,230" strokeWidth="2" strokeDasharray="6 4" stroke="#f43f5e" />
-                      <text x="50" y="235" fontSize="9" fill="#f43f5e" stroke="none" fontFamily="monospace">LÍNEA DE RIESGO DE EROSIÓN (COTA 0.00)</text>
+                      <path d="M 40,250 Q 200,220 400,260 T 560,240" strokeWidth="2" strokeDasharray="6 4" stroke="#f43f5e" />
+                      <text x="50" y="245" fontSize="8" fill="#f43f5e" stroke="none" fontFamily="monospace">LÍNEA DE RIESGO DE EROSIÓN COSTERA (COTA 0.00)</text>
 
                       {/* Safe Plateau Polygon (+22m) */}
-                      <polygon points="180,60 420,50 460,190 150,180" strokeWidth="1.5" opacity="0.6" />
-                      
-                      {/* Relocated Building Pavilion */}
-                      <rect x="220" y="80" width="160" height="80" strokeWidth="2.5" fill="currentColor" fillOpacity="0.08" />
-                      <rect x="240" y="95" width="50" height="50" strokeWidth="1.5" />
-                      <rect x="310" y="95" width="50" height="50" strokeWidth="1.5" />
-                      
-                      {/* Cistern reservoir under plaza */}
-                      <rect x="250" y="180" width="100" height="30" strokeWidth="2" strokeDasharray="4 2" />
-                      <text x="260" y="198" fontSize="9" fill="currentColor" stroke="none" fontFamily="monospace">ALJIBE 450 m³</text>
-                      
-                      {/* Dimension lines */}
-                      <line x1="220" y1="65" x2="380" y2="65" strokeWidth="1" />
-                      <line x1="220" y1="60" x2="220" y2="70" strokeWidth="1" />
-                      <line x1="380" y1="60" x2="380" y2="70" strokeWidth="1" />
-                      <text x="280" y="60" fontSize="10" fill="currentColor" stroke="none" fontFamily="monospace">48.00 m</text>
-                    </svg>
-                  )}
+                      <polygon points="120,40 480,30 520,210 90,200" strokeWidth="1.5" stroke="#10b981" strokeDasharray="4 2" fill="#10b981" fillOpacity="0.04" />
+                      <text x="130" y="55" fontSize="8" fill="#10b981" stroke="none" fontFamily="monospace">MESETA SEGURA DE REUBICACIÓN (+22.00 M.S.N.M.)</text>
 
-                  {/* Drawing Type 2: Floorplan */}
-                  {selectedBlueprint.svgType === 'floorplan' && (
-                    <svg viewBox="0 0 600 280" className="w-full h-56 stroke-current fill-none">
-                      {/* Exterior walls */}
-                      <rect x="80" y="40" width="440" height="190" strokeWidth="3" />
-                      
-                      {/* Interior room divisions */}
-                      <line x1="200" y1="40" x2="200" y2="230" strokeWidth="2" />
-                      <line x1="360" y1="40" x2="360" y2="230" strokeWidth="2" />
-                      <line x1="200" y1="135" x2="360" y2="135" strokeWidth="2" />
-
-                      {/* Structural timber grid */}
-                      {[80, 140, 200, 280, 360, 440, 520].map((x, i) => (
-                        <g key={i}>
-                          <rect x={x - 4} y="36" width="8" height="8" fill="currentColor" />
-                          <rect x={x - 4} y="131" width="8" height="8" fill="currentColor" />
-                          <rect x={x - 4} y="226" width="8" height="8" fill="currentColor" />
+                      {/* 120 Housing Clusters / Manzanas de Vivienda */}
+                      {[0, 1, 2, 3].map((row) => (
+                        <g key={row}>
+                          {[0, 1, 2, 3, 4].map((col) => (
+                            <rect 
+                              key={col} 
+                              x={130 + col * 32} 
+                              y={70 + row * 28} 
+                              width="24" 
+                              height="18" 
+                              strokeWidth="1.2" 
+                              fill="currentColor" 
+                              fillOpacity="0.06"
+                            />
+                          ))}
                         </g>
                       ))}
+                      <text x="140" y="195" fontSize="9" fill="currentColor" stroke="none" fontFamily="monospace" fontWeight="bold">
+                        120 VIVIENDAS RESILIENTES
+                      </text>
 
-                      {/* Room labels */}
-                      <text x="95" y="130" fontSize="10" fill="currentColor" stroke="none" fontFamily="monospace" fontWeight="bold">01. DISPENSARIO HÍDRICO</text>
-                      <text x="95" y="145" fontSize="8" fill="currentColor" stroke="none" fontFamily="monospace" opacity="0.8">Capacidad: 12 grifos</text>
-
-                      <text x="215" y="85" fontSize="10" fill="currentColor" stroke="none" fontFamily="monospace" fontWeight="bold">02. CENTRO DE SALUD</text>
-                      <text x="215" y="180" fontSize="10" fill="currentColor" stroke="none" fontFamily="monospace" fontWeight="bold">03. AULA COMUNITARIA</text>
-
-                      <text x="380" y="130" fontSize="10" fill="currentColor" stroke="none" fontFamily="monospace" fontWeight="bold">04. TALLER NÁUTICO</text>
-
-                      {/* Louver wall markings */}
-                      <line x1="80" y1="80" x2="80" y2="190" strokeWidth="1" strokeDasharray="3 3" />
-                      <line x1="520" y1="80" x2="520" y2="190" strokeWidth="1" strokeDasharray="3 3" />
+                      {/* Central Educational Complex */}
+                      <rect x="340" y="70" width="140" height="100" strokeWidth="2.5" fill="currentColor" fillOpacity="0.12" />
+                      <rect x="355" y="85" width="40" height="40" strokeWidth="1.5" />
+                      <rect x="415" y="85" width="40" height="40" strokeWidth="1.5" />
+                      
+                      {/* Cistern reservoir under school plaza */}
+                      <rect x="360" y="135" width="95" height="25" strokeWidth="2" strokeDasharray="4 2" stroke="#0284c7" fill="#0284c7" fillOpacity="0.2" />
+                      <text x="365" y="152" fontSize="8" fill="#0284c7" stroke="none" fontFamily="monospace" fontWeight="bold">ALJIBE 450.000 L</text>
+                      
+                      <text x="345" y="60" fontSize="9" fill="currentColor" stroke="none" fontFamily="monospace" fontWeight="bold">
+                        EQUIPAMIENTO EDUCATIVO
+                      </text>
                     </svg>
                   )}
 
-                  {/* Drawing Type 3: Section */}
+                  {/* Drawing Type 2: Educational Complex */}
+                  {selectedBlueprint.svgType === 'educational' && (
+                    <svg viewBox="0 0 600 280" className="w-full h-56 stroke-current fill-none">
+                      {/* School perimeter */}
+                      <rect x="60" y="30" width="480" height="210" strokeWidth="3" />
+                      
+                      {/* Classroom Wings */}
+                      <rect x="80" y="50" width="130" height="80" strokeWidth="2" fill="currentColor" fillOpacity="0.05" />
+                      <text x="90" y="80" fontSize="9" fill="currentColor" stroke="none" fontFamily="monospace" fontWeight="bold">AULAS TEÓRICAS (1-3)</text>
+                      <text x="90" y="95" fontSize="7.5" fill="currentColor" stroke="none" fontFamily="monospace" opacity="0.8">Ventilación Cruzada</text>
+
+                      <rect x="80" y="145" width="130" height="80" strokeWidth="2" fill="currentColor" fillOpacity="0.05" />
+                      <text x="90" y="175" fontSize="9" fill="currentColor" stroke="none" fontFamily="monospace" fontWeight="bold">AULAS TEÓRICAS (4-6)</text>
+                      <text x="90" y="190" fontSize="7.5" fill="currentColor" stroke="none" fontFamily="monospace" opacity="0.8">Capacidad: 180 alumnos</text>
+
+                      {/* Central Civic Courtyard & Rain Harvesting Plaza */}
+                      <rect x="230" y="50" width="140" height="175" strokeWidth="1.5" strokeDasharray="4 2" />
+                      <text x="245" y="110" fontSize="9" fill="currentColor" stroke="none" fontFamily="monospace" fontWeight="bold">PATIO CÍVICO & AGORA</text>
+                      <text x="245" y="125" fontSize="7.5" fill="currentColor" stroke="none" fontFamily="monospace" opacity="0.8">Cubierta Captadora 1.850 m²</text>
+                      
+                      {/* Water Dispensary */}
+                      <rect x="250" y="160" width="100" height="50" strokeWidth="2" stroke="#0284c7" fill="#0284c7" fillOpacity="0.15" />
+                      <text x="255" y="182" fontSize="8.5" fill="#0284c7" stroke="none" fontFamily="monospace" fontWeight="bold">DISPENSARIO HÍDRICO</text>
+                      <text x="255" y="197" fontSize="7" fill="#0284c7" stroke="none" fontFamily="monospace">12 Puntos de Abastecimiento</text>
+
+                      {/* Right Wing: Workshops & Canteen */}
+                      <rect x="390" y="50" width="130" height="80" strokeWidth="2" fill="currentColor" fillOpacity="0.05" />
+                      <text x="400" y="80" fontSize="9" fill="currentColor" stroke="none" fontFamily="monospace" fontWeight="bold">TALLERES NÁUTICOS</text>
+                      <text x="400" y="95" fontSize="7.5" fill="currentColor" stroke="none" fontFamily="monospace" opacity="0.8">Pesca & Carpintería</text>
+
+                      <rect x="390" y="145" width="130" height="80" strokeWidth="2" fill="currentColor" fillOpacity="0.05" />
+                      <text x="400" y="175" fontSize="9" fill="currentColor" stroke="none" fontFamily="monospace" fontWeight="bold">COMEDOR & COCINA</text>
+                      <text x="400" y="190" fontSize="7.5" fill="currentColor" stroke="none" fontFamily="monospace" opacity="0.8">Capacidad: 200 raciones</text>
+                    </svg>
+                  )}
+
+                  {/* Drawing Type 3: Housing Prototype */}
+                  {selectedBlueprint.svgType === 'housing' && (
+                    <svg viewBox="0 0 600 280" className="w-full h-56 stroke-current fill-none">
+                      {/* Base Module 54m² */}
+                      <rect x="100" y="40" width="220" height="190" strokeWidth="3" />
+                      <text x="110" y="60" fontSize="9" fill="currentColor" stroke="none" fontFamily="monospace" fontWeight="bold">
+                        MÓDULO BASE FAMILIAR (54.00 m²)
+                      </text>
+
+                      {/* Bedroom 1 */}
+                      <rect x="115" y="75" width="90" height="70" strokeWidth="1.5" />
+                      <text x="125" y="110" fontSize="8" fill="currentColor" stroke="none" fontFamily="monospace">HAB. PRINCIPAL</text>
+                      
+                      {/* Bedroom 2 */}
+                      <rect x="115" y="150" width="90" height="65" strokeWidth="1.5" />
+                      <text x="125" y="185" fontSize="8" fill="currentColor" stroke="none" fontFamily="monospace">HABITACIÓN 2</text>
+
+                      {/* Living & Kitchen */}
+                      <rect x="215" y="75" width="90" height="90" strokeWidth="1.5" />
+                      <text x="225" y="115" fontSize="8" fill="currentColor" stroke="none" fontFamily="monospace">ESTAR / COCINA</text>
+
+                      {/* Dry / Low Flow Bathroom */}
+                      <rect x="215" y="170" width="90" height="45" strokeWidth="1.5" />
+                      <text x="225" y="195" fontSize="7.5" fill="currentColor" stroke="none" fontFamily="monospace">BAÑO SECO ECOL.</text>
+
+                      {/* Progressive Expansion Module (to 86m²) */}
+                      <rect x="335" y="40" width="160" height="190" strokeWidth="2" strokeDasharray="6 3" stroke="#d97736" fill="#d97736" fillOpacity="0.05" />
+                      <text x="345" y="60" fontSize="9" fill="#d97736" stroke="none" fontFamily="monospace" fontWeight="bold">
+                        ETAPA DE EXPANSIÓN (+32.00 m²)
+                      </text>
+                      <text x="345" y="110" fontSize="8" fill="#d97736" stroke="none" fontFamily="monospace">TALLER PRODUCTIVO / HAB. 3</text>
+                      <text x="345" y="130" fontSize="7.5" fill="#d97736" stroke="none" fontFamily="monospace">Autoconstrucción Asistida</text>
+
+                      {/* Household Water Tank 2.500L */}
+                      <circle cx="415" cy="185" r="22" strokeWidth="2" stroke="#0284c7" fill="#0284c7" fillOpacity="0.15" />
+                      <text x="390" y="188" fontSize="7" fill="#0284c7" stroke="none" fontFamily="monospace" fontWeight="bold">ALJIBE 2.500L</text>
+                    </svg>
+                  )}
+
+                  {/* Drawing Type 4: Section */}
                   {selectedBlueprint.svgType === 'section' && (
                     <svg viewBox="0 0 600 280" className="w-full h-56 stroke-current fill-none">
                       {/* Ground line */}
@@ -315,59 +375,35 @@ export default function BlueprintPlotter() {
                       <path d="M 40,200 L 40,220 L 560,220 L 560,200" fill="currentColor" fillOpacity="0.05" />
 
                       {/* Underground Cistern */}
-                      <rect x="180" y="200" width="240" height="50" strokeWidth="2" fill="#0284c7" fillOpacity="0.2" />
-                      <text x="230" y="230" fontSize="10" fill="#0284c7" stroke="none" fontFamily="monospace" fontWeight="bold">
-                        ALJIBE COLECTIVO 450 m³
+                      <rect x="180" y="200" width="240" height="50" strokeWidth="2" stroke="#0284c7" fill="#0284c7" fillOpacity="0.25" />
+                      <text x="210" y="230" fontSize="9.5" fill="#0284c7" stroke="none" fontFamily="monospace" fontWeight="bold">
+                        ALJIBE COMUNITARIO 450.000 L (+20.00 M)
                       </text>
 
-                      {/* Columns */}
-                      <line x1="120" y1="200" x2="120" y2="90" strokeWidth="4" />
-                      <line x1="260" y1="200" x2="260" y2="110" strokeWidth="4" />
-                      <line x1="340" y1="200" x2="340" y2="110" strokeWidth="4" />
-                      <line x1="480" y1="200" x2="480" y2="90" strokeWidth="4" />
+                      {/* School Columns */}
+                      <line x1="100" y1="200" x2="100" y2="85" strokeWidth="4" />
+                      <line x1="240" y1="200" x2="240" y2="105" strokeWidth="4" />
+                      <line x1="360" y1="200" x2="360" y2="105" strokeWidth="4" />
+                      <line x1="500" y1="200" x2="500" y2="85" strokeWidth="4" />
 
-                      {/* Sloped Butterfly Rain Harvesting Roof */}
-                      <polyline points="90,70 300,120 510,70" strokeWidth="4" />
+                      {/* Butterfly Roof */}
+                      <polyline points="70,65 300,115 530,65" strokeWidth="4" />
                       
-                      {/* Downspout (Bajante pluvial) */}
-                      <line x1="300" y1="120" x2="300" y2="200" strokeWidth="3" strokeDasharray="4 2" stroke="#1e9fa8" />
-                      <text x="310" y="160" fontSize="9" fill="#1e9fa8" stroke="none" fontFamily="monospace">
-                        Bajante Ø 6"
+                      {/* Downspout */}
+                      <line x1="300" y1="115" x2="300" y2="200" strokeWidth="3" strokeDasharray="4 2" stroke="#1e9fa8" />
+                      <text x="310" y="155" fontSize="8.5" fill="#1e9fa8" stroke="none" fontFamily="monospace">
+                        Bajante Ø 6" & Filtro First Flush
                       </text>
+
+                      {/* Louver Screens */}
+                      <line x1="100" y1="120" x2="100" y2="190" strokeWidth="2" strokeDasharray="2 2" stroke="#d97736" />
+                      <line x1="500" y1="120" x2="500" y2="190" strokeWidth="2" strokeDasharray="2 2" stroke="#d97736" />
+                      <text x="110" y="160" fontSize="7.5" fill="#d97736" stroke="none" fontFamily="monospace">Celosías BTC</text>
 
                       {/* Wind arrows */}
-                      <path d="M 60,110 Q 150,130 240,100" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6" />
-                      <text x="60" y="100" fontSize="9" fill="currentColor" stroke="none" fontFamily="monospace">
+                      <path d="M 50,110 Q 150,130 250,95" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6" />
+                      <text x="50" y="100" fontSize="8" fill="currentColor" stroke="none" fontFamily="monospace">
                         Vientos Alisios NNE
-                      </text>
-                    </svg>
-                  )}
-
-                  {/* Drawing Type 4: Detail */}
-                  {selectedBlueprint.svgType === 'detail' && (
-                    <svg viewBox="0 0 600 280" className="w-full h-56 stroke-current fill-none">
-                      {/* Gutter profile */}
-                      <path d="M 150,60 L 200,120 L 400,120 L 450,60" strokeWidth="3" />
-                      
-                      {/* Stainless filter mesh */}
-                      <line x1="220" y1="100" x2="380" y2="100" strokeWidth="1.5" strokeDasharray="2 2" stroke="#10b981" />
-                      <text x="240" y="90" fontSize="9" fill="#10b981" stroke="none" fontFamily="monospace">
-                        MALLA EN ACERO INOXIDABLE 316
-                      </text>
-
-                      {/* Drainage pipe to first-flush */}
-                      <rect x="280" y="120" width="40" height="90" strokeWidth="2" />
-                      
-                      {/* Water inflow arrows */}
-                      <path d="M 170,80 L 210,110" strokeWidth="1.5" stroke="#0284c7" />
-                      <path d="M 430,80 L 390,110" strokeWidth="1.5" stroke="#0284c7" />
-
-                      {/* Labels and callouts */}
-                      <text x="335" y="160" fontSize="9" fill="currentColor" stroke="none" fontFamily="monospace">
-                        DESVIADOR DE PRIMERAS AGUAS (FIRST FLUSH)
-                      </text>
-                      <text x="260" y="240" fontSize="10" fill="currentColor" stroke="none" fontFamily="monospace" fontWeight="bold">
-                        DETALLE ESCALA 1:20
                       </text>
                     </svg>
                   )}
