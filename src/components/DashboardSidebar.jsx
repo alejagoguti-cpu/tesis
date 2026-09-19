@@ -95,11 +95,6 @@ export default function DashboardSidebar({
             return (
               <div key={module.id} className="relative flex items-center justify-center w-full">
                 
-                {/* Active Indicator Bar on left edge */}
-                {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-7 bg-terracotta-600 rounded-r-full" />
-                )}
-
                 {/* Module Button */}
                 <button
                   onClick={() => {
