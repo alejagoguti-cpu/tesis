@@ -86,7 +86,7 @@ export default function App() {
       {/* Main Content Area */}
       <div 
         className={`flex-1 flex flex-col transition-all duration-300 ${
-          presentationMode ? 'pl-0' : sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'
+          presentationMode ? 'pl-0' : 'lg:pl-16'
         }`}
       >
         
