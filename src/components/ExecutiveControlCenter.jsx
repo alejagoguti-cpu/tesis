@@ -245,7 +245,7 @@ export const BAY_HOTSPOTS = [
 ];
 
 export default function ExecutiveControlCenter({ onSelectModule }) {
-  const [selectedYear, setSelectedYear] = useState(2026);
+  const [selectedYear, setSelectedYear] = useState(1690); // Default to first historical map (1690) as requested
   const [activeHotspotModal, setActiveHotspotModal] = useState(null);
   const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
   const [showHistoricalGalleryModal, setShowHistoricalGalleryModal] = useState(false);
@@ -636,121 +636,123 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
       </div>
 
       {/* ========================================================================= */}
-      {/* 4. FLOATING BOTTOM: 6 THESIS KPI STRIP                                   */}
+      {/* 4. FLOATING BOTTOM: 6 THESIS KPI STRIP (Only visible in 2026 and 2050)    */}
       {/* ========================================================================= */}
-      <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 max-w-7xl mx-auto pointer-events-auto">
-          
-          {/* KPI 1: Housing */}
-          <div 
-            onClick={() => onSelectModule && onSelectModule('programs')}
-            className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-terracotta-500 hover:scale-105 transition-all cursor-pointer group"
-          >
-            <div className="flex items-center justify-between mb-1">
-              <div className="p-1.5 rounded-lg bg-terracotta-50 text-terracotta-600">
-                <Home className="w-3.5 h-3.5" />
+      {selectedYear >= 2026 && (
+        <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none animate-fade-in">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 max-w-7xl mx-auto pointer-events-auto">
+            
+            {/* KPI 1: Housing */}
+            <div 
+              onClick={() => onSelectModule && onSelectModule('programs')}
+              className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-terracotta-500 hover:scale-105 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="p-1.5 rounded-lg bg-terracotta-50 text-terracotta-600">
+                  <Home className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-terracotta-50 text-terracotta-700">
+                  MOD 03
+                </span>
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-terracotta-50 text-terracotta-700">
-                MOD 03
-              </span>
+              <p className="text-[10px] font-mono text-slate-500">Reubicación</p>
+              <h4 className="font-serif font-bold text-lg text-slate-900">120 Casas</h4>
+              <p className="text-[9px] text-slate-500 truncate">Meseta segura +22m</p>
             </div>
-            <p className="text-[10px] font-mono text-slate-500">Reubicación</p>
-            <h4 className="font-serif font-bold text-lg text-slate-900">120 Casas</h4>
-            <p className="text-[9px] text-slate-500 truncate">Meseta segura +22m</p>
-          </div>
 
-          {/* KPI 2: School */}
-          <div 
-            onClick={() => onSelectModule && onSelectModule('programs')}
-            className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-teal-500 hover:scale-105 transition-all cursor-pointer group"
-          >
-            <div className="flex items-center justify-between mb-1">
-              <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
-                <GraduationCap className="w-3.5 h-3.5" />
+            {/* KPI 2: School */}
+            <div 
+              onClick={() => onSelectModule && onSelectModule('programs')}
+              className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-teal-500 hover:scale-105 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
+                  <GraduationCap className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-teal-50 text-teal-700">
+                  DOTACIONAL
+                </span>
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-teal-50 text-teal-700">
-                DOTACIONAL
-              </span>
+              <p className="text-[10px] font-mono text-slate-500">Educativo</p>
+              <h4 className="font-serif font-bold text-lg text-slate-900">350 Plazas</h4>
+              <p className="text-[9px] text-slate-500 truncate">Aulas & Talleres</p>
             </div>
-            <p className="text-[10px] font-mono text-slate-500">Educativo</p>
-            <h4 className="font-serif font-bold text-lg text-slate-900">350 Plazas</h4>
-            <p className="text-[9px] text-slate-500 truncate">Aulas & Talleres</p>
-          </div>
 
-          {/* KPI 3: Water */}
-          <div 
-            onClick={() => onSelectModule && onSelectModule('water')}
-            className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-blue-500 hover:scale-105 transition-all cursor-pointer group"
-          >
-            <div className="flex items-center justify-between mb-1">
-              <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
-                <Droplets className="w-3.5 h-3.5" />
+            {/* KPI 3: Water */}
+            <div 
+              onClick={() => onSelectModule && onSelectModule('water')}
+              className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-blue-500 hover:scale-105 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
+                  <Droplets className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-blue-50 text-blue-700">
+                  MOD 07
+                </span>
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-blue-50 text-blue-700">
-                MOD 07
-              </span>
+              <p className="text-[10px] font-mono text-slate-500">Reserva Hídrica</p>
+              <h4 className="font-serif font-bold text-lg text-slate-900">450.000 L</h4>
+              <p className="text-[9px] text-slate-500 truncate">90 días de sequía</p>
             </div>
-            <p className="text-[10px] font-mono text-slate-500">Reserva Hídrica</p>
-            <h4 className="font-serif font-bold text-lg text-slate-900">450.000 L</h4>
-            <p className="text-[9px] text-slate-500 truncate">90 días de sequía</p>
-          </div>
 
-          {/* KPI 4: Safe Plateau */}
-          <div 
-            onClick={() => onSelectModule && onSelectModule('gis')}
-            className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-emerald-500 hover:scale-105 transition-all cursor-pointer group"
-          >
-            <div className="flex items-center justify-between mb-1">
-              <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
-                <ShieldCheck className="w-3.5 h-3.5" />
+            {/* KPI 4: Safe Plateau */}
+            <div 
+              onClick={() => onSelectModule && onSelectModule('gis')}
+              className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-emerald-500 hover:scale-105 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700">
+                  TERRITORIO
+                </span>
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700">
-                TERRITORIO
-              </span>
+              <p className="text-[10px] font-mono text-slate-500">Cota Segura</p>
+              <h4 className="font-serif font-bold text-lg text-slate-900">+22.00m</h4>
+              <p className="text-[9px] text-slate-500 truncate">0% riesgo marino</p>
             </div>
-            <p className="text-[10px] font-mono text-slate-500">Cota Segura</p>
-            <h4 className="font-serif font-bold text-lg text-slate-900">+22.00m</h4>
-            <p className="text-[9px] text-slate-500 truncate">0% riesgo marino</p>
-          </div>
 
-          {/* KPI 5: Solar */}
-          <div 
-            onClick={() => onSelectModule && onSelectModule('bioclimatic')}
-            className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-amber-500 hover:scale-105 transition-all cursor-pointer group"
-          >
-            <div className="flex items-center justify-between mb-1">
-              <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
-                <Sun className="w-3.5 h-3.5" />
+            {/* KPI 5: Solar */}
+            <div 
+              onClick={() => onSelectModule && onSelectModule('bioclimatic')}
+              className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-amber-500 hover:scale-105 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
+                  <Sun className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-50 text-amber-700">
+                  ENERGÍA
+                </span>
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-50 text-amber-700">
-                ENERGÍA
-              </span>
+              <p className="text-[10px] font-mono text-slate-500">Matriz Solar</p>
+              <h4 className="font-serif font-bold text-lg text-slate-900">100% FV</h4>
+              <p className="text-[9px] text-slate-500 truncate">Autonomía total</p>
             </div>
-            <p className="text-[10px] font-mono text-slate-500">Matriz Solar</p>
-            <h4 className="font-serif font-bold text-lg text-slate-900">100% FV</h4>
-            <p className="text-[9px] text-slate-500 truncate">Autonomía total</p>
-          </div>
 
-          {/* KPI 6: Bioclimatic Comfort */}
-          <div 
-            onClick={() => onSelectModule && onSelectModule('bioclimatic')}
-            className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-teal-500 hover:scale-105 transition-all cursor-pointer group"
-          >
-            <div className="flex items-center justify-between mb-1">
-              <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
-                <Wind className="w-3.5 h-3.5" />
+            {/* KPI 6: Bioclimatic Comfort */}
+            <div 
+              onClick={() => onSelectModule && onSelectModule('bioclimatic')}
+              className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-teal-500 hover:scale-105 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
+                  <Wind className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-teal-50 text-teal-700">
+                  CONFORT
+                </span>
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-teal-50 text-teal-700">
-                CONFORT
-              </span>
+              <p className="text-[10px] font-mono text-slate-500">Pasivo</p>
+              <h4 className="font-serif font-bold text-lg text-slate-900">-5.2 °C</h4>
+              <p className="text-[9px] text-slate-500 truncate">Alisios N-NE</p>
             </div>
-            <p className="text-[10px] font-mono text-slate-500">Pasivo</p>
-            <h4 className="font-serif font-bold text-lg text-slate-900">-5.2 °C</h4>
-            <p className="text-[9px] text-slate-500 truncate">Alisios N-NE</p>
-          </div>
 
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ========================================================================= */}
       {/* 5. HOTSPOT DETAIL MODAL (Modern Bay Pins)                                 */}
