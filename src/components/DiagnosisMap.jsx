@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Waves, 
   Droplets, 
@@ -18,9 +18,16 @@ import {
   Activity,
   Box,
   Printer,
-  Maximize2
+  Maximize2,
+  Search,
+  Filter,
+  Users,
+  Building2,
+  CheckCircle2,
+  List
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
+import { HOUSING_CENSUS_120, HOUSING_CENSUS_SUMMARY } from '../data/housingCensus';
 import L from 'leaflet';
 
 // Fix Leaflet marker icons safely in Vite/React
@@ -119,90 +126,7 @@ export const HOTSPOTS_DATA = [
     fieldQuote: "No depender más de las barcazas de Cartagena: agua limpia y gratuita para toda la comunidad.",
     actions: [
       { label: "Ver Esquema Hidráulico", target: "water" },
-      { label: "Simular Balance Hídrico", target: "simulations" }
-    ]
-  },
-  {
-    id: "viviendas",
-    name: "120 Viviendas Palafíticas Resilientes",
-    category: "Vivienda VIS",
-    categoryColor: "bg-terracotta-500/10 text-terracotta-700 border-terracotta-500/20",
-    badge: "120 Hogares",
-    coords: [10.3535, -75.5660],
-    elevation: "+22.00 m.s.n.m. (+0.60m elevación)",
-    summary: "Módulos de 54 a 86 m² elevados sobre pilotes de madera tratada, celosías de arcilla BTC y porches sombreados de convivencia.",
-    metrics: [
-      { label: "Unidades Totales", value: "120 Viviendas" },
-      { label: "Áreas Modulares", value: "54 m² a 86 m²" },
-      { label: "Elevación Palafítica", value: "+0.60 m" },
-      { label: "Materialidad", value: "Madera Teca & BTC" }
-    ],
-    fieldQuote: "Casas frescas que respetan nuestra arquitectura isleña y crecen según la necesidad de cada familia.",
-    actions: [
-      { label: "Ver Prototipo 3D de Vivienda", target: "3dviewer" },
-      { label: "Ver Plano de Detalle 1:50", target: "cad" }
-    ]
-  },
-  {
-    id: "vientos",
-    name: "Corredor de Vientos Alisios (N-NE)",
-    category: "Bioclimática",
-    categoryColor: "bg-teal-500/10 text-teal-700 border-teal-500/20",
-    badge: "18.4 nudos N-NE",
-    coords: [10.3620, -75.5580],
-    elevation: "Nivel Atmosférico",
-    summary: "Flujo constante de brisas marinas aprovechadas mediante orientación a 15° NE y celosías permeables para reducir hasta 5°C la temperatura interior.",
-    metrics: [
-      { label: "Velocidad Media", value: "18.4 nudos" },
-      { label: "Dirección", value: "N-NE (15° Azimut)" },
-      { label: "Caída Térmica", value: "-5 °C Pasivo" },
-      { label: "Aleros de Sombra", value: "2.5 m Vuelo" }
-    ],
-    fieldQuote: "Aprovechar la brisa natural para no necesitar aire acondicionado mecánico.",
-    actions: [
-      { label: "Simular Túnel de Viento", target: "simulations" },
-      { label: "Ver Estrategia Bioclimática", target: "bioclimatic" }
-    ]
-  },
-  {
-    id: "humedal",
-    name: "Bio-Humedal de Fitodepuración & Huertos",
-    category: "Sostenibilidad",
-    categoryColor: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-    badge: "Tratamiento 75%",
-    coords: [10.3490, -75.5610],
-    elevation: "+21.50 m.s.n.m.",
-    summary: "Tratamiento biológico de aguas grises con plantas macrófitas y vetiver para la irrigación de huertos comunales y fijación de laderas.",
-    metrics: [
-      { label: "Aguas Recirculadas", value: "75% Grises" },
-      { label: "Plantas Utilizadas", value: "Vetiver & Totoras" },
-      { label: "Destino de Riego", value: "Huerto Comunitario" },
-      { label: "Químicos Usados", value: "0% Biológico" }
-    ],
-    fieldQuote: "Cada gota de agua se usa dos veces: primero en las casas y luego para cultivar alimentos.",
-    actions: [
-      { label: "Ver Flujo de Aguas", target: "water" }
-    ]
-  },
-  {
-    id: "salinidad",
-    name: "Acuífero Salinizado en Punta Arena",
-    category: "Déficit Hídrico",
-    categoryColor: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-    badge: "34.2 PSU Salitre",
-    coords: [10.3600, -75.5720],
-    elevation: "Subsuelo 0.00m",
-    summary: "Intrusión de agua de mar en los pozos artesanales costeros debido a la sobreexplotación y cercanía al oleaje, haciendo el agua no apta para beber.",
-    metrics: [
-      { label: "Salinidad Medida", value: "34.2 PSU" },
-      { label: "Límite OMS Potable", value: "0.5 PSU" },
-      { label: "Costo por Pimpina", value: "$8.000 COP / 20L" },
-      { label: "Gasto Familiar", value: ">20% del Ingreso" }
-    ],
-    fieldQuote: "El agua de los pozos sabe a mar. Toca esperar a que la barcaza traiga pimpinas caras desde Cartagena.",
-    actions: [
-      { label: "Ver Diagnóstico Completo", target: "framework" },
-      { label: "Ver Solución de Aljibe", target: "water" }
+      { label: "Ver Simulador de Sequía", target: "simulations" }
     ]
   }
 ];
@@ -212,30 +136,45 @@ export default function DiagnosisMap({ onNavigateModule }) {
   const mapInstanceRef = useRef(null);
   const tileLayerRef = useRef(null);
   const labelsLayerRef = useRef(null);
-  const [activeLayerFilter, setActiveLayerFilter] = useState('all'); // 'all', 'risk', 'relocation', 'water'
-  const [selectedHotspot, setSelectedHotspot] = useState(null);
-  const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
+  const housesLayerGroupRef = useRef(null);
 
-  // Initialize Map with High-Resolution Satellite Aerial View
+  const [activeLayerFilter, setActiveLayerFilter] = useState('all'); // 'all' | 'risk' | 'relocation' | 'water' | 'census'
+  const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
+  const [selectedHotspot, setSelectedHotspot] = useState(null);
+  const [selectedHouse, setSelectedHouse] = useState(null);
+  const [showCensusDrawer, setShowCensusDrawer] = useState(false);
+  const [censusSearch, setCensusSearch] = useState('');
+  const [censusTypologyFilter, setCensusTypologyFilter] = useState('ALL'); // 'ALL' | 'TIPO-A' | 'TIPO-B'
+  const [censusLocationMode, setCensusLocationMode] = useState('coastal'); // 'coastal' | 'plateau'
+
+  // Filtered 1:1 houses list
+  const filteredHouses = useMemo(() => {
+    return HOUSING_CENSUS_120.filter((h) => {
+      const matchSearch = h.id.toLowerCase().includes(censusSearch.toLowerCase()) ||
+        h.familyName.toLowerCase().includes(censusSearch.toLowerCase()) ||
+        h.sector.toLowerCase().includes(censusSearch.toLowerCase()) ||
+        String(h.number).includes(censusSearch);
+
+      const matchTypology = censusTypologyFilter === 'ALL' || h.typologyCode === censusTypologyFilter;
+
+      return matchSearch && matchTypology;
+    });
+  }, [censusSearch, censusTypologyFilter]);
+
+  // Leaflet Map Initialization
   useEffect(() => {
-    if (!mapContainerRef.current) return;
-    
-    if (mapInstanceRef.current?.map) {
-      mapInstanceRef.current.map.remove();
-      mapInstanceRef.current = null;
-    }
-    if (mapContainerRef.current._leaflet_id) {
-      delete mapContainerRef.current._leaflet_id;
-    }
+    if (!mapContainerRef.current || mapInstanceRef.current) return;
 
     const map = L.map(mapContainerRef.current, {
-      center: [10.3540, -75.5680],
+      center: [10.3540, -75.5720],
       zoom: 14,
       zoomControl: false,
       attributionControl: false
     });
 
-    // Aerial Satellite Layer (Esri World Imagery without API key)
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // Default: Satellite Aerial Layer (Esri World Imagery)
     const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       maxZoom: 19
     }).addTo(map);
@@ -248,25 +187,25 @@ export default function DiagnosisMap({ onNavigateModule }) {
     tileLayerRef.current = satLayer;
     labelsLayerRef.current = labelsLayer;
 
-    // Layer 1: Critical Erosion Line (Red dashed)
+    // Critical coastal erosion strip
     const erosionLine = L.polyline([
-      [10.3700, -75.5600],
-      [10.3650, -75.5720],
-      [10.3500, -75.5850],
-      [10.3350, -75.5900],
-      [10.3250, -75.5800]
+      [10.3700, -75.5890],
+      [10.3640, -75.5830],
+      [10.3580, -75.5780],
+      [10.3520, -75.5740],
+      [10.3440, -75.5710]
     ], {
       color: '#ef4444',
       weight: 5,
-      dashArray: '8, 6',
-      opacity: 0.95
+      opacity: 0.95,
+      dashArray: '8, 6'
     }).addTo(map);
 
-    // Layer 2: Safe Plateau Polygon (+22m)
+    // Safe Plateau Polygon (+22m)
     const safePlateau = L.polygon([
-      [10.3580, -75.5700],
-      [10.3600, -75.5580],
-      [10.3520, -75.5520],
+      [10.3560, -75.5680],
+      [10.3570, -75.5580],
+      [10.3480, -75.5520],
       [10.3440, -75.5580],
       [10.3460, -75.5720]
     ], {
@@ -276,7 +215,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
       weight: 3.5
     }).addTo(map);
 
-    // Markers Group
+    // Hotspot Markers Group
     const markersGroup = L.layerGroup().addTo(map);
 
     HOTSPOTS_DATA.forEach((spot) => {
@@ -315,11 +254,16 @@ export default function DiagnosisMap({ onNavigateModule }) {
       marker.addTo(markersGroup);
     });
 
+    // 120 Houses Layer Group
+    const housesLayerGroup = L.layerGroup().addTo(map);
+    housesLayerGroupRef.current = housesLayerGroup;
+
     mapInstanceRef.current = {
       map,
       erosionLine,
       safePlateau,
-      markersGroup
+      markersGroup,
+      housesLayerGroup
     };
 
     return () => {
@@ -327,6 +271,50 @@ export default function DiagnosisMap({ onNavigateModule }) {
       mapInstanceRef.current = null;
     };
   }, []);
+
+  // Update 120 Houses on the map when census layer or location mode changes
+  useEffect(() => {
+    if (!mapInstanceRef.current?.map || !housesLayerGroupRef.current) return;
+    const housesGroup = housesLayerGroupRef.current;
+    const map = mapInstanceRef.current.map;
+
+    housesGroup.clearLayers();
+
+    if (activeLayerFilter === 'census' || showCensusDrawer) {
+      HOUSING_CENSUS_120.forEach((house) => {
+        const coords = censusLocationMode === 'coastal' ? house.coastalCoords : house.plateauCoords;
+        const isSelected = selectedHouse?.id === house.id;
+        const isTypeB = house.typologyCode === 'TIPO-B';
+
+        const houseIcon = L.divIcon({
+          className: 'custom-house-pin',
+          html: `
+            <div class="relative flex items-center justify-center cursor-pointer group">
+              <div class="w-6 h-6 rounded-lg ${
+                isSelected 
+                  ? 'bg-amber-500 ring-4 ring-amber-400/50 scale-125' 
+                  : isTypeB 
+                    ? 'bg-terracotta-600' 
+                    : 'bg-slate-800'
+              } border border-white shadow-md flex items-center justify-center text-white text-[9px] font-mono font-bold transition-all group-hover:scale-110">
+                ${house.number}
+              </div>
+            </div>
+          `,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+
+        const houseMarker = L.marker(coords, { icon: houseIcon });
+        houseMarker.on('click', () => {
+          setSelectedHouse(house);
+          map.flyTo(coords, 16, { animate: true, duration: 0.8 });
+        });
+
+        houseMarker.addTo(housesGroup);
+      });
+    }
+  }, [activeLayerFilter, showCensusDrawer, censusLocationMode, selectedHouse]);
 
   // Layer filter effects
   useEffect(() => {
@@ -402,29 +390,53 @@ export default function DiagnosisMap({ onNavigateModule }) {
                 SIG DIAGNÓSTICO // MIDAS CARTAGENA
               </span>
               <span className="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                IDE / POT 2026
+                120 VIVIENDAS 1:1
               </span>
             </div>
             <h2 className="font-bold text-sm text-slate-900 truncate">
-              Vulnerabilidad, Erosión Borde & Suelo Seguro (+22m)
+              Vulnerabilidad, Censo 1:1 & Suelo Seguro (+22m)
             </h2>
           </div>
         </div>
 
         {/* GIS Layer Filters Bar */}
-        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center gap-1 self-start md:self-center">
+        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex flex-wrap items-center gap-1 self-start md:self-center">
+          
           <button
-            onClick={() => setActiveLayerFilter('all')}
+            onClick={() => {
+              setActiveLayerFilter('all');
+              setShowCensusDrawer(false);
+            }}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
-              activeLayerFilter === 'all'
+              activeLayerFilter === 'all' && !showCensusDrawer
                 ? 'bg-slate-900 text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-950'
             }`}
           >
             Todas ({HOTSPOTS_DATA.length})
           </button>
+
+          {/* Special Censo 1:1 Viviendas Button */}
           <button
-            onClick={() => setActiveLayerFilter('risk')}
+            onClick={() => {
+              setActiveLayerFilter('census');
+              setShowCensusDrawer(true);
+            }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              activeLayerFilter === 'census' || showCensusDrawer
+                ? 'bg-terracotta-600 text-white shadow-md'
+                : 'bg-terracotta-50 text-terracotta-700 hover:bg-terracotta-100 border border-terracotta-200'
+            }`}
+          >
+            <Home className="w-3.5 h-3.5" />
+            <span>Censo 1:1 (120 Viviendas)</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveLayerFilter('risk');
+              setShowCensusDrawer(false);
+            }}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               activeLayerFilter === 'risk'
                 ? 'bg-red-600 text-white shadow-sm'
@@ -434,8 +446,12 @@ export default function DiagnosisMap({ onNavigateModule }) {
             <AlertTriangle className="w-3.5 h-3.5" />
             <span>Riesgo Borde</span>
           </button>
+
           <button
-            onClick={() => setActiveLayerFilter('relocation')}
+            onClick={() => {
+              setActiveLayerFilter('relocation');
+              setShowCensusDrawer(false);
+            }}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               activeLayerFilter === 'relocation'
                 ? 'bg-emerald-600 text-white shadow-sm'
@@ -445,8 +461,12 @@ export default function DiagnosisMap({ onNavigateModule }) {
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Meseta +22m</span>
           </button>
+
           <button
-            onClick={() => setActiveLayerFilter('water')}
+            onClick={() => {
+              setActiveLayerFilter('water');
+              setShowCensusDrawer(false);
+            }}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               activeLayerFilter === 'water'
                 ? 'bg-blue-600 text-white shadow-sm'
@@ -486,39 +506,44 @@ export default function DiagnosisMap({ onNavigateModule }) {
 
       </div>
 
-      {/* Floating Bottom: Hotspot Selection Strip directly ON TOP of the Satellite Map */}
-      <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none">
-        <div className="flex flex-wrap gap-2 max-w-6xl mx-auto pointer-events-auto justify-center">
-          {filteredSpots.map((spot) => {
-            const isSelected = selectedHotspot?.id === spot.id;
-            return (
-              <button
-                key={spot.id}
-                onClick={() => {
-                  setSelectedHotspot(spot);
-                  if (mapInstanceRef.current?.map) {
-                    mapInstanceRef.current.map.flyTo(spot.coords, 15, { animate: true, duration: 1 });
-                  }
-                }}
-                className={`flex items-center space-x-2 px-3.5 py-2 rounded-2xl text-xs font-mono backdrop-blur-md transition-all border shadow-lg ${
-                  isSelected
-                    ? 'bg-slate-900 text-white font-bold scale-105 border-slate-900'
-                    : 'bg-white/90 hover:bg-white text-slate-800 border-slate-200/80'
-                }`}
-              >
-                <span className="w-2 h-2 rounded-full bg-terracotta-500" />
-                <span>{spot.name.split('(')[0]}</span>
-                <span className="text-[10px] opacity-70">({spot.elevation})</span>
-              </button>
-            );
-          })}
+      {/* Floating Bottom: Hotspot Selection Strip (Hidden when Census Drawer is Open) */}
+      {!showCensusDrawer && (
+        <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none">
+          <div className="flex flex-wrap gap-2 max-w-6xl mx-auto pointer-events-auto justify-center">
+            {filteredSpots.map((spot) => {
+              const isSelected = selectedHotspot?.id === spot.id;
+              return (
+                <button
+                  key={spot.id}
+                  onClick={() => {
+                    setSelectedHotspot(spot);
+                    if (mapInstanceRef.current?.map) {
+                      mapInstanceRef.current.map.flyTo(spot.coords, 15, { animate: true, duration: 1 });
+                    }
+                  }}
+                  className={`flex items-center space-x-2 px-3.5 py-2 rounded-2xl text-xs font-mono backdrop-blur-md transition-all border shadow-lg ${
+                    isSelected
+                      ? 'bg-slate-900 text-white font-bold scale-105 border-slate-900'
+                      : 'bg-white/90 hover:bg-white text-slate-800 border-slate-200/80'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-terracotta-500" />
+                  <span>{spot.name.split('(')[0]}</span>
+                  <span className="text-[10px] opacity-70">({spot.elevation})</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Floating Bottom-Left Legend HUD */}
       <div className="absolute top-24 left-4 z-[400] hidden lg:block pointer-events-none">
-        <div className="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto space-y-1.5 text-xs font-mono">
-          <span className="text-[10px] font-bold text-slate-500 uppercase block">Capas Territoriales</span>
+        <div className="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto space-y-2 text-xs font-mono">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+            <span className="text-[10px] font-bold text-slate-500 uppercase">Capas Territoriales</span>
+            <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">MIDAS</span>
+          </div>
           <div className="flex items-center space-x-2">
             <span className="w-3 h-0.5 border-t-2 border-dashed border-red-500" />
             <span className="text-slate-800">Erosión Costera (1.8m/año)</span>
@@ -527,17 +552,296 @@ export default function DiagnosisMap({ onNavigateModule }) {
             <span className="w-3 h-3 rounded bg-teal-500/30 border border-teal-500" />
             <span className="text-slate-800">Meseta Segura (+22m)</span>
           </div>
+          <div className="flex items-center space-x-2">
+            <span className="w-3 h-3 rounded bg-slate-900 border border-white flex items-center justify-center text-[8px] text-white font-bold">120</span>
+            <span className="text-slate-800">Viviendas Censadas 1:1</span>
+          </div>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. DETAIL MODAL POP-UP                                                    */}
+      {/* 3. INTERACTIVE 1:1 HOUSING CENSUS DRAWER (120 DWELLINGS QUANTIFICATION)   */}
+      {/* ========================================================================= */}
+      {showCensusDrawer && (
+        <div className="absolute bottom-4 left-4 right-4 z-[450] pointer-events-none animate-slide-up">
+          <div className="max-w-6xl mx-auto bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200/90 shadow-2xl p-4 sm:p-5 pointer-events-auto space-y-3.5 text-slate-900">
+            
+            {/* Drawer Header with Metrics & Filters */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-9 h-9 rounded-xl bg-terracotta-600 text-white flex items-center justify-center font-bold font-mono text-sm shadow-sm">
+                  120
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">
+                    Censo Catastral & Cuantificación 1:1 (Tierrabomba)
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-mono">
+                    {HOUSING_CENSUS_SUMMARY.totalResidents} Habitantes &bull; 72 Tipo A (54m²) &bull; 48 Tipo B (72m²) &bull; 100% Cota Cero Borde
+                  </p>
+                </div>
+              </div>
+
+              {/* Controls: Search, Typology filter & View mode */}
+              <div className="flex flex-wrap items-center gap-2">
+                
+                {/* Search box */}
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar VIV-001 o familia..."
+                    value={censusSearch}
+                    onChange={(e) => setCensusSearch(e.target.value)}
+                    className="pl-8 pr-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-terracotta-500 w-44 sm:w-56"
+                  />
+                </div>
+
+                {/* Typology Toggle */}
+                <div className="flex items-center p-0.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono">
+                  <button
+                    onClick={() => setCensusTypologyFilter('ALL')}
+                    className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                      censusTypologyFilter === 'ALL' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600'
+                    }`}
+                  >
+                    Todas ({HOUSING_CENSUS_120.length})
+                  </button>
+                  <button
+                    onClick={() => setCensusTypologyFilter('TIPO-A')}
+                    className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                      censusTypologyFilter === 'TIPO-A' ? 'bg-terracotta-600 text-white shadow-xs' : 'text-slate-600'
+                    }`}
+                  >
+                    Tipo A (54m²)
+                  </button>
+                  <button
+                    onClick={() => setCensusTypologyFilter('TIPO-B')}
+                    className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                      censusTypologyFilter === 'TIPO-B' ? 'bg-terracotta-600 text-white shadow-xs' : 'text-slate-600'
+                    }`}
+                  >
+                    Tipo B (72m²)
+                  </button>
+                </div>
+
+                {/* Location View Switcher */}
+                <div className="flex items-center p-0.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono">
+                  <button
+                    onClick={() => setCensusLocationMode('coastal')}
+                    className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                      censusLocationMode === 'coastal' ? 'bg-red-600 text-white shadow-xs' : 'text-slate-600'
+                    }`}
+                  >
+                    Borde 0.00m
+                  </button>
+                  <button
+                    onClick={() => setCensusLocationMode('plateau')}
+                    className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                      censusLocationMode === 'plateau' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600'
+                    }`}
+                  >
+                    Meseta +22m
+                  </button>
+                </div>
+
+                {/* Close Drawer Button */}
+                <button
+                  onClick={() => setShowCensusDrawer(false)}
+                  className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600"
+                  title="Cerrar Panel de Censo"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Horizontal Chip Cards / Micro Matrix */}
+            <div className="flex gap-2 overflow-x-auto pb-1 max-h-36 items-center">
+              {filteredHouses.map((house) => {
+                const isSelected = selectedHouse?.id === house.id;
+                return (
+                  <div
+                    key={house.id}
+                    onClick={() => {
+                      setSelectedHouse(house);
+                      if (mapInstanceRef.current?.map) {
+                        const coords = censusLocationMode === 'coastal' ? house.coastalCoords : house.plateauCoords;
+                        mapInstanceRef.current.map.flyTo(coords, 17, { animate: true, duration: 0.8 });
+                      }
+                    }}
+                    className={`shrink-0 w-48 p-2.5 rounded-2xl border cursor-pointer transition-all ${
+                      isSelected
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-md scale-102 ring-2 ring-amber-400'
+                        : 'bg-white hover:bg-slate-50 border-slate-200/90 text-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-[10px] font-mono mb-1">
+                      <span className={`px-1.5 py-0.2 rounded font-bold ${
+                        isSelected ? 'bg-terracotta-500 text-white' : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        {house.id}
+                      </span>
+                      <span className={isSelected ? 'text-amber-300' : 'text-red-600 font-bold'}>
+                        {house.currentElevation}
+                      </span>
+                    </div>
+
+                    <h4 className="font-bold text-xs truncate">
+                      {house.familyName}
+                    </h4>
+
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono mt-1">
+                      <span>{house.residents} hab. &bull; {house.areaM2}m²</span>
+                      <span className={house.typologyCode === 'TIPO-B' ? 'text-terracotta-400 font-bold' : ''}>
+                        {house.typologyCode}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 4. FICHA CATASTRAL 1:1 POPUP MODAL (INDIVIDUAL HOUSEHOLD SURVEY)          */}
+      {/* ========================================================================= */}
+      {selectedHouse && (
+        <div 
+          onClick={() => setSelectedHouse(null)}
+          className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full p-6 sm:p-8 space-y-5 animate-scale-up max-h-[90vh] overflow-y-auto text-slate-900"
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-terracotta-50 text-terracotta-700 border border-terracotta-200">
+                    CENSO 1:1 // {selectedHouse.id}
+                  </span>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
+                    Riesgo: {selectedHouse.riskLevel}
+                  </span>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                    {selectedHouse.phase}
+                  </span>
+                </div>
+                <h3 className="font-serif font-bold text-2xl text-slate-900 mt-1">
+                  {selectedHouse.familyName}
+                </h3>
+                <p className="text-xs text-slate-500 font-mono">
+                  {selectedHouse.sector} &bull; {selectedHouse.residents} Habitantes &bull; Actividad: {selectedHouse.livelihood}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setSelectedHouse(null)}
+                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Comparison Grid: Actual vs Reubicada en Meseta */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              
+              {/* Situation 1: Current Risk Shoreline */}
+              <div className="p-4 rounded-2xl bg-red-50/70 border border-red-200 space-y-2.5">
+                <div className="flex items-center justify-between text-xs font-mono text-red-800 font-bold border-b border-red-200 pb-1.5">
+                  <span>Situación Actual (Borde 0.00m)</span>
+                  <AlertTriangle className="w-4 h-4 text-red-600" />
+                </div>
+                <div className="space-y-1 text-xs text-slate-700">
+                  <p><b>Cota Altitudinal:</b> <span className="font-mono text-red-700 font-bold">{selectedHouse.currentElevation}</span></p>
+                  <p><b>Retroceso por Oleaje:</b> {selectedHouse.erosionRate}</p>
+                  <p><b>Estructura:</b> {selectedHouse.currentStructure}</p>
+                  <p><b>Acceso a Agua:</b> {selectedHouse.waterCurrent}</p>
+                </div>
+              </div>
+
+              {/* Situation 2: Proposed Resilient Relocation */}
+              <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-2.5">
+                <div className="flex items-center justify-between text-xs font-mono text-emerald-800 font-bold border-b border-emerald-200 pb-1.5">
+                  <span>Propuesta Tesis (Meseta +22m)</span>
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                </div>
+                <div className="space-y-1 text-xs text-slate-700">
+                  <p><b>Cota de Seguridad:</b> <span className="font-mono text-emerald-700 font-bold">{selectedHouse.targetElevation}</span></p>
+                  <p><b>Ubicación:</b> {selectedHouse.manzana} - {selectedHouse.lote}</p>
+                  <p><b>Tipología Asignada:</b> {selectedHouse.typology}</p>
+                  <p><b>Soberanía Hídrica:</b> {selectedHouse.waterProposed}</p>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Quick Metrics Badges */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-mono text-slate-500 uppercase block">Área Construida</span>
+                <span className="font-bold text-base text-slate-900 block mt-0.5">{selectedHouse.areaM2} m²</span>
+              </div>
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-mono text-slate-500 uppercase block">Núcleo Familiar</span>
+                <span className="font-bold text-base text-slate-900 block mt-0.5">{selectedHouse.residents} Personas</span>
+              </div>
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-mono text-slate-500 uppercase block">Elevación Palafítica</span>
+                <span className="font-bold text-base text-slate-900 block mt-0.5">+0.60 m</span>
+              </div>
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-mono text-slate-500 uppercase block">Tanque Doméstico</span>
+                <span className="font-bold text-base text-slate-900 block mt-0.5">2.500 L</span>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="pt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100">
+              <span className="text-[11px] font-mono text-slate-400">
+                Censo 1:1 Tierrabomba &bull; Tesis 2026
+              </span>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => {
+                    if (onNavigateModule) onNavigateModule('programs');
+                    setSelectedHouse(null);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-terracotta-600 hover:bg-terracotta-700 text-white text-xs font-mono font-bold transition-colors flex items-center space-x-1.5"
+                >
+                  <Home className="w-3.5 h-3.5" />
+                  <span>Ver Prototipo de Vivienda</span>
+                </button>
+                <button
+                  onClick={() => setSelectedHouse(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-bold transition-colors"
+                >
+                  Cerrar Ficha
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 5. HOTSPOT DETAIL MODAL POP-UP                                            */}
       {/* ========================================================================= */}
       {selectedHotspot && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+        <div 
+          onClick={() => setSelectedHotspot(null)}
+          className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+        >
           <div 
-            className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full p-6 sm:p-8 space-y-6 animate-scale-up max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full p-6 sm:p-8 space-y-6 animate-scale-up max-h-[90vh] overflow-y-auto text-slate-900"
           >
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div className="space-y-1">
