@@ -172,17 +172,18 @@ export default function DiagnosisMap({ onNavigateModule }) {
       attributionControl: false
     });
 
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    // High-Resolution Satellite Aerial Layer (Zero API Key, No Watermark)
-    const satLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-      maxZoom: 20,
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-      attribution: 'Google Satellite Imagery'
+    // Satellite Aerial Layer (Esri World Imagery - 100% Free, Zero API Key)
+    const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: 'Esri World Imagery'
     }).addTo(map);
 
     tileLayerRef.current = satLayer;
     labelsLayerRef.current = null;
+
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
 
     // Critical coastal erosion strip
     const erosionLine = L.polyline([
@@ -339,10 +340,9 @@ export default function DiagnosisMap({ onNavigateModule }) {
     if (labelsLayerRef.current) map.removeLayer(labelsLayerRef.current);
 
     if (mapLayerType === 'satellite') {
-      tileLayerRef.current = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-        maxZoom: 20,
-        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-        attribution: 'Google Satellite Imagery'
+      tileLayerRef.current = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: 'Esri World Imagery'
       }).addTo(map);
       labelsLayerRef.current = null;
     } else {

@@ -270,11 +270,24 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
     ? HISTORICAL_MAPS_DATA.find(m => m.id === currentTimelineData.mapId) || HISTORICAL_MAPS_DATA[0]
     : null;
 
-  // Reset zoom & pan when switching years
+  // Reset zoom & pan when switching years, and invalidate map size for modern years
   useEffect(() => {
     setZoomLevel(1);
     setPanOffset({ x: 0, y: 0 });
-  }, [selectedYear]);
+
+    if (!isHistoricalMode && bayMapInstanceRef.current) {
+      const timer1 = setTimeout(() => {
+        bayMapInstanceRef.current?.invalidateSize();
+      }, 60);
+      const timer2 = setTimeout(() => {
+        bayMapInstanceRef.current?.invalidateSize();
+      }, 350);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
+    }
+  }, [selectedYear, isHistoricalMode]);
 
   // Initialize Fullscreen Leaflet Map with High-Res Satellite Aerial Imagery for modern years
   useEffect(() => {
@@ -287,11 +300,10 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
       attributionControl: false
     });
 
-    // High-Resolution Satellite Aerial Layer (Zero API Key, No Watermark)
-    const satLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-      maxZoom: 20,
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-      attribution: 'Google Satellite Imagery'
+    // Satellite Imagery (Esri World Imagery - 100% Free, Zero API Key)
+    const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: 'Esri World Imagery'
     }).addTo(map);
 
     tileLayerRef.current = satLayer;
@@ -333,6 +345,11 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
 
     bayMapInstanceRef.current = map;
 
+    // Initial resize trigger
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
+
     return () => {
       map.remove();
       bayMapInstanceRef.current = null;
@@ -348,10 +365,9 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
     if (labelsLayerRef.current) map.removeLayer(labelsLayerRef.current);
 
     if (mapLayerType === 'satellite') {
-      tileLayerRef.current = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-        maxZoom: 20,
-        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-        attribution: 'Google Satellite Imagery'
+      tileLayerRef.current = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: 'Esri World Imagery'
       }).addTo(map);
       labelsLayerRef.current = null;
     } else {
