@@ -54,36 +54,36 @@ export default function BlueprintPlotter() {
   };
 
   return (
-    <section id="planos" className="py-20 bg-white dark:bg-architectural-900 border-t border-architectural-200 dark:border-architectural-800">
+    <section id="planos" className="py-24 bg-sand-50 dark:bg-deepsea-950 border-t border-sand-300/40 dark:border-deepsea-800/60 transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-3">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-caribbean-500/10 text-caribbean-600 dark:text-caribbean-400 text-xs font-semibold border border-caribbean-500/20">
+          <div className="space-y-4">
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-caribbean-500/10 text-caribbean-700 dark:text-caribbean-300 text-xs font-mono font-medium border border-caribbean-500/20">
               <Printer className="w-3.5 h-3.5" />
-              <span>Módulo de Planimetría & Ploteo Técnico</span>
+              <span>PLANIMETRÍA TÉCNICA &bull; EXPEDIENTE CAD</span>
             </div>
-            <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-architectural-900 dark:text-white tracking-tight">
-              Visor de Planos & Exportación
+            <h2 className="font-serif font-bold text-3xl sm:text-4xl text-deepsea-950 dark:text-sand-100 tracking-tight leading-tight">
+              Visor de Planimetría & Plotter Vectorial
             </h2>
-            <p className="text-architectural-600 dark:text-architectural-400 text-sm max-w-2xl">
-              Inspecciona los planos del proyecto en alta resolución. Haz zoom para examinar cotas y detalles constructivos, o pulsa en <b>Plotear Plano</b> para imprimirlo a escala vectorial.
+            <p className="text-deepsea-900/70 dark:text-sand-300/70 text-base font-light max-w-2xl leading-relaxed">
+              Exploración de planimetría técnica a escala con inspección de cotas, secciones constructivas e impresión directa a formato DIN vectorial.
             </p>
           </div>
 
           {/* Print / Plot Master Button */}
           <button
             onClick={handlePrint}
-            className="inline-flex items-center space-x-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-caribbean-600 to-caribbean-500 hover:from-caribbean-500 hover:to-caribbean-600 text-white font-semibold text-xs shadow-lg shadow-caribbean-500/20 self-start transition-all hover:scale-105"
+            className="inline-flex items-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-terracotta-600 hover:bg-terracotta-500 text-white font-mono text-xs font-semibold shadow-lg shadow-terracotta-600/20 self-start transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Printer className="w-4 h-4" />
-            <span>Plotear / Imprimir Plano ({selectedBlueprint.scale})</span>
+            <span>Plotear / Imprimir ({selectedBlueprint.scale})</span>
           </button>
         </div>
 
         {/* Blueprint Selector Tabs */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           {projectInfo.blueprints.map((bp) => {
             const isSelected = selectedBlueprint.id === bp.id;
             return (
@@ -93,22 +93,22 @@ export default function BlueprintPlotter() {
                   setSelectedBlueprint(bp);
                   handleResetZoom();
                 }}
-                className={`p-4 rounded-2xl text-left transition-all border ${
+                className={`p-5 rounded-2xl text-left transition-all duration-300 border ${
                   isSelected
-                    ? 'bg-caribbean-50/80 dark:bg-caribbean-950/40 border-caribbean-500 dark:border-caribbean-500 shadow-md ring-2 ring-caribbean-400/20'
-                    : 'bg-architectural-50 dark:bg-architectural-950 border-architectural-200 dark:border-architectural-800 hover:border-architectural-300 dark:hover:border-architectural-700'
+                    ? 'bg-white dark:bg-deepsea-900 border-terracotta-500 shadow-md ring-1 ring-terracotta-400/30'
+                    : 'bg-white/60 dark:bg-deepsea-900/40 border-sand-300/60 dark:border-deepsea-800 hover:border-sand-400 dark:hover:border-deepsea-700'
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-architectural-200 dark:bg-architectural-800 text-architectural-700 dark:text-architectural-300">
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-md bg-sand-200 dark:bg-deepsea-800 text-deepsea-700 dark:text-sand-300">
                     Escala {bp.scale}
                   </span>
-                  {isSelected && <Check className="w-4 h-4 text-caribbean-600 dark:text-caribbean-400" />}
+                  {isSelected && <Check className="w-4 h-4 text-terracotta-600 dark:text-terracotta-400" />}
                 </div>
-                <h4 className="font-display font-bold text-sm text-architectural-900 dark:text-white line-clamp-1">
+                <h4 className="font-display font-bold text-sm text-deepsea-950 dark:text-sand-100 line-clamp-1">
                   {bp.title}
                 </h4>
-                <p className="text-[11px] text-architectural-500 dark:text-architectural-400 mt-1 line-clamp-2">
+                <p className="text-xs text-deepsea-800/60 dark:text-sand-400 mt-1 line-clamp-2 font-light">
                   {bp.description}
                 </p>
               </button>
@@ -117,53 +117,53 @@ export default function BlueprintPlotter() {
         </div>
 
         {/* Interactive CAD Drawing Viewport Container */}
-        <div className="rounded-3xl overflow-hidden border border-architectural-300 dark:border-architectural-800 shadow-2xl bg-white dark:bg-architectural-950">
+        <div className="rounded-3xl overflow-hidden border border-sand-300/80 dark:border-deepsea-800 shadow-2xl bg-white dark:bg-deepsea-950 transition-all duration-300">
           
           {/* Top Plotter Controls Bar */}
-          <div className="p-4 bg-architectural-100 dark:bg-architectural-900/90 border-b border-architectural-200 dark:border-architectural-800 flex flex-wrap items-center justify-between gap-4">
+          <div className="p-4 bg-sand-100/80 dark:bg-deepsea-900/90 border-b border-sand-300/60 dark:border-deepsea-800 flex flex-wrap items-center justify-between gap-4">
             
             {/* Sheet Info */}
             <div className="flex items-center space-x-3">
-              <div className="p-2 rounded-xl bg-white dark:bg-architectural-800 text-caribbean-600 dark:text-caribbean-400 border border-architectural-200 dark:border-architectural-700">
+              <div className="p-2 rounded-xl bg-white dark:bg-deepsea-800 text-terracotta-600 dark:text-terracotta-400 border border-sand-300/80 dark:border-deepsea-700">
                 <FileText className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-xs font-bold text-architectural-900 dark:text-white">
+                <h3 className="text-xs font-mono font-bold text-deepsea-950 dark:text-sand-100">
                   {selectedBlueprint.title}
                 </h3>
-                <p className="text-[10px] font-mono text-architectural-500 dark:text-architectural-400">
+                <p className="text-[10px] font-mono text-deepsea-700/60 dark:text-sand-400">
                   {selectedBlueprint.format} &bull; Escala {selectedBlueprint.scale} &bull; {selectedBlueprint.type}
                 </p>
               </div>
             </div>
 
             {/* Zoom & View Controls */}
-            <div className="flex items-center space-x-1.5 bg-white dark:bg-architectural-800 p-1 rounded-xl border border-architectural-200 dark:border-architectural-700 shadow-sm">
+            <div className="flex items-center space-x-1.5 bg-white dark:bg-deepsea-800 p-1.5 rounded-xl border border-sand-300/80 dark:border-deepsea-700 shadow-sm">
               <button
                 onClick={handleZoomIn}
-                className="p-1.5 rounded-lg hover:bg-architectural-100 dark:hover:bg-architectural-700 text-architectural-700 dark:text-architectural-200 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-sand-100 dark:hover:bg-deepsea-700 text-deepsea-800 dark:text-sand-200 transition-colors"
                 title="Acercar (Zoom In)"
               >
                 <ZoomIn className="w-4 h-4" />
               </button>
               
-              <span className="text-xs font-mono px-2 text-architectural-600 dark:text-architectural-300 min-w-[50px] text-center">
+              <span className="text-xs font-mono px-2 text-deepsea-700 dark:text-sand-300 min-w-[50px] text-center font-bold">
                 {Math.round(zoomLevel * 100)}%
               </span>
 
               <button
                 onClick={handleZoomOut}
-                className="p-1.5 rounded-lg hover:bg-architectural-100 dark:hover:bg-architectural-700 text-architectural-700 dark:text-architectural-200 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-sand-100 dark:hover:bg-deepsea-700 text-deepsea-800 dark:text-sand-200 transition-colors"
                 title="Alejar (Zoom Out)"
               >
                 <ZoomOut className="w-4 h-4" />
               </button>
 
-              <div className="w-px h-4 bg-architectural-200 dark:bg-architectural-700 mx-1" />
+              <div className="w-px h-4 bg-sand-300 dark:bg-deepsea-700 mx-1" />
 
               <button
                 onClick={handleResetZoom}
-                className="p-1.5 rounded-lg hover:bg-architectural-100 dark:hover:bg-architectural-700 text-architectural-700 dark:text-architectural-200 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-sand-100 dark:hover:bg-deepsea-700 text-deepsea-800 dark:text-sand-200 transition-colors"
                 title="Centrar / Restablecer vista"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -172,7 +172,7 @@ export default function BlueprintPlotter() {
               <button
                 onClick={() => setShowGrid(!showGrid)}
                 className={`p-1.5 rounded-lg transition-colors ${
-                  showGrid ? 'bg-caribbean-50 dark:bg-caribbean-900/50 text-caribbean-600 dark:text-caribbean-400' : 'text-architectural-400'
+                  showGrid ? 'bg-terracotta-500/10 text-terracotta-600 dark:text-terracotta-400' : 'text-deepsea-400 dark:text-sand-500'
                 }`}
                 title="Mostrar/Ocultar cuadrícula CAD"
               >
@@ -182,7 +182,7 @@ export default function BlueprintPlotter() {
               <button
                 onClick={() => setIsBlueprintTheme(!isBlueprintTheme)}
                 className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all ${
-                  isBlueprintTheme ? 'bg-blue-600 text-white' : 'bg-architectural-100 dark:bg-architectural-700 text-architectural-700 dark:text-architectural-200'
+                  isBlueprintTheme ? 'bg-caribbean-600 text-white' : 'bg-sand-200 dark:bg-deepsea-700 text-deepsea-800 dark:text-sand-200'
                 }`}
                 title="Alternar estilo Plano Cianotipo / Papel Blanco"
               >
@@ -196,8 +196,8 @@ export default function BlueprintPlotter() {
           <div 
             className={`relative h-[560px] w-full overflow-hidden cursor-grab active:cursor-grabbing select-none transition-colors ${
               isBlueprintTheme 
-                ? 'blueprint-mode text-cyan-200' 
-                : showGrid ? 'bg-architectural-50 dark:bg-architectural-950 bg-cad-grid text-architectural-900 dark:text-architectural-100' : 'bg-white dark:bg-architectural-950 text-architectural-900 dark:text-architectural-100'
+                ? 'bg-[#061930] text-cyan-200' 
+                : showGrid ? 'bg-sand-100/50 dark:bg-deepsea-950 bg-drafting-grid text-deepsea-950 dark:text-sand-100' : 'bg-sand-50 dark:bg-deepsea-950 text-deepsea-950 dark:text-sand-100'
             }`}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -218,7 +218,7 @@ export default function BlueprintPlotter() {
               <div className={`w-[780px] h-[520px] rounded-lg border-2 relative p-6 flex flex-col justify-between shadow-2xl transition-all ${
                 isBlueprintTheme 
                   ? 'border-cyan-400/50 bg-[#061930]/90 shadow-cyan-950/50 text-cyan-300' 
-                  : 'border-architectural-900/30 dark:border-white/30 bg-white dark:bg-architectural-900 text-architectural-900 dark:text-white shadow-black/10'
+                  : 'border-deepsea-950/30 dark:border-sand-100/30 bg-sand-50 dark:bg-deepsea-900 text-deepsea-950 dark:text-sand-100 shadow-black/10'
               }`}>
 
                 {/* Top Title & North Arrow on Sheet */}
@@ -227,7 +227,7 @@ export default function BlueprintPlotter() {
                     <span className="text-[9px] font-mono tracking-widest uppercase opacity-75">
                       TIERRABOMBA RESILIENTE &bull; CARTAGENA DE INDIAS
                     </span>
-                    <h2 className="font-display font-extrabold text-base tracking-tight">
+                    <h2 className="font-serif font-bold text-base tracking-tight">
                       {selectedBlueprint.title}
                     </h2>
                   </div>
@@ -411,7 +411,7 @@ export default function BlueprintPlotter() {
                 </div>
 
                 {/* Sheet Titleblock (Rótulo de Plano Profesional) */}
-                <div className="border-t pt-2 border-current/20 grid grid-cols-4 gap-2 text-[9px] font-mono opacity-85">
+                <div className="border-t pt-2 border-current/20 grid grid-cols-5 gap-2 text-[9px] font-mono opacity-90">
                   <div className="border-r border-current/20 pr-2">
                     <p className="font-bold opacity-60">PROYECTO:</p>
                     <p className="truncate font-semibold">Tesis Tierrabomba</p>
@@ -421,12 +421,16 @@ export default function BlueprintPlotter() {
                     <p className="truncate font-semibold">{selectedBlueprint.title}</p>
                   </div>
                   <div className="border-r border-current/20 pr-2">
-                    <p className="font-bold opacity-60">ESCALA & FECHA:</p>
+                    <p className="font-bold opacity-60">TESISTAS:</p>
+                    <p className="truncate font-semibold">{projectInfo.author}</p>
+                  </div>
+                  <div className="border-r border-current/20 pr-2">
+                    <p className="font-bold opacity-60">ESCALA / AÑO:</p>
                     <p className="font-semibold">{selectedBlueprint.scale} &bull; 2026</p>
                   </div>
                   <div>
                     <p className="font-bold opacity-60">PLANO Nº:</p>
-                    <p className="font-semibold text-caribbean-500 dark:text-caribbean-400">ARQ-0{projectInfo.blueprints.indexOf(selectedBlueprint) + 1}</p>
+                    <p className="font-semibold text-terracotta-500 dark:text-terracotta-400">ARQ-0{projectInfo.blueprints.indexOf(selectedBlueprint) + 1}</p>
                   </div>
                 </div>
 
@@ -436,8 +440,8 @@ export default function BlueprintPlotter() {
 
             {/* Bottom floating helper */}
             <div className="absolute bottom-4 right-4 pointer-events-none">
-              <div className="bg-architectural-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-architectural-800 text-[11px] text-architectural-300 font-mono flex items-center space-x-2">
-                <span>🖱️ Arrastra para desplazar el plano</span>
+              <div className="bg-deepsea-950/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-deepsea-800 text-[11px] text-sand-300 font-mono flex items-center space-x-2 shadow-lg">
+                <span>🖱️ Arrastra con el ratón para desplazar el plano</span>
               </div>
             </div>
 

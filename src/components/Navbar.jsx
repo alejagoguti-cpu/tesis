@@ -35,13 +35,13 @@ export default function Navbar({ darkMode, setDarkMode, activeSection, setActive
   }, []);
 
   const navLinks = [
-    { id: 'hero', label: 'Inicio', icon: Building2 },
-    { id: 'marco-tesis', label: '1. Justificación & Objetivos', icon: BookOpen },
-    { id: 'diagnostico', label: '2. Diagnóstico & Mapa', icon: MapPin },
-    { id: 'reubicacion-proyectos', label: '3. Vivienda & Colegio', icon: Home },
-    { id: 'visor3d', label: '4. Visor 3D (Revit)', icon: Layers },
-    { id: 'planos', label: '5. Planimetría / Plotter', icon: Printer },
-    { id: 'sostenibilidad', label: '6. Memoria Hídrica', icon: Droplets },
+    { id: 'hero', label: 'Inicio' },
+    { id: 'marco-tesis', label: '01. Justificación' },
+    { id: 'diagnostico', label: '02. Diagnóstico' },
+    { id: 'reubicacion-proyectos', label: '03. Vivienda & Colegio' },
+    { id: 'visor3d', label: '04. Visor 3D' },
+    { id: 'planos', label: '05. Planos' },
+    { id: 'sostenibilidad', label: '06. Memoria Hídrica' },
   ];
 
   const scrollTo = (id) => {
@@ -54,51 +54,49 @@ export default function Navbar({ darkMode, setDarkMode, activeSection, setActive
   };
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-spring ${
       isScrolled 
-        ? 'bg-white/90 dark:bg-architectural-950/90 backdrop-blur-md shadow-md border-b border-architectural-200 dark:border-architectural-800' 
-        : 'bg-transparent'
+        ? 'bg-[#faf8f5]/90 dark:bg-[#0b1015]/90 backdrop-blur-md shadow-subtle border-b border-sand-300 dark:border-deepsea-800 py-3' 
+        : 'bg-transparent py-5'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-18 py-3">
+        <div className="flex items-center justify-between">
           
           {/* Brand Logo & Title */}
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => scrollTo('hero')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-caribbean-500 to-caribbean-700 flex items-center justify-center text-white shadow-lg shadow-caribbean-500/20 ring-2 ring-caribbean-400/30">
+          <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => scrollTo('hero')}>
+            <div className="w-9 h-9 rounded-xl bg-terracotta-600 flex items-center justify-center text-white shadow-subtle group-hover:scale-105 transition-spring">
               <Building2 className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-display font-extrabold text-lg tracking-tight text-architectural-900 dark:text-white">
+                <span className="font-display font-extrabold text-base tracking-tight text-sand-900 dark:text-sand-50">
                   TIERRABOMBA
                 </span>
-                <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-caribbean-100 dark:bg-caribbean-900/50 text-caribbean-700 dark:text-caribbean-300 font-semibold border border-caribbean-200 dark:border-caribbean-800">
+                <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-sand-200 dark:bg-deepsea-900 text-terracotta-700 dark:text-terracotta-300 font-bold border border-sand-300 dark:border-deepsea-800">
                   Tesis 2026
                 </span>
               </div>
-              <p className="text-xs text-architectural-500 dark:text-architectural-400 font-medium truncate max-w-[200px] sm:max-w-xs">
-                Resiliencia & Reubicación Hídrica
+              <p className="text-[11px] text-sand-500 dark:text-deepsea-300 font-mono">
+                {projectInfo.author}
               </p>
             </div>
           </div>
 
-          {/* Desktop Nav Items */}
-          <nav className="hidden lg:flex items-center space-x-1 bg-architectural-100/70 dark:bg-architectural-900/70 p-1.5 rounded-full border border-architectural-200 dark:border-architectural-800 backdrop-blur-sm">
+          {/* Desktop Monograph Nav Chapters */}
+          <nav className="hidden lg:flex items-center space-x-1 bg-white/80 dark:bg-deepsea-900/80 p-1.5 rounded-full border border-sand-300 dark:border-deepsea-800 shadow-subtle backdrop-blur-md">
             {navLinks.map((link) => {
-              const Icon = link.icon;
               const isActive = activeSection === link.id;
               return (
                 <button
                   key={link.id}
                   onClick={() => scrollTo(link.id)}
-                  className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-mono transition-spring ${
                     isActive 
-                      ? 'bg-white dark:bg-architectural-800 text-caribbean-600 dark:text-caribbean-300 shadow-sm' 
-                      : 'text-architectural-600 dark:text-architectural-300 hover:text-architectural-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-architectural-800/50'
+                      ? 'bg-terracotta-600 text-white shadow-sm' 
+                      : 'text-sand-700 dark:text-deepsea-200 hover:text-terracotta-600 dark:hover:text-sand-50 hover:bg-sand-100 dark:hover:bg-deepsea-800'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{link.label}</span>
+                  {link.label}
                 </button>
               );
             })}
@@ -109,10 +107,10 @@ export default function Navbar({ darkMode, setDarkMode, activeSection, setActive
             {/* Dark/Light mode toggle */}
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-xl text-architectural-600 dark:text-architectural-300 hover:bg-architectural-100 dark:hover:bg-architectural-800 transition-colors border border-transparent hover:border-architectural-200 dark:hover:border-architectural-700"
-              title="Alternar modo claro/oscuro"
+              className="p-2 rounded-xl text-sand-700 dark:text-sand-300 hover:bg-sand-200 dark:hover:bg-deepsea-800 transition-spring border border-sand-200 dark:border-deepsea-800"
+              title="Alternar tema claro/oscuro"
             >
-              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-architectural-700" />}
+              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-terracotta-700" />}
             </button>
 
             {/* GitHub Repo Button */}
@@ -120,9 +118,9 @@ export default function Navbar({ darkMode, setDarkMode, activeSection, setActive
               href={projectInfo.githubRepo}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-architectural-900 text-white dark:bg-white dark:text-architectural-900 hover:opacity-90 transition-opacity shadow-sm"
+              className="hidden sm:inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-mono font-semibold bg-sand-900 text-sand-50 dark:bg-sand-100 dark:text-sand-950 hover:opacity-90 transition-spring shadow-subtle"
             >
-              <GithubIcon className="w-4 h-4" />
+              <GithubIcon className="w-3.5 h-3.5" />
               <span>GitHub</span>
               <ExternalLink className="w-3 h-3 opacity-60" />
             </a>
@@ -130,7 +128,7 @@ export default function Navbar({ darkMode, setDarkMode, activeSection, setActive
             {/* Mobile menu toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl text-architectural-700 dark:text-architectural-300 hover:bg-architectural-100 dark:hover:bg-architectural-800"
+              className="lg:hidden p-2 rounded-xl text-sand-700 dark:text-sand-300 hover:bg-sand-200 dark:hover:bg-deepsea-800"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -140,31 +138,29 @@ export default function Navbar({ darkMode, setDarkMode, activeSection, setActive
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white dark:bg-architectural-950 border-b border-architectural-200 dark:border-architectural-800 px-4 pt-2 pb-6 space-y-2 shadow-2xl">
+        <div className="lg:hidden bg-sand-100 dark:bg-deepsea-950 border-b border-sand-300 dark:border-deepsea-800 px-4 pt-3 pb-6 space-y-2 shadow-2xl">
           {navLinks.map((link) => {
-            const Icon = link.icon;
             const isActive = activeSection === link.id;
             return (
               <button
                 key={link.id}
                 onClick={() => scrollTo(link.id)}
-                className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-mono font-semibold transition-spring ${
                   isActive
-                    ? 'bg-caribbean-50 dark:bg-caribbean-950/50 text-caribbean-600 dark:text-caribbean-400 border border-caribbean-200 dark:border-caribbean-800 font-semibold'
-                    : 'text-architectural-600 dark:text-architectural-300 hover:bg-architectural-100 dark:hover:bg-architectural-900'
+                    ? 'bg-terracotta-600 text-white'
+                    : 'text-sand-700 dark:text-sand-300 hover:bg-sand-200 dark:hover:bg-deepsea-900'
                 }`}
               >
-                <Icon className="w-4 h-4" />
                 <span>{link.label}</span>
               </button>
             );
           })}
-          <div className="pt-2 border-t border-architectural-200 dark:border-architectural-800 flex justify-between items-center">
+          <div className="pt-2 border-t border-sand-300 dark:border-deepsea-800">
             <a
               href={projectInfo.githubRepo}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-architectural-900 text-white dark:bg-white dark:text-architectural-900"
+              className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-mono font-semibold bg-sand-900 text-white dark:bg-sand-100 dark:text-sand-950"
             >
               <GithubIcon className="w-4 h-4" />
               <span>Ver Repositorio en GitHub</span>
