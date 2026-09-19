@@ -222,12 +222,21 @@ export const DEFAULT_DELIMITATIONS = {
     [10.3809, -75.5764]
   ],
   erosion: [
-    [10.3750, -75.5880],
-    [10.3680, -75.5960],
-    [10.3580, -75.6010],
-    [10.3450, -75.5960],
-    [10.3350, -75.5880],
-    [10.3280, -75.5780]
+    [10.36857, -75.58044],
+    [10.36650, -75.58302],
+    [10.36599, -75.58559],
+    [10.36401, -75.58632],
+    [10.36223, -75.58667],
+    [10.36071, -75.58890],
+    [10.35907, -75.58959],
+    [10.35819, -75.59147],
+    [10.35598, -75.59177],
+    [10.35404, -75.59053],
+    [10.35167, -75.59053],
+    [10.34918, -75.59199],
+    [10.34694, -75.59298],
+    [10.34373, -75.59246],
+    [10.34204, -75.59229]
   ],
   plateau: [
     [10.3560, -75.5720],
@@ -245,7 +254,7 @@ export const ZONE_CONFIG = {
     name: "1. Contorno Isla Tierrabomba",
     type: "polygon",
     color: "#ea580c",
-    fillColor: "#ea580c",
+    fillColor: "transparent",
     badge: "Perímetro Insular",
     desc: "Delimitación del borde costero e insular de Tierrabomba."
   },
@@ -299,8 +308,8 @@ export const FRAMEWORK_STEPS = [
     title: "2. Franja de Erosión Costera",
     badge: "Paso 02 // Riesgo Físico",
     targetName: "Borde Crítico (Pérdida 1.8 m/año)",
-    center: [10.358, -75.588],
-    zoom: 14,
+    center: [10.3585, -75.5905],
+    zoom: 16.5,
     highlight: "erosion",
     modalType: "justification",
     btnLabel: "Justificación de la Propuesta",
@@ -568,13 +577,15 @@ export default function ThesisFramework({ onSelectModule }) {
         clearInterval(animationTimerRef.current);
         animationTimerRef.current = null;
 
-        // Smoothly reveal full polygon with soft pulse
+        // Smoothly reveal full polygon outline (NO FILL, clean crisp contour!)
         setTimeout(() => {
           if (layersRef.current.islandLayer) {
             layersRef.current.islandLayer.setStyle({
               opacity: 1,
-              fillOpacity: 0.35,
-              weight: 5
+              fillOpacity: 0,
+              weight: 4.5,
+              color: '#ea580c',
+              dashArray: '8, 8'
             });
           }
           if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
@@ -922,7 +933,7 @@ export default function ThesisFramework({ onSelectModule }) {
     }
 
     if (currentStepIndex === 0) {
-      // Step 1: Delimitación Territorial
+      // Step 1: Delimitación Territorial (NO FILL, clean high-contrast contour)
       if (!isIntroAnimating && layersRef.current.islandLayer) {
         map.flyTo(currentStep.center, currentStep.zoom, {
           animate: true,
@@ -930,8 +941,10 @@ export default function ThesisFramework({ onSelectModule }) {
         });
         layersRef.current.islandLayer.setStyle({
           opacity: 1,
-          fillOpacity: 0.35,
-          weight: 5
+          fillOpacity: 0,
+          weight: 4.5,
+          color: '#ea580c',
+          dashArray: '8, 8'
         });
       }
     } else {
@@ -956,14 +969,16 @@ export default function ThesisFramework({ onSelectModule }) {
 
       map.flyTo(currentStep.center, currentStep.zoom, {
         animate: true,
-        duration: 1.2
+        duration: currentStep.step === 2 ? 1.8 : 1.2
       });
 
       if (layersRef.current.islandLayer) {
         layersRef.current.islandLayer.setStyle({
-          opacity: 1,
-          fillOpacity: 0.1,
-          weight: 2
+          opacity: 0.5,
+          fillOpacity: 0,
+          weight: 2.5,
+          color: '#ea580c',
+          dashArray: '8, 8'
         });
       }
     }
