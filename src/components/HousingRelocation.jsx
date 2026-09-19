@@ -179,69 +179,13 @@ export default function HousingRelocation({ onSelectModule }) {
   const spaces = selectedPlanType === 'vivienda' ? HOUSING_PLAN_SPACES : SCHOOL_PLAN_SPACES;
 
   return (
-    <div className="space-y-6 py-2 animate-fade-in">
+    <div className="relative w-full h-[calc(100vh-4.2rem)] overflow-hidden animate-fade-in select-none">
       
-      {/* 1. PLAN VIEWPORT CONTAINER */}
-      <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-xl">
+      {/* 1. PLAN VIEWPORT CANVAS (Full-Bleed Background) */}
+      <div className="absolute inset-0 w-full h-full bg-[#fdfdfd] flex items-center justify-center pt-20 pb-28 px-4 select-none">
         
-        {/* Floating Top Header Bar */}
-        <div className="absolute top-4 left-4 right-4 z-20 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200 shadow-md">
-          <div className="space-y-0.5">
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-terracotta-600 animate-pulse" />
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-terracotta-700">
-                03 // Planimetría Arquitectónica & Distribución Espacial
-              </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold">
-                {selectedPlanType === 'vivienda' ? 'Escala 1:50' : 'Escala 1:100'}
-              </span>
-            </div>
-            <h3 className="font-serif font-bold text-sm text-slate-900">
-              {selectedPlanType === 'vivienda' 
-                ? 'Planta Prototipo Vivienda Resiliente Palafítica (54m² - 86m²)' 
-                : 'Planta Conjunto Educativo, Cívico & Dispensario Hídrico (1.850 m²)'}
-            </h3>
-          </div>
-
-          {/* Module Switcher Buttons */}
-          <div className="flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 gap-1 self-start md:self-center">
-            <button
-              onClick={() => {
-                setSelectedPlanType('vivienda');
-                setActiveSpace(null);
-              }}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-                selectedPlanType === 'vivienda'
-                  ? 'bg-terracotta-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-950'
-              }`}
-            >
-              <Home className="w-3.5 h-3.5" />
-              <span>1. Vivienda (120 Familias)</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setSelectedPlanType('colegio');
-                setActiveSpace(null);
-              }}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-                selectedPlanType === 'colegio'
-                  ? 'bg-teal-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-950'
-              }`}
-            >
-              <GraduationCap className="w-3.5 h-3.5" />
-              <span>2. Colegio (350 Alumnos)</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Interactive SVG Floor Plan Drawing Canvas */}
-        <div className="w-full h-[520px] bg-[#fdfdfd] relative flex items-center justify-center pt-16 pb-4 px-4 select-none">
-          
-          {/* Subtle Drafting Grid Pattern */}
-          <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:20px_20px] opacity-70 pointer-events-none" />
+        {/* Subtle Drafting Grid Pattern */}
+        <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-70 pointer-events-none" />
 
           {/* Structural Axes / Dimension Guides */}
           <div className="absolute top-24 left-6 text-[10px] font-mono text-slate-600 flex flex-col space-y-12 pointer-events-none">
@@ -361,47 +305,47 @@ export default function HousingRelocation({ onSelectModule }) {
           {/* 3D Model Quick Jump Button */}
           <button
             onClick={() => onSelectModule && onSelectModule('3dviewer')}
-            className="absolute bottom-4 right-4 z-20 inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-bold shadow-md transition-all hover:scale-105"
+            className="absolute top-24 right-4 z-20 inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-900 text-white text-xs font-mono font-bold shadow-lg backdrop-blur-md transition-all hover:scale-105"
           >
             <Box className="w-3.5 h-3.5 text-teal-400" />
             <span>Ver en Visor 3D</span>
           </button>
         </div>
 
-      </div>
-
-      {/* 2. SPACES QUICK STRIP */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {spaces.map((sp) => {
-          const isSelected = activeSpace?.id === sp.id;
-          return (
-            <button
-              key={sp.id}
-              onClick={() => setActiveSpace(sp)}
-              className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                isSelected
-                  ? 'bg-white border-terracotta-500 shadow-md ring-2 ring-terracotta-400/20'
-                  : 'bg-white hover:bg-slate-50 border-slate-200 shadow-xs'
-              }`}
-            >
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
-                    {sp.area}
-                  </span>
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: sp.color }} />
+      {/* 2. FLOATING SPACES QUICK STRIP ON TOP OF FLOOR PLAN */}
+      <div className="absolute bottom-4 left-4 right-4 z-20 pointer-events-none">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 max-w-6xl mx-auto pointer-events-auto">
+          {spaces.map((sp) => {
+            const isSelected = activeSpace?.id === sp.id;
+            return (
+              <button
+                key={sp.id}
+                onClick={() => setActiveSpace(sp)}
+                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between backdrop-blur-md shadow-xl ${
+                  isSelected
+                    ? 'bg-white/95 border-terracotta-500 shadow-2xl ring-2 ring-terracotta-400/30 scale-105'
+                    : 'bg-white/90 hover:bg-white border-slate-200/80'
+                }`}
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-700">
+                      {sp.area}
+                    </span>
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: sp.color }} />
+                  </div>
+                  <h4 className="font-serif font-bold text-xs text-slate-900 line-clamp-1">
+                    {sp.name.split('(')[0]}
+                  </h4>
                 </div>
-                <h4 className="font-serif font-bold text-xs text-slate-900 line-clamp-1">
-                  {sp.name.split('(')[0]}
-                </h4>
-              </div>
-              <span className="mt-2 text-[10px] font-mono text-slate-500 flex items-center justify-between">
-                <span>{sp.tag}</span>
-                <ArrowRight className="w-3 h-3 text-slate-400" />
-              </span>
-            </button>
-          );
-        })}
+                <span className="mt-2 text-[10px] font-mono text-slate-500 flex items-center justify-between">
+                  <span>{sp.tag}</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400" />
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ========================================================================= */}

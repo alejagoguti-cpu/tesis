@@ -104,12 +104,12 @@ export default function App() {
           setViewMode={setViewMode}
         />
 
-        {/* Dynamic Viewport Container */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        {/* Dynamic Viewport Container (Full-Bleed Map Dashboard) */}
+        <main className="flex-1 w-full h-[calc(100vh-4rem)] p-0 overflow-hidden relative">
           
           {/* 1. DASHBOARD MODULAR VIEW (Active module focused view) */}
           {viewMode === 'dashboard' && (
-            <div className="transition-all duration-300">
+            <div className="w-full h-full relative overflow-hidden transition-all duration-300">
               
               {/* Module 00: Centro de Control & KPIs */}
               {activeModule === 'overview' && (

@@ -42,7 +42,7 @@ export const HOTSPOTS_DATA = [
     id: "erosion",
     name: "Franja de Erosión Crítica (Borde 0.00m)",
     category: "Riesgo Físico",
-    categoryColor: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
+    categoryColor: "bg-red-500/10 text-red-700 border-red-500/20",
     badge: "1.8 m/año Retroceso",
     coords: [10.3580, -75.5780],
     elevation: "0.00 m.s.n.m. (Nivel del Mar)",
@@ -63,7 +63,7 @@ export const HOTSPOTS_DATA = [
     id: "meseta",
     name: "Meseta Central de Reubicación (+22.00m)",
     category: "Suelo Seguro",
-    categoryColor: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
+    categoryColor: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
     badge: "Inmune a Inundación",
     coords: [10.3520, -75.5640],
     elevation: "+22.00 m.s.n.m.",
@@ -84,7 +84,7 @@ export const HOTSPOTS_DATA = [
     id: "colegio",
     name: "Equipamiento Educativo, Comunitario & Náutico",
     category: "Dotacional",
-    categoryColor: "bg-caribbean-500/10 text-caribbean-700 dark:text-caribbean-400 border-caribbean-500/20",
+    categoryColor: "bg-caribbean-500/10 text-caribbean-700 border-caribbean-500/20",
     badge: "350 Estudiantes",
     coords: [10.3510, -75.5620],
     elevation: "+22.50 m.s.n.m.",
@@ -105,7 +105,7 @@ export const HOTSPOTS_DATA = [
     id: "aljibe",
     name: "Aljibe Central de 450.000 Litros",
     category: "Infraestructura Hídrica",
-    categoryColor: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
+    categoryColor: "bg-blue-500/10 text-blue-700 border-blue-500/20",
     badge: "450.000 L Reserva",
     coords: [10.3505, -75.5630],
     elevation: "+20.00 m (Subterráneo)",
@@ -126,7 +126,7 @@ export const HOTSPOTS_DATA = [
     id: "viviendas",
     name: "120 Viviendas Palafíticas Resilientes",
     category: "Vivienda VIS",
-    categoryColor: "bg-terracotta-500/10 text-terracotta-700 dark:text-terracotta-400 border-terracotta-500/20",
+    categoryColor: "bg-terracotta-500/10 text-terracotta-700 border-terracotta-500/20",
     badge: "120 Hogares",
     coords: [10.3535, -75.5660],
     elevation: "+22.00 m.s.n.m. (+0.60m elevación)",
@@ -147,7 +147,7 @@ export const HOTSPOTS_DATA = [
     id: "vientos",
     name: "Corredor de Vientos Alisios (N-NE)",
     category: "Bioclimática",
-    categoryColor: "bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-500/20",
+    categoryColor: "bg-teal-500/10 text-teal-700 border-teal-500/20",
     badge: "18.4 nudos N-NE",
     coords: [10.3620, -75.5580],
     elevation: "Nivel Atmosférico",
@@ -168,7 +168,7 @@ export const HOTSPOTS_DATA = [
     id: "humedal",
     name: "Bio-Humedal de Fitodepuración & Huertos",
     category: "Sostenibilidad",
-    categoryColor: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
+    categoryColor: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
     badge: "Tratamiento 75%",
     coords: [10.3490, -75.5610],
     elevation: "+21.50 m.s.n.m.",
@@ -188,7 +188,7 @@ export const HOTSPOTS_DATA = [
     id: "salinidad",
     name: "Acuífero Salinizado en Punta Arena",
     category: "Déficit Hídrico",
-    categoryColor: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
+    categoryColor: "bg-amber-500/10 text-amber-700 border-amber-500/20",
     badge: "34.2 PSU Salitre",
     coords: [10.3600, -75.5720],
     elevation: "Subsuelo 0.00m",
@@ -210,16 +210,16 @@ export const HOTSPOTS_DATA = [
 export default function DiagnosisMap({ onNavigateModule }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const markersGroupRef = useRef(null);
+  const tileLayerRef = useRef(null);
+  const labelsLayerRef = useRef(null);
   const [activeLayerFilter, setActiveLayerFilter] = useState('all'); // 'all', 'risk', 'relocation', 'water'
   const [selectedHotspot, setSelectedHotspot] = useState(null);
-  const [activeTab, setActiveTab] = useState('data'); // 'data' | 'impact'
+  const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
 
-  // Initialize Map
+  // Initialize Map with High-Resolution Satellite Aerial View
   useEffect(() => {
     if (!mapContainerRef.current) return;
     
-    // Clean up if already initialized
     if (mapInstanceRef.current?.map) {
       mapInstanceRef.current.map.remove();
       mapInstanceRef.current = null;
@@ -228,19 +228,25 @@ export default function DiagnosisMap({ onNavigateModule }) {
       delete mapContainerRef.current._leaflet_id;
     }
 
-    // Initialize Leaflet Map centered on Tierrabomba
     const map = L.map(mapContainerRef.current, {
       center: [10.3540, -75.5680],
       zoom: 14,
-      scrollWheelZoom: false,
-      zoomControl: true,
+      zoomControl: false,
+      attributionControl: false
     });
 
-    // High clarity Voyager white tiles (clean light look)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO',
-      maxZoom: 18,
+    // Aerial Satellite Layer (Esri World Imagery without API key)
+    const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19
     }).addTo(map);
+
+    const labelsLayer = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      opacity: 0.85
+    }).addTo(map);
+
+    tileLayerRef.current = satLayer;
+    labelsLayerRef.current = labelsLayer;
 
     // Layer 1: Critical Erosion Line (Red dashed)
     const erosionLine = L.polyline([
@@ -248,219 +254,248 @@ export default function DiagnosisMap({ onNavigateModule }) {
       [10.3650, -75.5720],
       [10.3500, -75.5850],
       [10.3350, -75.5900],
-      [10.3200, -75.5880],
+      [10.3250, -75.5800]
     ], {
-      color: '#dc2626',
-      weight: 4,
-      dashArray: '8, 8',
-      opacity: 0.85,
+      color: '#ef4444',
+      weight: 5,
+      dashArray: '8, 6',
+      opacity: 0.95
     }).addTo(map);
-    erosionLine.on('click', () => setSelectedHotspot(HOTSPOTS_DATA.find(h => h.id === 'erosion')));
 
-    // Layer 2: Relocation Safe Plateau Polygon (+22m)
-    const safeZonePolygon = L.polygon([
-      [10.3560, -75.5700],
-      [10.3580, -75.5600],
-      [10.3460, -75.5560],
-      [10.3440, -75.5660],
+    // Layer 2: Safe Plateau Polygon (+22m)
+    const safePlateau = L.polygon([
+      [10.3580, -75.5700],
+      [10.3600, -75.5580],
+      [10.3520, -75.5520],
+      [10.3440, -75.5580],
+      [10.3460, -75.5720]
     ], {
-      color: '#059669',
-      fillColor: '#059669',
-      fillOpacity: 0.25,
-      weight: 2.5,
+      color: '#0d9488',
+      fillColor: '#0d9488',
+      fillOpacity: 0.28,
+      weight: 3.5
     }).addTo(map);
-    safeZonePolygon.on('click', () => setSelectedHotspot(HOTSPOTS_DATA.find(h => h.id === 'meseta')));
 
     // Markers Group
     const markersGroup = L.layerGroup().addTo(map);
-    markersGroupRef.current = markersGroup;
 
-    // Render interactive circular pin markers with click events
     HOTSPOTS_DATA.forEach((spot) => {
-      const isRisk = spot.id === 'erosion' || spot.id === 'salinidad';
-      const markerColor = isRisk ? '#dc2626' : spot.id === 'aljibe' ? '#2563eb' : '#c86d51';
+      const isPlateau = spot.id === 'meseta';
+      const isErosion = spot.id === 'erosion';
+      const isWater = spot.id === 'aljibe';
 
       const customIcon = L.divIcon({
-        className: 'custom-map-pin',
-        html: `<div style="
-          background-color: ${markerColor};
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          border: 3px solid #ffffff;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: transform 0.2s;
-        ">
-          <span style="width: 8px; height: 8px; background: white; border-radius: 50%;"></span>
-        </div>`,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
+        className: 'custom-gis-pin',
+        html: `
+          <div class="relative flex items-center justify-center cursor-pointer group">
+            <div class="absolute -inset-2 rounded-full ${isPlateau ? 'bg-emerald-400/50 animate-pulse' : isErosion ? 'bg-red-500/50 animate-ping' : isWater ? 'bg-blue-400/50 animate-pulse' : 'bg-slate-400/40'}"></div>
+            <div class="w-9 h-9 rounded-2xl ${isPlateau ? 'bg-emerald-600' : isErosion ? 'bg-red-600' : isWater ? 'bg-blue-600' : 'bg-slate-900'} border-2 border-white shadow-2xl flex items-center justify-center text-white text-xs font-bold transition-transform group-hover:scale-110">
+              ${isPlateau ? '✨' : isErosion ? '⚠️' : isWater ? '💧' : '📍'}
+            </div>
+            <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-900/95 text-[10px] text-white font-mono font-bold shadow-xl border border-white/20 pointer-events-none">
+              ${spot.name.split('(')[0]}
+            </div>
+          </div>
+        `,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
       });
 
-      const marker = L.marker(spot.coords, { icon: customIcon }).addTo(markersGroup);
+      const marker = L.marker(spot.coords, { icon: customIcon });
       marker.on('click', () => {
         setSelectedHotspot(spot);
-        map.panTo(spot.coords, { animate: true });
       });
+      marker.addTo(markersGroup);
     });
 
-    mapInstanceRef.current = { map, erosionLine, safeZonePolygon };
+    mapInstanceRef.current = {
+      map,
+      erosionLine,
+      safePlateau,
+      markersGroup
+    };
 
     return () => {
-      if (mapInstanceRef.current?.map) {
-        mapInstanceRef.current.map.remove();
-        mapInstanceRef.current = null;
-      }
+      map.remove();
+      mapInstanceRef.current = null;
     };
   }, []);
 
-  const handleSelectSpotFromList = (spot) => {
-    setSelectedHotspot(spot);
-    if (mapInstanceRef.current?.map) {
-      mapInstanceRef.current.map.panTo(spot.coords, { animate: true });
+  // Layer filter effects
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const { erosionLine, safePlateau } = mapInstanceRef.current;
+
+    if (activeLayerFilter === 'risk') {
+      erosionLine.setStyle({ opacity: 1, weight: 8 });
+      safePlateau.setStyle({ fillOpacity: 0.05, weight: 1 });
+    } else if (activeLayerFilter === 'relocation') {
+      erosionLine.setStyle({ opacity: 0.3, weight: 2 });
+      safePlateau.setStyle({ fillOpacity: 0.45, weight: 5 });
+    } else {
+      erosionLine.setStyle({ opacity: 0.95, weight: 5 });
+      safePlateau.setStyle({ fillOpacity: 0.28, weight: 3.5 });
     }
-  };
+  }, [activeLayerFilter]);
+
+  // Layer type switcher
+  useEffect(() => {
+    if (!mapInstanceRef.current?.map) return;
+    const map = mapInstanceRef.current.map;
+
+    if (tileLayerRef.current) map.removeLayer(tileLayerRef.current);
+    if (labelsLayerRef.current) map.removeLayer(labelsLayerRef.current);
+
+    if (mapLayerType === 'satellite') {
+      tileLayerRef.current = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19
+      }).addTo(map);
+
+      labelsLayerRef.current = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        opacity: 0.85
+      }).addTo(map);
+    } else {
+      tileLayerRef.current = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd'
+      }).addTo(map);
+      labelsLayerRef.current = null;
+    }
+  }, [mapLayerType]);
 
   const filteredSpots = HOTSPOTS_DATA.filter((spot) => {
-    if (activeLayerFilter === 'all') return true;
     if (activeLayerFilter === 'risk') return spot.id === 'erosion' || spot.id === 'salinidad';
     if (activeLayerFilter === 'relocation') return spot.id === 'meseta' || spot.id === 'viviendas' || spot.id === 'colegio';
-    if (activeLayerFilter === 'water') return spot.id === 'aljibe' || spot.id === 'humedal';
+    if (activeLayerFilter === 'water') return spot.id === 'aljibe' || spot.id === 'humedal' || spot.id === 'salinidad';
     return true;
   });
 
   return (
-    <div className="space-y-6 py-4 animate-fade-in relative">
+    <div className="relative w-full h-[calc(100vh-4.2rem)] overflow-hidden animate-fade-in select-none">
       
-      {/* Top Header & Layer Filter Chips */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 dark:border-deepsea-800 pb-4">
-        <div className="space-y-1">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-terracotta-500/10 text-terracotta-700 dark:text-terracotta-400 text-xs font-mono font-medium border border-terracotta-500/20">
-            <MapPin className="w-3.5 h-3.5" />
-            <span>GIS &bull; DIAGNÓSTICO & REUBICACIÓN EN TIERRABOMBA</span>
+      {/* 1. FULLSCREEN AERIAL SATELLITE MAP */}
+      <div ref={mapContainerRef} className="absolute inset-0 w-full h-full z-0" />
+
+      {/* ========================================================================= */}
+      {/* 2. FLOATING HUD OVERLAYS ON TOP OF SATELLITE MAP                          */}
+      {/* ========================================================================= */}
+
+      {/* Top Floating Control Bar */}
+      <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
+        
+        {/* Module Title Card */}
+        <div className="bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center space-x-3 max-w-lg">
+          <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
+            02
           </div>
-          <h2 className="font-serif font-bold text-2xl sm:text-3xl text-slate-900 dark:text-sand-100">
-            Cartografía Interactiva de Diagnóstico & Hábitat
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-sand-300 font-light max-w-2xl">
-            Haz clic en cualquier punto del mapa o selecciona los nodos inferiores para inspeccionar los datos técnicos y memorias de cada componente del proyecto.
-          </p>
+          <div className="min-w-0">
+            <div className="flex items-center space-x-2">
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
+                SIG DIAGNÓSTICO
+              </span>
+              <span className="text-[10px] font-mono text-slate-500 font-bold">
+                Tierrabomba en Satélite Real
+              </span>
+            </div>
+            <h2 className="font-serif font-bold text-sm text-slate-900 truncate">
+              Vulnerabilidad, Erosión Borde & Suelo Seguro
+            </h2>
+          </div>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100 dark:bg-deepsea-900 rounded-xl border border-slate-200 dark:border-deepsea-800 text-xs font-mono self-start">
+        {/* GIS Layer Filters Bar */}
+        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center gap-1 self-start md:self-center">
           <button
             onClick={() => setActiveLayerFilter('all')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
               activeLayerFilter === 'all'
-                ? 'bg-white dark:bg-terracotta-600 text-slate-900 dark:text-white font-bold shadow-sm'
-                : 'text-slate-600 dark:text-sand-400 hover:text-slate-900'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-950'
             }`}
           >
-            Todos ({HOTSPOTS_DATA.length})
+            Todas ({HOTSPOTS_DATA.length})
           </button>
           <button
             onClick={() => setActiveLayerFilter('risk')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
               activeLayerFilter === 'risk'
-                ? 'bg-red-600 text-white font-bold shadow-sm'
-                : 'text-red-700 dark:text-red-400 hover:bg-red-50'
+                ? 'bg-red-600 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-950'
             }`}
           >
-            Riesgo Borde
+            ⚠️ Riesgo Borde
           </button>
           <button
             onClick={() => setActiveLayerFilter('relocation')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
               activeLayerFilter === 'relocation'
-                ? 'bg-emerald-600 text-white font-bold shadow-sm'
-                : 'text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-950'
             }`}
           >
-            Meseta (+22m)
+            ✨ Meseta +22m
           </button>
           <button
             onClick={() => setActiveLayerFilter('water')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
               activeLayerFilter === 'water'
-                ? 'bg-blue-600 text-white font-bold shadow-sm'
-                : 'text-blue-700 dark:text-blue-400 hover:bg-blue-50'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-950'
             }`}
           >
-            Agua & Aljibe
+            💧 Agua & Aljibe
           </button>
         </div>
-      </div>
 
-      {/* Main Map Viewport Container */}
-      <div className="relative rounded-3xl overflow-hidden border border-slate-200 dark:border-deepsea-800 shadow-xl bg-white dark:bg-deepsea-950">
-        
-        {/* Leaflet Canvas */}
-        <div 
-          ref={mapContainerRef} 
-          className="w-full h-[540px] sm:h-[600px] z-10"
-        />
-
-        {/* Floating Map Legend Overlay (HUD) */}
-        <div className="absolute top-4 left-4 z-20 pointer-events-none hidden sm:block">
-          <div className="bg-white/95 dark:bg-deepsea-950/95 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200 dark:border-deepsea-800 shadow-lg text-xs font-mono space-y-2 pointer-events-auto max-w-[240px]">
-            <span className="font-bold text-[10px] uppercase text-slate-500 dark:text-sand-400 tracking-wider">
-              Capas del Territorio
-            </span>
-            <div className="space-y-1.5 text-[11px]">
-              <div className="flex items-center space-x-2">
-                <span className="w-3 h-0.5 border-t-2 border-dashed border-red-600" />
-                <span className="text-slate-800 dark:text-sand-200">Erosión Costera (1.8m/a)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded bg-emerald-600/30 border border-emerald-600" />
-                <span className="text-slate-800 dark:text-sand-200">Meseta Segura (+22m)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
-                <span className="text-slate-800 dark:text-sand-200">Aljibe Central 450kL</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-terracotta-600" />
-                <span className="text-slate-800 dark:text-sand-200">Viviendas & Colegio</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Floating Instruction Chip */}
-        <div className="absolute bottom-4 left-4 z-20 pointer-events-none">
-          <div className="bg-slate-900/90 text-white backdrop-blur-md px-3 py-1.5 rounded-xl text-[11px] font-mono flex items-center space-x-2 shadow-lg">
-            <span>🖱️ Toca los puntos en el mapa para ver la ficha técnica</span>
-          </div>
+        {/* Aerial Satellite / Carto Layer Toggle Button */}
+        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center gap-1 self-start md:self-auto">
+          <button
+            onClick={() => setMapLayerType('satellite')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              mapLayerType === 'satellite'
+                ? 'bg-teal-600 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-950'
+            }`}
+          >
+            <span>🛰️ Vista Aérea</span>
+          </button>
+          <button
+            onClick={() => setMapLayerType('carto')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              mapLayerType === 'carto'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-950'
+            }`}
+          >
+            <span>🗺️ Plano</span>
+          </button>
         </div>
 
       </div>
 
-      {/* Quick Hotspots Selection Pills Bar */}
-      <div className="space-y-2">
-        <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-sand-400 font-bold">
-          Puntos de Inspección Rápida:
-        </span>
-        <div className="flex flex-wrap gap-2">
+      {/* Floating Bottom: Hotspot Selection Strip directly ON TOP of the Satellite Map */}
+      <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none">
+        <div className="flex flex-wrap gap-2 max-w-6xl mx-auto pointer-events-auto justify-center">
           {filteredSpots.map((spot) => {
             const isSelected = selectedHotspot?.id === spot.id;
             return (
               <button
                 key={spot.id}
-                onClick={() => handleSelectSpotFromList(spot)}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
+                onClick={() => {
+                  setSelectedHotspot(spot);
+                  if (mapInstanceRef.current?.map) {
+                    mapInstanceRef.current.map.flyTo(spot.coords, 15, { animate: true, duration: 1 });
+                  }
+                }}
+                className={`flex items-center space-x-2 px-3.5 py-2 rounded-2xl text-xs font-mono backdrop-blur-md transition-all border shadow-lg ${
                   isSelected
-                    ? 'bg-slate-900 text-white dark:bg-sand-100 dark:text-deepsea-950 font-bold shadow-md'
-                    : 'bg-white dark:bg-deepsea-900 text-slate-700 dark:text-sand-300 border-slate-200 dark:border-deepsea-800 hover:border-terracotta-500'
+                    ? 'bg-slate-900 text-white font-bold scale-105 border-slate-900'
+                    : 'bg-white/90 hover:bg-white text-slate-800 border-slate-200/80'
                 }`}
               >
                 <span className="w-2 h-2 rounded-full bg-terracotta-500" />
-                <span>{spot.name}</span>
+                <span>{spot.name.split('(')[0]}</span>
                 <span className="text-[10px] opacity-70">({spot.elevation})</span>
               </button>
             );
@@ -468,83 +503,77 @@ export default function DiagnosisMap({ onNavigateModule }) {
         </div>
       </div>
 
-      {/* ===================================================================== */}
-      {/* INTERACTIVE INSPECTION POPUP / MODAL (RAPOT / MODELAMIENTO2 LOOK)     */}
-      {/* ===================================================================== */}
+      {/* Floating Bottom-Left Legend HUD */}
+      <div className="absolute top-24 left-4 z-[400] hidden lg:block pointer-events-none">
+        <div className="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto space-y-1.5 text-xs font-mono">
+          <span className="text-[10px] font-bold text-slate-500 uppercase block">Capas Territoriales</span>
+          <div className="flex items-center space-x-2">
+            <span className="w-3 h-0.5 border-t-2 border-dashed border-red-500" />
+            <span className="text-slate-800">Erosión Costera (1.8m/año)</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="w-3 h-3 rounded bg-teal-500/30 border border-teal-500" />
+            <span className="text-slate-800">Meseta Segura (+22m)</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 3. DETAIL MODAL POP-UP                                                    */}
+      {/* ========================================================================= */}
       {selectedHotspot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-          
-          <div className="w-full max-w-2xl bg-white dark:bg-deepsea-900 rounded-3xl border border-slate-200 dark:border-deepsea-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            
-            {/* Modal Header */}
-            <div className="p-6 border-b border-slate-200 dark:border-deepsea-800 flex items-start justify-between gap-4 bg-slate-50/50 dark:bg-deepsea-950/50">
-              <div className="space-y-1.5">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div 
+            className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full p-6 sm:p-8 space-y-6 animate-scale-up max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${selectedHotspot.categoryColor}`}>
                     {selectedHotspot.category}
                   </span>
-                  <span className="text-xs font-mono text-slate-500 dark:text-sand-400">
+                  <span className="text-xs font-mono text-slate-500">
                     Cota: {selectedHotspot.elevation}
                   </span>
                 </div>
-                <h3 className="font-serif font-bold text-2xl text-slate-900 dark:text-sand-100">
+                <h3 className="font-serif font-bold text-xl text-slate-900">
                   {selectedHotspot.name}
                 </h3>
               </div>
-
-              {/* Close Button */}
               <button
                 onClick={() => setSelectedHotspot(null)}
-                className="p-2 rounded-xl bg-slate-200/80 hover:bg-slate-300 dark:bg-deepsea-800 dark:hover:bg-deepsea-700 text-slate-700 dark:text-sand-300 transition-colors"
-                aria-label="Cerrar Ficha"
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6">
-              
-              {/* Summary Description */}
-              <p className="text-sm text-slate-700 dark:text-sand-300 leading-relaxed font-light">
-                {selectedHotspot.summary}
-              </p>
+            <p className="text-xs sm:text-sm text-slate-700 font-sans leading-relaxed">
+              {selectedHotspot.summary}
+            </p>
 
-              {/* 4 KPI Metrics Grid */}
-              <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-sand-400 font-bold block mb-2.5">
-                  Parámetros del Componente:
-                </span>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {selectedHotspot.metrics.map((m, idx) => (
-                    <div key={idx} className="p-3.5 rounded-2xl bg-slate-100/70 dark:bg-deepsea-950 border border-slate-200/80 dark:border-deepsea-800">
-                      <span className="text-[10px] font-mono text-slate-500 dark:text-sand-400 block truncate">
-                        {m.label}
-                      </span>
-                      <h4 className="font-display font-bold text-base text-slate-900 dark:text-sand-100 mt-0.5">
-                        {m.value}
-                      </h4>
-                    </div>
-                  ))}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {selectedHotspot.metrics.map((m, idx) => (
+                <div key={idx} className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+                  <span className="text-[10px] font-mono text-slate-500 block uppercase">{m.label}</span>
+                  <span className="font-serif font-bold text-sm text-slate-900 block mt-0.5">{m.value}</span>
                 </div>
-              </div>
-
-              {/* Community Voice Bitácora Quote */}
-              {selectedHotspot.fieldQuote && (
-                <div className="p-4 rounded-2xl bg-terracotta-500/5 dark:bg-terracotta-500/10 border border-terracotta-500/20 flex items-start space-x-3">
-                  <Quote className="w-5 h-5 text-terracotta-600 dark:text-terracotta-400 shrink-0 mt-0.5" />
-                  <p className="font-serif italic text-xs sm:text-sm text-slate-800 dark:text-sand-200 leading-relaxed">
-                    "{selectedHotspot.fieldQuote}"
-                  </p>
-                </div>
-              )}
-
+              ))}
             </div>
 
-            {/* Modal Footer / Direct Jump Actions */}
-            <div className="p-4 sm:p-5 border-t border-slate-200 dark:border-deepsea-800 bg-slate-50/80 dark:bg-deepsea-950/80 flex flex-wrap items-center justify-between gap-3">
-              <span className="text-[11px] font-mono text-slate-500 dark:text-sand-400">
-                Alejandra Gómez & Ana Casas &bull; Tesis 2026
+            {selectedHotspot.fieldQuote && (
+              <div className="p-4 rounded-2xl bg-terracotta-50 border border-terracotta-200 flex items-start space-x-3">
+                <Quote className="w-5 h-5 text-terracotta-600 shrink-0 mt-0.5" />
+                <p className="font-serif italic text-xs text-slate-800 leading-relaxed">
+                  "{selectedHotspot.fieldQuote}"
+                </p>
+              </div>
+            )}
+
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200">
+              <span className="text-[11px] font-mono text-slate-400">
+                Diagnóstico 2026 // A. Gómez & A. Casas
               </span>
 
               <div className="flex items-center space-x-2">
@@ -555,7 +584,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
                       if (onNavigateModule) onNavigateModule(act.target);
                       setSelectedHotspot(null);
                     }}
-                    className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-terracotta-600 dark:hover:bg-terracotta-500 text-white text-xs font-mono font-medium transition-all shadow-sm"
+                    className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-medium transition-all shadow-sm"
                   >
                     <span>{act.label}</span>
                     <ArrowUpRight className="w-3.5 h-3.5" />
@@ -565,7 +594,6 @@ export default function DiagnosisMap({ onNavigateModule }) {
             </div>
 
           </div>
-
         </div>
       )}
 

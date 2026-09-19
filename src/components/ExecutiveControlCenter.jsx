@@ -23,7 +23,8 @@ import {
   X,
   ExternalLink,
   ChevronRight,
-  Maximize2
+  Maximize2,
+  Eye
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 import L from 'leaflet';
@@ -173,30 +174,42 @@ export const BAY_HOTSPOTS = [
 export default function ExecutiveControlCenter({ onSelectModule }) {
   const [selectedYear, setSelectedYear] = useState(2026);
   const [activeHotspotModal, setActiveHotspotModal] = useState(null);
+  const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
 
   const bayMapRef = useRef(null);
   const bayMapInstanceRef = useRef(null);
+  const tileLayerRef = useRef(null);
+  const labelsLayerRef = useRef(null);
   const markersRef = useRef([]);
 
   const currentTimelineData = CARTAGENA_TIMELINE_YEARS.find(y => y.year === selectedYear) || CARTAGENA_TIMELINE_YEARS[2];
 
-  // Initialize Cartagena Bay Map
+  // Initialize Fullscreen Leaflet Map with High-Res Satellite Aerial Imagery
   useEffect(() => {
     if (!bayMapRef.current || bayMapInstanceRef.current) return;
 
     const map = L.map(bayMapRef.current, {
       center: [10.365, -75.550],
-      zoom: 12,
-      zoomControl: true,
+      zoom: 13,
+      zoomControl: false,
       attributionControl: false
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    // Aerial Satellite Imagery without API key (Esri World Imagery)
+    const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       maxZoom: 19,
-      subdomains: 'abcd'
+      attribution: 'Esri, Maxar, Earthstar Geographics'
     }).addTo(map);
 
-    // Add Markers for Bay Hotspots
+    const labelsLayer = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      opacity: 0.85
+    }).addTo(map);
+
+    tileLayerRef.current = satLayer;
+    labelsLayerRef.current = labelsLayer;
+
+    // Add Interactive Hotspot Pins on the Map
     BAY_HOTSPOTS.forEach(spot => {
       const isThesisPlateau = spot.id === 'tierrabomba_plateau';
       const isErosion = spot.id === 'tierrabomba_erosion';
@@ -205,17 +218,17 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
         className: 'bay-spot-pin',
         html: `
           <div class="relative flex items-center justify-center cursor-pointer group">
-            <div class="absolute -inset-1.5 rounded-full ${isThesisPlateau ? 'bg-teal-500/40 animate-pulse' : isErosion ? 'bg-red-500/40 animate-ping' : 'bg-sky-500/30'}"></div>
-            <div class="w-8 h-8 rounded-xl ${isThesisPlateau ? 'bg-teal-600' : isErosion ? 'bg-red-600' : 'bg-slate-800'} border-2 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold">
+            <div class="absolute -inset-2 rounded-full ${isThesisPlateau ? 'bg-teal-400/50 animate-ping' : isErosion ? 'bg-red-500/50 animate-ping' : 'bg-sky-400/40'}"></div>
+            <div class="w-9 h-9 rounded-2xl ${isThesisPlateau ? 'bg-teal-600' : isErosion ? 'bg-red-600' : 'bg-slate-900'} border-2 border-white shadow-2xl flex items-center justify-center text-white text-xs font-bold transition-transform group-hover:scale-110">
               ${isThesisPlateau ? '✨' : isErosion ? '⚠️' : '📍'}
             </div>
-            <div class="absolute -bottom-6 whitespace-nowrap px-2 py-0.5 rounded bg-slate-900/90 text-[10px] text-white font-mono shadow-md pointer-events-none">
+            <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-900/95 text-[10px] text-white font-mono font-bold shadow-xl border border-white/20 pointer-events-none">
               ${spot.name.split(':')[0]}
             </div>
           </div>
         `,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
       });
 
       const marker = L.marker(spot.coords, { icon: customIcon }).addTo(map);
@@ -233,213 +246,248 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
     };
   }, []);
 
+  // Switch between Aerial Satellite and Cartographic tile layers
+  useEffect(() => {
+    const map = bayMapInstanceRef.current;
+    if (!map) return;
+
+    if (tileLayerRef.current) map.removeLayer(tileLayerRef.current);
+    if (labelsLayerRef.current) map.removeLayer(labelsLayerRef.current);
+
+    if (mapLayerType === 'satellite') {
+      tileLayerRef.current = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19
+      }).addTo(map);
+
+      labelsLayerRef.current = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        opacity: 0.85
+      }).addTo(map);
+    } else {
+      tileLayerRef.current = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd'
+      }).addTo(map);
+      labelsLayerRef.current = null;
+    }
+  }, [mapLayerType]);
+
   return (
-    <div className="space-y-6 py-2 animate-fade-in">
+    <div className="relative w-full h-[calc(100vh-4.2rem)] overflow-hidden animate-fade-in select-none">
       
-      {/* 1. TOP CENTERPIECE: CARTAGENA BAY EVOLUTION INTERACTIVE MAP */}
-      <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-xl">
+      {/* 1. FULLSCREEN AERIAL SATELLITE MAP (Background / Whole Dashboard) */}
+      <div ref={bayMapRef} className="absolute inset-0 w-full h-full z-0" />
+
+      {/* ========================================================================= */}
+      {/* 2. FLOATING HUD OVERLAYS ON TOP OF THE MAP                                */}
+      {/* ========================================================================= */}
+
+      {/* Top Floating Control Bar (Timeline + Module Header + Layer Switcher) */}
+      <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
-        {/* Top Floating Header & Timeline Bar */}
-        <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200 shadow-md">
-          <div className="space-y-0.5">
+        {/* Module Brand & Year Tag Card */}
+        <div className="bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center space-x-3 max-w-lg">
+          <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
+            00
+          </div>
+          <div className="min-w-0">
             <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse" />
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-blue-700">
-                00 // Dinámica Territorial Bahía de Cartagena
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                BAHÍA DE CARTAGENA
               </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold">
-                {selectedYear}
+              <span className="text-[10px] font-mono text-slate-500 font-bold">
+                {selectedYear} en Vista Aérea
               </span>
             </div>
-            <h3 className="font-serif font-bold text-sm text-slate-900">
-              {currentTimelineData.title} &bull; <span className="font-sans font-normal text-slate-600 text-xs">{currentTimelineData.tagline}</span>
-            </h3>
-          </div>
-
-          {/* Timeline Pills Selector */}
-          <div className="flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 gap-1 self-start md:self-center">
-            {CARTAGENA_TIMELINE_YEARS.map((t) => {
-              const isSelected = selectedYear === t.year;
-              return (
-                <button
-                  key={t.year}
-                  onClick={() => setSelectedYear(t.year)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-                    isSelected
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-950'
-                  }`}
-                >
-                  {t.year}
-                </button>
-              );
-            })}
+            <h2 className="font-serif font-bold text-sm text-slate-900 truncate">
+              {currentTimelineData.title}
+            </h2>
           </div>
         </div>
 
-        {/* Floating Bottom Hint Badge */}
-        <div className="absolute bottom-4 left-4 z-[400] hidden sm:flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 text-white text-xs font-mono backdrop-blur-md shadow-md border border-white/10 pointer-events-none">
-          <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
-          <span>Haz clic sobre los puntos en el mapa para abrir la ficha diagnóstica</span>
+        {/* Timeline Slider / Buttons Bar */}
+        <div className="bg-white/95 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center gap-1 self-start md:self-center">
+          {CARTAGENA_TIMELINE_YEARS.map((t) => {
+            const isSelected = selectedYear === t.year;
+            return (
+              <button
+                key={t.year}
+                onClick={() => setSelectedYear(t.year)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
+                  isSelected
+                    ? 'bg-slate-900 text-white shadow-md'
+                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
+                }`}
+              >
+                {t.year}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Leaflet Map */}
-        <div ref={bayMapRef} className="w-full h-[540px] z-0" />
+        {/* Aerial Satellite / Carto Layer Toggle Button */}
+        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto flex items-center gap-1 self-start md:self-auto">
+          <button
+            onClick={() => setMapLayerType('satellite')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              mapLayerType === 'satellite'
+                ? 'bg-teal-600 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-950'
+            }`}
+          >
+            <span>🛰️ Vista Aérea</span>
+          </button>
+          <button
+            onClick={() => setMapLayerType('carto')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              mapLayerType === 'carto'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-950'
+            }`}
+          >
+            <span>🗺️ Plano</span>
+          </button>
+        </div>
+
       </div>
 
-      {/* 2. 6 EXECUTIVE MASTERPLAN KPI CARDS GRID */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <span className="w-2 h-2 rounded-full bg-terracotta-600" />
-            <h3 className="font-serif font-bold text-base text-slate-900">
-              Indicadores Clave del Plan Maestro (KPIs)
-            </h3>
-          </div>
-          <span className="text-[11px] font-mono text-slate-500">
-            Haz clic en un indicador para abrir su módulo
+      {/* Floating Left Year Summary Badge */}
+      <div className="absolute top-24 left-4 z-[400] hidden lg:block max-w-sm pointer-events-none">
+        <div className="bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto space-y-2">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+            {currentTimelineData.tagline}
           </span>
+          <p className="text-xs text-slate-700 font-sans leading-relaxed">
+            {currentTimelineData.description}
+          </p>
+          <div className="grid grid-cols-2 gap-1.5 pt-1">
+            {currentTimelineData.metrics.map((m, idx) => (
+              <div key={idx} className="p-2 rounded-xl bg-slate-50 border border-slate-200/70 text-[10px] font-mono">
+                <span className="text-slate-500 block">{m.label}</span>
+                <span className="font-bold text-slate-900 block">{m.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-6 gap-3">
+      {/* Floating Bottom: 6 KPI Cards Strip directly ON TOP of the Satellite Map */}
+      <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 max-w-7xl mx-auto pointer-events-auto">
           
           {/* KPI 1: Housing */}
           <div 
             onClick={() => onSelectModule && onSelectModule('programs')}
-            className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs hover:border-terracotta-500 hover:shadow-sm transition-all cursor-pointer group"
+            className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-terracotta-500 hover:scale-105 transition-all cursor-pointer group"
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-xl bg-terracotta-50 text-terracotta-600 group-hover:scale-105 transition-transform">
-                <Home className="w-4 h-4" />
+            <div className="flex items-center justify-between mb-1">
+              <div className="p-1.5 rounded-lg bg-terracotta-50 text-terracotta-600">
+                <Home className="w-3.5 h-3.5" />
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-terracotta-50 text-terracotta-700">
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-terracotta-50 text-terracotta-700">
                 MOD 03
               </span>
             </div>
-            <p className="text-[11px] font-mono text-slate-500">Reubicación</p>
-            <h4 className="font-serif font-bold text-xl text-slate-900 mt-0.5">
-              120 Viviendas
-            </h4>
-            <p className="text-[10px] text-slate-500 mt-1 line-clamp-1">
-              54 - 86 m² sobre pilotes (+0.60m)
-            </p>
+            <p className="text-[10px] font-mono text-slate-500">Reubicación</p>
+            <h4 className="font-serif font-bold text-lg text-slate-900">120 Casas</h4>
+            <p className="text-[9px] text-slate-500 truncate">Meseta segura +22m</p>
           </div>
 
           {/* KPI 2: School */}
           <div 
             onClick={() => onSelectModule && onSelectModule('programs')}
-            className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs hover:border-teal-500 hover:shadow-sm transition-all cursor-pointer group"
+            className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-teal-500 hover:scale-105 transition-all cursor-pointer group"
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-xl bg-teal-50 text-teal-600 group-hover:scale-105 transition-transform">
-                <GraduationCap className="w-4 h-4" />
+            <div className="flex items-center justify-between mb-1">
+              <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
+                <GraduationCap className="w-3.5 h-3.5" />
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-teal-50 text-teal-700">
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-teal-50 text-teal-700">
                 DOTACIONAL
               </span>
             </div>
-            <p className="text-[11px] font-mono text-slate-500">Educativo</p>
-            <h4 className="font-serif font-bold text-xl text-slate-900 mt-0.5">
-              350 Alumnos
-            </h4>
-            <p className="text-[10px] text-slate-500 mt-1 line-clamp-1">
-              1.850 m² con talleres náuticos
-            </p>
+            <p className="text-[10px] font-mono text-slate-500">Educativo</p>
+            <h4 className="font-serif font-bold text-lg text-slate-900">350 Plazas</h4>
+            <p className="text-[9px] text-slate-500 truncate">Aulas & Talleres</p>
           </div>
 
           {/* KPI 3: Water */}
           <div 
             onClick={() => onSelectModule && onSelectModule('water')}
-            className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs hover:border-blue-500 hover:shadow-sm transition-all cursor-pointer group"
+            className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-blue-500 hover:scale-105 transition-all cursor-pointer group"
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-xl bg-blue-50 text-blue-600 group-hover:scale-105 transition-transform">
-                <Droplets className="w-4 h-4" />
+            <div className="flex items-center justify-between mb-1">
+              <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
+                <Droplets className="w-3.5 h-3.5" />
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-blue-50 text-blue-700">
                 MOD 07
               </span>
             </div>
-            <p className="text-[11px] font-mono text-slate-500">Reserva Hídrica</p>
-            <h4 className="font-serif font-bold text-xl text-slate-900 mt-0.5">
-              450.000 L
-            </h4>
-            <p className="text-[10px] text-slate-500 mt-1 line-clamp-1">
-              90 días autonomía de sequía
-            </p>
+            <p className="text-[10px] font-mono text-slate-500">Reserva Hídrica</p>
+            <h4 className="font-serif font-bold text-lg text-slate-900">450.000 L</h4>
+            <p className="text-[9px] text-slate-500 truncate">90 días de sequía</p>
           </div>
 
           {/* KPI 4: Safe Plateau */}
           <div 
             onClick={() => onSelectModule && onSelectModule('gis')}
-            className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs hover:border-emerald-500 hover:shadow-sm transition-all cursor-pointer group"
+            className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-emerald-500 hover:scale-105 transition-all cursor-pointer group"
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 group-hover:scale-105 transition-transform">
-                <ShieldCheck className="w-4 h-4" />
+            <div className="flex items-center justify-between mb-1">
+              <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+                <ShieldCheck className="w-3.5 h-3.5" />
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700">
                 TERRITORIO
               </span>
             </div>
-            <p className="text-[11px] font-mono text-slate-500">Cota Segura</p>
-            <h4 className="font-serif font-bold text-xl text-slate-900 mt-0.5">
-              +22.00m
-            </h4>
-            <p className="text-[10px] text-slate-500 mt-1 line-clamp-1">
-              0% riesgo de socavación marina
-            </p>
+            <p className="text-[10px] font-mono text-slate-500">Cota Segura</p>
+            <h4 className="font-serif font-bold text-lg text-slate-900">+22.00m</h4>
+            <p className="text-[9px] text-slate-500 truncate">0% riesgo marino</p>
           </div>
 
           {/* KPI 5: Solar */}
           <div 
             onClick={() => onSelectModule && onSelectModule('bioclimatic')}
-            className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs hover:border-amber-500 hover:shadow-sm transition-all cursor-pointer group"
+            className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-amber-500 hover:scale-105 transition-all cursor-pointer group"
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-xl bg-amber-50 text-amber-600 group-hover:scale-105 transition-transform">
-                <Sun className="w-4 h-4" />
+            <div className="flex items-center justify-between mb-1">
+              <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
+                <Sun className="w-3.5 h-3.5" />
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-50 text-amber-700">
                 ENERGÍA
               </span>
             </div>
-            <p className="text-[11px] font-mono text-slate-500">Matriz Solar</p>
-            <h4 className="font-serif font-bold text-xl text-slate-900 mt-0.5">
-              100% FV
-            </h4>
-            <p className="text-[10px] text-slate-500 mt-1 line-clamp-1">
-              5.85 kWh/m²/día con acumulación
-            </p>
+            <p className="text-[10px] font-mono text-slate-500">Matriz Solar</p>
+            <h4 className="font-serif font-bold text-lg text-slate-900">100% FV</h4>
+            <p className="text-[9px] text-slate-500 truncate">Autonomía total</p>
           </div>
 
           {/* KPI 6: Bioclimatic Comfort */}
           <div 
             onClick={() => onSelectModule && onSelectModule('bioclimatic')}
-            className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs hover:border-teal-500 hover:shadow-sm transition-all cursor-pointer group"
+            className="p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:border-teal-500 hover:scale-105 transition-all cursor-pointer group"
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-xl bg-teal-50 text-teal-600 group-hover:scale-105 transition-transform">
-                <Wind className="w-4 h-4" />
+            <div className="flex items-center justify-between mb-1">
+              <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
+                <Wind className="w-3.5 h-3.5" />
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-teal-50 text-teal-700">
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-teal-50 text-teal-700">
                 CONFORT
               </span>
             </div>
-            <p className="text-[11px] font-mono text-slate-500">Pasivo</p>
-            <h4 className="font-serif font-bold text-xl text-slate-900 mt-0.5">
-              -5.2 °C
-            </h4>
-            <p className="text-[10px] text-slate-500 mt-1 line-clamp-1">
-              Vientos alisios y celosías BTC
-            </p>
+            <p className="text-[10px] font-mono text-slate-500">Pasivo</p>
+            <h4 className="font-serif font-bold text-lg text-slate-900">-5.2 °C</h4>
+            <p className="text-[9px] text-slate-500 truncate">Alisios N-NE</p>
           </div>
 
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* BAY HOTSPOT MODAL POP-UP                                                  */}
+      {/* 3. DETAIL MODAL POP-UP                                                    */}
       {/* ========================================================================= */}
       {activeHotspotModal && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
