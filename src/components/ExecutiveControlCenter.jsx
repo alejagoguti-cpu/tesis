@@ -276,15 +276,23 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
     setPanOffset({ x: 0, y: 0 });
 
     if (!isHistoricalMode && bayMapInstanceRef.current) {
+      const map = bayMapInstanceRef.current;
+      map.invalidateSize();
+      map.setView([10.365, -75.550], 13, { animate: false });
       const timer1 = setTimeout(() => {
-        bayMapInstanceRef.current?.invalidateSize();
-      }, 60);
+        map.invalidateSize();
+      }, 50);
       const timer2 = setTimeout(() => {
-        bayMapInstanceRef.current?.invalidateSize();
-      }, 350);
+        map.invalidateSize();
+        map.setView([10.365, -75.550], 13, { animate: false });
+      }, 200);
+      const timer3 = setTimeout(() => {
+        map.invalidateSize();
+      }, 500);
       return () => {
         clearTimeout(timer1);
         clearTimeout(timer2);
+        clearTimeout(timer3);
       };
     }
   }, [selectedYear, isHistoricalMode]);
@@ -345,10 +353,13 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
 
     bayMapInstanceRef.current = map;
 
-    // Initial resize trigger
+    // Initial resize triggers
     setTimeout(() => {
       map.invalidateSize();
-    }, 200);
+    }, 100);
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 300);
 
     return () => {
       map.remove();
@@ -423,18 +434,16 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
       {/* 1. MAIN BACKGROUND: LEAFLET SATELLITE MAP OR HISTORICAL CARTOGRAPHY CANVAS */}
       {/* ========================================================================= */}
       
-      {/* A. Live Aerial Satellite Map (for modern & masterplan years) */}
+      {/* A. Live Aerial Satellite Map (Always initialized in background, ready for modern years) */}
       <div 
         ref={bayMapRef} 
-        className={`absolute inset-0 w-full h-full transition-opacity duration-700 z-0 ${
-          isHistoricalMode ? 'opacity-0 pointer-events-none' : 'opacity-100'
-        }`} 
+        className="absolute inset-0 w-full h-full z-0" 
       />
 
       {/* B. High-Resolution Historical Map Viewer Canvas (for 1690, 1730, 1770, 1780, 1915) */}
       {isHistoricalMode && currentHistoricalMap && (
         <div 
-          className="absolute inset-0 w-full h-full bg-slate-950 flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing z-0 animate-fade-in"
+          className="absolute inset-0 w-full h-full bg-slate-950 flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing z-10 animate-fade-in"
           onMouseDown={handleMouseDown}
         >
           {/* Subtle grid pattern background */}
@@ -451,6 +460,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
             <img 
               src={currentHistoricalMap.image} 
               alt={currentHistoricalMap.title}
+              loading="eager"
               className="max-w-none max-h-[88vh] rounded-lg shadow-2xl border-4 border-amber-950/40 pointer-events-none"
               draggable={false}
             />

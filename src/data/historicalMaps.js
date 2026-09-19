@@ -3,6 +3,12 @@
 // Base cartográfica primaria para el análisis de evolución morfológica e insular
 // =========================================================================
 
+import map1690 from '../assets/maps/historical/map_1690_bahia_galeones.jpg';
+import map1730 from '../assets/maps/historical/map_1730_colonial_alegoria.jpg';
+import map1770 from '../assets/maps/historical/map_1770_planta_cuarteles.jpg';
+import map1780 from '../assets/maps/historical/map_1780_defensivo_manga.jpg';
+import map1915 from '../assets/maps/historical/map_1915_pearson_puerto.jpg';
+
 export const HISTORICAL_MAPS_DATA = [
   {
     id: "map_1690",
@@ -10,7 +16,7 @@ export const HISTORICAL_MAPS_DATA = [
     title: "1690: Sistema Defensivo y Entrada a la Bahía de Cartagena",
     shortTitle: "1690: Flota Naval & Baterías",
     subtitle: "Cartografía Colonial Temprana — Archivo General de Indias",
-    image: "./maps/historical/map_1690_bahia_galeones.jpg",
+    image: map1690,
     scale: "Escala en leguas y varas castellanas",
     author: "Ingenieros Militares de la Corona Española",
     period: "Siglo XVII Tardío",
@@ -31,7 +37,7 @@ export const HISTORICAL_MAPS_DATA = [
     title: "1730: Plano de la Plaza Fuerte de Cartagena de Indias",
     shortTitle: "1730: Cartografía Ilustrada",
     subtitle: "Cartografía Ilustrada Barroca con Orla Alegórica Marina",
-    image: "./maps/historical/map_1730_colonial_alegoria.jpg",
+    image: map1730,
     scale: "Escala de varas castellanas",
     author: "Real Cuerpo de Ingenieros de Ultramar",
     period: "Siglo XVIII (Época Virreinal)",
@@ -52,7 +58,7 @@ export const HISTORICAL_MAPS_DATA = [
     title: "1770: Planta de la Plaza y División por Cuarteles Militares",
     shortTitle: "1770: Catastro & Cuarteles",
     subtitle: "Levantamiento Topográfico y Catastral Intramuros",
-    image: "./maps/historical/map_1770_planta_cuarteles.jpg",
+    image: map1770,
     scale: "Escala de 100 toesas / varas",
     author: "Ingeniero Militar Juan de Herrera y Sotomayor / Antonio de Arévalo",
     period: "Reformas Borbónicas (Siglo XVIII)",
@@ -73,7 +79,7 @@ export const HISTORICAL_MAPS_DATA = [
     title: "1780: Plano Estratégico de Fortificaciones y Entorno Insular",
     shortTitle: "1780: Red Defensiva & Manga",
     subtitle: "Plano Militar (Fig. 2ª) — Centro, San Lázaro, Manga y Bahía Interior",
-    image: "./maps/historical/map_1780_defensivo_manga.jpg",
+    image: map1780,
     scale: "Escala de 300 varas castellanas",
     author: "Antonio de Arévalo (Mariscal de Campo e Ingeniero General)",
     period: "Siglo XVIII Tardío",
@@ -94,7 +100,7 @@ export const HISTORICAL_MAPS_DATA = [
     title: "1915: Estudios del Puerto de Cartagena (S. Pearson & Son Ltd)",
     shortTitle: "1915: Estudios Puerto Moderno",
     subtitle: "Levantamiento Hidrográfico y Urbano — Hoja Núm. 1 (Escala 1:2500)",
-    image: "./maps/historical/map_1915_pearson_puerto.jpg",
+    image: map1915,
     scale: "Escala 1 : 2500 (Junio de 1915)",
     author: "S. Pearson & Son Ltd (10 Victoria St, London) / Ministerio de Obras Públicas",
     period: "Inicios del Siglo XX (República)",
