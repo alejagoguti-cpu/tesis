@@ -6,233 +6,355 @@ import {
   Sun, 
   Sparkles, 
   Layers, 
-  ArrowRight,
-  CheckCircle2,
-  RefreshCw,
-  Maximize2,
-  ExternalLink,
-  Activity
+  ArrowRight, 
+  CheckCircle2, 
+  RefreshCw, 
+  Maximize2, 
+  ExternalLink, 
+  Activity,
+  X,
+  Info,
+  ChevronRight,
+  Gauge
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
 export default function WaterSustainability({ onSelectModule }) {
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const [selectedNodeModal, setSelectedNodeModal] = useState(null);
+
+  const steps = projectInfo.waterSystem.steps;
+  const currentStep = steps[activeStepIndex];
 
   return (
-    <div className="space-y-8 py-2 animate-fade-in">
+    <div className="relative w-full h-screen overflow-hidden animate-fade-in select-none bg-slate-900">
       
-      {/* Chapter 07 Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
-        <div className="space-y-1.5">
-          <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse" />
-            <span className="font-mono text-xs font-bold text-blue-700 uppercase tracking-widest">
-              Capítulo 07 // Infraestructura Hídrica
-            </span>
-          </div>
-          <h2 className="font-serif font-bold text-2xl sm:text-3xl text-slate-900 tracking-tight">
-            {projectInfo.waterSystem.title}
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-600 font-light max-w-2xl">
-            {projectInfo.waterSystem.subtitle}
-          </p>
-        </div>
-
-        <button
-          onClick={() => {
-            if (onSelectModule) onSelectModule('simulations');
-          }}
-          className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-mono font-bold shadow-sm transition-all self-start md:self-center"
-        >
-          <Activity className="w-4 h-4" />
-          <span>Simulador de Sequía (Lab 08)</span>
-        </button>
-      </div>
-
-      {/* 3 Capacity Highlights Cards */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4">
-          <div className="p-3.5 rounded-2xl bg-blue-50 text-blue-600">
-            <Droplets className="w-7 h-7" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-500 font-mono">Capacidad de Reserva</p>
-            <h4 className="font-serif font-bold text-2xl text-slate-900 mt-0.5">450.000 Litros</h4>
-            <p className="text-[11px] text-blue-600 font-mono">90 días de autonomía</p>
-          </div>
-        </div>
-
-        <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4">
-          <div className="p-3.5 rounded-2xl bg-terracotta-50 text-terracotta-600">
-            <Layers className="w-7 h-7" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-500 font-mono">Área de Captación</p>
-            <h4 className="font-serif font-bold text-2xl text-slate-900 mt-0.5">1.850 m²</h4>
-            <p className="text-[11px] text-terracotta-600 font-mono">Cubierta invertida</p>
-          </div>
-        </div>
-
-        <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4 sm:col-span-2 lg:col-span-1">
-          <div className="p-3.5 rounded-2xl bg-amber-50 text-amber-600">
-            <Sun className="w-7 h-7" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-500 font-mono">Energía del Sistema</p>
-            <h4 className="font-serif font-bold text-2xl text-slate-900 mt-0.5">100% Fotovoltaica</h4>
-            <p className="text-[11px] text-amber-600 font-mono">Bombeo & Desinfección UV</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Interactive Step-by-Step Water Flow Schematic */}
-      <div className="grid lg:grid-cols-12 gap-6 items-start">
+      {/* 1. FULLSCREEN HYDRAULIC SCHEMATIC CANVAS */}
+      <div className="absolute inset-0 w-full h-full bg-[#09182b] flex items-center justify-center p-6 select-none overflow-hidden">
         
-        {/* Steps navigation list */}
-        <div className="lg:col-span-6 space-y-3">
-          {projectInfo.waterSystem.steps.map((item, index) => {
-            const isActive = activeStep === index;
+        {/* Subtle Water Flow Grid Pattern */}
+        <div className="absolute inset-0 bg-[radial-gradient(#1e3a8a_1px,transparent_1px)] [background-size:32px_32px] opacity-40 pointer-events-none" />
+
+        {/* Animated Water Waves Backdrop */}
+        <div className="absolute inset-0 pointer-events-none opacity-20">
+          <div className="w-full h-full bg-gradient-to-t from-blue-900/30 via-teal-900/10 to-transparent" />
+        </div>
+
+        {/* SVG Interactive Water Circuit Diagram */}
+        <svg viewBox="0 0 1000 560" className="w-full max-w-5xl h-auto max-h-[500px] z-10 drop-shadow-2xl">
+          
+          {/* Connecting Animated Water Pipeline Paths */}
+          <path 
+            d="M 160,260 L 320,260 L 480,260 L 660,260 L 840,260" 
+            stroke="#0284c7" 
+            strokeWidth="6" 
+            strokeDasharray="12 8" 
+            className="animate-pulse"
+            fill="none" 
+          />
+
+          <path 
+            d="M 480,260 L 480,410 L 660,410 L 840,410" 
+            stroke="#0d9488" 
+            strokeWidth="4" 
+            strokeDasharray="8 6" 
+            fill="none" 
+            opacity="0.7"
+          />
+
+          {/* Circuit Nodes (Clickable) */}
+          
+          {/* Node 1: Rain Catchment Roof */}
+          <g 
+            onClick={() => {
+              setActiveStepIndex(0);
+              setSelectedNodeModal(steps[0]);
+            }}
+            className="cursor-pointer group"
+          >
+            <circle 
+              cx="160" 
+              cy="260" 
+              r={activeStepIndex === 0 ? "58" : "50"} 
+              fill={activeStepIndex === 0 ? "#0284c7" : "#0f2744"} 
+              stroke="#38bdf8" 
+              strokeWidth={activeStepIndex === 0 ? "4" : "2"}
+              className="transition-all duration-300 group-hover:scale-105" 
+            />
+            <text x="160" y="248" textAnchor="middle" fill="#ffffff" fontSize="24">🌧️</text>
+            <text x="160" y="278" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="monospace" fontWeight="bold">
+              1. CAPTACIÓN
+            </text>
+            <text x="160" y="292" textAnchor="middle" fill="#7dd3fc" fontSize="9" fontFamily="monospace">
+              1.850 m²
+            </text>
+          </g>
+
+          {/* Node 2: First-Flush Filter */}
+          <g 
+            onClick={() => {
+              setActiveStepIndex(1);
+              setSelectedNodeModal(steps[1]);
+            }}
+            className="cursor-pointer group"
+          >
+            <circle 
+              cx="320" 
+              cy="260" 
+              r={activeStepIndex === 1 ? "58" : "50"} 
+              fill={activeStepIndex === 1 ? "#0284c7" : "#0f2744"} 
+              stroke="#38bdf8" 
+              strokeWidth={activeStepIndex === 1 ? "4" : "2"}
+              className="transition-all duration-300 group-hover:scale-105" 
+            />
+            <text x="320" y="248" textAnchor="middle" fill="#ffffff" fontSize="24">🌪️</text>
+            <text x="320" y="278" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="monospace" fontWeight="bold">
+              2. DESARENADOR
+            </text>
+            <text x="320" y="292" textAnchor="middle" fill="#7dd3fc" fontSize="9" fontFamily="monospace">
+              99.5% Sedimentos
+            </text>
+          </g>
+
+          {/* Node 3: Underground Cistern */}
+          <g 
+            onClick={() => {
+              setActiveStepIndex(2);
+              setSelectedNodeModal(steps[2]);
+            }}
+            className="cursor-pointer group"
+          >
+            <circle 
+              cx="480" 
+              cy="260" 
+              r={activeStepIndex === 2 ? "68" : "60"} 
+              fill={activeStepIndex === 2 ? "#0369a1" : "#0c4a6e"} 
+              stroke="#0ea5e9" 
+              strokeWidth={activeStepIndex === 2 ? "5" : "3"}
+              className="transition-all duration-300 group-hover:scale-105" 
+            />
+            <text x="480" y="245" textAnchor="middle" fill="#ffffff" fontSize="28">🏛️</text>
+            <text x="480" y="278" textAnchor="middle" fill="#ffffff" fontSize="12" fontFamily="monospace" fontWeight="bold">
+              3. ALJIBE CENTRAL
+            </text>
+            <text x="480" y="294" textAnchor="middle" fill="#bae6fd" fontSize="10" fontFamily="monospace" fontWeight="bold">
+              450.000 L
+            </text>
+          </g>
+
+          {/* Node 4: Solar UV Purification */}
+          <g 
+            onClick={() => {
+              setActiveStepIndex(3);
+              setSelectedNodeModal(steps[3]);
+            }}
+            className="cursor-pointer group"
+          >
+            <circle 
+              cx="660" 
+              cy="260" 
+              r={activeStepIndex === 3 ? "58" : "50"} 
+              fill={activeStepIndex === 3 ? "#0f766e" : "#0f2744"} 
+              stroke="#2dd4bf" 
+              strokeWidth={activeStepIndex === 3 ? "4" : "2"}
+              className="transition-all duration-300 group-hover:scale-105" 
+            />
+            <text x="660" y="248" textAnchor="middle" fill="#ffffff" fontSize="24">☀️</text>
+            <text x="660" y="278" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="monospace" fontWeight="bold">
+              4. SOLAR UV
+            </text>
+            <text x="660" y="292" textAnchor="middle" fill="#99f6e4" fontSize="9" fontFamily="monospace">
+              Res. 2115 Apta
+            </text>
+          </g>
+
+          {/* Node 5: Community Dispensary & Bio-wetland */}
+          <g 
+            onClick={() => {
+              setActiveStepIndex(4);
+              setSelectedNodeModal(steps[4]);
+            }}
+            className="cursor-pointer group"
+          >
+            <circle 
+              cx="840" 
+              cy="260" 
+              r={activeStepIndex === 4 ? "58" : "50"} 
+              fill={activeStepIndex === 4 ? "#047857" : "#0f2744"} 
+              stroke="#34d399" 
+              strokeWidth={activeStepIndex === 4 ? "4" : "2"}
+              className="transition-all duration-300 group-hover:scale-105" 
+            />
+            <text x="840" y="248" textAnchor="middle" fill="#ffffff" fontSize="24">🌿</text>
+            <text x="840" y="278" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="monospace" fontWeight="bold">
+              5. HUMEDAL & HUERTO
+            </text>
+            <text x="840" y="292" textAnchor="middle" fill="#a7f3d0" fontSize="9" fontFamily="monospace">
+              75% Recirculado
+            </text>
+          </g>
+
+          {/* Bottom Loop to Agriculture */}
+          <g 
+            onClick={() => {
+              setActiveStepIndex(4);
+              setSelectedNodeModal(steps[4]);
+            }}
+            className="cursor-pointer"
+          >
+            <rect x="620" y="380" width="260" height="60" rx="16" fill="#064e3b" stroke="#10b981" strokeWidth="1.5" />
+            <text x="750" y="408" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="monospace" fontWeight="bold">
+              RIEGO DE HUERTOS COMUNITARIOS
+            </text>
+            <text x="750" y="424" textAnchor="middle" fill="#6ee7b7" fontSize="9" fontFamily="monospace">
+              Fitodepuración por Vetiver & Macrófitas
+            </text>
+          </g>
+
+        </svg>
+
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. FLOATING HUD OVERLAYS ON TOP OF CIRCUIT                                */}
+      {/* ========================================================================= */}
+
+      {/* Top Floating Control Bar */}
+      <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
+        
+        {/* Module Title Card */}
+        <div className="bg-slate-900/90 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-700/80 shadow-2xl pointer-events-auto flex items-center space-x-3 max-w-lg text-white">
+          <div className="w-10 h-10 rounded-xl bg-blue-500 text-slate-950 flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
+            07
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center space-x-2">
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                INFRAESTRUCTURA HÍDRICA // AUTOSUFICIENCIA
+              </span>
+              <span className="text-[10px] font-mono text-emerald-300 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                450.000 L RESILIENTE
+              </span>
+            </div>
+            <h2 className="font-bold text-sm text-white truncate">
+              {projectInfo.waterSystem.title}
+            </h2>
+          </div>
+        </div>
+
+        {/* Telemetry Metrics Badges */}
+        <div className="bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-700/80 shadow-2xl pointer-events-auto flex items-center space-x-4 text-white">
+          <div className="text-center">
+            <span className="text-[9px] font-mono text-slate-400 block uppercase">Capacidad Aljibe</span>
+            <span className="font-bold text-sm text-blue-400 font-mono">450.000 L</span>
+          </div>
+          <div className="w-px h-6 bg-slate-700" />
+          <div className="text-center">
+            <span className="text-[9px] font-mono text-slate-400 block uppercase">Autonomía Sequía</span>
+            <span className="font-bold text-sm text-emerald-400 font-mono">90 Días</span>
+          </div>
+          <div className="w-px h-6 bg-slate-700" />
+          <div className="text-center">
+            <span className="text-[9px] font-mono text-slate-400 block uppercase">Área Captación</span>
+            <span className="font-bold text-sm text-amber-400 font-mono">8.330 m²</span>
+          </div>
+        </div>
+
+        {/* Link to Lab 08 */}
+        <div className="bg-slate-900/90 backdrop-blur-md p-1 rounded-2xl border border-slate-700/80 shadow-2xl pointer-events-auto flex items-center gap-1">
+          <button
+            onClick={() => onSelectModule && onSelectModule('simulations')}
+            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-mono font-bold shadow-sm transition-all flex items-center space-x-1.5"
+          >
+            <Activity className="w-4 h-4" />
+            <span>Simulador Sequía (Lab 08)</span>
+          </button>
+        </div>
+
+      </div>
+
+      {/* Floating Bottom Center: Interactive 5-Step Process Bar */}
+      <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none">
+        <div className="max-w-4xl mx-auto bg-slate-900/90 backdrop-blur-md p-2 rounded-2xl border border-slate-700/80 shadow-2xl pointer-events-auto flex items-center justify-between gap-1 overflow-x-auto">
+          {steps.map((st, index) => {
+            const isSelected = activeStepIndex === index;
             return (
-              <div
-                key={item.step}
-                onClick={() => setActiveStep(index)}
-                className={`p-5 rounded-3xl cursor-pointer transition-all border ${
-                  isActive
-                    ? 'bg-white border-blue-500 shadow-md ring-2 ring-blue-400/20'
-                    : 'bg-white hover:bg-slate-50 border-slate-200 shadow-sm'
+              <button
+                key={st.step}
+                onClick={() => {
+                  setActiveStepIndex(index);
+                  setSelectedNodeModal(st);
+                }}
+                className={`flex-1 px-3 py-2 rounded-xl text-left transition-all text-xs font-mono ${
+                  isSelected
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
                 }`}
               >
-                <div className="flex items-start space-x-4">
-                  <div className={`w-9 h-9 rounded-2xl flex items-center justify-center font-mono font-bold text-xs shrink-0 transition-colors ${
-                    isActive 
-                      ? 'bg-blue-600 text-white shadow-md' 
-                      : 'bg-slate-100 text-slate-600'
-                  }`}>
-                    {item.step}
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="font-serif font-bold text-base text-slate-900">
-                      {item.name}
-                    </h4>
-                    <p className="text-xs text-slate-600 leading-relaxed font-sans">
-                      {item.detail}
-                    </p>
-                    <span className="inline-block mt-1 text-[11px] font-mono font-bold text-blue-600">
-                      {item.capacity}
-                    </span>
-                  </div>
+                <div className="flex items-center space-x-1.5">
+                  <span className="font-bold">0{st.step}</span>
+                  <span className="truncate font-semibold">{st.name.split('(')[0]}</span>
                 </div>
-              </div>
+                <span className="text-[9px] opacity-75 truncate block mt-0.5">{st.capacity}</span>
+              </button>
             );
           })}
         </div>
+      </div>
 
-        {/* Dynamic Step Schematic Viewer Card */}
-        <div className="lg:col-span-6 sticky top-24">
-          <div className="rounded-3xl p-6 sm:p-8 bg-slate-900 text-white border border-slate-800 shadow-xl space-y-6">
-            
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <div className="flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-ping" />
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-blue-300">
-                  Fase {activeStep + 1} de 5 en Operación
+      {/* ========================================================================= */}
+      {/* 3. INTERACTIVE STAGE POPUP MODAL (Zero Text Walls on Screen)               */}
+      {/* ========================================================================= */}
+      {selectedNodeModal && (
+        <div 
+          onClick={() => setSelectedNodeModal(null)}
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-fade-in"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-lg w-full shadow-2xl relative text-slate-900 space-y-5"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                  FASE 0{selectedNodeModal.step} // CICLO HÍDRICO CERRADO
                 </span>
+                <h3 className="font-bold text-xl text-slate-900 mt-2">
+                  {selectedNodeModal.name}
+                </h3>
               </div>
-              <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-                Esquema Hidráulico
-              </span>
-            </div>
 
-            {/* Step Visualizer */}
-            <div className="h-64 rounded-2xl bg-slate-950/80 border border-slate-800/80 p-6 flex flex-col justify-center items-center text-center relative overflow-hidden">
-              
-              {activeStep === 0 && (
-                <div className="space-y-3 relative z-10 transition-all duration-300">
-                  <div className="w-16 h-16 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center mx-auto">
-                    <Droplets className="w-8 h-8 animate-bounce" />
-                  </div>
-                  <h3 className="font-serif font-bold text-lg text-white">Captación por Macro-Embudo</h3>
-                  <p className="text-xs text-slate-300 max-w-sm font-light">
-                    La cubierta invertida de 1.850 m² canaliza el 100% de la precipitación pluvial hacia bajantes de acero inoxidable.
-                  </p>
-                </div>
-              )}
-
-              {activeStep === 1 && (
-                <div className="space-y-3 relative z-10 transition-all duration-300">
-                  <div className="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
-                    <Filter className="w-8 h-8" />
-                  </div>
-                  <h3 className="font-serif font-bold text-lg text-white">Separación de Salitre y Polvo</h3>
-                  <p className="text-xs text-slate-300 max-w-sm font-light">
-                    La cámara de primer lavado desvía los primeros 2 mm de lluvia reteniendo sedimentos antes del almacenamiento.
-                  </p>
-                </div>
-              )}
-
-              {activeStep === 2 && (
-                <div className="space-y-3 relative z-10 transition-all duration-300">
-                  <div className="w-16 h-16 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center mx-auto">
-                    <Layers className="w-8 h-8" />
-                  </div>
-                  <h3 className="font-serif font-bold text-lg text-white">Bóveda Subterránea Inmune (+22m)</h3>
-                  <p className="text-xs text-slate-300 max-w-sm font-light">
-                    Almacenamiento subterráneo de 450.000L blindado ante la intrusión marina que saliniza los pozos costeros.
-                  </p>
-                </div>
-              )}
-
-              {activeStep === 3 && (
-                <div className="space-y-3 relative z-10 transition-all duration-300">
-                  <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
-                    <Sun className="w-8 h-8 animate-pulse" />
-                  </div>
-                  <h3 className="font-serif font-bold text-lg text-white">Potabilización Solar Fotovoltaica</h3>
-                  <p className="text-xs text-slate-300 max-w-sm font-light">
-                    Lámparas ultravioleta y carbón activado alimentados por paneles solares para potabilidad certificada.
-                  </p>
-                </div>
-              )}
-
-              {activeStep === 4 && (
-                <div className="space-y-3 relative z-10 transition-all duration-300">
-                  <div className="w-16 h-16 rounded-2xl bg-teal-500/20 text-teal-400 flex items-center justify-center mx-auto">
-                    <RefreshCw className="w-8 h-8" />
-                  </div>
-                  <h3 className="font-serif font-bold text-lg text-white">Fitodepuración y Dispensario</h3>
-                  <p className="text-xs text-slate-300 max-w-sm font-light">
-                    12 tomas comunitarias de agua potable + tratamiento de aguas grises con totoras para riego de huertos.
-                  </p>
-                </div>
-              )}
-
-            </div>
-
-            {/* Step Navigation Controls */}
-            <div className="flex justify-between items-center pt-2">
               <button
-                disabled={activeStep === 0}
-                onClick={() => setActiveStep(prev => prev - 1)}
-                className="px-4 py-2 rounded-xl text-xs font-mono font-semibold bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-slate-200"
+                onClick={() => setSelectedNodeModal(null)}
+                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600"
               >
-                &larr; Anterior
-              </button>
-              <span className="text-xs font-mono text-slate-400">
-                Paso {activeStep + 1} de {projectInfo.waterSystem.steps.length}
-              </span>
-              <button
-                disabled={activeStep === projectInfo.waterSystem.steps.length - 1}
-                onClick={() => setActiveStep(prev => prev + 1)}
-                className="px-4 py-2 rounded-xl text-xs font-mono font-bold bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                Siguiente &rarr;
+                <X className="w-5 h-5" />
               </button>
             </div>
 
+            <p className="text-sm text-slate-700 leading-relaxed font-light">
+              {selectedNodeModal.detail}
+            </p>
+
+            <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 flex items-center space-x-3">
+              <ShieldCheck className="w-6 h-6 text-blue-600 shrink-0" />
+              <div>
+                <span className="text-[10px] font-mono text-blue-800 block uppercase font-bold">Rendimiento Operativo</span>
+                <span className="font-bold text-sm text-blue-950">{selectedNodeModal.capacity}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 pt-2">
+              <button
+                onClick={() => setSelectedNodeModal(null)}
+                className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-mono text-xs font-bold hover:bg-slate-800 transition-colors"
+              >
+                Continuar Explorando Circuito
+              </button>
+            </div>
           </div>
         </div>
-
-      </div>
+      )}
 
     </div>
   );

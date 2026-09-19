@@ -356,7 +356,7 @@ export default function ThesisFramework({ onSelectModule }) {
   }, [mapLayerType]);
 
   return (
-    <div className="relative w-full h-[calc(100vh-4.2rem)] overflow-hidden animate-fade-in select-none">
+    <div className="relative w-full h-screen overflow-hidden animate-fade-in select-none">
       
       {/* 1. FULLSCREEN SATELLITE MAP */}
       <div ref={mapRef} className="absolute inset-0 w-full h-full z-0" />

@@ -179,7 +179,7 @@ export default function HousingRelocation({ onSelectModule }) {
   const spaces = selectedPlanType === 'vivienda' ? HOUSING_PLAN_SPACES : SCHOOL_PLAN_SPACES;
 
   return (
-    <div className="relative w-full h-[calc(100vh-4.2rem)] overflow-hidden animate-fade-in select-none">
+    <div className="relative w-full h-screen overflow-hidden animate-fade-in select-none">
       
       {/* 1. PLAN VIEWPORT CANVAS (Full-Bleed Background) */}
       <div className="absolute inset-0 w-full h-full bg-[#fdfdfd] flex items-center justify-center pt-20 pb-28 px-4 select-none">

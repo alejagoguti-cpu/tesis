@@ -19,12 +19,15 @@ import {
   Sparkles,
   Layers,
   Thermometer,
-  Gauge
+  Gauge,
+  X,
+  Info
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
-export default function SimulationLab() {
+export default function SimulationLab({ onSelectModule }) {
   const [activeEngine, setActiveEngine] = useState('seaLevel'); // 'seaLevel' | 'waterBalance' | 'perturbation' | 'bioclimatic'
+  const [showMethodologyModal, setShowMethodologyModal] = useState(false);
 
   // =========================================================================
   // ENGINE 1: SIMULADOR DE EROSIÓN & NIVEL DEL MAR (IPCC / COSTAS)
@@ -33,17 +36,14 @@ export default function SimulationLab() {
   const [erosionRateYear, setErosionRateYear] = useState(1.8); // 0.5 a 4.0 m/año
   const [timeHorizonYears, setTimeHorizonYears] = useState(24); // 2026 a 2050 (24 años)
 
-  // Sea level calculations
   const seaMetrics = useMemo(() => {
     const totalBeachLoss = (erosionRateYear * timeHorizonYears).toFixed(1);
-    // At baseline: 120 homes vulnerable.
-    // As erosion exceeds 15m, more homes in traditional shoreline fail
     const vulnerableTraditionalHomes = Math.min(
       120,
       Math.round(40 + (parseFloat(totalBeachLoss) / 40) * 80 + seaRiseCm * 0.3)
     );
     const aquiferSalinityPsu = Math.min(42, (28 + seaRiseCm * 0.12).toFixed(1));
-    const plateauSafetyPercent = 100; // Plateau at +22m is immune
+    const plateauSafetyPercent = 100;
 
     return {
       totalBeachLoss,
@@ -62,11 +62,11 @@ export default function SimulationLab() {
     } else if (preset === 'ssp2') {
       setSeaRiseCm(35);
       setErosionRateYear(2.2);
-      setTimeHorizonYears(24); // 2050
+      setTimeHorizonYears(24);
     } else if (preset === 'ssp5') {
       setSeaRiseCm(85);
       setErosionRateYear(3.2);
-      setTimeHorizonYears(50); // 2076
+      setTimeHorizonYears(50);
     } else if (preset === 'stormSurge') {
       setSeaRiseCm(120);
       setErosionRateYear(4.0);
@@ -77,859 +77,557 @@ export default function SimulationLab() {
   // =========================================================================
   // ENGINE 2: SIMULADOR DE BALANCE HÍDRICO & SEQUÍA (ALJIBE 450.000 L)
   // =========================================================================
-  const [annualRainfallMm, setAnnualRainfallMm] = useState(950); // 250 a 1500 mm
-  const [dailyPerCapitaConsL, setDailyPerCapitaConsL] = useState(40); // 20 a 80 L/hab/día
-  const [catchmentAreaM2, setCatchmentAreaM2] = useState(8330); // 1850m2 colegio + 6480m2 casas
+  const [annualRainfallMm, setAnnualRainfallMm] = useState(950);
+  const [dailyPerCapitaConsL, setDailyPerCapitaConsL] = useState(40);
+  const [catchmentAreaM2, setCatchmentAreaM2] = useState(8330);
   const [runoffCoeff, setRunoffCoeff] = useState(0.85);
 
   const waterMetrics = useMemo(() => {
-    // Volume collected in m3 = (Rainfall in m) * Area * Coeff
     const rainfallM = annualRainfallMm / 1000;
     const harvestedM3 = rainfallM * catchmentAreaM2 * runoffCoeff;
     const harvestedLitres = harvestedM3 * 1000;
-
-    // Total community population ~ 480 people in the 120 relocated units
     const annualDemandLitres = 480 * dailyPerCapitaConsL * 365;
-    const centralCisternCapacity = 450000; // 450kL
-    
-    // Fill ratio and autonomy in days during zero-rain dry season
+    const centralCisternCapacity = 450000;
     const dailyDemandLitres = 480 * dailyPerCapitaConsL;
     const drySeasonAutonomyDays = Math.min(180, Math.round(centralCisternCapacity / dailyDemandLitres));
     const annualBalanceLitres = harvestedLitres - annualDemandLitres;
     const fillPercent = Math.min(100, Math.round((harvestedLitres / (centralCisternCapacity * 2.5)) * 100));
 
-    // Economic savings vs boat water in Cartagena ($8.000 COP per 20L pimpina = $400 COP/L)
-    const annualSavingsCopMillions = ((harvestedLitres * 350) / 1000000).toFixed(1);
-
     return {
       harvestedM3: Math.round(harvestedM3),
       harvestedLitres: Math.round(harvestedLitres),
+      annualDemandLitres: Math.round(annualDemandLitres),
       drySeasonAutonomyDays,
       annualBalanceLitres: Math.round(annualBalanceLitres),
       fillPercent,
-      annualSavingsCopMillions
+      annualSavingsCopMillions: ((harvestedLitres / 20) * 8000 / 1000000).toFixed(1)
     };
   }, [annualRainfallMm, dailyPerCapitaConsL, catchmentAreaM2, runoffCoeff]);
 
-  const applyWaterPreset = (preset) => {
-    if (preset === 'average') {
-      setAnnualRainfallMm(950);
-      setDailyPerCapitaConsL(40);
-    } else if (preset === 'elNinoDry') {
-      setAnnualRainfallMm(380);
-      setDailyPerCapitaConsL(30);
-    } else if (preset === 'laNinaWet') {
-      setAnnualRainfallMm(1400);
-      setDailyPerCapitaConsL(50);
-    } else if (preset === 'emergency') {
-      setAnnualRainfallMm(300);
-      setDailyPerCapitaConsL(20);
-    }
-  };
+  // =========================================================================
+  // ENGINE 3: PERTURBACIÓN DE RED & INFRAESTRUCTURA
+  // =========================================================================
+  const [schoolUsers, setSchoolUsers] = useState(350);
+  const [gridFailureActive, setGridFailureActive] = useState(true);
+  const [waterBargeDelayed, setWaterBargeDelayed] = useState(true);
 
   // =========================================================================
-  // ENGINE 3: PERTURBACIÓN & CAPACIDAD DOTACIONAL (STRESS TEST)
+  // ENGINE 4: CONFORT EÓLICO & BIOCLIMÁTICO
   // =========================================================================
-  const [selectedScenario, setSelectedScenario] = useState('schoolDay'); // 'schoolDay' | 'assembly' | 'dryEmergency' | 'surgeRefuge'
+  const [windSpeedKnots, setWindSpeedKnots] = useState(18);
+  const [windAngleDeg, setWindAngleDeg] = useState(35);
+  const [louverOpeningPct, setLouverOpeningPct] = useState(80);
 
-  const perturbationScenarios = {
-    schoolDay: {
-      name: "Día Escolar Estándar",
-      users: 350,
-      flowLmin: 45,
-      powerKw: 6.2,
-      batteryHours: 18,
-      occupancy: 65,
-      status: "Operación Normal",
-      statusColor: "text-emerald-600 dark:text-emerald-400"
-    },
-    assembly: {
-      name: "Asamblea Comunal / Fin de Semana",
-      users: 850,
-      flowLmin: 110,
-      powerKw: 11.5,
-      batteryHours: 12,
-      occupancy: 88,
-      status: "Alta Demanda Cívica",
-      statusColor: "text-amber-600 dark:text-amber-400"
-    },
-    dryEmergency: {
-      name: "Emergencia por Sequía (Dispensario 100%)",
-      users: 1200,
-      flowLmin: 160,
-      powerKw: 15.0,
-      batteryHours: 9,
-      occupancy: 95,
-      status: "Capacidad Máxima Hidráulica",
-      statusColor: "text-blue-600 dark:text-blue-400"
-    },
-    surgeRefuge: {
-      name: "Refugio Temporal por Alerta Marina",
-      users: 600,
-      flowLmin: 90,
-      powerKw: 14.2,
-      batteryHours: 14,
-      occupancy: 92,
-      status: "Nodo de Resguardo y Asistencia",
-      statusColor: "text-terracotta-600 dark:text-terracotta-400"
-    }
-  };
-
-  const currentPerturbation = perturbationScenarios[selectedScenario];
-
-  // =========================================================================
-  // ENGINE 4: CONFORT BIOCLIMÁTICO & TÚNEL DE VIENTO PASIVO
-  // =========================================================================
-  const [windSpeedKnots, setWindSpeedKnots] = useState(18); // 5 a 30 nudos
-  const [windAngleDeg, setWindAngleDeg] = useState(15); // 0 a 90 deg
-  const [louverOpeningPct, setLouverOpeningPct] = useState(75); // 25 to 100%
-
-  const bioclimaticMetrics = useMemo(() => {
-    // Air velocity inside through cross ventilation
-    const angleEfficiency = Math.cos((Math.abs(windAngleDeg - 15) * Math.PI) / 180);
-    const rawIndoorVelocity = (windSpeedKnots * 0.514 * (louverOpeningPct / 100) * 0.35 * Math.max(0.2, angleEfficiency)).toFixed(2);
-    
-    // Air Changes per Hour (ACH)
-    const ach = Math.round(parseFloat(rawIndoorVelocity) * 22);
-    
-    // Radiant temperature delta reduction (-1.5C to -6.5C)
-    const tempDrop = (1.5 + parseFloat(rawIndoorVelocity) * 2.8 + (louverOpeningPct / 100) * 1.5).toFixed(1);
-
-    // Thermal comfort category
-    let comfortState = "Confort Óptimo (ASHRAE 55)";
-    if (parseFloat(tempDrop) < 2.5) comfortState = "Sensación Cálida Moderada";
-    if (parseFloat(tempDrop) > 5.0) comfortState = "Excelente Confort Pasivo";
+  const windMetrics = useMemo(() => {
+    const outdoorMs = windSpeedKnots * 0.514444;
+    const rawIndoorVelocity = (outdoorMs * (louverOpeningPct / 100) * 0.45).toFixed(2);
+    const ach = Math.round((parseFloat(rawIndoorVelocity) / 0.5) * 14);
+    const tempDrop = ((parseFloat(rawIndoorVelocity) * 1.8) + (louverOpeningPct > 50 ? 1.5 : 0.5)).toFixed(1);
 
     return {
       indoorVelocity: rawIndoorVelocity,
       ach,
-      tempDrop,
-      comfortState
+      tempDrop
     };
   }, [windSpeedKnots, windAngleDeg, louverOpeningPct]);
 
   return (
-    <div className="space-y-10 py-6 animate-fade-in">
+    <div className="relative w-full h-screen overflow-hidden animate-fade-in select-none bg-slate-950">
       
-      {/* Module Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-sand-300/60 dark:border-deepsea-800 pb-6">
-        <div className="space-y-3">
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-terracotta-500/10 text-terracotta-700 dark:text-terracotta-300 text-xs font-mono font-medium border border-terracotta-500/20">
-            <Activity className="w-3.5 h-3.5" />
-            <span>MÓDULO 08 &bull; MODELAMIENTO DINÁMICO & SIMULACIONES</span>
-          </div>
-          <h2 className="font-serif font-bold text-3xl sm:text-4xl text-deepsea-950 dark:text-sand-100 tracking-tight leading-tight">
-            Laboratorio de Simulaciones & Modelamiento
-          </h2>
-          <p className="text-deepsea-900/70 dark:text-sand-300/70 text-base font-light max-w-3xl leading-relaxed">
-            Explora de manera interactiva cómo responden el territorio, la infraestructura hídrica, el equipamiento y las viviendas de Tierrabomba ante variaciones en la demanda, eventos climáticos extremos y perturbaciones de red.
-          </p>
+      {/* 1. FULLSCREEN SIMULATION CANVAS BACKDROP */}
+      <div className="absolute inset-0 w-full h-full flex items-center justify-center p-6 select-none overflow-hidden">
+        
+        {/* Dynamic Canvas Graphic Depending on Active Engine */}
+        <div className="w-full max-w-4xl h-full max-h-[520px] flex items-center justify-center relative">
+          
+          {/* Engine 1 Graphic: Coastal Section & Tide Surge */}
+          {activeEngine === 'seaLevel' && (
+            <svg viewBox="0 0 800 400" className="w-full h-full drop-shadow-2xl">
+              {/* Sea */}
+              <rect x="0" y={220 - (seaRiseCm * 0.6)} width="360" height="200" fill="#0284c7" fillOpacity="0.4" />
+              <path d={`M 0,${220 - (seaRiseCm * 0.6)} Q 90,${210 - (seaRiseCm * 0.6)} 180,${220 - (seaRiseCm * 0.6)} T 360,${220 - (seaRiseCm * 0.6)}`} stroke="#38bdf8" strokeWidth="3" fill="none" className="animate-pulse" />
+              
+              {/* Shoreline Beach */}
+              <polygon points={`340,${220 - (seaRiseCm * 0.6)} 480,260 520,380 0,380`} fill="#d97706" fillOpacity="0.3" />
+              
+              {/* Plateau +22m (Immune) */}
+              <polygon points="500,260 560,110 800,110 800,380 500,380" fill="#059669" fillOpacity="0.4" stroke="#10b981" strokeWidth="2" />
+
+              {/* Vulnerable House on Shoreline */}
+              <g opacity={seaMetrics.vulnerableTraditionalHomes > 80 ? 0.3 : 1} className="transition-opacity duration-300">
+                <rect x="380" y="220" width="35" height="25" fill="#ef4444" />
+                <polygon points="375,220 397,205 420,220" fill="#dc2626" />
+                <text x="397" y="260" textAnchor="middle" fill="#ef4444" fontSize="9" fontFamily="monospace">COTA 0.00</text>
+              </g>
+
+              {/* Secure Relocated Settlement on Plateau */}
+              <g>
+                <rect x="590" y="85" width="45" height="25" fill="#10b981" />
+                <polygon points="585,85 612,70 640,85" fill="#059669" />
+                
+                <rect x="660" y="70" width="70" height="40" fill="#0d9488" />
+                <rect x="680" y="110" width="40" height="15" fill="#0284c7" />
+                <text x="700" y="122" textAnchor="middle" fill="#ffffff" fontSize="7" fontFamily="monospace">ALJIBE</text>
+
+                <text x="660" y="55" textAnchor="middle" fill="#10b981" fontSize="11" fontFamily="monospace" fontWeight="bold">
+                  MESETA SEGURA (+22.00 M)
+                </text>
+              </g>
+
+              {/* Erosion loss line */}
+              <line x1="360" y1="180" x2={360 + seaMetrics.totalBeachLoss * 3} y2="180" stroke="#f43f5e" strokeWidth="3" strokeDasharray="4 2" />
+              <text x="360" y="170" fill="#f43f5e" fontSize="10" fontFamily="monospace">
+                RETROCESO: -{seaMetrics.totalBeachLoss}m ({seaMetrics.targetYear})
+              </text>
+            </svg>
+          )}
+
+          {/* Engine 2 Graphic: Water Reservoir Balance */}
+          {activeEngine === 'waterBalance' && (
+            <svg viewBox="0 0 800 400" className="w-full h-full drop-shadow-2xl">
+              {/* Rain clouds */}
+              <g className="animate-pulse">
+                <circle cx="200" cy="80" r="30" fill="#475569" />
+                <circle cx="240" cy="70" r="35" fill="#475569" />
+                <circle cx="280" cy="80" r="28" fill="#475569" />
+                <text x="240" y="85" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="monospace">
+                  {annualRainfallMm} mm/año
+                </text>
+              </g>
+
+              {/* Rain drops */}
+              {[180, 210, 240, 270, 300].map((x, i) => (
+                <line key={i} x1={x} y1="120" x2={x - 10} y2="160" stroke="#38bdf8" strokeWidth="2" strokeDasharray="4 4" />
+              ))}
+
+              {/* Catchment Roof */}
+              <polygon points="120,170 240,190 360,170 360,180 240,200 120,180" fill="#cbd5e1" stroke="#475569" strokeWidth="2" />
+              <text x="240" y="215" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">
+                CUBIERTAS: {catchmentAreaM2.toLocaleString()} m²
+              </text>
+
+              {/* Cistern Tank */}
+              <rect x="420" y="140" width="260" height="180" rx="16" fill="#0f172a" stroke="#0284c7" strokeWidth="3" />
+              
+              {/* Water Fill Level inside Cistern */}
+              <rect 
+                x="424" 
+                y={316 - (waterMetrics.fillPercent * 1.7)} 
+                width="252" 
+                height={waterMetrics.fillPercent * 1.7} 
+                rx="12" 
+                fill="#0284c7" 
+                fillOpacity="0.8" 
+                className="transition-all duration-500"
+              />
+
+              <text x="550" y="230" textAnchor="middle" fill="#ffffff" fontSize="16" fontFamily="monospace" fontWeight="bold">
+                {waterMetrics.fillPercent}% LLENO
+              </text>
+              <text x="550" y="250" textAnchor="middle" fill="#bae6fd" fontSize="11" fontFamily="monospace">
+                {waterMetrics.drySeasonAutonomyDays} DÍAS DE AUTONOMÍA
+              </text>
+            </svg>
+          )}
+
+          {/* Engine 3 Graphic: Perturbation & Network Resilience */}
+          {activeEngine === 'perturbation' && (
+            <svg viewBox="0 0 800 400" className="w-full h-full drop-shadow-2xl">
+              {/* Grid Status Node */}
+              <circle cx="250" cy="200" r="60" fill={gridFailureActive ? "#7f1d1d" : "#064e3b"} stroke={gridFailureActive ? "#ef4444" : "#10b981"} strokeWidth="3" />
+              <text x="250" y="195" textAnchor="middle" fill="#ffffff" fontSize="24">{gridFailureActive ? "⚡❌" : "⚡✅"}</text>
+              <text x="250" y="225" textAnchor="middle" fill="#ffffff" fontSize="10" fontFamily="monospace" fontWeight="bold">
+                RED CARTAGENA
+              </text>
+
+              {/* Community Autonomous Microgrid */}
+              <circle cx="550" cy="200" r="80" fill="#064e3b" stroke="#10b981" strokeWidth="4" />
+              <text x="550" y="185" textAnchor="middle" fill="#ffffff" fontSize="32">☀️🔋</text>
+              <text x="550" y="220" textAnchor="middle" fill="#ffffff" fontSize="12" fontFamily="monospace" fontWeight="bold">
+                ISLA AUTÓNOMA
+              </text>
+              <text x="550" y="238" textAnchor="middle" fill="#6ee7b7" fontSize="10" fontFamily="monospace">
+                100% OPERATIVO
+              </text>
+            </svg>
+          )}
+
+          {/* Engine 4 Graphic: Bioclimatic Wind Flow */}
+          {activeEngine === 'bioclimatic' && (
+            <svg viewBox="0 0 800 400" className="w-full h-full drop-shadow-2xl">
+              {/* Classroom Section */}
+              <rect x="280" y="120" width="280" height="180" rx="8" fill="#1e293b" stroke="#64748b" strokeWidth="2" />
+              <polygon points="260,120 420,80 580,120 580,130 420,90 260,130" fill="#94a3b8" />
+
+              {/* Louvers */}
+              <rect x="280" y="160" width="10" height="100" fill="#f59e0b" opacity={louverOpeningPct / 100} />
+              <rect x="550" y="160" width="10" height="100" fill="#f59e0b" opacity={louverOpeningPct / 100} />
+
+              {/* Wind Arrows Passing Through */}
+              {[180, 210, 240].map((y, idx) => (
+                <path 
+                  key={idx}
+                  d={`M 140,${y} L 700,${y}`} 
+                  stroke="#0d9488" 
+                  strokeWidth="3" 
+                  strokeDasharray="12 6" 
+                  className="animate-pulse"
+                />
+              ))}
+
+              <text x="420" y="200" textAnchor="middle" fill="#ffffff" fontSize="18" fontFamily="monospace" fontWeight="bold">
+                -{windMetrics.tempDrop} °C
+              </text>
+              <text x="420" y="225" textAnchor="middle" fill="#5eead4" fontSize="11" fontFamily="monospace">
+                {windMetrics.ach} RENOVACIONES / HORA
+              </text>
+            </svg>
+          )}
+
         </div>
 
-        {/* Engine Switcher Tabs */}
-        <div className="flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-sand-200/80 dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 text-xs font-mono self-start">
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. FLOATING HUD OVERLAYS                                                  */}
+      {/* ========================================================================= */}
+
+      {/* Top Floating Control Bar */}
+      <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
+        
+        {/* Module Title Card */}
+        <div className="bg-slate-900/90 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-700/80 shadow-2xl pointer-events-auto flex items-center space-x-3 max-w-lg text-white">
+          <div className="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
+            08
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center space-x-2">
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                LABORATORIO DE SIMULACIONES // MODELAMIENTO
+              </span>
+              <span className="text-[10px] font-mono text-emerald-300 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                DINÁMICO
+              </span>
+            </div>
+            <h2 className="font-bold text-sm text-white truncate">
+              {activeEngine === 'seaLevel' && 'Erosión Costera & Retiro de Línea Marina (IPCC)'}
+              {activeEngine === 'waterBalance' && 'Balance Hidráulico & Autonomía Aljibe 450kL'}
+              {activeEngine === 'perturbation' && 'Resiliencia ante Desconexión de Red'}
+              {activeEngine === 'bioclimatic' && 'Dinámica de Fluidos & Ventilación Cruzada'}
+            </h2>
+          </div>
+        </div>
+
+        {/* Engine Switcher Bar */}
+        <div className="bg-slate-900/90 backdrop-blur-md p-1 rounded-2xl border border-slate-700/80 shadow-2xl pointer-events-auto flex items-center gap-1 self-start md:self-center text-white">
           <button
             onClick={() => setActiveEngine('seaLevel')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl transition-all ${
-              activeEngine === 'seaLevel'
-                ? 'bg-terracotta-600 text-white font-bold shadow-sm'
-                : 'text-deepsea-700 dark:text-sand-400 hover:text-deepsea-950 dark:hover:text-white'
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              activeEngine === 'seaLevel' ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'
             }`}
           >
             <Waves className="w-3.5 h-3.5" />
-            <span>01. Nivel del Mar</span>
+            <span>1. Nivel del Mar</span>
           </button>
-
           <button
             onClick={() => setActiveEngine('waterBalance')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl transition-all ${
-              activeEngine === 'waterBalance'
-                ? 'bg-terracotta-600 text-white font-bold shadow-sm'
-                : 'text-deepsea-700 dark:text-sand-400 hover:text-deepsea-950 dark:hover:text-white'
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              activeEngine === 'waterBalance' ? 'bg-blue-500 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'
             }`}
           >
             <Droplets className="w-3.5 h-3.5" />
-            <span>02. Balance Hídrico</span>
+            <span>2. Balance Hídrico</span>
           </button>
-
           <button
             onClick={() => setActiveEngine('perturbation')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl transition-all ${
-              activeEngine === 'perturbation'
-                ? 'bg-terracotta-600 text-white font-bold shadow-sm'
-                : 'text-deepsea-700 dark:text-sand-400 hover:text-deepsea-950 dark:hover:text-white'
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              activeEngine === 'perturbation' ? 'bg-terracotta-500 text-white shadow-sm' : 'text-slate-300 hover:text-white'
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
-            <span>03. Perturbación & Red</span>
+            <span>3. Perturbación</span>
           </button>
-
           <button
             onClick={() => setActiveEngine('bioclimatic')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl transition-all ${
-              activeEngine === 'bioclimatic'
-                ? 'bg-terracotta-600 text-white font-bold shadow-sm'
-                : 'text-deepsea-700 dark:text-sand-400 hover:text-deepsea-950 dark:hover:text-white'
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              activeEngine === 'bioclimatic' ? 'bg-teal-500 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'
             }`}
           >
             <Wind className="w-3.5 h-3.5" />
-            <span>04. Confort Eólico</span>
+            <span>4. Eólico</span>
           </button>
         </div>
+
+        {/* Info Modal Button */}
+        <div className="bg-slate-900/90 backdrop-blur-md p-1 rounded-2xl border border-slate-700/80 shadow-2xl pointer-events-auto flex items-center gap-1">
+          <button
+            onClick={() => setShowMethodologyModal(true)}
+            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-mono font-bold shadow-sm transition-all flex items-center space-x-1.5 border border-slate-700"
+          >
+            <Info className="w-4 h-4" />
+            <span>Metodología</span>
+          </button>
+        </div>
+
       </div>
 
-      {/* ===================================================================== */}
-      {/* SIMULATOR 01: SEA LEVEL & COASTAL EROSION                             */}
-      {/* ===================================================================== */}
-      {activeEngine === 'seaLevel' && (
-        <div className="space-y-8 animate-fade-in">
-          
-          {/* Top Presets Bar */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center space-x-2 text-xs font-mono text-deepsea-700 dark:text-sand-300">
-              <Sliders className="w-4 h-4 text-terracotta-600 dark:text-terracotta-400" />
-              <span className="font-bold">Escenarios Preconfigurados (IPCC):</span>
+      {/* Floating Left: Interactive Parameter Sliders */}
+      <div className="absolute top-24 left-4 z-[400] bg-slate-900/90 backdrop-blur-md p-4 rounded-3xl border border-slate-700/80 shadow-2xl space-y-4 pointer-events-auto text-white w-72">
+        <div className="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold border-b border-slate-800 pb-2 flex items-center justify-between">
+          <span>Variables de Entrada</span>
+          <Sliders className="w-3.5 h-3.5" />
+        </div>
+
+        {activeEngine === 'seaLevel' && (
+          <>
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs font-mono">
+                <span className="text-slate-400">Aumento Mar:</span>
+                <span className="font-bold text-amber-400">+{seaRiseCm} cm</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="150"
+                step="5"
+                value={seaRiseCm}
+                onChange={(e) => setSeaRiseCm(parseInt(e.target.value))}
+                className="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+              />
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => applySeaPreset('base2026')}
-                className="px-3 py-1.5 rounded-lg bg-sand-200 dark:bg-deepsea-800 hover:bg-sand-300 dark:hover:bg-deepsea-700 text-xs font-mono font-medium transition-colors"
-              >
-                Base 2026
-              </button>
+
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs font-mono">
+                <span className="text-slate-400">Tasa Erosión:</span>
+                <span className="font-bold text-red-400">{erosionRateYear} m/año</span>
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="4.0"
+                step="0.1"
+                value={erosionRateYear}
+                onChange={(e) => setErosionRateYear(parseFloat(e.target.value))}
+                className="w-full accent-red-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs font-mono">
+                <span className="text-slate-400">Horizonte:</span>
+                <span className="font-bold text-teal-400">{seaMetrics.targetYear}</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="50"
+                step="5"
+                value={timeHorizonYears}
+                onChange={(e) => setTimeHorizonYears(parseInt(e.target.value))}
+                className="w-full accent-teal-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-1.5 pt-2">
               <button
                 onClick={() => applySeaPreset('ssp2')}
-                className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 text-xs font-mono font-medium transition-colors"
+                className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-mono text-slate-300"
               >
-                SSP2-4.5 (2050 Moderado)
-              </button>
-              <button
-                onClick={() => applySeaPreset('ssp5')}
-                className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/20 hover:bg-red-500/20 text-xs font-mono font-medium transition-colors"
-              >
-                SSP5-8.5 (2076 Extremo)
+                SSP2 (2050)
               </button>
               <button
                 onClick={() => applySeaPreset('stormSurge')}
-                className="px-3 py-1.5 rounded-lg bg-terracotta-600 text-white hover:bg-terracotta-500 text-xs font-mono font-medium transition-colors shadow-sm"
+                className="px-2 py-1 rounded-lg bg-red-900/50 hover:bg-red-900 text-[10px] font-mono text-red-200 border border-red-800"
               >
-                Marea de Leva + Tormenta
+                Marea Leva
               </button>
             </div>
-          </div>
+          </>
+        )}
 
-          {/* Interactive Controls & Real-Time Metrics Grid */}
-          <div className="grid lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Left Controls Sliders Panel */}
-            <div className="lg:col-span-5 p-6 sm:p-7 rounded-3xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-xl space-y-6">
-              <h3 className="font-serif font-bold text-xl text-deepsea-950 dark:text-sand-100 border-b border-sand-300/60 dark:border-deepsea-800 pb-3">
-                Parámetros de Forzamiento Marino
-              </h3>
-
-              {/* Slider 1: Sea level rise */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs font-mono">
-                  <span className="text-deepsea-800/80 dark:text-sand-300">Aumento del Nivel del Mar:</span>
-                  <span className="font-bold text-terracotta-600 dark:text-terracotta-400 bg-terracotta-500/10 px-2 py-0.5 rounded">
-                    +{seaRiseCm} cm
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="150"
-                  step="5"
-                  value={seaRiseCm}
-                  onChange={(e) => setSeaRiseCm(parseInt(e.target.value))}
-                  className="w-full h-2 bg-sand-300 dark:bg-deepsea-800 rounded-lg appearance-none cursor-pointer accent-terracotta-600"
-                />
-                <div className="flex justify-between text-[10px] font-mono text-sand-500">
-                  <span>0 cm (Actual)</span>
-                  <span>+75 cm</span>
-                  <span>+150 cm (Catastrófico)</span>
-                </div>
+        {activeEngine === 'waterBalance' && (
+          <>
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs font-mono">
+                <span className="text-slate-400">Precipitación:</span>
+                <span className="font-bold text-blue-400">{annualRainfallMm} mm</span>
               </div>
-
-              {/* Slider 2: Coastal erosion rate */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs font-mono">
-                  <span className="text-deepsea-800/80 dark:text-sand-300">Tasa de Retiro de Playa:</span>
-                  <span className="font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-2 py-0.5 rounded">
-                    {erosionRateYear} m/año
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="4.0"
-                  step="0.1"
-                  value={erosionRateYear}
-                  onChange={(e) => setErosionRateYear(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-sand-300 dark:bg-deepsea-800 rounded-lg appearance-none cursor-pointer accent-red-600"
-                />
-                <div className="flex justify-between text-[10px] font-mono text-sand-500">
-                  <span>0.5 m/año</span>
-                  <span>1.8 m/año (Base)</span>
-                  <span>4.0 m/año</span>
-                </div>
-              </div>
-
-              {/* Slider 3: Time Horizon */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs font-mono">
-                  <span className="text-deepsea-800/80 dark:text-sand-300">Horizonte Temporal de Proyección:</span>
-                  <span className="font-bold text-deepsea-950 dark:text-sand-100 bg-sand-200 dark:bg-deepsea-800 px-2 py-0.5 rounded">
-                    Año {seaMetrics.targetYear} ({timeHorizonYears} años)
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="74"
-                  step="1"
-                  value={timeHorizonYears}
-                  onChange={(e) => setTimeHorizonYears(parseInt(e.target.value))}
-                  className="w-full h-2 bg-sand-300 dark:bg-deepsea-800 rounded-lg appearance-none cursor-pointer accent-deepsea-600 dark:accent-sand-400"
-                />
-                <div className="flex justify-between text-[10px] font-mono text-sand-500">
-                  <span>2026</span>
-                  <span>2050 (+24a)</span>
-                  <span>2100 (+74a)</span>
-                </div>
-              </div>
-
+              <input
+                type="range"
+                min="250"
+                max="1500"
+                step="50"
+                value={annualRainfallMm}
+                onChange={(e) => setAnnualRainfallMm(parseInt(e.target.value))}
+                className="w-full accent-blue-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+              />
             </div>
 
-            {/* Right Simulation Results & Dynamic Impact Gauges */}
-            <div className="lg:col-span-7 space-y-5">
-              <div className="grid sm:grid-cols-2 gap-4">
-                
-                {/* Metric 1: Total Shoreline Loss */}
-                <div className="p-5 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-deepsea-700/60 dark:text-sand-400">
-                    <span>Retiro Acumulado Borde</span>
-                    <Waves className="w-4 h-4 text-red-500" />
-                  </div>
-                  <h4 className="font-serif font-bold text-3xl text-red-600 dark:text-red-400">
-                    -{seaMetrics.totalBeachLoss} metros
-                  </h4>
-                  <p className="text-xs text-deepsea-700/70 dark:text-sand-400 font-light">
-                    Franja de arena y patio perdida frente a las viviendas no reubicadas.
-                  </p>
-                </div>
-
-                {/* Metric 2: Vulnerable Traditional Homes */}
-                <div className="p-5 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-deepsea-700/60 dark:text-sand-400">
-                    <span>Viviendas en Riesgo Inminente</span>
-                    <AlertTriangle className="w-4 h-4 text-amber-500" />
-                  </div>
-                  <h4 className="font-serif font-bold text-3xl text-amber-600 dark:text-amber-400">
-                    {seaMetrics.vulnerableTraditionalHomes} de 120
-                  </h4>
-                  <p className="text-xs text-deepsea-700/70 dark:text-sand-400 font-light">
-                    Hogares con socavación estructural si permanecieran en cota 0.00.
-                  </p>
-                </div>
-
-                {/* Metric 3: Salinity Intrusion */}
-                <div className="p-5 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-deepsea-700/60 dark:text-sand-400">
-                    <span>Salinidad Acuíferos Borde</span>
-                    <Droplets className="w-4 h-4 text-blue-500" />
-                  </div>
-                  <h4 className="font-serif font-bold text-3xl text-blue-600 dark:text-blue-400">
-                    {seaMetrics.aquiferSalinityPsu} PSU
-                  </h4>
-                  <p className="text-xs text-deepsea-700/70 dark:text-sand-400 font-light">
-                    Agua no apta para consumo humano en pozos tradicionales (Límite: 0.5 PSU).
-                  </p>
-                </div>
-
-                {/* Metric 4: Plateau Safety Level */}
-                <div className="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/30 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-emerald-700 dark:text-emerald-300">
-                    <span>Seguridad en Meseta (+22m)</span>
-                    <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  </div>
-                  <h4 className="font-serif font-bold text-3xl text-emerald-700 dark:text-emerald-300">
-                    100% Inmune
-                  </h4>
-                  <p className="text-xs text-emerald-800/80 dark:text-emerald-200 font-light">
-                    El Plan Maestro garantiza 0 viviendas afectadas por oleaje y mareas.
-                  </p>
-                </div>
-
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs font-mono">
+                <span className="text-slate-400">Consumo Diario:</span>
+                <span className="font-bold text-teal-400">{dailyPerCapitaConsL} L/hab/d</span>
               </div>
+              <input
+                type="range"
+                min="20"
+                max="80"
+                step="5"
+                value={dailyPerCapitaConsL}
+                onChange={(e) => setDailyPerCapitaConsL(parseInt(e.target.value))}
+                className="w-full accent-teal-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+              />
+            </div>
+          </>
+        )}
 
-              {/* Comparative Diagnostic Insight Box */}
-              <div className="p-5 rounded-2xl bg-deepsea-950 text-white border border-deepsea-800 space-y-2 font-mono text-xs">
-                <div className="flex items-center space-x-2 text-terracotta-400 font-bold">
-                  <Sparkles className="w-4 h-4" />
-                  <span>Conclusión del Modelo al Año {seaMetrics.targetYear}:</span>
-                </div>
-                <p className="text-sand-300 font-sans font-light leading-relaxed">
-                  Bajo un forzamiento de <b>+{seaRiseCm} cm</b> de marea y <b>{erosionRateYear} m/año</b> de socavación, permanecer en el borde costero tradicional implicaría el colapso de <b>{seaMetrics.vulnerableTraditionalHomes} viviendas</b>. La relocalización propuesta en la cota <b>+22.00 m.s.n.m.</b> elimina el 100% de la vulnerabilidad física.
-                </p>
+        {activeEngine === 'perturbation' && (
+          <>
+            <button
+              onClick={() => setGridFailureActive(!gridFailureActive)}
+              className={`w-full py-2 px-3 rounded-xl text-xs font-mono font-bold transition-all ${
+                gridFailureActive ? 'bg-red-600 text-white' : 'bg-slate-800 text-slate-300'
+              }`}
+            >
+              Corte Red Externa: {gridFailureActive ? 'ACTIVO' : 'NORMAL'}
+            </button>
+            <button
+              onClick={() => setWaterBargeDelayed(!waterBargeDelayed)}
+              className={`w-full py-2 px-3 rounded-xl text-xs font-mono font-bold transition-all ${
+                waterBargeDelayed ? 'bg-amber-600 text-white' : 'bg-slate-800 text-slate-300'
+              }`}
+            >
+              Barcazas Bloqueadas: {waterBargeDelayed ? 'SÍ' : 'NO'}
+            </button>
+          </>
+        )}
+
+        {activeEngine === 'bioclimatic' && (
+          <>
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs font-mono">
+                <span className="text-slate-400">Viento Alisios:</span>
+                <span className="font-bold text-teal-400">{windSpeedKnots} nudos</span>
               </div>
-
+              <input
+                type="range"
+                min="5"
+                max="35"
+                value={windSpeedKnots}
+                onChange={(e) => setWindSpeedKnots(parseInt(e.target.value))}
+                className="w-full accent-teal-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+              />
             </div>
 
-          </div>
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs font-mono">
+                <span className="text-slate-400">Apertura Celosías:</span>
+                <span className="font-bold text-amber-400">{louverOpeningPct}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={louverOpeningPct}
+                onChange={(e) => setLouverOpeningPct(parseInt(e.target.value))}
+                className="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+              />
+            </div>
+          </>
+        )}
+      </div>
 
+      {/* Floating Right: Telemetry Results */}
+      <div className="absolute top-24 right-4 z-[400] bg-slate-900/90 backdrop-blur-md p-4 rounded-3xl border border-slate-700/80 shadow-2xl space-y-3 pointer-events-auto text-white w-64">
+        <div className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold border-b border-slate-800 pb-2 flex items-center justify-between">
+          <span>Respuesta del Hábitat</span>
+          <Activity className="w-3.5 h-3.5" />
         </div>
-      )}
 
-      {/* ===================================================================== */}
-      {/* SIMULATOR 02: WATER BALANCE & DROUGHT STRESS (ALJIBE 450.000 L)       */}
-      {/* ===================================================================== */}
-      {activeEngine === 'waterBalance' && (
-        <div className="space-y-8 animate-fade-in">
-          
-          {/* Top Presets Bar */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center space-x-2 text-xs font-mono text-deepsea-700 dark:text-sand-300">
-              <Sliders className="w-4 h-4 text-terracotta-600 dark:text-terracotta-400" />
-              <span className="font-bold">Escenarios Pluviométricos:</span>
+        {activeEngine === 'seaLevel' && (
+          <>
+            <div className="p-2.5 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-0.5">
+              <span className="text-[10px] text-slate-400 font-mono">Viviendas Tradicionales Afectadas</span>
+              <p className="text-xl font-bold font-mono text-red-400">{seaMetrics.vulnerableTraditionalHomes} Hogares</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => applyWaterPreset('average')}
-                className="px-3 py-1.5 rounded-lg bg-sand-200 dark:bg-deepsea-800 hover:bg-sand-300 text-xs font-mono font-medium transition-colors"
-              >
-                Año Promedio (950 mm)
-              </button>
-              <button
-                onClick={() => applyWaterPreset('elNinoDry')}
-                className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 text-xs font-mono font-medium transition-colors"
-              >
-                Sequía Fenómeno El Niño (380 mm)
-              </button>
-              <button
-                onClick={() => applyWaterPreset('laNinaWet')}
-                className="px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 text-xs font-mono font-medium transition-colors"
-              >
-                Lluvias Intensas La Niña (1.400 mm)
-              </button>
-              <button
-                onClick={() => applyWaterPreset('emergency')}
-                className="px-3 py-1.5 rounded-lg bg-terracotta-600 text-white hover:bg-terracotta-500 text-xs font-mono font-medium transition-colors"
-              >
-                Régimen de Racionamiento (20 L/hab)
-              </button>
+            <div className="p-2.5 rounded-2xl bg-emerald-950/40 border border-emerald-800 space-y-0.5">
+              <span className="text-[10px] text-emerald-400 font-mono">Seguridad Meseta (+22m)</span>
+              <p className="text-xl font-bold font-mono text-emerald-300">100% Inmune</p>
             </div>
+          </>
+        )}
+
+        {activeEngine === 'waterBalance' && (
+          <>
+            <div className="p-2.5 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-0.5">
+              <span className="text-[10px] text-slate-400 font-mono">Volumen Captado</span>
+              <p className="text-xl font-bold font-mono text-blue-400">{waterMetrics.harvestedM3} m³</p>
+            </div>
+            <div className="p-2.5 rounded-2xl bg-emerald-950/40 border border-emerald-800 space-y-0.5">
+              <span className="text-[10px] text-emerald-400 font-mono">Autonomía Sequía</span>
+              <p className="text-xl font-bold font-mono text-emerald-300">{waterMetrics.drySeasonAutonomyDays} Días</p>
+            </div>
+          </>
+        )}
+
+        {activeEngine === 'perturbation' && (
+          <div className="p-2.5 rounded-2xl bg-emerald-950/40 border border-emerald-800 space-y-0.5">
+            <span className="text-[10px] text-emerald-400 font-mono">Autonomía Comunitaria</span>
+            <p className="text-base font-bold font-mono text-emerald-300">350 Alumnos Atendidos</p>
           </div>
+        )}
 
-          {/* Controls & Metrics */}
-          <div className="grid lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Sliders Panel */}
-            <div className="lg:col-span-5 p-6 sm:p-7 rounded-3xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-xl space-y-6">
-              <h3 className="font-serif font-bold text-xl text-deepsea-950 dark:text-sand-100 border-b border-sand-300/60 dark:border-deepsea-800 pb-3">
-                Variables de Demanda & Captación
-              </h3>
-
-              {/* Slider 1: Annual Rainfall */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs font-mono">
-                  <span className="text-deepsea-800/80 dark:text-sand-300">Precipitación Anual Insular:</span>
-                  <span className="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded">
-                    {annualRainfallMm} mm/año
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="250"
-                  max="1500"
-                  step="25"
-                  value={annualRainfallMm}
-                  onChange={(e) => setAnnualRainfallMm(parseInt(e.target.value))}
-                  className="w-full h-2 bg-sand-300 dark:bg-deepsea-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                />
-                <div className="flex justify-between text-[10px] font-mono text-sand-500">
-                  <span>250 mm (Sequía)</span>
-                  <span>950 mm (Media)</span>
-                  <span>1.500 mm (Máx)</span>
-                </div>
-              </div>
-
-              {/* Slider 2: Daily consumption */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs font-mono">
-                  <span className="text-deepsea-800/80 dark:text-sand-300">Consumo Diario per Cápita:</span>
-                  <span className="font-bold text-terracotta-600 dark:text-terracotta-400 bg-terracotta-500/10 px-2 py-0.5 rounded">
-                    {dailyPerCapitaConsL} L / habitante / día
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="20"
-                  max="80"
-                  step="5"
-                  value={dailyPerCapitaConsL}
-                  onChange={(e) => setDailyPerCapitaConsL(parseInt(e.target.value))}
-                  className="w-full h-2 bg-sand-300 dark:bg-deepsea-800 rounded-lg appearance-none cursor-pointer accent-terracotta-600"
-                />
-                <div className="flex justify-between text-[10px] font-mono text-sand-500">
-                  <span>20 L (Emergencia)</span>
-                  <span>40 L (Bioclimático)</span>
-                  <span>80 L (Dotación OMS)</span>
-                </div>
-              </div>
-
-              {/* Slider 3: Runoff Coeff */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs font-mono">
-                  <span className="text-deepsea-800/80 dark:text-sand-300">Eficiencia de Cubierta (Escorrentía):</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
-                    {Math.round(runoffCoeff * 100)}%
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0.70"
-                  max="0.95"
-                  step="0.05"
-                  value={runoffCoeff}
-                  onChange={(e) => setRunoffCoeff(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-sand-300 dark:bg-deepsea-800 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                />
-              </div>
-
-            </div>
-
-            {/* Results Grid */}
-            <div className="lg:col-span-7 space-y-5">
-              <div className="grid sm:grid-cols-2 gap-4">
-                
-                {/* Metric 1: Harvested volume */}
-                <div className="p-5 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-deepsea-700/60 dark:text-sand-400">
-                    <span>Volumen Anual Captado</span>
-                    <Droplets className="w-4 h-4 text-blue-500" />
-                  </div>
-                  <h4 className="font-serif font-bold text-3xl text-blue-600 dark:text-blue-400">
-                    {waterMetrics.harvestedM3.toLocaleString()} m³
-                  </h4>
-                  <p className="text-xs text-deepsea-700/70 dark:text-sand-400 font-light">
-                    {waterMetrics.harvestedLitres.toLocaleString()} Litros colectados en 8.330 m² de cubiertas.
-                  </p>
-                </div>
-
-                {/* Metric 2: Dry season autonomy */}
-                <div className="p-5 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-deepsea-700/60 dark:text-sand-400">
-                    <span>Autonomía en Sequía Cero Lluvia</span>
-                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  </div>
-                  <h4 className="font-serif font-bold text-3xl text-emerald-600 dark:text-emerald-400">
-                    {waterMetrics.drySeasonAutonomyDays} días
-                  </h4>
-                  <p className="text-xs text-deepsea-700/70 dark:text-sand-400 font-light">
-                    Suministro continuo garantizado desde el aljibe de 450.000 L.
-                  </p>
-                </div>
-
-                {/* Metric 3: Economic savings */}
-                <div className="p-5 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-deepsea-700/60 dark:text-sand-400">
-                    <span>Ahorro Comunitario Anual</span>
-                    <TrendingUp className="w-4 h-4 text-terracotta-500" />
-                  </div>
-                  <h4 className="font-serif font-bold text-3xl text-terracotta-600 dark:text-terracotta-400">
-                    ${waterMetrics.annualSavingsCopMillions}M COP
-                  </h4>
-                  <p className="text-xs text-deepsea-700/70 dark:text-sand-400 font-light">
-                    Gasto no incurrido en compra de pimpinas a barcazas de Cartagena.
-                  </p>
-                </div>
-
-                {/* Metric 4: Net Water Balance */}
-                <div className="p-5 rounded-2xl bg-sand-100/80 dark:bg-deepsea-950 border border-sand-300/80 dark:border-deepsea-800 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-deepsea-700/60 dark:text-sand-400">
-                    <span>Balance Hidráulico Neto</span>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  </div>
-                  <h4 className={`font-serif font-bold text-3xl ${
-                    waterMetrics.annualBalanceLitres >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
-                  }`}>
-                    {waterMetrics.annualBalanceLitres >= 0 ? `+${(waterMetrics.annualBalanceLitres / 1000).toFixed(0)} m³` : `${(waterMetrics.annualBalanceLitres / 1000).toFixed(0)} m³`}
-                  </h4>
-                  <p className="text-xs text-deepsea-700/70 dark:text-sand-400 font-light">
-                    {waterMetrics.annualBalanceLitres >= 0 
-                      ? 'Superávit aprovechable para bio-humedales y huertos comunales.' 
-                      : 'Requiere activación de protocolos de contingencia de bajo caudal.'}
-                  </p>
-                </div>
-
-              </div>
-
-            </div>
-
+        {activeEngine === 'bioclimatic' && (
+          <div className="p-2.5 rounded-2xl bg-teal-950/40 border border-teal-800 space-y-0.5">
+            <span className="text-[10px] text-teal-400 font-mono">Reducción Térmica Pasiva</span>
+            <p className="text-xl font-bold font-mono text-teal-300">-{windMetrics.tempDrop} °C</p>
           </div>
+        )}
+      </div>
 
-        </div>
-      )}
-
-      {/* ===================================================================== */}
-      {/* SIMULATOR 03: PERTURBATION & CAPACITY (EQUIPAMIENTO & DISPENSARIO)    */}
-      {/* ===================================================================== */}
-      {activeEngine === 'perturbation' && (
-        <div className="space-y-8 animate-fade-in">
-          
-          {/* Scenario Selector Tabs */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            {Object.entries(perturbationScenarios).map(([key, sc]) => {
-              const isSelected = selectedScenario === key;
-              return (
-                <button
-                  key={key}
-                  onClick={() => setSelectedScenario(key)}
-                  className={`p-5 rounded-2xl text-left transition-all duration-200 border ${
-                    isSelected
-                      ? 'bg-white dark:bg-deepsea-900 border-terracotta-500 shadow-md ring-1 ring-terracotta-400/30'
-                      : 'bg-white/60 dark:bg-deepsea-900/40 border-sand-300/60 dark:border-deepsea-800 hover:border-sand-400'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-sand-200 dark:bg-deepsea-800 text-deepsea-700 dark:text-sand-300">
-                      {sc.users} Usuarios
-                    </span>
-                    {isSelected && <CheckCircle2 className="w-4 h-4 text-terracotta-600 dark:text-terracotta-400" />}
-                  </div>
-                  <h4 className="font-display font-bold text-sm text-deepsea-950 dark:text-sand-100">
-                    {sc.name}
-                  </h4>
-                  <p className={`text-xs font-mono mt-1 ${sc.statusColor}`}>
-                    {sc.status}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Active Scenario Detailed Dashboard */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-xl space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-sand-300/60 dark:border-deepsea-800 pb-4">
+      {/* ========================================================================= */}
+      {/* 3. SCIENTIFIC METHODOLOGY POPUP MODAL                                     */}
+      {/* ========================================================================= */}
+      {showMethodologyModal && (
+        <div 
+          onClick={() => setShowMethodologyModal(false)}
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-fade-in"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-lg w-full shadow-2xl relative text-slate-900 space-y-5"
+          >
+            <div className="flex items-start justify-between">
               <div>
-                <span className="text-xs font-mono text-terracotta-600 dark:text-terracotta-400 font-bold uppercase">
-                  Respuesta del Complejo Educativo & Cívico
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                  METODOLOGÍA CIENTÍFICA // MODELAMIENTO
                 </span>
-                <h3 className="font-serif font-bold text-2xl text-deepsea-950 dark:text-sand-100 mt-0.5">
-                  {currentPerturbation.name}
+                <h3 className="font-bold text-xl text-slate-900 mt-2">
+                  Laboratorio de Simulación Paramétrica
                 </h3>
               </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold bg-sand-100 dark:bg-deepsea-950 border border-current ${currentPerturbation.statusColor}`}>
-                {currentPerturbation.status}
-              </span>
+
+              <button
+                onClick={() => setShowMethodologyModal(false)}
+                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              
-              {/* Metric 1: Ocupación */}
-              <div className="p-4 rounded-xl bg-sand-50 dark:bg-deepsea-950 border border-sand-300/60 dark:border-deepsea-800/80">
-                <span className="text-xs font-mono text-deepsea-700/60 dark:text-sand-400">Ocupación Espacial</span>
-                <h4 className="font-serif font-bold text-2xl text-deepsea-950 dark:text-sand-100 mt-1">
-                  {currentPerturbation.occupancy}%
-                </h4>
-                <div className="w-full h-1.5 bg-sand-200 dark:bg-deepsea-800 rounded-full mt-2 overflow-hidden">
-                  <div 
-                    className="h-full bg-terracotta-600 rounded-full transition-all duration-500" 
-                    style={{ width: `${currentPerturbation.occupancy}%` }} 
-                  />
-                </div>
-              </div>
+            <p className="text-sm text-slate-700 leading-relaxed font-light">
+              Los motores de cálculo integran modelos matemáticos de cambio climático (IPCC SSP2-4.5 y SSP5-8.5), forzamiento de marea de leva, balances hidráulicos de captación superficial y ecuaciones de dinámica de fluidos para confort térmico pasivo.
+            </p>
 
-              {/* Metric 2: Caudal Dispensado */}
-              <div className="p-4 rounded-xl bg-sand-50 dark:bg-deepsea-950 border border-sand-300/60 dark:border-deepsea-800/80">
-                <span className="text-xs font-mono text-deepsea-700/60 dark:text-sand-400">Caudal de Dispensación</span>
-                <h4 className="font-serif font-bold text-2xl text-blue-600 dark:text-blue-400 mt-1">
-                  {currentPerturbation.flowLmin} L/min
-                </h4>
-                <p className="text-[11px] font-mono text-sand-500 mt-1">
-                  {currentPerturbation.users} personas servidas
-                </p>
-              </div>
-
-              {/* Metric 3: Demanda Solar */}
-              <div className="p-4 rounded-xl bg-sand-50 dark:bg-deepsea-950 border border-sand-300/60 dark:border-deepsea-800/80">
-                <span className="text-xs font-mono text-deepsea-700/60 dark:text-sand-400">Carga Eléctrica Fotovoltaica</span>
-                <h4 className="font-serif font-bold text-2xl text-amber-600 dark:text-amber-400 mt-1">
-                  {currentPerturbation.powerKw} kW
-                </h4>
-                <p className="text-[11px] font-mono text-sand-500 mt-1">
-                  Bombeo solar + Iluminación
-                </p>
-              </div>
-
-              {/* Metric 4: Battery Reserve */}
-              <div className="p-4 rounded-xl bg-sand-50 dark:bg-deepsea-950 border border-sand-300/60 dark:border-deepsea-800/80">
-                <span className="text-xs font-mono text-deepsea-700/60 dark:text-sand-400">Respaldo Baterías LiFePO4</span>
-                <h4 className="font-serif font-bold text-2xl text-emerald-600 dark:text-emerald-400 mt-1">
-                  {currentPerturbation.batteryHours} horas
-                </h4>
-                <p className="text-[11px] font-mono text-sand-500 mt-1">
-                  Autonomía nocturna continua
-                </p>
-              </div>
-
+            <div className="flex items-center justify-end space-x-3 pt-2">
+              <button
+                onClick={() => setShowMethodologyModal(false)}
+                className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-mono text-xs font-bold hover:bg-slate-800 transition-colors"
+              >
+                Cerrar y Continuar Simulando
+              </button>
             </div>
-
           </div>
-
-        </div>
-      )}
-
-      {/* ===================================================================== */}
-      {/* SIMULATOR 04: BIOCLIMATIC COMFORT & WIND TUNNEL                       */}
-      {/* ===================================================================== */}
-      {activeEngine === 'bioclimatic' && (
-        <div className="space-y-8 animate-fade-in">
-          
-          <div className="grid lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Controls */}
-            <div className="lg:col-span-5 p-6 sm:p-7 rounded-3xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-xl space-y-6">
-              <h3 className="font-serif font-bold text-xl text-deepsea-950 dark:text-sand-100 border-b border-sand-300/60 dark:border-deepsea-800 pb-3">
-                Variables de Microclima & Viento
-              </h3>
-
-              {/* Slider 1: Wind speed */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs font-mono">
-                  <span className="text-deepsea-800/80 dark:text-sand-300">Velocidad del Alisio:</span>
-                  <span className="font-bold text-caribbean-600 dark:text-caribbean-400 bg-caribbean-500/10 px-2 py-0.5 rounded">
-                    {windSpeedKnots} nudos ({(windSpeedKnots * 1.852).toFixed(1)} km/h)
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="5"
-                  max="32"
-                  step="1"
-                  value={windSpeedKnots}
-                  onChange={(e) => setWindSpeedKnots(parseInt(e.target.value))}
-                  className="w-full h-2 bg-sand-300 dark:bg-deepsea-800 rounded-lg appearance-none cursor-pointer accent-caribbean-600"
-                />
-                <div className="flex justify-between text-[10px] font-mono text-sand-500">
-                  <span>5 kts (Calma)</span>
-                  <span>18 kts (Media Caribe)</span>
-                  <span>32 kts (Fuerte)</span>
-                </div>
-              </div>
-
-              {/* Slider 2: Louver opening */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs font-mono">
-                  <span className="text-deepsea-800/80 dark:text-sand-300">Apertura de Celosías BTC:</span>
-                  <span className="font-bold text-terracotta-600 dark:text-terracotta-400 bg-terracotta-500/10 px-2 py-0.5 rounded">
-                    {louverOpeningPct}% Apertura
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="25"
-                  max="100"
-                  step="25"
-                  value={louverOpeningPct}
-                  onChange={(e) => setLouverOpeningPct(parseInt(e.target.value))}
-                  className="w-full h-2 bg-sand-300 dark:bg-deepsea-800 rounded-lg appearance-none cursor-pointer accent-terracotta-600"
-                />
-                <div className="flex justify-between text-[10px] font-mono text-sand-500">
-                  <span>25%</span>
-                  <span>50%</span>
-                  <span>75%</span>
-                  <span>100%</span>
-                </div>
-              </div>
-
-              {/* Slider 3: Wind Angle */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs font-mono">
-                  <span className="text-deepsea-800/80 dark:text-sand-300">Ángulo de Incidencia Alisio:</span>
-                  <span className="font-bold text-deepsea-950 dark:text-sand-100 bg-sand-200 dark:bg-deepsea-800 px-2 py-0.5 rounded">
-                    {windAngleDeg}° ({windAngleDeg <= 30 ? 'N-NE Óptimo' : 'E-NE Lateral'})
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="90"
-                  step="5"
-                  value={windAngleDeg}
-                  onChange={(e) => setWindAngleDeg(parseInt(e.target.value))}
-                  className="w-full h-2 bg-sand-300 dark:bg-deepsea-800 rounded-lg appearance-none cursor-pointer accent-deepsea-600 dark:accent-sand-400"
-                />
-              </div>
-
-            </div>
-
-            {/* Results */}
-            <div className="lg:col-span-7 space-y-5">
-              <div className="grid sm:grid-cols-2 gap-4">
-                
-                {/* Metric 1: Indoor Velocity */}
-                <div className="p-5 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-deepsea-700/60 dark:text-sand-400">
-                    <span>Velocidad Interior del Aire</span>
-                    <Wind className="w-4 h-4 text-caribbean-500" />
-                  </div>
-                  <h4 className="font-serif font-bold text-3xl text-caribbean-600 dark:text-caribbean-400">
-                    {bioclimaticMetrics.indoorVelocity} m/s
-                  </h4>
-                  <p className="text-xs text-deepsea-700/70 dark:text-sand-400 font-light">
-                    Rango óptimo para evaporación y confort térmico en el trópico.
-                  </p>
-                </div>
-
-                {/* Metric 2: Air Changes per Hour */}
-                <div className="p-5 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-deepsea-700/60 dark:text-sand-400">
-                    <span>Renovaciones de Aire (ACH)</span>
-                    <Activity className="w-4 h-4 text-emerald-500" />
-                  </div>
-                  <h4 className="font-serif font-bold text-3xl text-emerald-600 dark:text-emerald-400">
-                    {bioclimaticMetrics.ach} / hora
-                  </h4>
-                  <p className="text-xs text-deepsea-700/70 dark:text-sand-400 font-light">
-                    Ventilación cruzada continua que expulsa el calor acumulado en techos.
-                  </p>
-                </div>
-
-                {/* Metric 3: Temp Drop */}
-                <div className="p-5 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300/80 dark:border-deepsea-800 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-deepsea-700/60 dark:text-sand-400">
-                    <span>Reducción de Sensación Térmica</span>
-                    <Thermometer className="w-4 h-4 text-terracotta-500" />
-                  </div>
-                  <h4 className="font-serif font-bold text-3xl text-terracotta-600 dark:text-terracotta-400">
-                    -{bioclimaticMetrics.tempDrop} °C
-                  </h4>
-                  <p className="text-xs text-deepsea-700/70 dark:text-sand-400 font-light">
-                    Efecto convectivo pasivo sin necesidad de aire acondicionado mecánico.
-                  </p>
-                </div>
-
-                {/* Metric 4: Comfort Standard */}
-                <div className="p-5 rounded-2xl bg-sand-100/80 dark:bg-deepsea-950 border border-sand-300/80 dark:border-deepsea-800 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-deepsea-700/60 dark:text-sand-400">
-                    <span>Norma de Confort Térmico</span>
-                    <Gauge className="w-4 h-4 text-emerald-500" />
-                  </div>
-                  <h4 className="font-serif font-bold text-2xl text-emerald-600 dark:text-emerald-400">
-                    {bioclimaticMetrics.comfortState}
-                  </h4>
-                  <p className="text-xs text-deepsea-700/70 dark:text-sand-400 font-light">
-                    Cumplimiento de estándares de confort adaptativo tropical.
-                  </p>
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-
         </div>
       )}
 

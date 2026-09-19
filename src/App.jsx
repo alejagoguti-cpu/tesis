@@ -1,6 +1,5 @@
 import React, { useState, useEffect, Component } from 'react';
 import DashboardSidebar from './components/DashboardSidebar';
-import DashboardHeader from './components/DashboardHeader';
 import ExecutiveControlCenter from './components/ExecutiveControlCenter';
 import ThesisFramework from './components/ThesisFramework';
 import DiagnosisMap from './components/DiagnosisMap';
@@ -83,29 +82,14 @@ export default function App() {
         />
       )}
 
-      {/* Main Content Area */}
+      {/* Main Content Area (100% Full-Screen Dashboard) */}
       <div 
-        className={`flex-1 flex flex-col transition-all duration-300 ${
+        className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${
           presentationMode ? 'pl-0' : 'lg:pl-16'
         }`}
       >
-        
-        {/* Dashboard Top Navigation Header */}
-        <DashboardHeader
-          activeModule={activeModule}
-          setActiveModule={setActiveModule}
-          sidebarCollapsed={sidebarCollapsed}
-          setMobileSidebarOpen={setMobileSidebarOpen}
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-          presentationMode={presentationMode}
-          setPresentationMode={setPresentationMode}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-        />
-
-        {/* Dynamic Viewport Container (Full-Bleed Map Dashboard) */}
-        <main className="flex-1 w-full h-[calc(100vh-4rem)] p-0 overflow-hidden relative">
+        {/* Dynamic Viewport Container (Full-Bleed 100vh Map Dashboard) */}
+        <main className="flex-1 w-full h-full p-0 overflow-hidden relative">
           
           {/* 1. DASHBOARD MODULAR VIEW (Active module focused view) */}
           {viewMode === 'dashboard' && (
@@ -226,8 +210,8 @@ export default function App() {
 
         </main>
 
-        {/* Global Footer */}
-        <Footer />
+        {/* Global Footer (Only in Monograph / Expediente scrollable mode) */}
+        {viewMode === 'monograph' && <Footer />}
 
       </div>
 
