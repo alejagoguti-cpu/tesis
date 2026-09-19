@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   BookOpen, 
   Target, 
@@ -7,23 +7,35 @@ import {
   FileCheck2, 
   Layers, 
   HelpCircle,
-  Play,
-  Pause,
-  RotateCcw,
-  Maximize2,
-  X,
-  AlertTriangle,
-  Waves,
-  GraduationCap,
-  Home,
-  Droplets,
-  ArrowRight,
-  ShieldAlert,
-  ShieldCheck,
-  ChevronRight,
-  Quote,
-  Sparkles,
-  ExternalLink
+  Play, 
+  Pause, 
+  RotateCcw, 
+  Maximize2, 
+  X, 
+  AlertTriangle, 
+  Waves, 
+  GraduationCap, 
+  Home, 
+  Droplets, 
+  ArrowRight, 
+  ShieldAlert, 
+  ShieldCheck, 
+  ChevronRight, 
+  Quote, 
+  Sparkles, 
+  ExternalLink,
+  Edit3,
+  Save,
+  Trash2,
+  Undo2,
+  Plus,
+  Move,
+  Copy,
+  Download,
+  Check,
+  MapPin,
+  Sliders,
+  Eye
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 import L from 'leaflet';
@@ -42,38 +54,81 @@ if (typeof window !== 'undefined' && L && L.Icon && L.Icon.Default && L.Icon.Def
   }
 }
 
-// Approximate polygon for Tierrabomba island
-const TIERRABOMBA_ISLAND_POLYGON = [
-  [10.3780, -75.5680],
-  [10.3740, -75.5560],
-  [10.3620, -75.5480],
-  [10.3450, -75.5440],
-  [10.3320, -75.5510],
-  [10.3220, -75.5720],
-  [10.3340, -75.5920],
-  [10.3540, -75.6020],
-  [10.3700, -75.5910],
-  [10.3780, -75.5680]
-];
+// Default base coordinates
+export const DEFAULT_DELIMITATIONS = {
+  island: [
+    [10.3780, -75.5680],
+    [10.3740, -75.5560],
+    [10.3620, -75.5480],
+    [10.3450, -75.5440],
+    [10.3320, -75.5510],
+    [10.3220, -75.5720],
+    [10.3340, -75.5920],
+    [10.3540, -75.6020],
+    [10.3700, -75.5910],
+    [10.3780, -75.5680]
+  ],
+  erosion: [
+    [10.3750, -75.5880],
+    [10.3680, -75.5960],
+    [10.3580, -75.6010],
+    [10.3450, -75.5960],
+    [10.3350, -75.5880],
+    [10.3280, -75.5780]
+  ],
+  plateau: [
+    [10.3560, -75.5720],
+    [10.3590, -75.5600],
+    [10.3510, -75.5560],
+    [10.3440, -75.5630],
+    [10.3480, -75.5740]
+  ],
+  custom: [
+    [10.3600, -75.5800],
+    [10.3620, -75.5700],
+    [10.3550, -75.5680],
+    [10.3520, -75.5780]
+  ]
+};
 
-// Critical western/northern coastal erosion strip
-const EROSION_STRIP_POLYLINE = [
-  [10.3750, -75.5880],
-  [10.3680, -75.5960],
-  [10.3580, -75.6010],
-  [10.3450, -75.5960],
-  [10.3350, -75.5880],
-  [10.3280, -75.5780]
-];
-
-// Safe plateau polygon (+22m)
-const SAFE_PLATEAU_POLYGON = [
-  [10.3560, -75.5720],
-  [10.3590, -75.5600],
-  [10.3510, -75.5560],
-  [10.3440, -75.5630],
-  [10.3480, -75.5740]
-];
+export const ZONE_CONFIG = {
+  island: {
+    id: "island",
+    name: "1. Contorno Isla Tierrabomba",
+    type: "polygon",
+    color: "#ea580c",
+    fillColor: "#ea580c",
+    badge: "Perímetro Insular",
+    desc: "Delimitación del borde costero e insular de Tierrabomba."
+  },
+  erosion: {
+    id: "erosion",
+    name: "2. Franja de Erosión Costera",
+    type: "polyline",
+    color: "#dc2626",
+    fillColor: "#dc2626",
+    badge: "Riesgo 1.8 m/año",
+    desc: "Línea de socavación marina activa en el flanco occidental."
+  },
+  plateau: {
+    id: "plateau",
+    name: "3. Meseta Segura (+22.00m)",
+    type: "polygon",
+    color: "#0d9488",
+    fillColor: "#0d9488",
+    badge: "Cota Segura Masterplan",
+    desc: "Área de implantación protegida para vivienda y colegio."
+  },
+  custom: {
+    id: "custom",
+    name: "4. Polígono Libre / Personalizado",
+    type: "polygon",
+    color: "#6366f1",
+    fillColor: "#6366f1",
+    badge: "Trazado Libre",
+    desc: "Zona adicional para delimitaciones específicas de diseño."
+  }
+};
 
 export const FRAMEWORK_STEPS = [
   {
@@ -134,28 +189,101 @@ export const FRAMEWORK_STEPS = [
   }
 ];
 
+// Helper: Calculate polygon area in Hectáreas (Ha)
+function calculatePolygonAreaHa(coords) {
+  if (!coords || coords.length < 3) return 0;
+  let area = 0;
+  const radius = 6378137; // Earth radius in meters
+  const degToRad = Math.PI / 180;
+
+  for (let i = 0; i < coords.length; i++) {
+    const p1 = coords[i];
+    const p2 = coords[(i + 1) % coords.length];
+    area += (p2[1] * degToRad - p1[1] * degToRad) * 
+            (2 + Math.sin(p1[0] * degToRad) + Math.sin(p2[0] * degToRad));
+  }
+  area = Math.abs((area * radius * radius) / 2.0);
+  return Number((area / 10000).toFixed(2)); // convert m² to Hectáreas
+}
+
+// Helper: Calculate perimeter or polyline length in km
+function calculatePolylineLengthKm(coords) {
+  if (!coords || coords.length < 2) return 0;
+  let totalMeters = 0;
+  for (let i = 0; i < coords.length - 1; i++) {
+    const latlng1 = L.latLng(coords[i][0], coords[i][1]);
+    const latlng2 = L.latLng(coords[i + 1][0], coords[i + 1][1]);
+    totalMeters += latlng1.distanceTo(latlng2);
+  }
+  return Number((totalMeters / 1000).toFixed(2));
+}
+
 export default function ThesisFramework({ onSelectModule }) {
+  // Navigation & Step States
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
   const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
 
+  // =========================================================================
+  // NODE-BASED DELIMITATION & POLYGON EDITOR STATE
+  // =========================================================================
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [activeZoneKey, setActiveZoneKey] = useState('island'); // 'island' | 'erosion' | 'plateau' | 'custom'
+  const [delimitations, setDelimitations] = useState(() => {
+    try {
+      const saved = localStorage.getItem('thesis_custom_delimitations');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return { ...DEFAULT_DELIMITATIONS, ...parsed };
+      }
+    } catch (e) {
+      // fallback
+    }
+    return DEFAULT_DELIMITATIONS;
+  });
+
+  const [selectedNodeIndex, setSelectedNodeIndex] = useState(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [saveToast, setSaveToast] = useState(false);
+  const [copyToast, setCopyToast] = useState(false);
+
+  // Map Refs
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const tileLayerRef = useRef(null);
   const labelsLayerRef = useRef(null);
+  
+  // Dynamic Map Layers Refs
   const layersRef = useRef({
     islandLayer: null,
     erosionLayer: null,
     schoolMarker: null,
     masterplanLayer: null,
-    plateauMarker: null
+    plateauMarker: null,
+    customLayer: null
   });
+
+  const nodeMarkersGroupRef = useRef(null);
 
   const { academicFramework } = projectInfo;
   const currentStep = FRAMEWORK_STEPS[currentStepIndex];
 
-  // Initialize Leaflet Map with High-Resolution Satellite Aerial View
+  // Active Zone Metadata
+  const activeZoneConfig = ZONE_CONFIG[activeZoneKey];
+  const activeNodes = delimitations[activeZoneKey] || [];
+  
+  const zoneStats = useMemo(() => {
+    const count = activeNodes.length;
+    const isPoly = activeZoneConfig.type === 'polygon';
+    const areaHa = isPoly ? calculatePolygonAreaHa(activeNodes) : 0;
+    const lengthKm = calculatePolylineLengthKm(activeNodes);
+    return { count, areaHa, lengthKm };
+  }, [activeNodes, activeZoneConfig]);
+
+  // =========================================================================
+  // 1. INITIALIZE LEAFLET MAP
+  // =========================================================================
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
@@ -166,7 +294,7 @@ export default function ThesisFramework({ onSelectModule }) {
       attributionControl: false
     });
 
-    // Satellite Aerial Layer (Esri World Imagery - 100% Free, Zero API Key)
+    // High-Res Satellite Aerial Imagery (Esri World Imagery)
     const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       maxZoom: 19,
       attribution: 'Esri World Imagery'
@@ -175,33 +303,46 @@ export default function ThesisFramework({ onSelectModule }) {
     tileLayerRef.current = satLayer;
     labelsLayerRef.current = null;
 
+    // Node Markers Layer Group (for editor)
+    nodeMarkersGroupRef.current = L.layerGroup().addTo(map);
+
+    // Initial Resize
     setTimeout(() => {
       map.invalidateSize();
-    }, 200);
+    }, 150);
+
+    // Click handler for adding nodes in Edit Mode
+    map.on('click', (e) => {
+      // In edit mode, clicking the map appends a new vertex
+      setDelimitations(prev => {
+        // Read isEditMode from current state closure or trigger directly
+        return prev;
+      });
+    });
 
     // 1. Island Perimeter Polygon
-    const islandLayer = L.polygon(TIERRABOMBA_ISLAND_POLYGON, {
-      color: '#f97316',
+    const islandLayer = L.polygon(delimitations.island, {
+      color: '#ea580c',
       weight: 3.5,
       dashArray: '8, 8',
-      fillColor: '#f97316',
+      fillColor: '#ea580c',
       fillOpacity: 0.15
     }).addTo(map);
 
     islandLayer.on('click', () => {
-      setActiveModal('problem');
+      if (!isEditMode) setActiveModal('problem');
     });
 
     // 2. Coastal Erosion Line
-    const erosionLayer = L.polyline(EROSION_STRIP_POLYLINE, {
-      color: '#ef4444',
+    const erosionLayer = L.polyline(delimitations.erosion, {
+      color: '#dc2626',
       weight: 6,
       opacity: 0.9,
       dashArray: '10, 6'
     }).addTo(map);
 
     erosionLayer.on('click', () => {
-      setActiveModal('justification');
+      if (!isEditMode) setActiveModal('justification');
     });
 
     // 3. Current School Vulnerable Marker
@@ -224,11 +365,11 @@ export default function ThesisFramework({ onSelectModule }) {
 
     const schoolMarker = L.marker([10.362, -75.581], { icon: schoolIcon }).addTo(map);
     schoolMarker.on('click', () => {
-      setActiveModal('objectives');
+      if (!isEditMode) setActiveModal('objectives');
     });
 
     // 4. Safe Plateau Polygon (+22m)
-    const masterplanLayer = L.polygon(SAFE_PLATEAU_POLYGON, {
+    const masterplanLayer = L.polygon(delimitations.plateau, {
       color: '#0d9488',
       weight: 3.5,
       fillColor: '#0d9488',
@@ -236,7 +377,7 @@ export default function ThesisFramework({ onSelectModule }) {
     }).addTo(map);
 
     masterplanLayer.on('click', () => {
-      setActiveModal('solution');
+      if (!isEditMode) setActiveModal('solution');
     });
 
     const plateauIcon = L.divIcon({
@@ -258,15 +399,24 @@ export default function ThesisFramework({ onSelectModule }) {
 
     const plateauMarker = L.marker([10.352, -75.565], { icon: plateauIcon }).addTo(map);
     plateauMarker.on('click', () => {
-      setActiveModal('solution');
+      if (!isEditMode) setActiveModal('solution');
     });
+
+    // 5. Custom Polygon Layer
+    const customLayer = L.polygon(delimitations.custom || [], {
+      color: '#6366f1',
+      weight: 3.5,
+      fillColor: '#6366f1',
+      fillOpacity: 0.25
+    }).addTo(map);
 
     layersRef.current = {
       islandLayer,
       erosionLayer,
       schoolMarker,
       masterplanLayer,
-      plateauMarker
+      plateauMarker,
+      customLayer
     };
 
     mapInstanceRef.current = map;
@@ -277,8 +427,119 @@ export default function ThesisFramework({ onSelectModule }) {
     };
   }, []);
 
-  // Update map view on step change
+  // Map Click Listener for adding nodes when in Edit Mode
   useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const onMapClick = (e) => {
+      if (!isEditMode) return;
+      const { lat, lng } = e.latlng;
+      const newCoord = [Number(lat.toFixed(5)), Number(lng.toFixed(5))];
+      
+      setDelimitations(prev => {
+        const currentZone = prev[activeZoneKey] || [];
+        return {
+          ...prev,
+          [activeZoneKey]: [...currentZone, newCoord]
+        };
+      });
+    };
+
+    map.on('click', onMapClick);
+    return () => {
+      map.off('click', onMapClick);
+    };
+  }, [isEditMode, activeZoneKey]);
+
+  // =========================================================================
+  // 2. SYNCHRONIZE LEAFLET GEOMETRY WITH DELIMITATION STATE
+  // =========================================================================
+  useEffect(() => {
+    const { islandLayer, erosionLayer, masterplanLayer, customLayer } = layersRef.current;
+    if (islandLayer && delimitations.island) {
+      islandLayer.setLatLngs(delimitations.island);
+    }
+    if (erosionLayer && delimitations.erosion) {
+      erosionLayer.setLatLngs(delimitations.erosion);
+    }
+    if (masterplanLayer && delimitations.plateau) {
+      masterplanLayer.setLatLngs(delimitations.plateau);
+    }
+    if (customLayer && delimitations.custom) {
+      customLayer.setLatLngs(delimitations.custom);
+    }
+  }, [delimitations]);
+
+  // =========================================================================
+  // 3. RENDER INTERACTIVE DRAGGABLE NODE HANDLERS IN EDIT MODE
+  // =========================================================================
+  useEffect(() => {
+    const group = nodeMarkersGroupRef.current;
+    if (!group) return;
+
+    group.clearLayers();
+
+    if (!isEditMode) return;
+
+    const currentNodes = delimitations[activeZoneKey] || [];
+    const zoneCfg = ZONE_CONFIG[activeZoneKey];
+
+    currentNodes.forEach((coord, idx) => {
+      const isSelected = selectedNodeIndex === idx;
+
+      const nodeIcon = L.divIcon({
+        className: 'delimitation-node-handle',
+        html: `
+          <div class="relative flex items-center justify-center cursor-grab active:cursor-grabbing group">
+            <div class="absolute -inset-2 rounded-full ${isSelected ? 'bg-amber-400/50 animate-ping' : 'bg-white/30 group-hover:bg-white/50'} transition-colors"></div>
+            <div class="w-7 h-7 rounded-full border-2 border-white shadow-2xl flex items-center justify-center text-white text-[10px] font-mono font-black transition-transform group-hover:scale-125" style="background-color: ${isSelected ? '#f59e0b' : zoneCfg.color}">
+              ${idx + 1}
+            </div>
+            <div class="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap px-1.5 py-0.5 rounded bg-slate-900 text-[9px] text-white font-mono pointer-events-none z-50 shadow-md">
+              Arrastrar o Clic para Borrar
+            </div>
+          </div>
+        `,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+
+      const marker = L.marker(coord, {
+        icon: nodeIcon,
+        draggable: true,
+        zIndexOffset: 1000 + idx
+      });
+
+      // Drag event updates coordinate in real-time
+      marker.on('drag', (e) => {
+        const { lat, lng } = e.target.getLatLng();
+        const updated = [Number(lat.toFixed(5)), Number(lng.toFixed(5))];
+        setDelimitations(prev => {
+          const zoneCoords = [...(prev[activeZoneKey] || [])];
+          zoneCoords[idx] = updated;
+          return {
+            ...prev,
+            [activeZoneKey]: zoneCoords
+          };
+        });
+      });
+
+      // Click node to select or remove
+      marker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        setSelectedNodeIndex(idx);
+      });
+
+      group.addLayer(marker);
+    });
+  }, [isEditMode, activeZoneKey, delimitations, selectedNodeIndex]);
+
+  // =========================================================================
+  // 4. STEP NAVIGATION & AUTOPLAY (NON-EDIT MODE)
+  // =========================================================================
+  useEffect(() => {
+    if (isEditMode) return;
     const map = mapInstanceRef.current;
     if (!map) return;
 
@@ -309,11 +570,11 @@ export default function ThesisFramework({ onSelectModule }) {
         weight: currentStep.step === 4 ? 5 : 2
       });
     }
-  }, [currentStepIndex]);
+  }, [currentStepIndex, isEditMode]);
 
   // Autoplay sequence timer
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || isEditMode) return;
 
     const interval = setInterval(() => {
       setCurrentStepIndex((prev) => {
@@ -326,9 +587,9 @@ export default function ThesisFramework({ onSelectModule }) {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, isEditMode]);
 
-  // Layer type switcher
+  // Layer type switcher (Satellite vs Carto)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -351,71 +612,184 @@ export default function ThesisFramework({ onSelectModule }) {
     }
   }, [mapLayerType]);
 
+  // =========================================================================
+  // 5. EDITOR ACTIONS: ADD, UNDO, CLEAR, RESET, SAVE
+  // =========================================================================
+  const handleUndoLastNode = () => {
+    setDelimitations(prev => {
+      const zoneCoords = [...(prev[activeZoneKey] || [])];
+      zoneCoords.pop();
+      return { ...prev, [activeZoneKey]: zoneCoords };
+    });
+    setSelectedNodeIndex(null);
+  };
+
+  const handleRemoveSelectedNode = () => {
+    if (selectedNodeIndex === null) return;
+    setDelimitations(prev => {
+      const zoneCoords = [...(prev[activeZoneKey] || [])];
+      zoneCoords.splice(selectedNodeIndex, 1);
+      return { ...prev, [activeZoneKey]: zoneCoords };
+    });
+    setSelectedNodeIndex(null);
+  };
+
+  const handleClearZone = () => {
+    if (window.confirm(`¿Seguro que deseas limpiar todos los nodos de ${activeZoneConfig.name}?`)) {
+      setDelimitations(prev => ({ ...prev, [activeZoneKey]: [] }));
+      setSelectedNodeIndex(null);
+    }
+  };
+
+  const handleResetToDefault = () => {
+    if (window.confirm(`¿Restablecer ${activeZoneConfig.name} a las coordenadas iniciales?`)) {
+      setDelimitations(prev => ({
+        ...prev,
+        [activeZoneKey]: DEFAULT_DELIMITATIONS[activeZoneKey] || []
+      }));
+      setSelectedNodeIndex(null);
+    }
+  };
+
+  const handleSaveDelimitation = () => {
+    try {
+      localStorage.setItem('thesis_custom_delimitations', JSON.stringify(delimitations));
+      setSaveToast(true);
+      setShowExportModal(true);
+      setTimeout(() => setSaveToast(false), 4000);
+    } catch (e) {
+      alert("Error al guardar en almacenamiento local.");
+    }
+  };
+
+  const handleCopyCodeToClipboard = () => {
+    const jsonFormatted = JSON.stringify(delimitations[activeZoneKey] || [], null, 2);
+    navigator.clipboard.writeText(jsonFormatted);
+    setCopyToast(true);
+    setTimeout(() => setCopyToast(false), 3000);
+  };
+
+  const handleDownloadGeoJSON = () => {
+    const coords = delimitations[activeZoneKey] || [];
+    const isPoly = activeZoneConfig.type === 'polygon';
+    
+    // GeoJSON format uses [longitude, latitude]
+    const geoJsonCoords = coords.map(c => [c[1], c[0]]);
+    if (isPoly && geoJsonCoords.length > 0) {
+      // close ring
+      geoJsonCoords.push([coords[0][1], coords[0][0]]);
+    }
+
+    const geoJson = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          properties: {
+            zoneKey: activeZoneKey,
+            zoneName: activeZoneConfig.name,
+            nodeCount: coords.length,
+            areaHa: isPoly ? calculatePolygonAreaHa(coords) : null,
+            lengthKm: calculatePolylineLengthKm(coords),
+            updatedAt: new Date().toISOString()
+          },
+          geometry: {
+            type: isPoly ? "Polygon" : "LineString",
+            coordinates: isPoly ? [geoJsonCoords] : geoJsonCoords
+          }
+        }
+      ]
+    };
+
+    const blob = new Blob([JSON.stringify(geoJson, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `delimitacion_${activeZoneKey}_tierrabomba.geojson`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="relative w-full h-screen overflow-hidden animate-fade-in select-none">
+    <div className={`relative w-full h-screen overflow-hidden animate-fade-in select-none ${isEditMode ? 'cursor-crosshair' : ''}`}>
       
       {/* 1. FULLSCREEN SATELLITE MAP */}
       <div ref={mapRef} className="absolute inset-0 w-full h-full z-0" />
 
       {/* ========================================================================= */}
-      {/* 2. FLOATING HUD OVERLAYS ON TOP OF SATELLITE MAP                          */}
+      {/* 2. TOP FLOATING CONTROL BAR (HUD)                                         */}
       {/* ========================================================================= */}
-
-      {/* Top Floating Control Bar */}
       <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
         {/* Module Title Card */}
         <div className="glass-hud px-4 py-2.5 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-lg shadow-xl">
-          <div className="w-9 h-9 rounded-xl bg-terracotta-600 text-white flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-md">
+          <div className={`w-9 h-9 rounded-xl ${isEditMode ? 'bg-amber-600 animate-pulse' : 'bg-terracotta-600'} text-white flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-md`}>
             02
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-terracotta-50/90 text-terracotta-700 border border-terracotta-200/80">
-                MARCO DE TESIS
+              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                isEditMode ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-terracotta-50/90 text-terracotta-700 border border-terracotta-200/80'
+              }`}>
+                {isEditMode ? 'EDITOR DE DELIMITACIÓN' : 'MARCO DE TESIS'}
               </span>
               <span className="text-[10px] font-mono text-slate-500 font-bold">
-                Paso 0{currentStep.step} de 04
+                {isEditMode ? `${zoneStats.count} Nodos Activos` : `Paso 0${currentStep.step} de 04`}
               </span>
             </div>
             <h2 className="font-serif font-bold text-xs sm:text-sm text-slate-900 truncate">
-              {currentStep.targetName}
+              {isEditMode ? activeZoneConfig.name : currentStep.targetName}
             </h2>
           </div>
         </div>
 
-        {/* Playback Controls & Direct Modal Open CTA */}
-        <div className="glass-hud p-1.5 rounded-2xl pointer-events-auto flex items-center gap-2 self-start md:self-center shadow-xl">
+        {/* Middle Mode Switcher: View Mode vs Edit Mode */}
+        <div className="glass-hud p-1.5 rounded-2xl pointer-events-auto flex items-center gap-1.5 self-start md:self-center shadow-xl">
           <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
-              isPlaying
-                ? 'bg-amber-500 text-slate-950 shadow-md ring-2 ring-amber-400/40'
-                : 'bg-terracotta-600 hover:bg-terracotta-500 text-white shadow-sm'
+            onClick={() => setIsEditMode(!isEditMode)}
+            className={`inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
+              isEditMode
+                ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400/40'
+                : 'bg-slate-900 hover:bg-slate-800 text-white shadow-sm'
             }`}
           >
-            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            <span>{isPlaying ? 'Pausar' : 'Secuencia'}</span>
+            <Edit3 className="w-3.5 h-3.5 text-amber-300" />
+            <span>{isEditMode ? 'Modo Edición: Activo' : 'Delimitar con Nodos'}</span>
           </button>
 
-          <button
-            onClick={() => {
-              setCurrentStepIndex(0);
-              setIsPlaying(false);
-            }}
-            className="p-1.5 rounded-xl bg-slate-100/80 hover:bg-slate-200 text-slate-700 transition-colors"
-            title="Reiniciar al Paso 1"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
+          {!isEditMode && (
+            <>
+              <button
+                onClick={() => setIsPlaying(!isPlaying)}
+                className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
+                  isPlaying
+                    ? 'bg-amber-500 text-slate-950 shadow-md ring-2 ring-amber-400/40'
+                    : 'bg-terracotta-600 hover:bg-terracotta-500 text-white shadow-sm'
+                }`}
+              >
+                {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                <span>{isPlaying ? 'Pausar' : 'Auto'}</span>
+              </button>
 
-          <button
-            onClick={() => setActiveModal(currentStep.modalType)}
-            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-bold shadow-md transition-all hover:scale-105"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-teal-400" />
-            <span>Abrir Ficha Pop-up</span>
-          </button>
+              <button
+                onClick={() => setActiveModal(currentStep.modalType)}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-mono font-bold transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-terracotta-600" />
+                <span>Ficha Académica</span>
+              </button>
+            </>
+          )}
+
+          {isEditMode && (
+            <button
+              onClick={handleSaveDelimitation}
+              className="inline-flex items-center space-x-1.5 px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold shadow-md transition-all hover:scale-105"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>Guardar (Save)</span>
+            </button>
+          )}
         </div>
 
         {/* Aerial Satellite / Carto Layer Toggle Button */}
@@ -446,57 +820,320 @@ export default function ThesisFramework({ onSelectModule }) {
 
       </div>
 
-      {/* Floating Bottom: 4 Step Selector Cards directly ON TOP of the Satellite Map */}
-      <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-5xl mx-auto pointer-events-auto">
-          {FRAMEWORK_STEPS.map((step, idx) => {
-            const isActive = currentStepIndex === idx;
-            return (
-              <button
-                key={step.id}
-                onClick={() => {
-                  setCurrentStepIndex(idx);
-                  setIsPlaying(false);
-                }}
-                className={`glass-card p-3 rounded-2xl text-left transition-all flex flex-col justify-between ${
-                  isActive
-                    ? 'border-terracotta-500 shadow-2xl ring-2 ring-terracotta-400/30 scale-105'
-                    : 'border-white/80 shadow-lg'
-                }`}
-              >
-                <div className="flex items-center justify-between w-full mb-1">
-                  <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
-                    isActive ? 'bg-terracotta-100 text-terracotta-800' : 'bg-slate-100/90 text-slate-600'
-                  }`}>
-                    PASO 0{step.step}
-                  </span>
-                  <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-terracotta-500 animate-ping' : 'bg-slate-300'}`} />
-                </div>
-                <h4 className="font-serif font-bold text-xs text-slate-900 line-clamp-1">
-                  {step.title}
-                </h4>
-                <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">
-                  {step.btnLabel}
-                </p>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* ========================================================================= */}
+      {/* 3. NODE DELIMITATION EDITOR TOOLBAR (FLOATING LEFT PANEL IN EDIT MODE)    */}
+      {/* ========================================================================= */}
+      {isEditMode && (
+        <div className="absolute top-24 left-4 z-[400] glass-panel p-4 rounded-3xl space-y-4 pointer-events-auto text-slate-900 w-80 shadow-2xl animate-scale-up max-h-[calc(100vh-8rem)] overflow-y-auto">
+          
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded-full bg-amber-500 animate-ping" />
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-700">
+                Herramienta de Delimitación 1:1
+              </span>
+            </div>
+            <button
+              onClick={() => setIsEditMode(false)}
+              className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
+              title="Cerrar Editor"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
 
-      {/* Floating Bottom-Left Hint Pill */}
-      <div className="absolute bottom-20 left-4 z-[400] hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-900/90 text-white text-[11px] font-mono backdrop-blur-md shadow-lg border border-white/20 pointer-events-none">
-        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-        <span>{currentStep.hint}</span>
-      </div>
+          {/* Zone Selector Pills */}
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase block px-1">
+              Seleccionar Zona a Trazar:
+            </span>
+            <div className="grid grid-cols-1 gap-1.5">
+              {Object.values(ZONE_CONFIG).map((zone) => {
+                const isCur = activeZoneKey === zone.id;
+                const nodeCount = (delimitations[zone.id] || []).length;
+                return (
+                  <button
+                    key={zone.id}
+                    onClick={() => {
+                      setActiveZoneKey(zone.id);
+                      setSelectedNodeIndex(null);
+                    }}
+                    className={`px-3 py-2 rounded-2xl text-left transition-all flex items-center justify-between ${
+                      isCur
+                        ? 'bg-slate-900 text-white shadow-md ring-2 ring-amber-400/40'
+                        : 'bg-white/80 hover:bg-white text-slate-800 border border-slate-200/70'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: zone.color }} />
+                      <span className="font-serif font-bold text-xs truncate max-w-[170px]">{zone.name}</span>
+                    </div>
+                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-bold ${
+                      isCur ? 'bg-white/20 text-amber-300' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {nodeCount} pts
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Real-time Zone Metrics */}
+          <div className="p-3 rounded-2xl bg-amber-50/90 border border-amber-200/90 space-y-1.5 text-xs font-mono">
+            <div className="flex items-center justify-between text-amber-950 font-bold">
+              <span>{activeZoneConfig.badge}</span>
+              <span className="text-amber-700">{zoneStats.count} Nodos</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              {activeZoneConfig.type === 'polygon' && (
+                <div className="p-2 rounded-xl bg-white border border-amber-200/60 text-center">
+                  <span className="text-[9px] text-slate-500 uppercase block">Área Calculada</span>
+                  <span className="font-bold text-xs text-slate-900">{zoneStats.areaHa} Ha</span>
+                </div>
+              )}
+              <div className="p-2 rounded-xl bg-white border border-amber-200/60 text-center">
+                <span className="text-[9px] text-slate-500 uppercase block">Perímetro / Longitud</span>
+                <span className="font-bold text-xs text-slate-900">{zoneStats.lengthKm} km</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Instructions Box */}
+          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 space-y-1">
+            <div className="font-bold text-slate-800 flex items-center space-x-1 font-mono text-[10px] uppercase">
+              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              <span>Instrucciones de Trazado:</span>
+            </div>
+            <ul className="space-y-1 list-disc list-inside text-[11px] leading-relaxed">
+              <li><b>Clic en el mapa:</b> Añade un nuevo nodo de inmediato.</li>
+              <li><b>Arrastra cualquier punto:</b> Ajusta su posición con precisión.</li>
+              <li><b>Clic en Guardar:</b> Guarda en memoria y exporta JSON.</li>
+            </ul>
+          </div>
+
+          {/* Node Edit Actions */}
+          <div className="space-y-2 pt-1 border-t border-slate-200">
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                onClick={handleUndoLastNode}
+                disabled={activeNodes.length === 0}
+                className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 text-xs font-mono font-bold flex items-center justify-center space-x-1.5 transition-colors"
+                title="Deshacer el último nodo añadido"
+              >
+                <Undo2 className="w-3.5 h-3.5" />
+                <span>Deshacer</span>
+              </button>
+
+              <button
+                onClick={handleRemoveSelectedNode}
+                disabled={selectedNodeIndex === null}
+                className="px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 disabled:opacity-40 text-red-700 border border-red-200 text-xs font-mono font-bold flex items-center justify-center space-x-1.5 transition-colors"
+                title="Borrar nodo seleccionado"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Borrar Nodo</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                onClick={handleClearZone}
+                disabled={activeNodes.length === 0}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-600 text-[11px] font-mono font-bold transition-colors"
+              >
+                Limpiar Zona
+              </button>
+
+              <button
+                onClick={handleResetToDefault}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-mono font-bold transition-colors"
+              >
+                Restablecer
+              </button>
+            </div>
+
+            <button
+              onClick={handleSaveDelimitation}
+              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold flex items-center justify-center space-x-2 shadow-lg transition-all hover:scale-[1.02]"
+            >
+              <Save className="w-4 h-4" />
+              <span>Guardar Delimitación (Save)</span>
+            </button>
+          </div>
+
+        </div>
+      )}
 
       {/* ========================================================================= */}
-      {/* 3. DETAIL MODAL POP-UPS                                                   */}
+      {/* 4. FLOATING BOTTOM: 4 STEP CARDS (VIEW MODE)                              */}
+      {/* ========================================================================= */}
+      {!isEditMode && (
+        <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-5xl mx-auto pointer-events-auto">
+            {FRAMEWORK_STEPS.map((step, idx) => {
+              const isActive = currentStepIndex === idx;
+              return (
+                <button
+                  key={step.id}
+                  onClick={() => {
+                    setCurrentStepIndex(idx);
+                    setIsPlaying(false);
+                  }}
+                  className={`glass-card p-3 rounded-2xl text-left transition-all flex flex-col justify-between ${
+                    isActive
+                      ? 'border-terracotta-500 shadow-2xl ring-2 ring-terracotta-400/30 scale-105'
+                      : 'border-white/80 shadow-lg'
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full mb-1">
+                    <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
+                      isActive ? 'bg-terracotta-100 text-terracotta-800' : 'bg-slate-100/90 text-slate-600'
+                    }`}>
+                      PASO 0{step.step}
+                    </span>
+                    <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-terracotta-500 animate-ping' : 'bg-slate-300'}`} />
+                  </div>
+                  <h4 className="font-serif font-bold text-xs text-slate-900 line-clamp-1">
+                    {step.title}
+                  </h4>
+                  <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">
+                    {step.btnLabel}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Floating Bottom-Left Hint Pill (View Mode) */}
+      {!isEditMode && (
+        <div className="absolute bottom-20 left-4 z-[400] hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-900/90 text-white text-[11px] font-mono backdrop-blur-md shadow-lg border border-white/20 pointer-events-none">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>{currentStep.hint} &bull; Puedes usar el botón <b>Delimitar con Nodos</b> arriba</span>
+        </div>
+      )}
+
+      {/* Save Success Toast */}
+      {saveToast && (
+        <div className="fixed top-20 right-4 z-[1000] bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-2xl font-mono text-xs flex items-center space-x-2 animate-scale-up border border-emerald-400">
+          <CheckCircle2 className="w-4 h-4" />
+          <span>¡Delimitación guardada exitosamente en tu navegador!</span>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 5. EXPORT & SAVE COORDINATES MODAL (JSON / GEOJSON / COPY TO CLIPBOARD)   */}
+      {/* ========================================================================= */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-[1200] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div 
+            className="glass-panel rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 animate-scale-up text-slate-900 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 rounded-2xl bg-emerald-100 text-emerald-700 border border-emerald-300">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold uppercase text-emerald-700 tracking-wider">
+                    Delimitación Guardada en LocalStorage
+                  </span>
+                  <h3 className="font-serif font-bold text-xl text-slate-900">
+                    Coordenadas de {activeZoneConfig.name}
+                  </h3>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Metrics and Status */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+                <span className="text-[10px] font-mono text-slate-500 uppercase block">Total Nodos</span>
+                <span className="font-serif font-bold text-base text-slate-900 block mt-0.5">{zoneStats.count}</span>
+              </div>
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+                <span className="text-[10px] font-mono text-slate-500 uppercase block">Superficie</span>
+                <span className="font-serif font-bold text-base text-emerald-700 block mt-0.5">
+                  {activeZoneConfig.type === 'polygon' ? `${zoneStats.areaHa} Ha` : 'Línea costera'}
+                </span>
+              </div>
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+                <span className="text-[10px] font-mono text-slate-500 uppercase block">Longitud</span>
+                <span className="font-serif font-bold text-base text-slate-900 block mt-0.5">{zoneStats.lengthKm} km</span>
+              </div>
+            </div>
+
+            {/* JSON Code Box */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs font-mono text-slate-600">
+                <span>Array de Coordenadas [Latitud, Longitud]:</span>
+                <span className="text-emerald-700 font-bold">Formato JS / JSON</span>
+              </div>
+              <div className="p-4 rounded-2xl bg-slate-950 text-emerald-400 font-mono text-xs max-h-52 overflow-y-auto border border-slate-800 shadow-inner">
+                <pre>{JSON.stringify(delimitations[activeZoneKey] || [], null, 2)}</pre>
+              </div>
+            </div>
+
+            {/* Assistant Note */}
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1">
+              <div className="font-bold flex items-center space-x-1.5 text-amber-900">
+                <Sparkles className="w-4 h-4 text-amber-600" />
+                <span>¿Cómo guardar esto de forma permanente en el código?</span>
+              </div>
+              <p className="leading-relaxed">
+                Tus cambios ya se han guardado en tu navegador. Si deseas que yo (el asistente) actualice el código fuente del proyecto de forma definitiva, simplemente haz clic en <b>"Copiar para el Asistente"</b> y pégalo en el chat.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200">
+              <button
+                onClick={handleDownloadGeoJSON}
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-mono font-bold flex items-center space-x-2 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                <span>Descargar GeoJSON</span>
+              </button>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleCopyCodeToClipboard}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold flex items-center space-x-2 transition-all shadow-md hover:scale-105"
+                >
+                  {copyToast ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  <span>{copyToast ? '¡Copiado al Portapapeles!' : 'Copiar para el Asistente'}</span>
+                </button>
+
+                <button
+                  onClick={() => setShowExportModal(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-bold transition-colors"
+                >
+                  Continuar
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 6. DETAIL ACADEMIC MODAL POP-UPS                                          */}
       {/* ========================================================================= */}
       {activeModal && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
           <div 
-            className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto flex flex-col justify-between animate-scale-up"
+            className="glass-panel rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto flex flex-col justify-between animate-scale-up"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
