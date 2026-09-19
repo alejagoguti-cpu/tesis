@@ -165,6 +165,7 @@ export default function StrategyRelocation({ onSelectModule }) {
     labelsLayerRef.current = labelsLayer;
 
     // Add strategy zone pins
+    BIOCLIMATIC_STRATEGIES.forEach((strat) => {
       const pinIcon = L.divIcon({
         className: 'strat-pin',
         html: `
