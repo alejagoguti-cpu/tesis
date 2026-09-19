@@ -64,9 +64,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        serif: ['Cormorant Garamond', 'Georgia', 'serif'],
-        display: ['Space Grotesk', 'Outfit', 'sans-serif'],
+        sans: ['Anuphan', 'system-ui', 'sans-serif'],
+        serif: ['Anuphan', 'sans-serif'],
+        display: ['Anuphan', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       transitionTimingFunction: {

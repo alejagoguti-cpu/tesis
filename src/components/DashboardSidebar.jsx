@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   LayoutDashboard,
   Compass,
@@ -11,7 +11,8 @@ import {
   Activity,
   Building2,
   Sparkles,
-  Layers
+  Layers,
+  ChevronRight
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
@@ -34,6 +35,19 @@ export default function DashboardSidebar({
   mobileOpen,
   setMobileOpen
 }) {
+  const [hoveredModule, setHoveredModule] = useState(null);
+  const [tooltipPos, setTooltipPos] = useState({ top: 0 });
+
+  const handleMouseEnter = (module, e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltipPos({ top: rect.top + rect.height / 2 });
+    setHoveredModule(module);
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredModule(null);
+  };
+
   return (
     <>
       {/* Mobile Backdrop */}
@@ -51,35 +65,39 @@ export default function DashboardSidebar({
         }`}
       >
         {/* Top Logo / Brand Icon */}
-        <div className="pt-4 pb-2 flex flex-col items-center">
+        <div className="pt-3.5 pb-2 flex flex-col items-center">
           <button
             onClick={() => setActiveModule('overview')}
-            className="w-10 h-10 rounded-2xl bg-slate-900 hover:bg-terracotta-600 text-white flex items-center justify-center shadow-md transition-all hover:scale-105 group relative"
+            onMouseEnter={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setTooltipPos({ top: rect.top + rect.height / 2 });
+              setHoveredModule({
+                number: "00",
+                title: "Tierrabomba Resiliente",
+                desc: "Tesis de Grado en Arquitectura 2026 // Alejandra Gómez & Ana Casas",
+                badge: "Masterplan +22m"
+              });
+            }}
+            onMouseLeave={handleMouseLeave}
+            className="w-11 h-11 rounded-2xl bg-slate-900 hover:bg-terracotta-600 text-white flex items-center justify-center shadow-md transition-all hover:scale-105"
             title="Tierrabomba Resiliente 2026"
           >
             <Building2 className="w-5 h-5" />
-            
-            {/* Flyout Hover Tooltip */}
-            <div className="absolute left-full ml-3 px-3 py-2 bg-slate-900 text-white rounded-xl shadow-2xl border border-slate-800 whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-[100] text-left">
-              <p className="font-serif font-bold text-xs">Tierrabomba Resiliente</p>
-              <p className="text-[10px] font-mono text-terracotta-400">Tesis de Arquitectura &bull; 2026</p>
-              <p className="text-[9px] font-mono text-slate-400 mt-0.5">Alejandra Gómez & Ana Casas</p>
-            </div>
           </button>
         </div>
 
         {/* Navigation Modules Icons Strip */}
-        <div className="flex-1 flex flex-col items-center justify-center space-y-2.5 py-4 w-full px-2 overflow-y-auto scrollbar-none">
+        <div className="flex-1 flex flex-col items-center justify-center space-y-2 py-2 w-full px-2">
           {projectInfo.dashboardModules.map((module) => {
             const Icon = iconMap[module.icon] || LayoutDashboard;
             const isActive = activeModule === module.id;
 
             return (
-              <div key={module.id} className="relative group flex items-center justify-center w-full">
+              <div key={module.id} className="relative flex items-center justify-center w-full">
                 
                 {/* Active Indicator Bar on left edge */}
                 {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-terracotta-600 rounded-r-full" />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-7 bg-terracotta-600 rounded-r-full" />
                 )}
 
                 {/* Module Button */}
@@ -88,10 +106,13 @@ export default function DashboardSidebar({
                     setActiveModule(module.id);
                     setMobileOpen(false);
                   }}
+                  onMouseEnter={(e) => handleMouseEnter(module, e)}
+                  onMouseLeave={handleMouseLeave}
+                  title={`MOD ${module.number}: ${module.title}`}
                   className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-200 relative ${
                     isActive
                       ? 'bg-terracotta-600 text-white shadow-md shadow-terracotta-600/30 scale-105'
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-950 border border-slate-200/80 hover:scale-105'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200/90 hover:scale-105 hover:border-terracotta-400'
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -100,31 +121,11 @@ export default function DashboardSidebar({
                   <span className={`absolute -bottom-1 -right-1 text-[9px] font-mono font-black px-1 rounded-md shadow-xs ${
                     isActive
                       ? 'bg-slate-900 text-white'
-                      : 'bg-white text-slate-500 border border-slate-200'
+                      : 'bg-white text-slate-600 border border-slate-200'
                   }`}>
                     {module.number}
                   </span>
                 </button>
-
-                {/* Rich Hover Flyout Tooltip to the Right */}
-                <div className="absolute left-full ml-3 px-3.5 py-2.5 bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-800 whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-[100] text-left transform translate-x-1 group-hover:translate-x-0">
-                  <div className="flex items-center space-x-2">
-                    <span className="px-1.5 py-0.5 rounded bg-terracotta-500 text-white text-[9px] font-mono font-bold">
-                      MOD {module.number}
-                    </span>
-                    <p className="font-serif font-bold text-xs text-white">
-                      {module.title}
-                    </p>
-                  </div>
-                  <p className="text-[11px] text-slate-300 font-sans mt-1">
-                    {module.desc}
-                  </p>
-                  {module.badge && (
-                    <span className="inline-block mt-1 text-[9px] font-mono text-teal-400 font-semibold">
-                      &bull; {module.badge}
-                    </span>
-                  )}
-                </div>
 
               </div>
             );
@@ -132,22 +133,58 @@ export default function DashboardSidebar({
         </div>
 
         {/* Bottom Telemetry Mini Indicator */}
-        <div className="pb-4 pt-2 flex flex-col items-center group relative">
-          <div className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer transition-colors border border-slate-200">
+        <div className="pb-3.5 pt-2 flex flex-col items-center">
+          <div 
+            onMouseEnter={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setTooltipPos({ top: rect.top + rect.height / 2 });
+              setHoveredModule({
+                number: "SIG",
+                title: "MIDAS Cartagena // Telemetría",
+                desc: "Datos oficiales IDE Cartagena, DIMAR y POT 2026 en tiempo real",
+                badge: "Geoportal MIDAS"
+              });
+            }}
+            onMouseLeave={handleMouseLeave}
+            className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer transition-colors border border-slate-200"
+            title="MIDAS Cartagena // Telemetría"
+          >
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          </div>
-
-          {/* Telemetry Hover Tooltip */}
-          <div className="absolute bottom-2 left-full ml-3 px-3 py-2 bg-slate-900 text-white rounded-xl shadow-2xl border border-slate-800 whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-[100] text-left">
-            <p className="text-[10px] font-mono font-bold text-emerald-400 flex items-center space-x-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>SISTEMA TELEMÉTRICO ONLINE</span>
-            </p>
-            <p className="text-[11px] text-slate-300 font-sans mt-0.5">Cota +22.00m &bull; Alisios N-NE 22km/h &bull; 450.000L</p>
           </div>
         </div>
 
       </aside>
+
+      {/* ========================================================================= */}
+      {/* 100% UNCLIPPED FIXED FLOATING HOVER FLYOUT TOOLTIP                        */}
+      {/* ========================================================================= */}
+      {hoveredModule && (
+        <div
+          style={{ top: `${tooltipPos.top}px` }}
+          className="fixed left-20 -translate-y-1/2 z-[99999] pointer-events-none transition-all duration-150 animate-fade-in"
+        >
+          <div className="bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 max-w-xs whitespace-normal flex flex-col space-y-1">
+            <div className="flex items-center space-x-2">
+              <span className="px-1.5 py-0.5 rounded bg-terracotta-500 text-white text-[10px] font-mono font-bold">
+                MOD {hoveredModule.number}
+              </span>
+              <h4 className="font-bold text-xs text-white">
+                {hoveredModule.title}
+              </h4>
+            </div>
+
+            <p className="text-[11px] text-slate-300 leading-snug">
+              {hoveredModule.desc}
+            </p>
+
+            {hoveredModule.badge && (
+              <span className="text-[10px] font-mono text-teal-400 font-semibold pt-0.5">
+                &bull; {hoveredModule.badge}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }

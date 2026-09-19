@@ -392,14 +392,14 @@ export default function DiagnosisMap({ onNavigateModule }) {
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
               <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
-                SIG DIAGNÓSTICO
+                SIG DIAGNÓSTICO // MIDAS CARTAGENA
               </span>
-              <span className="text-[10px] font-mono text-slate-500 font-bold">
-                Tierrabomba en Satélite Real
+              <span className="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                IDE / POT 2026
               </span>
             </div>
-            <h2 className="font-serif font-bold text-sm text-slate-900 truncate">
-              Vulnerabilidad, Erosión Borde & Suelo Seguro
+            <h2 className="font-bold text-sm text-slate-900 truncate">
+              Vulnerabilidad, Erosión Borde & Suelo Seguro (+22m)
             </h2>
           </div>
         </div>
