@@ -654,30 +654,24 @@ export default function ThesisFramework({ onSelectModule }) {
       dashArray: '8, 8',
       fillColor: '#ea580c',
       fillOpacity: 0,
-      opacity: 0
+      opacity: 0,
+      interactive: false
     }).addTo(map);
-
-    islandLayer.on('click', () => {
-      if (!isEditMode) setActiveModal('problem');
-    });
 
     // 2. Coastal Erosion Line
     const erosionLayer = L.polyline(delimitations.erosion || [], {
       color: '#dc2626',
       weight: 6,
       opacity: 0,
-      dashArray: '10, 6'
+      dashArray: '10, 6',
+      interactive: false
     }).addTo(map);
-
-    erosionLayer.on('click', () => {
-      if (!isEditMode) setActiveModal('justification');
-    });
 
     // 3. Current School Vulnerable Marker
     const schoolIcon = L.divIcon({
-      className: 'custom-school-pin',
+      className: 'custom-school-pin pointer-events-none',
       html: `
-        <div class="relative flex items-center justify-center cursor-pointer group">
+        <div class="relative flex items-center justify-center group pointer-events-none">
           <div class="absolute -inset-2 rounded-full bg-red-500/40 animate-ping"></div>
           <div class="w-8 h-8 rounded-xl bg-red-600 border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-110">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
@@ -691,10 +685,7 @@ export default function ThesisFramework({ onSelectModule }) {
       iconAnchor: [18, 18]
     });
 
-    const schoolMarker = L.marker([10.362, -75.581], { icon: schoolIcon }).addTo(map);
-    schoolMarker.on('click', () => {
-      if (!isEditMode) setActiveModal('objectives');
-    });
+    const schoolMarker = L.marker([10.362, -75.581], { icon: schoolIcon, interactive: false }).addTo(map);
 
     // 4. Safe Plateau Polygon (+22m)
     const masterplanLayer = L.polygon(delimitations.plateau || [], {
@@ -702,17 +693,14 @@ export default function ThesisFramework({ onSelectModule }) {
       weight: 3.5,
       fillColor: '#0d9488',
       fillOpacity: 0,
-      opacity: 0
+      opacity: 0,
+      interactive: false
     }).addTo(map);
 
-    masterplanLayer.on('click', () => {
-      if (!isEditMode) setActiveModal('solution');
-    });
-
     const plateauIcon = L.divIcon({
-      className: 'custom-plateau-pin',
+      className: 'custom-plateau-pin pointer-events-none',
       html: `
-        <div class="relative flex items-center justify-center cursor-pointer group">
+        <div class="relative flex items-center justify-center group pointer-events-none">
           <div class="absolute -inset-2 rounded-full bg-teal-400/40 animate-pulse"></div>
           <div class="w-8 h-8 rounded-xl bg-teal-600 border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-110">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
@@ -726,17 +714,15 @@ export default function ThesisFramework({ onSelectModule }) {
       iconAnchor: [18, 18]
     });
 
-    const plateauMarker = L.marker([10.3730, -75.5759], { icon: plateauIcon }).addTo(map);
-    plateauMarker.on('click', () => {
-      if (!isEditMode) setActiveModal('solution');
-    });
+    const plateauMarker = L.marker([10.3730, -75.5759], { icon: plateauIcon, interactive: false }).addTo(map);
 
     // 5. Custom Polygon Layer
     const customLayer = L.polygon(delimitations.custom || [], {
       color: '#6366f1',
       weight: 3.5,
       fillColor: '#6366f1',
-      fillOpacity: 0.25
+      fillOpacity: 0.25,
+      interactive: false
     }).addTo(map);
 
     layersRef.current = {
