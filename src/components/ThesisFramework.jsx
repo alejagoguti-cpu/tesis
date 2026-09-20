@@ -650,14 +650,50 @@ export default function ThesisFramework({ onSelectModule }) {
   }, [activeNodes, activeZoneConfig]);
 
   // =========================================================================
-  // ANIMATED BOUNDARY TRACING (RUNS WHEN CARD 01 IS PRESSED)
+  // ANIMATED BOUNDARY TRACING (RUNS ON ANY CARD / STEP SELECTION)
   // =========================================================================
-  const startIslandTraceAnimation = (targetMap) => {
+  const startZoneTraceAnimation = (stepIdx, targetMap) => {
     const map = targetMap || mapInstanceRef.current;
     if (!map) return;
 
-    const islandCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
-    if (islandCoords.length < 3) return;
+    let coords = [];
+    let isPolygon = true;
+    let mainColor = '#ea580c';
+    let glowColor = '#f59e0b';
+    let cameraCenter = [10.352, -75.568];
+    let cameraZoom = 13.2;
+
+    if (stepIdx === 0) {
+      coords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
+      isPolygon = true;
+      mainColor = '#ea580c';
+      glowColor = '#f59e0b';
+      cameraCenter = [10.352, -75.568];
+      cameraZoom = 13.2;
+    } else if (stepIdx === 1) {
+      coords = delimitations.erosion || DEFAULT_DELIMITATIONS.erosion || [];
+      isPolygon = false;
+      mainColor = '#dc2626';
+      glowColor = '#f87171';
+      cameraCenter = [10.3585, -75.5905];
+      cameraZoom = 16.5;
+    } else if (stepIdx === 2) {
+      coords = delimitations.school || DEFAULT_DELIMITATIONS.school || [];
+      isPolygon = true;
+      mainColor = '#ef4444';
+      glowColor = '#fca5a5';
+      cameraCenter = [10.3805, -75.5761];
+      cameraZoom = 18.5;
+    } else if (stepIdx === 3) {
+      coords = delimitations.plateau || DEFAULT_DELIMITATIONS.plateau || [];
+      isPolygon = true;
+      mainColor = '#0d9488';
+      glowColor = '#2dd4bf';
+      cameraCenter = [10.3730, -75.5759];
+      cameraZoom = 16.5;
+    }
+
+    if (coords.length < 2) return;
 
     // Clear any previous running animation
     if (animationTimerRef.current) {
@@ -680,32 +716,40 @@ export default function ThesisFramework({ onSelectModule }) {
     setIsIntroAnimating(true);
     setAnimProgress(0);
 
-    // Hide all contours initially during animation
-    if (layersRef.current.islandLayer) layersRef.current.islandLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-    if (layersRef.current.erosionLayer) layersRef.current.erosionLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-    if (layersRef.current.schoolLayer) layersRef.current.schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-    if (layersRef.current.masterplanLayer) layersRef.current.masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+    // Hide or dim static layers during active tracing
+    const { islandLayer, erosionLayer, schoolLayer, masterplanLayer } = layersRef.current;
+    if (islandLayer) islandLayer.setStyle({ opacity: stepIdx === 0 ? 0 : 0.2, fillOpacity: 0, weight: 2 });
+    if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
+    if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+    if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
 
-    // Ensure camera is perfectly framed on Tierrabomba delimitation
-    const islandBounds = L.latLngBounds(islandCoords);
-    map.fitBounds(islandBounds, {
-      paddingTopLeft: [70, 70],
-      paddingBottomRight: [70, 130],
-      animate: true,
-      duration: 1.0
-    });
+    // Smooth camera fly
+    if (stepIdx === 0) {
+      const islandBounds = L.latLngBounds(coords);
+      map.fitBounds(islandBounds, {
+        paddingTopLeft: [70, 70],
+        paddingBottomRight: [70, 130],
+        animate: true,
+        duration: 1.0
+      });
+    } else {
+      map.flyTo(cameraCenter, cameraZoom, {
+        animate: true,
+        duration: 1.2
+      });
+    }
 
-    // Create animated polyline & glow polyline
+    // Create glowing trace lines
     const glowLine = L.polyline([], {
-      color: '#f59e0b',
-      weight: 8,
-      opacity: 0.55,
+      color: glowColor,
+      weight: 9,
+      opacity: 0.65,
       lineCap: 'round',
       lineJoin: 'round'
     }).addTo(map);
 
     const mainLine = L.polyline([], {
-      color: '#ea580c',
+      color: mainColor,
       weight: 4.5,
       opacity: 1,
       lineCap: 'round',
@@ -716,17 +760,17 @@ export default function ThesisFramework({ onSelectModule }) {
       className: 'custom-anim-lead-node',
       html: `
         <div class="relative flex items-center justify-center pointer-events-none">
-          <div class="absolute -inset-2.5 rounded-full bg-amber-400 animate-ping opacity-85"></div>
-          <div class="w-4.5 h-4.5 rounded-full bg-amber-400 border-2 border-white shadow-2xl flex items-center justify-center">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-950"></div>
+          <div class="absolute -inset-3 rounded-full animate-ping opacity-85" style="background-color: ${glowColor}"></div>
+          <div class="w-5 h-5 rounded-full border-2 border-white shadow-2xl flex items-center justify-center" style="background-color: ${mainColor}">
+            <div class="w-2 h-2 rounded-full bg-white"></div>
           </div>
         </div>
       `,
-      iconSize: [24, 24],
-      iconAnchor: [12, 12]
+      iconSize: [26, 26],
+      iconAnchor: [13, 13]
     });
 
-    const leadMarker = L.marker(islandCoords[0], {
+    const leadMarker = L.marker(coords[0], {
       icon: leadIcon,
       zIndexOffset: 3000
     }).addTo(map);
@@ -735,49 +779,50 @@ export default function ThesisFramework({ onSelectModule }) {
     animatingLayerRef.current = mainLine;
     tracerMarkerRef.current = leadMarker;
 
-    // Total animation time ~6500ms divided across coords length for a smooth, visible, cinematic trace
-    const totalPoints = islandCoords.length;
-    const intervalMs = Math.max(50, Math.floor(6500 / totalPoints));
-    let stepIndex = 1;
+    const totalPoints = coords.length;
+    // Fluid responsive trace duration (~2000ms for island, ~1400ms for smaller polygons)
+    const targetDurationMs = stepIdx === 0 ? 2400 : 1400;
+    const intervalMs = Math.max(35, Math.floor(targetDurationMs / totalPoints));
+    let currentIdx = 1;
 
     animationTimerRef.current = setInterval(() => {
-      stepIndex++;
-      const currentPts = islandCoords.slice(0, stepIndex);
-      
-      // If reached last point, close the loop to coordinate 0
-      if (stepIndex >= totalPoints) {
-        currentPts.push(islandCoords[0]);
+      currentIdx++;
+      const currentPts = coords.slice(0, currentIdx);
+
+      if (isPolygon && currentIdx >= totalPoints) {
+        currentPts.push(coords[0]);
       }
 
       glowLine.setLatLngs(currentPts);
       mainLine.setLatLngs(currentPts);
-      
-      const currentHead = islandCoords[Math.min(stepIndex - 1, totalPoints - 1)];
+
+      const currentHead = coords[Math.min(currentIdx - 1, totalPoints - 1)];
       leadMarker.setLatLng(currentHead);
 
-      const pct = Math.min(100, Math.round((stepIndex / totalPoints) * 100));
+      const pct = Math.min(100, Math.round((currentIdx / totalPoints) * 100));
       setAnimProgress(pct);
 
-      if (stepIndex >= totalPoints + 1) {
+      const finishThreshold = isPolygon ? totalPoints + 1 : totalPoints;
+      if (currentIdx >= finishThreshold) {
         clearInterval(animationTimerRef.current);
         animationTimerRef.current = null;
 
-        // Smoothly reveal full polygon outline (NO FILL, clean crisp contour!)
         setTimeout(() => {
-          if (layersRef.current.islandLayer) {
-            layersRef.current.islandLayer.setStyle({
-              opacity: 1,
-              fillOpacity: 0,
-              weight: 4.5,
-              color: '#ea580c',
-              dashArray: '8, 8'
-            });
+          if (stepIdx === 0 && islandLayer) {
+            islandLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#ea580c', dashArray: '8, 8' });
+          } else if (stepIdx === 1 && erosionLayer) {
+            erosionLayer.setStyle({ opacity: 1, weight: 7, color: '#dc2626', dashArray: '10, 6' });
+          } else if (stepIdx === 2 && schoolLayer) {
+            schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.25, weight: 4, color: '#ef4444', dashArray: '6, 6' });
+          } else if (stepIdx === 3 && masterplanLayer) {
+            masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '8, 8' });
           }
+
           if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
           if (animatingLayerRef.current) map.removeLayer(animatingLayerRef.current);
           if (tracerMarkerRef.current) map.removeLayer(tracerMarkerRef.current);
           setIsIntroAnimating(false);
-        }, 300);
+        }, 200);
       }
     }, intervalMs);
   };
@@ -909,7 +954,7 @@ export default function ThesisFramework({ onSelectModule }) {
     const marker1 = L.marker([10.3540, -75.5700], { icon: marker1Icon, interactive: true }).addTo(map);
     marker1.on('click', () => {
       setCurrentStepIndex(0);
-      startIslandTraceAnimation();
+      startZoneTraceAnimation(0);
     });
 
     // Marker 2: Franja de Erosión Costera
@@ -930,6 +975,7 @@ export default function ThesisFramework({ onSelectModule }) {
     const marker2 = L.marker([10.3585, -75.5905], { icon: marker2Icon, interactive: true }).addTo(map);
     marker2.on('click', () => {
       setCurrentStepIndex(1);
+      startZoneTraceAnimation(1);
     });
 
     // Marker 3: Colegio Actual en Riesgo
@@ -953,6 +999,7 @@ export default function ThesisFramework({ onSelectModule }) {
     const marker3 = L.marker(schoolCenter, { icon: marker3Icon, interactive: true }).addTo(map);
     marker3.on('click', () => {
       setCurrentStepIndex(2);
+      startZoneTraceAnimation(2);
     });
 
     // Marker 4: Meseta Segura (+22m)
@@ -973,6 +1020,7 @@ export default function ThesisFramework({ onSelectModule }) {
     const marker4 = L.marker([10.3730, -75.5759], { icon: marker4Icon, interactive: true }).addTo(map);
     marker4.on('click', () => {
       setCurrentStepIndex(3);
+      startZoneTraceAnimation(3);
     });
 
     layersRef.current = {
@@ -1304,13 +1352,14 @@ export default function ThesisFramework({ onSelectModule }) {
 
     const interval = setInterval(() => {
       setCurrentStepIndex((prev) => {
-        if (prev >= FRAMEWORK_STEPS.length - 1) {
+        const next = prev === null || prev >= FRAMEWORK_STEPS.length - 1 ? 0 : prev + 1;
+        startZoneTraceAnimation(next);
+        if (prev !== null && prev >= FRAMEWORK_STEPS.length - 1) {
           setIsPlaying(false);
-          return 0;
         }
-        return prev + 1;
+        return next;
       });
-    }, 5000);
+    }, 4500);
 
     return () => clearInterval(interval);
   }, [isPlaying, isEditMode]);
@@ -1499,16 +1548,17 @@ export default function ThesisFramework({ onSelectModule }) {
             <>
               <button
                 onClick={() => {
-                  setCurrentStepIndex(0);
+                  const targetIdx = currentStepIndex !== null ? currentStepIndex : 0;
+                  setCurrentStepIndex(targetIdx);
                   setIsPlaying(false);
-                  startIslandTraceAnimation();
+                  startZoneTraceAnimation(targetIdx);
                 }}
                 className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shadow-sm ${
                   isIntroAnimating
                     ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-400/50 scale-105'
                     : 'bg-amber-500 hover:bg-amber-400 text-slate-950 hover:scale-102'
                 }`}
-                title="Trazar delimitación perimetral de la isla"
+                title="Trazar perímetro animado de la zona seleccionada"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>{isIntroAnimating ? 'Animando...' : 'Animar Trazo'}</span>
@@ -1594,7 +1644,7 @@ export default function ThesisFramework({ onSelectModule }) {
           <div className="glass-hud px-4 py-2 rounded-full border border-amber-400/60 shadow-2xl flex items-center space-x-3 backdrop-blur-md">
             <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
             <span className="text-xs font-mono font-bold text-slate-900 tracking-wide">
-              Delimitando Isla Tierrabomba: <span className="text-amber-600 font-black">{animProgress}%</span>
+              Trazando {currentStep.title}: <span className="text-amber-600 font-black">{animProgress}%</span>
             </span>
             <div className="w-20 bg-slate-200/80 h-2 rounded-full overflow-hidden border border-slate-300">
               <div 
@@ -2004,12 +2054,8 @@ export default function ThesisFramework({ onSelectModule }) {
                   key={step.id}
                   onClick={() => {
                     setIsPlaying(false);
-                    if (idx === 0) {
-                      setCurrentStepIndex(0);
-                      startIslandTraceAnimation();
-                    } else {
-                      setCurrentStepIndex(idx);
-                    }
+                    setCurrentStepIndex(idx);
+                    startZoneTraceAnimation(idx);
                   }}
                   className={`glass-card p-3 rounded-2xl text-left transition-all flex flex-col justify-between ${
                     isActive
