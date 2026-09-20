@@ -10,7 +10,6 @@ import {
   Info, 
   ChevronLeft, 
   ChevronRight, 
-  Move, 
   X, 
   Table, 
   Maximize2, 
@@ -20,13 +19,11 @@ import {
   Activity,
   Flame,
   CheckCircle2,
-  FileText
+  FileText,
+  Sun,
+  ShieldCheck,
+  AlertTriangle
 } from 'lucide-react';
-import ndviImg from '../assets/spectral_ndvi.png';
-import ndwiImg from '../assets/spectral_ndwi.png';
-import falsoColorImg from '../assets/spectral_falsocolor.png';
-import manglarImg from '../assets/spectral_manglar.png';
-import termicoImg from '../assets/spectral_termico.png';
 import L from 'leaflet';
 
 // Fix Leaflet marker icons safely in Vite/React
@@ -44,7 +41,7 @@ if (typeof window !== 'undefined' && L && L.Icon && L.Icon.Default && L.Icon.Def
 }
 
 // =========================================================================
-// OFICIAL: LAS 5 BANDAS ESPECTRALES DEL MÓDULO 03 (TELEDETECCIÓN & GIS)
+// OFICIAL: LAS 5 BANDAS ESPECTRALES DEL MÓDULO 03 (SHADERS CSS EN TIEMPO REAL)
 // =========================================================================
 export const SPECTRAL_LAYERS = [
   {
@@ -56,7 +53,7 @@ export const SPECTRAL_LAYERS = [
     utility: 'Muestra la alta densidad de biomasa en la meseta (+22m) frente al suelo erosionado de la costa.',
     color: '#16a34a',
     accentBg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800',
-    image: ndviImg,
+    cssFilter: 'hue-rotate(55deg) saturate(3.8) contrast(1.4) brightness(0.96)',
     unit: 'Índice NDVI [-1.0 a +1.0]',
     legend: [
       { color: '#ffffff', label: 'Agua / Suelo Desnudo (< 0.1)' },
@@ -68,7 +65,7 @@ export const SPECTRAL_LAYERS = [
       { label: 'Biomasa en Meseta', value: '65 Hectáreas' },
       { label: 'Salud Vegetal', value: 'Media - Alta' },
       { label: 'Borde Costero', value: '0% Vegetación' },
-      { label: 'Protección', value: 'Suelo Estable' }
+      { label: 'Protección', value: 'Suelo Firme +22m' }
     ]
   },
   {
@@ -80,7 +77,7 @@ export const SPECTRAL_LAYERS = [
     utility: 'Delinea la franja de marea activa y la socavación marina (cota < +1.5m).',
     color: '#0284c7',
     accentBg: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-800',
-    image: ndwiImg,
+    cssFilter: 'hue-rotate(185deg) saturate(4.2) contrast(1.65) brightness(1.1)',
     unit: 'Índice NDWI [-1.0 a +1.0]',
     legend: [
       { color: '#ffffff', label: 'Tierra Firme / Inmune (Meseta +22m)' },
@@ -104,7 +101,7 @@ export const SPECTRAL_LAYERS = [
     utility: 'Contraste de geomorfología entre la roca calcárea de la meseta y las aguas someras.',
     color: '#ea580c',
     accentBg: 'bg-amber-500/10 border-amber-500/30 text-amber-800',
-    image: falsoColorImg,
+    cssFilter: 'hue-rotate(305deg) saturate(3.4) contrast(1.5) brightness(1.0)',
     unit: 'Reflectancia Espectral',
     legend: [
       { color: '#1d4ed8', label: 'Cuenca Marítima' },
@@ -128,7 +125,7 @@ export const SPECTRAL_LAYERS = [
     utility: 'Mapeo de las 14.2 Ha de manglares que sirven de barrera biológica frente al oleaje de buques.',
     color: '#15803d',
     accentBg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-900',
-    image: manglarImg,
+    cssFilter: 'hue-rotate(85deg) saturate(4.6) contrast(1.8) brightness(0.88)',
     unit: 'Densidad de Dosel Arbóreo',
     legend: [
       { color: '#ffffff', label: 'Zona Antrópica / Sin Cobertura' },
@@ -152,7 +149,7 @@ export const SPECTRAL_LAYERS = [
     utility: 'Evidencia que la meseta registra hasta -3.8°C respecto al concreto continental gracias al viento alisio.',
     color: '#eab308',
     accentBg: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-900',
-    image: termicoImg,
+    cssFilter: 'hue-rotate(240deg) saturate(4.8) contrast(1.8) brightness(1.2) invert(0.06)',
     unit: 'Temperatura Superficial (°C)',
     legend: [
       { color: '#1e3a8a', label: 'Mar / Bahía (~27°C - 29°C)' },
@@ -169,30 +166,20 @@ export const SPECTRAL_LAYERS = [
   }
 ];
 
-export const DEFAULT_SPECTRAL_BOUNDS = {
-  south: 10.2750,
-  west: -75.6150,
-  north: 10.4550,
-  east: -75.4750
-};
-
 export default function DiagnosisMap({ onNavigateModule }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const tileLayerRef = useRef(null);
-  const spectralOverlayRef = useRef(null);
 
-  // Active state: starts with NDVI immediately active
+  // Active state
   const [selectedBandId, setSelectedBandId] = useState('ndvi');
   const [spectralDisplayMode, setSpectralDisplayMode] = useState('swipe'); // 'swipe' | 'overlay' | 'scanner'
   const [swipePosition, setSwipePosition] = useState(50); // 0 to 100%
   const [isDraggingSwipe, setIsDraggingSwipe] = useState(false);
-  const [spectralOpacity, setSpectralOpacity] = useState(0.85);
-  const [spectralBounds, setSpectralBounds] = useState(DEFAULT_SPECTRAL_BOUNDS);
+  const [filterIntensity, setFilterIntensity] = useState(100); // 10% to 100%
   const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
   const [showMatrixModal, setShowMatrixModal] = useState(false);
   const [showLegendCard, setShowLegendCard] = useState(true);
-  const [showCalibration, setShowCalibration] = useState(false);
   const [scannerProgress, setScannerProgress] = useState(0);
 
   const activeBand = useMemo(() => {
@@ -213,7 +200,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
       attributionControl: false
     });
 
-    // Satellite Aerial Layer (Esri World Imagery)
+    // Satellite Aerial Layer (Esri World Imagery - 100% Native 4K High-Res)
     const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       maxZoom: 19,
       attribution: 'Esri World Imagery'
@@ -334,7 +321,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
       interactive: false
     }).addTo(map);
 
-    // Safe Plateau Contour (+22m) - NO FILL, crisp border only
+    // Safe Plateau Contour (+22m) - NO FILL, clean crisp border
     const safePlateau = L.polygon([
       [10.37487, -75.57396],
       [10.37523, -75.57534],
@@ -368,66 +355,6 @@ export default function DiagnosisMap({ onNavigateModule }) {
       mapInstanceRef.current = null;
     };
   }, []);
-
-  // =========================================================================
-  // 2. SYNCHRONIZE SPECTRAL RASTER OVERLAY WITH LEAFLET & CLIP MODES
-  // =========================================================================
-  useEffect(() => {
-    if (!mapInstanceRef.current?.map) return;
-    const map = mapInstanceRef.current.map;
-
-    const bounds = L.latLngBounds(
-      [spectralBounds.south, spectralBounds.west],
-      [spectralBounds.north, spectralBounds.east]
-    );
-
-    if (spectralOverlayRef.current) {
-      map.removeLayer(spectralOverlayRef.current);
-    }
-
-    const overlay = L.imageOverlay(activeBand.image, bounds, {
-      opacity: spectralDisplayMode === 'overlay' ? spectralOpacity : 0.95,
-      interactive: false,
-      zIndex: 250
-    }).addTo(map);
-
-    spectralOverlayRef.current = overlay;
-
-    // Apply Realtime Clip Path to the underlying image element
-    const updateElementStyle = () => {
-      const img = overlay.getElement();
-      if (img) {
-        if (spectralDisplayMode === 'swipe') {
-          img.style.clipPath = `polygon(${swipePosition}% 0%, 100% 0%, 100% 100%, ${swipePosition}% 100%)`;
-        } else if (spectralDisplayMode === 'scanner') {
-          img.style.clipPath = `polygon(0% 0%, ${scannerProgress}% 0%, ${scannerProgress}% 100%, 0% 100%)`;
-        } else {
-          img.style.clipPath = 'none';
-        }
-        img.style.transition = spectralDisplayMode === 'swipe' ? 'none' : 'clip-path 0.08s linear';
-      }
-    };
-
-    updateElementStyle();
-    map.on('move', updateElementStyle);
-    map.on('zoom', updateElementStyle);
-
-    return () => {
-      map.off('move', updateElementStyle);
-      map.off('zoom', updateElementStyle);
-      if (spectralOverlayRef.current) {
-        map.removeLayer(spectralOverlayRef.current);
-        spectralOverlayRef.current = null;
-      }
-    };
-  }, [
-    activeBand,
-    spectralBounds,
-    spectralDisplayMode,
-    spectralOpacity,
-    swipePosition,
-    scannerProgress
-  ]);
 
   // Scanner animation interval
   useEffect(() => {
@@ -474,37 +401,6 @@ export default function DiagnosisMap({ onNavigateModule }) {
     setSwipePosition(Number(pct.toFixed(1)));
   };
 
-  const moveSpectralLat = (delta) => {
-    setSpectralBounds(prev => ({
-      ...prev,
-      south: Number((prev.south + delta).toFixed(5)),
-      north: Number((prev.north + delta).toFixed(5))
-    }));
-  };
-
-  const moveSpectralLng = (delta) => {
-    setSpectralBounds(prev => ({
-      ...prev,
-      west: Number((prev.west + delta).toFixed(5)),
-      east: Number((prev.east + delta).toFixed(5))
-    }));
-  };
-
-  const scaleSpectral = (factor) => {
-    setSpectralBounds(prev => {
-      const centerLat = (prev.north + prev.south) / 2;
-      const centerLng = (prev.east + prev.west) / 2;
-      const halfLat = ((prev.north - prev.south) * factor) / 2;
-      const halfLng = ((prev.east - prev.west) * factor) / 2;
-      return {
-        south: Number((centerLat - halfLat).toFixed(5)),
-        north: Number((centerLat + halfLat).toFixed(5)),
-        west: Number((centerLng - halfLng).toFixed(5)),
-        east: Number((centerLng + halfLng).toFixed(5))
-      };
-    });
-  };
-
   return (
     <div 
       className="relative w-full h-screen overflow-hidden animate-fade-in select-none"
@@ -514,11 +410,28 @@ export default function DiagnosisMap({ onNavigateModule }) {
       onTouchEnd={() => setIsDraggingSwipe(false)}
     >
       
-      {/* 1. FULLSCREEN SATELLITE MAP */}
+      {/* 1. FULLSCREEN SATELLITE MAP (CRISP 4K NATIVE TILES) */}
       <div ref={mapContainerRef} className="absolute inset-0 w-full h-full z-0" />
 
       {/* ========================================================================= */}
-      {/* 2. REALTIME INTERACTIVE SWIPE CURTAIN DIVIDER                             */}
+      {/* 2. PURE CSS SHADER FILTER OVERLAY (ZERO BLURRY PNGS - NATIVE 60FPS)       */}
+      {/* ========================================================================= */}
+      <div 
+        className="absolute inset-0 w-full h-full z-[100] pointer-events-none transition-none"
+        style={{
+          backdropFilter: activeBand.cssFilter,
+          WebkitBackdropFilter: activeBand.cssFilter,
+          opacity: filterIntensity / 100,
+          clipPath: spectralDisplayMode === 'swipe'
+            ? `polygon(${swipePosition}% 0%, 100% 0%, 100% 100%, ${swipePosition}% 100%)`
+            : spectralDisplayMode === 'scanner'
+              ? `polygon(0% 0%, ${scannerProgress}% 0%, ${scannerProgress}% 100%, 0% 100%)`
+              : 'none'
+        }}
+      />
+
+      {/* ========================================================================= */}
+      {/* 3. REALTIME INTERACTIVE SWIPE CURTAIN DIVIDER                             */}
       {/* ========================================================================= */}
       {spectralDisplayMode === 'swipe' && (
         <div 
@@ -528,7 +441,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
           onTouchStart={() => setIsDraggingSwipe(true)}
         >
           {/* Vertical Dividing Glass Line */}
-          <div className="w-1.5 h-full bg-white shadow-[0_0_20px_rgba(255,255,255,0.95)] backdrop-blur-sm relative flex items-center justify-center">
+          <div className="w-1.5 h-full bg-white shadow-[0_0_25px_rgba(255,255,255,1)] backdrop-blur-sm relative flex items-center justify-center">
             
             {/* Top Tag */}
             <div className="absolute top-20 -translate-x-1/2 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-950/90 border border-white/30 text-[9px] font-mono text-white font-bold shadow-xl">
@@ -545,9 +458,9 @@ export default function DiagnosisMap({ onNavigateModule }) {
 
             {/* Bottom Sub-tag */}
             <div className="absolute bottom-28 -translate-x-1/2 whitespace-nowrap px-3 py-1 rounded-full bg-slate-900/90 border border-white/20 text-[10px] font-mono font-bold shadow-2xl flex items-center space-x-2">
-              <span className="text-slate-300">Satélite</span>
+              <span className="text-slate-300">Satélite Real</span>
               <span className="text-amber-400 font-black">|</span>
-              <span style={{ color: activeBand.color }}>{activeBand.shortName}</span>
+              <span style={{ color: activeBand.color }}>{activeBand.shortName} (Shader CSS)</span>
             </div>
 
           </div>
@@ -570,7 +483,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 3. TOP FLOATING CONTROL BAR (HUD)                                         */}
+      {/* 4. TOP FLOATING CONTROL BAR (HUD)                                         */}
       {/* ========================================================================= */}
       <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
@@ -585,7 +498,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
                 TELEDETECCIÓN & ANÁLISIS ESPECTRAL
               </span>
               <span className="text-[9px] font-mono text-cyan-800 font-bold bg-cyan-50 px-1.5 py-0.5 rounded border border-cyan-300">
-                5 BANDAS GIS
+                5 BANDAS GIS (CSS SHADER)
               </span>
             </div>
             <h2 className="font-serif font-bold text-xs sm:text-sm text-slate-900 truncate">
@@ -643,7 +556,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
       </div>
 
       {/* ========================================================================= */}
-      {/* 4. FLOATING SCIENTIFIC TELEMETRY & LEGEND CARD (LEFT PANEL)               */}
+      {/* 5. FLOATING SCIENTIFIC TELEMETRY & LEGEND CARD (LEFT PANEL)               */}
       {/* ========================================================================= */}
       {showLegendCard && (
         <div className="absolute top-24 left-4 z-[400] pointer-events-none animate-scale-up max-w-sm w-full">
@@ -732,12 +645,12 @@ export default function DiagnosisMap({ onNavigateModule }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 5. SPECTRAL STUDIO FLOATING BOTTOM DOCK & INTERACTIVE CONTROLS            */}
+      {/* 6. SPECTRAL STUDIO FLOATING BOTTOM DOCK & INTERACTIVE CONTROLS            */}
       {/* ========================================================================= */}
       <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none animate-slide-up">
         <div className="max-w-4xl mx-auto glass-panel p-3 sm:p-3.5 rounded-3xl shadow-2xl border border-white/60 pointer-events-auto space-y-2.5 text-slate-900 backdrop-blur-xl">
           
-          {/* Controls: Mode Switcher, Opacity & Quick Calibration */}
+          {/* Controls: Mode Switcher & Opacity Slider */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             
             <div className="flex items-center space-x-2">
@@ -762,7 +675,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
                   }`}
                 >
                   <Layers className="w-3 h-3 text-teal-400" />
-                  <span>Superposición</span>
+                  <span>Superposición Total</span>
                 </button>
 
                 <button
@@ -777,118 +690,34 @@ export default function DiagnosisMap({ onNavigateModule }) {
               </div>
             </div>
 
-            {/* Opacity slider when in Overlay mode */}
-            {spectralDisplayMode === 'overlay' && (
-              <div className="flex items-center space-x-2 bg-slate-100 px-3 py-1 rounded-xl border border-slate-200 text-xs font-mono">
-                <span className="text-[10px] text-slate-500 font-bold">Opacidad:</span>
-                <input
-                  type="range"
-                  min="0.1"
-                  max="1"
-                  step="0.05"
-                  value={spectralOpacity}
-                  onChange={(e) => setSpectralOpacity(parseFloat(e.target.value))}
-                  className="w-24 h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-teal-600"
-                />
-                <span className="font-bold text-slate-800 text-[10px]">{Math.round(spectralOpacity * 100)}%</span>
-              </div>
-            )}
-
-            {/* Right Buttons: Calibration & Table */}
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setShowCalibration(!showCalibration)}
-                className={`p-1.5 rounded-xl border text-slate-600 hover:text-slate-900 ${
-                  showCalibration ? 'bg-amber-100 border-amber-300 text-amber-900' : 'bg-slate-100 border-slate-200'
-                }`}
-                title="Calibrar Posición de Imagen"
-              >
-                <Move className="w-3.5 h-3.5" />
-              </button>
-
-              <button
-                onClick={() => setShowMatrixModal(true)}
-                className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-bold flex items-center space-x-1.5 shadow-sm"
-              >
-                <Table className="w-3 h-3 text-amber-400" />
-                <span>Ver las 5 Bandas</span>
-              </button>
+            {/* Filter Intensity Slider */}
+            <div className="flex items-center space-x-2 bg-slate-100 px-3 py-1 rounded-xl border border-slate-200 text-xs font-mono">
+              <span className="text-[10px] text-slate-500 font-bold">Intensidad Shader:</span>
+              <input
+                type="range"
+                min="20"
+                max="100"
+                step="5"
+                value={filterIntensity}
+                onChange={(e) => setFilterIntensity(parseInt(e.target.value))}
+                className="w-24 h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-teal-600"
+              />
+              <span className="font-bold text-slate-800 text-[10px]">{filterIntensity}%</span>
             </div>
+
+            {/* View Table Button */}
+            <button
+              onClick={() => setShowMatrixModal(true)}
+              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-bold flex items-center space-x-1.5 shadow-sm"
+            >
+              <Table className="w-3 h-3 text-amber-400" />
+              <span>Ver las 5 Bandas</span>
+            </button>
 
           </div>
 
         </div>
       </div>
-
-      {/* ========================================================================= */}
-      {/* 6. SPECTRAL IMAGE CALIBRATION POPOVER (FINE TUNE NUDGE)                   */}
-      {/* ========================================================================= */}
-      {showCalibration && (
-        <div className="absolute top-24 right-4 z-[400] glass-panel p-3 rounded-2xl shadow-2xl space-y-2 pointer-events-auto border border-amber-400/60 animate-fade-in text-slate-900 w-52">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-1">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800">
-              Alineación de Capa
-            </span>
-            <button
-              onClick={() => setSpectralBounds(DEFAULT_SPECTRAL_BOUNDS)}
-              className="text-[10px] font-mono font-bold text-amber-700 hover:underline"
-            >
-              Reset
-            </button>
-          </div>
-
-          <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-center text-xs font-mono font-bold">
-            <div />
-            <button
-              onClick={() => moveSpectralLat(0.001)}
-              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
-              title="Mover Norte"
-            >
-              ▲
-            </button>
-            <div />
-
-            <button
-              onClick={() => moveSpectralLng(-0.001)}
-              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
-              title="Mover Oeste"
-            >
-              ◀
-            </button>
-
-            <button
-              onClick={() => moveSpectralLat(-0.001)}
-              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
-              title="Mover Sur"
-            >
-              ▼
-            </button>
-
-            <button
-              onClick={() => moveSpectralLng(0.001)}
-              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
-              title="Mover Este"
-            >
-              ▶
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-1 text-[10px] font-mono font-bold">
-            <button
-              onClick={() => scaleSpectral(1.015)}
-              className="py-1 rounded-lg bg-slate-100 hover:bg-slate-200 shadow-xs text-center text-slate-800"
-            >
-              + Escala
-            </button>
-            <button
-              onClick={() => scaleSpectral(0.985)}
-              className="py-1 rounded-lg bg-slate-100 hover:bg-slate-200 shadow-xs text-center text-slate-800"
-            >
-              - Escala
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* ========================================================================= */}
       {/* 7. FULL MATRIX MODAL (TABLA CIENTÍFICA DE LAS 5 BANDAS DE TESIS)          */}
@@ -980,7 +809,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
 
             {/* Footer */}
             <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 text-xs font-mono text-slate-500">
-              <span>Resolución Espacial: 10m / Píxel &bull; Calibración Radiométrica BOA (Bottom of Atmosphere)</span>
+              <span>Resolución Espacial: 10m / Píxel &bull; Shader CSS en Tiempo Real (GPU Native 60fps)</span>
               <button
                 onClick={() => setShowMatrixModal(false)}
                 className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold transition-colors"
