@@ -309,7 +309,6 @@ export const URBAN_HOUSE_BLOCKS = [
 
 export default function ExecutiveControlCenter({ onSelectModule }) {
   const [selectedYear, setSelectedYear] = useState(1690); // Default to first historical map (1690) as requested
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [activeHotspotModal, setActiveHotspotModal] = useState(null);
   const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
   const [showHistoricalGalleryModal, setShowHistoricalGalleryModal] = useState(false);
@@ -330,7 +329,6 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
   const labelsLayerRef = useRef(null);
   const markersRef = useRef([]);
   const relocationGroupRef = useRef(null);
-  const transitionTimerRef = useRef(null);
 
   const currentTimelineData = TIMELINE_EPOCHS.find(y => y.year === selectedYear) || TIMELINE_EPOCHS[6];
   const isHistoricalMode = currentTimelineData.type === 'historical';
@@ -338,16 +336,9 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
     ? HISTORICAL_MAPS_DATA.find(m => m.id === currentTimelineData.mapId) || HISTORICAL_MAPS_DATA[0]
     : null;
 
-  // Cinematic Year Transition Handler with Dynamic Camera FlyTo
+  // Year Selection Handler with Camera FlyTo
   const handleSelectYear = (targetYear) => {
     if (targetYear === selectedYear) return;
-
-    setIsTransitioning(true);
-    if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
-    transitionTimerRef.current = setTimeout(() => {
-      setIsTransitioning(false);
-    }, 750);
-
     setSelectedYear(targetYear);
 
     // If target is modern and map instance exists, trigger cinematic camera sweeps
@@ -734,54 +725,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 2. CINEMATIC TEMPORAL WARP HUD OVERLAY (Triggered on Epoch Transition)    */}
-      {/* ========================================================================= */}
-      {isTransitioning && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[850] pointer-events-none animate-warp-entry">
-          <div className="relative px-8 py-5 rounded-3xl bg-slate-950/92 text-white border border-white/30 backdrop-blur-2xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col items-center space-y-2 overflow-hidden min-w-[340px] max-w-lg text-center">
-            
-            {/* Scanning Laser Beam Effect */}
-            <div 
-              className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-temporal-scan"
-              style={{
-                boxShadow: '0 0 16px #22d3ee'
-              }}
-            />
-
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
-              <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-300 font-bold">
-                {isHistoricalMode ? 'REGISTRO CARTOGRÁFICO // ARCHIVO' : 'TELEMETRÍA TERRITORIAL // SIG'}
-              </span>
-            </div>
-
-            <div className="flex items-baseline space-x-2.5">
-              <span className="font-serif font-black text-3xl sm:text-4xl text-white tracking-tight drop-shadow-lg">
-                {selectedYear}
-              </span>
-              <span className="text-xs font-mono font-bold text-slate-400">
-                {isHistoricalMode ? currentHistoricalMap?.period : 'Cartagena de Indias'}
-              </span>
-            </div>
-
-            <p className="text-xs font-serif italic text-slate-200 line-clamp-1">
-              {currentTimelineData.title}
-            </p>
-
-            {/* Glowing Accent Bar */}
-            <div 
-              className="w-28 h-1 rounded-full mt-1"
-              style={{ 
-                backgroundColor: currentTimelineData.color,
-                boxShadow: `0 0 12px ${currentTimelineData.color}` 
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 3. FLOATING TOP BAR: CHRONOLOGICAL TIMELINE & CONTROLS                    */}
+      {/* 2. FLOATING TOP BAR: CHRONOLOGICAL TIMELINE & CONTROLS                    */}
       {/* ========================================================================= */}
       <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
