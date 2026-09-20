@@ -1072,7 +1072,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
 
             {/* KPI 3: Water */}
             <div 
-              onClick={() => onSelectModule && onSelectModule('water')}
+              onClick={() => onSelectModule && onSelectModule('programs')}
               className="glass-card p-3 rounded-2xl hover:border-blue-500 hover:shadow-[0_12px_30px_rgba(14,165,233,0.3)] hover:-translate-y-1.5 cursor-pointer group transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-1">
@@ -1080,7 +1080,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                   <Droplets className="w-3.5 h-3.5" />
                 </div>
                 <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-blue-50 text-blue-700">
-                  MOD 07
+                  AUTOSUFICIENCIA
                 </span>
               </div>
               <p className="text-[10px] font-mono text-slate-500">Reserva Hídrica</p>
@@ -1124,22 +1124,22 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
               <p className="text-[9px] text-slate-500 truncate">Despiece & Speckle</p>
             </div>
 
-            {/* KPI 6: Simulation Lab */}
+            {/* KPI 6: CAD & Plotter */}
             <div 
-              onClick={() => onSelectModule && onSelectModule('simulations')}
+              onClick={() => onSelectModule && onSelectModule('cad')}
               className="glass-card p-3 rounded-2xl hover:border-purple-500 hover:shadow-[0_12px_30px_rgba(168,85,247,0.3)] hover:-translate-y-1.5 cursor-pointer group transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600">
-                  <Activity className="w-3.5 h-3.5" />
+                  <Printer className="w-3.5 h-3.5" />
                 </div>
                 <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-purple-50 text-purple-700">
-                  MOD 08
+                  MOD 06
                 </span>
               </div>
-              <p className="text-[10px] font-mono text-slate-500">Simulaciones</p>
-              <h4 className="font-serif font-bold text-lg text-slate-900">4 Motores</h4>
-              <p className="text-[9px] text-slate-500 truncate">CFD, Marea & Redes</p>
+              <p className="text-[10px] font-mono text-slate-500">Planimetría CAD</p>
+              <h4 className="font-serif font-bold text-lg text-slate-900">Pliegos A1</h4>
+              <p className="text-[9px] text-slate-500 truncate">Cianotipo & Plotter</p>
             </div>
 
           </div>

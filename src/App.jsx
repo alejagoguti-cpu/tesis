@@ -6,8 +6,6 @@ import DiagnosisMap from './components/DiagnosisMap';
 import HousingRelocation from './components/HousingRelocation';
 import ModelViewer3D from './components/ModelViewer3D';
 import BlueprintPlotter from './components/BlueprintPlotter';
-import WaterSustainability from './components/WaterSustainability';
-import SimulationLab from './components/SimulationLab';
 import Hero from './components/Hero';
 import Footer from './components/Footer';
 
@@ -138,20 +136,6 @@ export default function App() {
                 </SafeSection>
               )}
 
-              {/* Module 07: Soberanía Hídrica */}
-              {activeModule === 'water' && (
-                <SafeSection name="Soberanía Hídrica">
-                  <WaterSustainability onSelectModule={(modId) => setActiveModule(modId)} />
-                </SafeSection>
-              )}
-
-              {/* Module 08: Laboratorio de Simulaciones & Modelamiento */}
-              {activeModule === 'simulations' && (
-                <SafeSection name="Laboratorio de Simulaciones">
-                  <SimulationLab onSelectModule={(modId) => setActiveModule(modId)} />
-                </SafeSection>
-              )}
-
             </div>
           )}
 
@@ -184,14 +168,6 @@ export default function App() {
 
               <SafeSection name="Planimetría Técnica CAD">
                 <BlueprintPlotter />
-              </SafeSection>
-
-              <SafeSection name="Soberanía Hídrica">
-                <WaterSustainability />
-              </SafeSection>
-
-              <SafeSection name="Laboratorio de Simulaciones">
-                <SimulationLab />
               </SafeSection>
             </div>
           )}

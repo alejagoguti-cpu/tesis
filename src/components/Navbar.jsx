@@ -41,7 +41,6 @@ export default function Navbar({ darkMode, setDarkMode, activeSection, setActive
     { id: 'reubicacion-proyectos', label: '03. Vivienda & Colegio' },
     { id: 'visor3d', label: '04. Visor 3D' },
     { id: 'planos', label: '05. Planos' },
-    { id: 'sostenibilidad', label: '06. Memoria Hídrica' },
   ];
 
   const scrollTo = (id) => {
