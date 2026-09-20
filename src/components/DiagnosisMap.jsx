@@ -24,10 +24,26 @@ import {
   Users,
   Building2,
   CheckCircle2,
-  List
+  List,
+  Sliders,
+  Eye,
+  SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  Move,
+  Scan,
+  RefreshCw,
+  Flame,
+  Leaf,
+  Sun
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 import { HOUSING_CENSUS_120, HOUSING_CENSUS_SUMMARY } from '../data/housingCensus';
+import ndviImg from '../assets/spectral_ndvi.png';
+import ndwiImg from '../assets/spectral_ndwi.png';
+import falsoColorImg from '../assets/spectral_falsocolor.png';
+import manglarImg from '../assets/spectral_manglar.png';
+import termicoImg from '../assets/spectral_termico.png';
 import L from 'leaflet';
 
 // Fix Leaflet marker icons safely in Vite/React
@@ -43,6 +59,146 @@ if (typeof window !== 'undefined' && L && L.Icon && L.Icon.Default && L.Icon.Def
     // safe fallback
   }
 }
+
+// =========================================================================
+// SPECTRAL ANALYSIS SATELLITE BANDS DATASET (5 BANDAS ESPECTRALES)
+// =========================================================================
+export const SPECTRAL_LAYERS = [
+  {
+    id: 'ndvi',
+    name: 'NDVI • Biomasa & Vegetación',
+    shortName: 'NDVI Vegetación',
+    badge: 'Índice de Vegetación',
+    sensor: 'Sentinel-2 Multispectral (10m)',
+    formula: '(NIR - Red) / (NIR + Red)',
+    icon: Leaf,
+    color: '#16a34a',
+    accentClass: 'text-emerald-400 bg-emerald-950/80 border-emerald-500/40',
+    image: ndviImg,
+    unit: 'Índice NDVI [-1.0 a +1.0]',
+    legend: [
+      { color: '#ffffff', label: 'Agua / Suelo Desnudo (< 0.1)' },
+      { color: '#86efac', label: 'Vegetación Dispersa (0.2 - 0.4)' },
+      { color: '#16a34a', label: 'Bosque Tropical / Meseta (0.5 - 0.7)' },
+      { color: '#14532d', label: 'Dosel Denso / Manglar (> 0.75)' }
+    ],
+    summary: 'Detección de cobertura vegetal nativa y estrés hídrico. La meseta segura (+22.00m) concentra la mayor densidad de biomasa y suelo firme frente al borde costero socavado.',
+    metrics: [
+      { label: 'Cobertura Insular', value: '42.8%' },
+      { label: 'Biomasa en Meseta', value: '65 Ha' },
+      { label: 'Salud Vegetal', value: 'Media-Alta' },
+      { label: 'Absorción CO2', value: '180 t/año' }
+    ]
+  },
+  {
+    id: 'ndwi',
+    name: 'NDWI • Hidrografía & Humedad',
+    shortName: 'NDWI Humedad',
+    badge: 'Índice de Agua',
+    sensor: 'Sentinel-2 Bandas B3/B8',
+    formula: '(Green - NIR) / (Green + NIR)',
+    icon: Droplets,
+    color: '#0284c7',
+    accentClass: 'text-cyan-400 bg-cyan-950/80 border-cyan-500/40',
+    image: ndwiImg,
+    unit: 'Índice NDWI [-1.0 a +1.0]',
+    legend: [
+      { color: '#ffffff', label: 'Tierra Firme Inmune (Meseta +22m)' },
+      { color: '#7dd3fc', label: 'Franja Húmeda / Marea Activa' },
+      { color: '#0284c7', label: 'Cuerpo de Agua Costero' },
+      { color: '#0369a1', label: 'Canal de Acceso y Bahía Profunda' }
+    ],
+    summary: 'Delineación de la cuenca marina y límites de inundación costera. Constata el alto riesgo del borde 0.00m y la inmunidad hidrológica de la meseta central.',
+    metrics: [
+      { label: 'Espejo de Bahía', value: '82 km²' },
+      { label: 'Línea de Costa', value: '18.4 km' },
+      { label: 'Zona Inundable', value: 'Cota < +1.5m' },
+      { label: 'Infiltración', value: 'Alta en Meseta' }
+    ]
+  },
+  {
+    id: 'falsocolor',
+    name: 'Falso Color • Suelo vs Bahía',
+    badge: 'Contraste Espectral',
+    sensor: 'Composición B8-B4-B3',
+    formula: 'NIR / Red / Green Composit',
+    icon: Activity,
+    color: '#ea580c',
+    accentClass: 'text-amber-400 bg-amber-950/80 border-amber-500/40',
+    image: falsoColorImg,
+    unit: 'Reflectancia Espectral',
+    legend: [
+      { color: '#1d4ed8', label: 'Cuenca Marítima Profunda' },
+      { color: '#38bdf8', label: 'Aguas Someras Costeras' },
+      { color: '#ea580c', label: 'Suelo Insular / Corregimiento' },
+      { color: '#c2410c', label: 'Roca Firme Calcárea (Meseta)' }
+    ],
+    summary: 'Contraste de geomorfología entre la bahía de Cartagena y la plataforma insular. Evidencia la transición de suelo calcáreo firme a sedimentos marinos.',
+    metrics: [
+      { label: 'Suelo Expuesto', value: '57.2%' },
+      { label: 'Frente Marino', value: 'Oeste Expuesto' },
+      { label: 'Bahía Interna', value: 'Protegida' },
+      { label: 'Tipo Roca', value: 'Caliza Coralina' }
+    ]
+  },
+  {
+    id: 'manglar',
+    name: 'Bosque Seco & Manglares',
+    badge: 'Ecosistemas Clave',
+    sensor: 'Clasificación Supervisada GIS',
+    formula: 'Banda B5 / B6 / B8A RedEdge',
+    icon: Sparkles,
+    color: '#15803d',
+    accentClass: 'text-emerald-300 bg-emerald-950/80 border-emerald-400/40',
+    image: manglarImg,
+    unit: 'Densidad de Dosel Arbóreo',
+    legend: [
+      { color: '#ffffff', label: 'Zona Antrópica / Sin Cobertura' },
+      { color: '#bbf7d0', label: 'Matorral Seco Ralo' },
+      { color: '#22c55e', label: 'Bosque Seco Tropical Relicto' },
+      { color: '#14532d', label: 'Manglar Ribereño de Protección' }
+    ],
+    summary: 'Mapeo de barreras biológicas. Los manglares del flanco oriental amortiguan el oleaje secundario de buques mientras la meseta preserva bosque seco nativo.',
+    metrics: [
+      { label: 'Manglar Protegido', value: '14.2 Ha' },
+      { label: 'Barrera Natural', value: 'Flanco Oriental' },
+      { label: 'Reserva Arbórea', value: '38 Ha' },
+      { label: 'Protección', value: 'Prioritaria' }
+    ]
+  },
+  {
+    id: 'termico',
+    name: 'LST • Temperatura Superficial',
+    badge: 'Infrarrojo Térmico',
+    sensor: 'Landsat-8 TIRS (Band 10)',
+    formula: 'Calibración Radiométrica LST (°C)',
+    icon: Flame,
+    color: '#eab308',
+    accentClass: 'text-yellow-300 bg-yellow-950/80 border-yellow-500/40',
+    image: termicoImg,
+    unit: 'Temperatura Superficial (°C)',
+    legend: [
+      { color: '#1e3a8a', label: 'Mar / Bahía (~27°C - 29°C)' },
+      { color: '#3b82f6', label: 'Costa Húmeda (~30°C)' },
+      { color: '#eab308', label: 'Meseta y Vegetación (~32°C)' },
+      { color: '#ef4444', label: 'Suelo Expuesto / Urbano (~36°C+)' }
+    ],
+    summary: 'Análisis de microclima y confort. La meseta +22m se beneficia de la ventilación cruzada del alisio, ofreciendo hasta 3.8°C menos que el concreto continental.',
+    metrics: [
+      { label: 'Temp. Mar Bahía', value: '28.5 °C' },
+      { label: 'Temp. Meseta +22m', value: '31.2 °C' },
+      { label: 'Delta vs Bocagrande', value: '-3.8 °C' },
+      { label: 'Viento Alisio', value: '18 - 25 km/h' }
+    ]
+  }
+];
+
+export const DEFAULT_SPECTRAL_BOUNDS = {
+  south: 10.2780,
+  west: -75.6150,
+  north: 10.4520,
+  east: -75.4780
+};
 
 export const HOTSPOTS_DATA = [
   {
@@ -137,8 +293,10 @@ export default function DiagnosisMap({ onNavigateModule }) {
   const tileLayerRef = useRef(null);
   const labelsLayerRef = useRef(null);
   const housesLayerGroupRef = useRef(null);
+  const spectralOverlayRef = useRef(null);
 
-  const [activeLayerFilter, setActiveLayerFilter] = useState('all'); // 'all' | 'risk' | 'relocation' | 'water' | 'census'
+  // General Filter & Map State
+  const [activeLayerFilter, setActiveLayerFilter] = useState('all'); // 'all' | 'risk' | 'relocation' | 'water' | 'census' | 'spectral'
   const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
   const [selectedHotspot, setSelectedHotspot] = useState(null);
   const [selectedHouse, setSelectedHouse] = useState(null);
@@ -146,6 +304,25 @@ export default function DiagnosisMap({ onNavigateModule }) {
   const [censusSearch, setCensusSearch] = useState('');
   const [censusTypologyFilter, setCensusTypologyFilter] = useState('ALL'); // 'ALL' | 'TIPO-A' | 'TIPO-B'
   const [censusLocationMode, setCensusLocationMode] = useState('coastal'); // 'coastal' | 'plateau'
+
+  // =========================================================================
+  // SPECTRAL ANALYSIS STUDIO STATE (ANÁLISIS ESPECTRAL MULTICAPA)
+  // =========================================================================
+  const [showSpectralStudio, setShowSpectralStudio] = useState(false);
+  const [selectedBandId, setSelectedBandId] = useState('ndvi');
+  const [spectralDisplayMode, setSpectralDisplayMode] = useState('swipe'); // 'swipe' | 'overlay' | 'scanner'
+  const [swipePosition, setSwipePosition] = useState(50); // 0 to 100%
+  const [isDraggingSwipe, setIsDraggingSwipe] = useState(false);
+  const [spectralOpacity, setSpectralOpacity] = useState(0.85);
+  const [spectralBlendMode, setSpectralBlendMode] = useState('normal'); // 'normal' | 'multiply' | 'screen' | 'overlay' | 'difference'
+  const [spectralBounds, setSpectralBounds] = useState(DEFAULT_SPECTRAL_BOUNDS);
+  const [showSpectralLegend, setShowSpectralLegend] = useState(true);
+  const [showSpectralCalibration, setShowSpectralCalibration] = useState(false);
+  const [scannerProgress, setScannerProgress] = useState(0);
+
+  const activeBand = useMemo(() => {
+    return SPECTRAL_LAYERS.find(b => b.id === selectedBandId) || SPECTRAL_LAYERS[0];
+  }, [selectedBandId]);
 
   // Filtered 1:1 houses list
   const filteredHouses = useMemo(() => {
@@ -161,18 +338,20 @@ export default function DiagnosisMap({ onNavigateModule }) {
     });
   }, [censusSearch, censusTypologyFilter]);
 
-  // Leaflet Map Initialization
+  // =========================================================================
+  // 1. LEAFLET MAP INITIALIZATION
+  // =========================================================================
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
     const map = L.map(mapContainerRef.current, {
       center: [10.3540, -75.5720],
-      zoom: 14,
+      zoom: 13.8,
       zoomControl: false,
       attributionControl: false
     });
 
-    // Satellite Aerial Layer (Esri World Imagery - 100% Free, Zero API Key)
+    // Satellite Aerial Layer (Esri World Imagery)
     const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       maxZoom: 19,
       attribution: 'Esri World Imagery'
@@ -183,7 +362,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
 
     setTimeout(() => {
       map.invalidateSize();
-    }, 200);
+    }, 150);
 
     // Critical coastal erosion strip
     const erosionLine = L.polyline([
@@ -199,7 +378,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
       dashArray: '8, 6'
     }).addTo(map);
 
-    // Safe Plateau Polygon (+22m)
+    // Safe Plateau Polygon (+22m) - Clean border contour without fill
     const safePlateau = L.polygon([
       [10.37487, -75.57396],
       [10.37523, -75.57534],
@@ -215,9 +394,10 @@ export default function DiagnosisMap({ onNavigateModule }) {
       [10.37419, -75.57408]
     ], {
       color: '#0d9488',
-      fillColor: '#0d9488',
-      fillOpacity: 0.28,
-      weight: 3.5
+      fillColor: 'transparent',
+      fillOpacity: 0,
+      weight: 4,
+      dashArray: '8, 8'
     }).addTo(map);
 
     // Hotspot Markers Group
@@ -232,8 +412,8 @@ export default function DiagnosisMap({ onNavigateModule }) {
         className: 'custom-gis-pin',
         html: `
           <div class="relative flex items-center justify-center cursor-pointer group">
-            <div class="absolute -inset-2 rounded-full ${isPlateau ? 'bg-emerald-400/40 animate-pulse' : isErosion ? 'bg-red-500/40 animate-ping' : isWater ? 'bg-blue-400/40 animate-pulse' : 'bg-slate-400/30'}"></div>
-            <div class="w-8 h-8 rounded-xl ${isPlateau ? 'bg-emerald-600' : isErosion ? 'bg-red-600' : isWater ? 'bg-blue-600' : 'bg-slate-900'} border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-110">
+            <div class="absolute -inset-2 rounded-full ${isPlateau ? 'bg-teal-400/40 animate-pulse' : isErosion ? 'bg-red-500/40 animate-ping' : isWater ? 'bg-blue-400/40 animate-pulse' : 'bg-slate-400/30'}"></div>
+            <div class="w-8 h-8 rounded-xl ${isPlateau ? 'bg-teal-600' : isErosion ? 'bg-red-600' : isWater ? 'bg-blue-600' : 'bg-slate-900'} border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-110">
               ${isPlateau 
                 ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>' 
                 : isErosion 
@@ -276,6 +456,91 @@ export default function DiagnosisMap({ onNavigateModule }) {
       mapInstanceRef.current = null;
     };
   }, []);
+
+  // =========================================================================
+  // 2. SYNCHRONIZE SPECTRAL RASTER OVERLAY WITH LEAFLET & CLIP MODES
+  // =========================================================================
+  useEffect(() => {
+    if (!mapInstanceRef.current?.map) return;
+    const map = mapInstanceRef.current.map;
+
+    if (!showSpectralStudio) {
+      if (spectralOverlayRef.current) {
+        map.removeLayer(spectralOverlayRef.current);
+        spectralOverlayRef.current = null;
+      }
+      return;
+    }
+
+    const bounds = L.latLngBounds(
+      [spectralBounds.south, spectralBounds.west],
+      [spectralBounds.north, spectralBounds.east]
+    );
+
+    if (spectralOverlayRef.current) {
+      map.removeLayer(spectralOverlayRef.current);
+    }
+
+    const overlay = L.imageOverlay(activeBand.image, bounds, {
+      opacity: spectralDisplayMode === 'overlay' ? spectralOpacity : 0.95,
+      interactive: false,
+      zIndex: 250
+    }).addTo(map);
+
+    spectralOverlayRef.current = overlay;
+
+    // Apply Realtime Clip Path & Blend Mode to the underlying image element
+    const updateElementStyle = () => {
+      const img = overlay.getElement();
+      if (img) {
+        if (spectralDisplayMode === 'swipe') {
+          img.style.clipPath = `polygon(${swipePosition}% 0%, 100% 0%, 100% 100%, ${swipePosition}% 100%)`;
+        } else if (spectralDisplayMode === 'scanner') {
+          img.style.clipPath = `polygon(0% 0%, ${scannerProgress}% 0%, ${scannerProgress}% 100%, 0% 100%)`;
+        } else {
+          img.style.clipPath = 'none';
+        }
+        img.style.mixBlendMode = spectralBlendMode;
+        img.style.transition = spectralDisplayMode === 'swipe' ? 'none' : 'clip-path 0.1s ease-out';
+      }
+    };
+
+    updateElementStyle();
+    map.on('move', updateElementStyle);
+    map.on('zoom', updateElementStyle);
+
+    return () => {
+      map.off('move', updateElementStyle);
+      map.off('zoom', updateElementStyle);
+      if (spectralOverlayRef.current) {
+        map.removeLayer(spectralOverlayRef.current);
+        spectralOverlayRef.current = null;
+      }
+    };
+  }, [
+    showSpectralStudio,
+    activeBand,
+    spectralBounds,
+    spectralDisplayMode,
+    spectralOpacity,
+    spectralBlendMode,
+    swipePosition,
+    scannerProgress
+  ]);
+
+  // Scanner animation interval
+  useEffect(() => {
+    if (!showSpectralStudio || spectralDisplayMode !== 'scanner') return;
+
+    const interval = setInterval(() => {
+      setScannerProgress((prev) => {
+        if (prev >= 100) return 0;
+        return prev + 1.2;
+      });
+    }, 45);
+
+    return () => clearInterval(interval);
+  }, [showSpectralStudio, spectralDisplayMode]);
 
   // Update 120 Houses on the map when census layer or location mode changes
   useEffect(() => {
@@ -328,13 +593,13 @@ export default function DiagnosisMap({ onNavigateModule }) {
 
     if (activeLayerFilter === 'risk') {
       erosionLine.setStyle({ opacity: 1, weight: 8 });
-      safePlateau.setStyle({ fillOpacity: 0.05, weight: 1 });
+      safePlateau.setStyle({ opacity: 0.4, weight: 2 });
     } else if (activeLayerFilter === 'relocation') {
       erosionLine.setStyle({ opacity: 0.3, weight: 2 });
-      safePlateau.setStyle({ fillOpacity: 0.45, weight: 5 });
+      safePlateau.setStyle({ opacity: 1, weight: 5 });
     } else {
       erosionLine.setStyle({ opacity: 0.95, weight: 5 });
-      safePlateau.setStyle({ fillOpacity: 0.28, weight: 3.5 });
+      safePlateau.setStyle({ opacity: 0.85, weight: 4 });
     }
   }, [activeLayerFilter]);
 
@@ -361,24 +626,122 @@ export default function DiagnosisMap({ onNavigateModule }) {
     }
   }, [mapLayerType]);
 
+  // Mouse move handler for interactive Swipe Divider
+  const handleMapMouseMove = (e) => {
+    if (!isDraggingSwipe && e.type !== 'touchmove') return;
+    const rect = mapContainerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const x = clientX - rect.left;
+    const pct = Math.max(5, Math.min(95, (x / rect.width) * 100));
+    setSwipePosition(Number(pct.toFixed(1)));
+  };
+
+  const moveSpectralLat = (delta) => {
+    setSpectralBounds(prev => ({
+      ...prev,
+      south: Number((prev.south + delta).toFixed(5)),
+      north: Number((prev.north + delta).toFixed(5))
+    }));
+  };
+
+  const moveSpectralLng = (delta) => {
+    setSpectralBounds(prev => ({
+      ...prev,
+      west: Number((prev.west + delta).toFixed(5)),
+      east: Number((prev.east + delta).toFixed(5))
+    }));
+  };
+
+  const scaleSpectral = (factor) => {
+    setSpectralBounds(prev => {
+      const centerLat = (prev.north + prev.south) / 2;
+      const centerLng = (prev.east + prev.west) / 2;
+      const halfLat = ((prev.north - prev.south) * factor) / 2;
+      const halfLng = ((prev.east - prev.west) * factor) / 2;
+      return {
+        south: Number((centerLat - halfLat).toFixed(5)),
+        north: Number((centerLat + halfLat).toFixed(5)),
+        west: Number((centerLng - halfLng).toFixed(5)),
+        east: Number((centerLng + halfLng).toFixed(5))
+      };
+    });
+  };
+
   const filteredSpots = HOTSPOTS_DATA.filter((spot) => {
-    if (activeLayerFilter === 'risk') return spot.id === 'erosion' || spot.id === 'salinidad';
-    if (activeLayerFilter === 'relocation') return spot.id === 'meseta' || spot.id === 'viviendas' || spot.id === 'colegio';
-    if (activeLayerFilter === 'water') return spot.id === 'aljibe' || spot.id === 'humedal' || spot.id === 'salinidad';
+    if (activeLayerFilter === 'risk') return spot.id === 'erosion';
+    if (activeLayerFilter === 'relocation') return spot.id === 'meseta' || spot.id === 'colegio';
+    if (activeLayerFilter === 'water') return spot.id === 'aljibe';
     return true;
   });
 
   return (
-    <div className="relative w-full h-screen overflow-hidden animate-fade-in select-none">
+    <div 
+      className="relative w-full h-screen overflow-hidden animate-fade-in select-none"
+      onMouseMove={handleMapMouseMove}
+      onTouchMove={handleMapMouseMove}
+      onMouseUp={() => setIsDraggingSwipe(false)}
+      onTouchEnd={() => setIsDraggingSwipe(false)}
+    >
       
-      {/* 1. FULLSCREEN AERIAL SATELLITE MAP */}
+      {/* 1. FULLSCREEN SATELLITE MAP */}
       <div ref={mapContainerRef} className="absolute inset-0 w-full h-full z-0" />
 
       {/* ========================================================================= */}
-      {/* 2. FLOATING HUD OVERLAYS ON TOP OF SATELLITE MAP                          */}
+      {/* 2. REALTIME INTERACTIVE SWIPE CURTAIN DIVIDER                             */}
       {/* ========================================================================= */}
+      {showSpectralStudio && spectralDisplayMode === 'swipe' && (
+        <div 
+          className="absolute inset-y-0 z-[300] pointer-events-auto cursor-ew-resize flex items-center justify-center transition-none"
+          style={{ left: `${swipePosition}%` }}
+          onMouseDown={() => setIsDraggingSwipe(true)}
+          onTouchStart={() => setIsDraggingSwipe(true)}
+        >
+          {/* Vertical Glass Line */}
+          <div className="w-1 h-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.9)] backdrop-blur-sm relative flex items-center justify-center">
+            
+            {/* Top Label Tag */}
+            <div className="absolute top-20 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded-full bg-slate-950/90 border border-white/30 text-[9px] font-mono text-white font-bold shadow-xl">
+              COMPARADOR GIS
+            </div>
 
-      {/* Top Floating Control Bar */}
+            {/* Central Glowing Grip Pill */}
+            <div className="w-10 h-10 -translate-x-1/2 rounded-full bg-slate-900 border-2 border-white shadow-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform group">
+              <div className="flex items-center space-x-0.5 text-amber-400">
+                <ChevronLeft className="w-3.5 h-3.5 -mr-1 animate-pulse" />
+                <ChevronRight className="w-3.5 h-3.5 animate-pulse" />
+              </div>
+            </div>
+
+            {/* Bottom Sub-tag */}
+            <div className="absolute bottom-28 -translate-x-1/2 whitespace-nowrap px-3 py-1 rounded-full bg-slate-900/90 border border-white/20 text-[10px] font-mono font-bold shadow-2xl flex items-center space-x-2">
+              <span className="text-slate-300">Satélite</span>
+              <span className="text-amber-400 font-black">|</span>
+              <span style={{ color: activeBand.color }}>{activeBand.shortName}</span>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Radar Scanner Vertical Laser Line */}
+      {showSpectralStudio && spectralDisplayMode === 'scanner' && (
+        <div 
+          className="absolute inset-y-0 z-[300] pointer-events-none transition-none"
+          style={{ left: `${scannerProgress}%` }}
+        >
+          <div className="w-0.5 h-full bg-cyan-400 shadow-[0_0_20px_#06b6d4] relative">
+            <div className="absolute top-24 -translate-x-1/2 px-2.5 py-1 rounded-full bg-cyan-950/95 border border-cyan-400/80 text-[10px] font-mono font-bold text-cyan-300 shadow-xl flex items-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              <span>BARRIDO LÁSER: {Math.round(scannerProgress)}%</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3. TOP FLOATING CONTROL BAR (HUD)                                         */}
+      {/* ========================================================================= */}
       <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
         {/* Module Title Card */}
@@ -396,7 +759,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
               </span>
             </div>
             <h2 className="font-bold text-xs sm:text-sm text-slate-900 truncate">
-              Vulnerabilidad, Censo 1:1 & Suelo Seguro (+22m)
+              {showSpectralStudio ? `Estudio Espectral: ${activeBand.name}` : 'Vulnerabilidad, Censo 1:1 & Suelo Seguro (+22m)'}
             </h2>
           </div>
         </div>
@@ -404,28 +767,36 @@ export default function DiagnosisMap({ onNavigateModule }) {
         {/* GIS Layer Filters Bar */}
         <div className="glass-hud p-1 rounded-2xl pointer-events-auto flex flex-wrap items-center gap-1 self-start md:self-center shadow-xl">
           
+          {/* Spectral Studio Toggle Button (Hero Feature) */}
           <button
             onClick={() => {
-              setActiveLayerFilter('all');
-              setShowCensusDrawer(false);
+              setShowSpectralStudio(!showSpectralStudio);
+              if (!showSpectralStudio) {
+                setShowCensusDrawer(false);
+              }
             }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
-              activeLayerFilter === 'all' && !showCensusDrawer
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-950'
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all shadow-xs ${
+              showSpectralStudio
+                ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white shadow-lg ring-2 ring-cyan-400/50 scale-105'
+                : 'bg-emerald-50 text-emerald-900 hover:bg-emerald-100 border border-emerald-300'
             }`}
           >
-            Todas ({HOTSPOTS_DATA.length})
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span>Teledetección Espectral (5 Bandas)</span>
+            <span className={`w-2 h-2 rounded-full ${showSpectralStudio ? 'bg-amber-300 animate-ping' : 'bg-emerald-500'}`} />
           </button>
 
-          {/* Special Censo 1:1 Viviendas Button */}
+          {/* Censo 1:1 Viviendas Button */}
           <button
             onClick={() => {
-              setActiveLayerFilter('census');
-              setShowCensusDrawer(true);
+              setShowCensusDrawer(!showCensusDrawer);
+              if (!showCensusDrawer) {
+                setShowSpectralStudio(false);
+                setActiveLayerFilter('census');
+              }
             }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-              activeLayerFilter === 'census' || showCensusDrawer
+              showCensusDrawer
                 ? 'bg-terracotta-600 text-white shadow-md'
                 : 'bg-terracotta-50 text-terracotta-700 hover:bg-terracotta-100 border border-terracotta-200'
             }`}
@@ -440,7 +811,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
               setShowCensusDrawer(false);
             }}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-              activeLayerFilter === 'risk'
+              activeLayerFilter === 'risk' && !showCensusDrawer && !showSpectralStudio
                 ? 'bg-red-600 text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-950'
             }`}
@@ -455,7 +826,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
               setShowCensusDrawer(false);
             }}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-              activeLayerFilter === 'relocation'
+              activeLayerFilter === 'relocation' && !showCensusDrawer && !showSpectralStudio
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-950'
             }`}
@@ -470,7 +841,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
               setShowCensusDrawer(false);
             }}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-              activeLayerFilter === 'water'
+              activeLayerFilter === 'water' && !showCensusDrawer && !showSpectralStudio
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-950'
             }`}
@@ -508,8 +879,277 @@ export default function DiagnosisMap({ onNavigateModule }) {
 
       </div>
 
-      {/* Floating Bottom: Hotspot Selection Strip (Hidden when Census Drawer is Open) */}
-      {!showCensusDrawer && (
+      {/* ========================================================================= */}
+      {/* 4. SPECTRAL STUDIO FLOATING BOTTOM DOCK & BAND SELECTOR                   */}
+      {/* ========================================================================= */}
+      {showSpectralStudio && (
+        <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none animate-slide-up">
+          <div className="max-w-5xl mx-auto glass-panel p-3.5 sm:p-4 rounded-3xl shadow-2xl border border-white/60 pointer-events-auto space-y-3 text-slate-900 backdrop-blur-xl">
+            
+            {/* Top Toolbar: Mode Switcher, Opacity & Calibration Button */}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5">
+              
+              <div className="flex items-center space-x-2">
+                <span className="text-[10px] font-mono font-bold uppercase text-slate-500 tracking-wider">
+                  Modo de Visualización:
+                </span>
+                <div className="flex items-center p-0.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono">
+                  <button
+                    onClick={() => setSpectralDisplayMode('swipe')}
+                    className={`px-3 py-1 rounded-lg font-bold flex items-center space-x-1.5 transition-all ${
+                      spectralDisplayMode === 'swipe' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <SlidersHorizontal className="w-3 h-3 text-amber-400" />
+                    <span>Cortina Dividida (Swipe)</span>
+                  </button>
+
+                  <button
+                    onClick={() => setSpectralDisplayMode('overlay')}
+                    className={`px-3 py-1 rounded-lg font-bold flex items-center space-x-1.5 transition-all ${
+                      spectralDisplayMode === 'overlay' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Layers className="w-3 h-3 text-teal-400" />
+                    <span>Superposición</span>
+                  </button>
+
+                  <button
+                    onClick={() => setSpectralDisplayMode('scanner')}
+                    className={`px-3 py-1 rounded-lg font-bold flex items-center space-x-1.5 transition-all ${
+                      spectralDisplayMode === 'scanner' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Scan className="w-3 h-3 text-cyan-400" />
+                    <span>Escáner Láser</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Opacity & Blend Mode Controls (When in Overlay Mode) */}
+              <div className="flex items-center space-x-3">
+                {spectralDisplayMode === 'overlay' && (
+                  <div className="flex items-center space-x-2 bg-slate-100 px-3 py-1 rounded-xl border border-slate-200 text-xs font-mono">
+                    <span className="text-[10px] text-slate-500 font-bold">Opacidad:</span>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="1"
+                      step="0.05"
+                      value={spectralOpacity}
+                      onChange={(e) => setSpectralOpacity(parseFloat(e.target.value))}
+                      className="w-20 h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-teal-600"
+                    />
+                    <span className="font-bold text-slate-800 text-[10px]">{Math.round(spectralOpacity * 100)}%</span>
+                  </div>
+                )}
+
+                {/* Toggle Legend */}
+                <button
+                  onClick={() => setShowSpectralLegend(!showSpectralLegend)}
+                  className={`px-2.5 py-1 rounded-xl text-xs font-mono font-bold border transition-colors flex items-center space-x-1 ${
+                    showSpectralLegend ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-100 text-slate-700 border-slate-200'
+                  }`}
+                >
+                  <Info className="w-3 h-3" />
+                  <span>Ficha Científica</span>
+                </button>
+
+                {/* Calibration fine-tune toggle */}
+                <button
+                  onClick={() => setShowSpectralCalibration(!showSpectralCalibration)}
+                  className={`p-1.5 rounded-xl border text-slate-600 hover:text-slate-900 ${
+                    showSpectralCalibration ? 'bg-amber-100 border-amber-300 text-amber-900' : 'bg-slate-100 border-slate-200'
+                  }`}
+                  title="Calibrar Posición de Imagen"
+                >
+                  <Move className="w-3.5 h-3.5" />
+                </button>
+
+                <button
+                  onClick={() => setShowSpectralStudio(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-700"
+                  title="Cerrar Estudio Espectral"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+            </div>
+
+            {/* 5 Band Cards Row */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              {SPECTRAL_LAYERS.map((band) => {
+                const isSelected = selectedBandId === band.id;
+                const IconComponent = band.icon;
+                return (
+                  <button
+                    key={band.id}
+                    onClick={() => setSelectedBandId(band.id)}
+                    className={`p-2.5 rounded-2xl text-left transition-all relative overflow-hidden border flex flex-col justify-between ${
+                      isSelected
+                        ? 'bg-slate-900 text-white border-slate-800 shadow-xl scale-102 ring-2 ring-cyan-400/50'
+                        : 'bg-white/90 hover:bg-slate-50 border-slate-200/90 text-slate-800 shadow-sm'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full mb-1">
+                      <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
+                        isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        {band.badge}
+                      </span>
+                      <IconComponent className="w-3.5 h-3.5" style={{ color: band.color }} />
+                    </div>
+
+                    <h4 className="font-bold text-xs line-clamp-1">
+                      {band.shortName}
+                    </h4>
+
+                    <div className="text-[10px] opacity-70 font-mono mt-0.5 truncate">
+                      {band.sensor.split('(')[0]}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 5. FLOATING SCIENTIFIC TELEMETRY & LEGEND CARD                            */}
+      {/* ========================================================================= */}
+      {showSpectralStudio && showSpectralLegend && (
+        <div className="absolute top-24 left-4 z-[400] pointer-events-none animate-scale-up max-w-sm w-full">
+          <div className="glass-panel p-4 rounded-3xl shadow-2xl border border-white/60 pointer-events-auto space-y-3 text-slate-900 backdrop-blur-xl">
+            
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <div className="flex items-center space-x-2">
+                <div className="w-2.5 h-2.5 rounded-full animate-ping" style={{ backgroundColor: activeBand.color }} />
+                <span className="font-serif font-bold text-xs text-slate-900">
+                  {activeBand.name}
+                </span>
+              </div>
+              <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-900 text-white">
+                {activeBand.sensor}
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-700 leading-relaxed font-sans">
+              {activeBand.summary}
+            </p>
+
+            {/* Formula Chip */}
+            <div className="px-2.5 py-1 rounded-xl bg-slate-950 text-cyan-300 font-mono text-[10px] flex items-center justify-between border border-slate-800">
+              <span className="text-slate-400">Algoritmo:</span>
+              <span className="font-bold">{activeBand.formula}</span>
+            </div>
+
+            {/* Color Ramp Legend */}
+            <div className="space-y-1.5 pt-1">
+              <span className="text-[10px] font-mono font-bold text-slate-500 uppercase block">
+                Escala de Clasificación:
+              </span>
+              <div className="space-y-1">
+                {activeBand.legend.map((item, idx) => (
+                  <div key={idx} className="flex items-center space-x-2 text-[11px] font-mono">
+                    <span 
+                      className="w-3.5 h-3.5 rounded-md border border-slate-300 shrink-0 shadow-xs" 
+                      style={{ backgroundColor: item.color }} 
+                    />
+                    <span className="text-slate-700 truncate">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Key Metrics Chips */}
+            <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-slate-200">
+              {activeBand.metrics.map((m, idx) => (
+                <div key={idx} className="p-2 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                  <span className="text-[9px] font-mono text-slate-500 uppercase block">{m.label}</span>
+                  <span className="font-serif font-bold text-xs text-slate-900 block mt-0.5">{m.value}</span>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 6. SPECTRAL IMAGE CALIBRATION POPOVER (FINE TUNE NUDGE)                   */}
+      {/* ========================================================================= */}
+      {showSpectralStudio && showSpectralCalibration && (
+        <div className="absolute top-24 right-4 z-[400] glass-panel p-3 rounded-2xl shadow-2xl space-y-2 pointer-events-auto border border-amber-400/60 animate-fade-in text-slate-900 w-52">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-1">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800">
+              Alineación de Capa
+            </span>
+            <button
+              onClick={() => setSpectralBounds(DEFAULT_SPECTRAL_BOUNDS)}
+              className="text-[10px] font-mono font-bold text-amber-700 hover:underline"
+            >
+              Reset
+            </button>
+          </div>
+
+          <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-center text-xs font-mono font-bold">
+            <div />
+            <button
+              onClick={() => moveSpectralLat(0.001)}
+              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
+              title="Mover Norte"
+            >
+              ▲
+            </button>
+            <div />
+
+            <button
+              onClick={() => moveSpectralLng(-0.001)}
+              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
+              title="Mover Oeste"
+            >
+              ◀
+            </button>
+
+            <button
+              onClick={() => moveSpectralLat(-0.001)}
+              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
+              title="Mover Sur"
+            >
+              ▼
+            </button>
+
+            <button
+              onClick={() => moveSpectralLng(0.001)}
+              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
+              title="Mover Este"
+            >
+              ▶
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1 text-[10px] font-mono font-bold">
+            <button
+              onClick={() => scaleSpectral(1.015)}
+              className="py-1 rounded-lg bg-slate-100 hover:bg-slate-200 shadow-xs text-center text-slate-800"
+            >
+              + Escala
+            </button>
+            <button
+              onClick={() => scaleSpectral(0.985)}
+              className="py-1 rounded-lg bg-slate-100 hover:bg-slate-200 shadow-xs text-center text-slate-800"
+            >
+              - Escala
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Bottom: Hotspot Selection Strip (Hidden when Census Drawer or Spectral Studio is Open) */}
+      {!showCensusDrawer && !showSpectralStudio && (
         <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none">
           <div className="flex flex-wrap gap-2 max-w-6xl mx-auto pointer-events-auto justify-center">
             {filteredSpots.map((spot) => {
@@ -539,30 +1179,32 @@ export default function DiagnosisMap({ onNavigateModule }) {
         </div>
       )}
 
-      {/* Floating Bottom-Left Legend HUD */}
-      <div className="absolute top-24 left-4 z-[400] hidden lg:block pointer-events-none">
-        <div className="glass-panel p-3.5 rounded-2xl pointer-events-auto space-y-2 text-xs font-mono shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
-            <span className="text-[10px] font-bold text-slate-500 uppercase">Capas Territoriales</span>
-            <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">MIDAS</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="w-3 h-0.5 border-t-2 border-dashed border-red-500" />
-            <span className="text-slate-800">Erosión Costera (1.8m/año)</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded bg-teal-500/30 border border-teal-500" />
-            <span className="text-slate-800">Meseta Segura (+22m)</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded bg-slate-900 border border-white flex items-center justify-center text-[8px] text-white font-bold">120</span>
-            <span className="text-slate-800">Viviendas Censadas 1:1</span>
+      {/* Floating Bottom-Left Legend HUD (Standard GIS view) */}
+      {!showSpectralStudio && (
+        <div className="absolute top-24 left-4 z-[400] hidden lg:block pointer-events-none">
+          <div className="glass-panel p-3.5 rounded-2xl pointer-events-auto space-y-2 text-xs font-mono shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+              <span className="text-[10px] font-bold text-slate-500 uppercase">Capas Territoriales</span>
+              <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">MIDAS</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-3 h-0.5 border-t-2 border-dashed border-red-500" />
+              <span className="text-slate-800">Erosión Costera (1.8m/año)</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-3 h-3 rounded bg-teal-500/10 border-2 border-dashed border-teal-500" />
+              <span className="text-slate-800">Meseta Segura (+22m Borde)</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-3 h-3 rounded bg-slate-900 border border-white flex items-center justify-center text-[8px] text-white font-bold">120</span>
+              <span className="text-slate-800">Viviendas Censadas 1:1</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ========================================================================= */}
-      {/* 3. INTERACTIVE 1:1 HOUSING CENSUS DRAWER (120 DWELLINGS QUANTIFICATION)   */}
+      {/* 7. INTERACTIVE 1:1 HOUSING CENSUS DRAWER (120 DWELLINGS QUANTIFICATION)   */}
       {/* ========================================================================= */}
       {showCensusDrawer && (
         <div className="absolute bottom-4 left-4 right-4 z-[450] pointer-events-none animate-slide-up">
@@ -709,7 +1351,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 4. FICHA CATASTRAL 1:1 POPUP MODAL (INDIVIDUAL HOUSEHOLD SURVEY)          */}
+      {/* 8. FICHA CATASTRAL 1:1 POPUP MODAL (INDIVIDUAL HOUSEHOLD SURVEY)          */}
       {/* ========================================================================= */}
       {selectedHouse && (
         <div 
@@ -834,7 +1476,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 5. HOTSPOT DETAIL MODAL POP-UP                                            */}
+      {/* 9. HOTSPOT DETAIL MODAL POP-UP                                            */}
       {/* ========================================================================= */}
       {selectedHotspot && (
         <div 
