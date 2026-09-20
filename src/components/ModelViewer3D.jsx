@@ -590,7 +590,7 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     // Cámara Ortográfica para Proyección Axonométrica Paralela a 35° (sin distorsión de perspectiva)
     const aspect = container.clientWidth / container.clientHeight;
-    let viewSize = 22;
+    let viewSize = selected3DModel === 'revit' ? 48 : 22;
     const camera = new THREE.OrthographicCamera(
       -viewSize * aspect,
       viewSize * aspect,
@@ -667,9 +667,13 @@ export default function ModelViewer3D({ onSelectModule }) {
     let isDragging = false;
     let dragButton = 0;
     let prevMousePos = { x: 0, y: 0 };
-    // Ángulo axonométrico a 35° de elevación (phi = 55° medido desde el cenit)
-    let spherical = { radius: 45, theta: Math.PI / 4, phi: Math.PI * 55 / 180 };
-    let panTarget = { x: 0, y: 1.5, z: 0 };
+    // Ángulo axonométrico panorámico de Cartagena mirando hacia el noreste
+    let spherical = selected3DModel === 'revit'
+      ? { radius: 88, theta: -Math.PI * 0.42, phi: Math.PI * 48 / 180 }
+      : { radius: 45, theta: Math.PI / 4, phi: Math.PI * 55 / 180 };
+    let panTarget = selected3DModel === 'revit'
+      ? { x: 26, y: 0, z: -8 }
+      : { x: 0, y: 1.5, z: 0 };
 
     const updateCameraPosition = () => {
       camera.position.x = panTarget.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
