@@ -48,6 +48,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     terrain: true,
     walls: true,
     buildings: true,
+    ocean: true,
     grid: true,
     roof: true,
     structure: true,
@@ -70,6 +71,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     cistern: null,
     louvers: null,
     terrain: null,
+    ocean: null,
     grid: null,
     dirLight: null,
     revitTerrain: [],
@@ -111,17 +113,43 @@ export default function ModelViewer3D({ onSelectModule }) {
             currentModelGroupRef.current = null;
           }
           const model = gltf.scene;
+
+          // Rotar -90° en X para que la cota Z de Revit quede en el eje vertical Y de Three.js (terreno horizontal)
+          model.rotation.x = -Math.PI / 2;
+          model.updateMatrixWorld(true);
+
           const box = new THREE.Box3().setFromObject(model);
           const size = box.getSize(new THREE.Vector3());
           const center = box.getCenter(new THREE.Vector3());
-          const maxDim = Math.max(size.x, size.y, size.z);
-          const targetSize = 28;
+          const maxDim = Math.max(size.x, size.z);
+          const targetSize = 36;
           const scale = targetSize / (maxDim || 1);
 
           model.scale.set(scale, scale, scale);
           model.position.x = -center.x * scale;
-          model.position.y = -center.y * scale + (size.y * scale) / 2;
+          model.position.y = -box.min.y * scale + 0.05;
           model.position.z = -center.z * scale;
+
+          const rootContainer = new THREE.Group();
+          rootContainer.add(model);
+
+          // Plano de Mar Caribe (Agua Azul)
+          const oceanGeo = new THREE.PlaneGeometry(85, 85);
+          const oceanMat = new THREE.MeshStandardMaterial({
+            color: 0x0284c7, // Azul mar Caribe cristalino
+            transparent: true,
+            opacity: 0.82,
+            roughness: 0.1,
+            metalness: 0.35,
+            side: THREE.DoubleSide
+          });
+          const oceanMesh = new THREE.Mesh(oceanGeo, oceanMat);
+          oceanMesh.rotation.x = -Math.PI / 2;
+          oceanMesh.position.y = 0.02;
+          oceanMesh.receiveShadow = true;
+          oceanMesh.visible = activeLayers.ocean;
+          rootContainer.add(oceanMesh);
+          objectsRef.current.ocean = oceanMesh;
 
           objectsRef.current.revitTerrain = [];
           objectsRef.current.revitWalls = [];
@@ -136,11 +164,11 @@ export default function ModelViewer3D({ onSelectModule }) {
               const matName = child.material ? child.material.name : '';
 
               if (name.includes('Toposolid') || name.toLowerCase().includes('terrain') || matName.includes('Toposolid')) {
-                // Topografía / Terreno natural de Tierrabomba
+                // Topografía / Terreno verde natural de Tierrabomba
                 child.material = new THREE.MeshStandardMaterial({
-                  color: 0x2e4a3d,
+                  color: 0x3d8b57, // Verde vegetación insular
                   roughness: 0.85,
-                  metalness: 0.1,
+                  metalness: 0.05,
                   side: THREE.DoubleSide
                 });
                 child.userData.layer = 'terrain';
@@ -149,8 +177,8 @@ export default function ModelViewer3D({ onSelectModule }) {
               } else if (name.includes('Partición') || name.includes('Interior') || name.toLowerCase().includes('muro') || matName.includes('muro') || matName.includes('yeso')) {
                 // Muros y Particiones Interiores (BTC / Terracota)
                 child.material = new THREE.MeshStandardMaterial({
-                  color: 0xc2785c,
-                  roughness: 0.75,
+                  color: 0xc26d4a, // Terracota BTC
+                  roughness: 0.7,
                   metalness: 0.1,
                   side: THREE.DoubleSide
                 });
@@ -160,9 +188,9 @@ export default function ModelViewer3D({ onSelectModule }) {
               } else {
                 // Edificaciones, Volúmenes y Masas Urbanas
                 child.material = new THREE.MeshStandardMaterial({
-                  color: 0x0f766e,
-                  roughness: 0.6,
-                  metalness: 0.2,
+                  color: 0xf8fafc, // Blanco arquitectónico nítido
+                  roughness: 0.35,
+                  metalness: 0.15,
                   side: THREE.DoubleSide
                 });
                 child.userData.layer = 'buildings';
@@ -172,8 +200,8 @@ export default function ModelViewer3D({ onSelectModule }) {
             }
           });
 
-          scene.add(model);
-          currentModelGroupRef.current = model;
+          scene.add(rootContainer);
+          currentModelGroupRef.current = rootContainer;
           setIsLoadingFile(false);
         },
         undefined,
@@ -382,7 +410,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     else if (modelType === 'masterplan') {
       // MODEL 3: MASTERPLAN URBANO MESETA (+22m)
       const terrainGeo = new THREE.CylinderGeometry(18, 20, 2, 32);
-      const terrainMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.9 });
+      const terrainMat = new THREE.MeshStandardMaterial({ color: 0x3d8b57, roughness: 0.85 });
       const terrainMesh = new THREE.Mesh(terrainGeo, terrainMat);
       terrainMesh.position.set(0, -1, 0);
       terrainMesh.receiveShadow = true;
@@ -391,7 +419,7 @@ export default function ModelViewer3D({ onSelectModule }) {
 
       // Manzanas de Viviendas
       const housesGroup = new THREE.Group();
-      const houseBlockMat = new THREE.MeshStandardMaterial({ color: 0xc2785c, roughness: 0.8 });
+      const houseBlockMat = new THREE.MeshStandardMaterial({ color: 0xc26d4a, roughness: 0.75 });
       for (let r = 5; r <= 14; r += 3.2) {
         const count = Math.floor(r * 2);
         for (let i = 0; i < count; i++) {
@@ -410,17 +438,17 @@ export default function ModelViewer3D({ onSelectModule }) {
       // Central School Block
       const schoolMain = new THREE.Mesh(
         new THREE.BoxGeometry(5.5, 1.4, 4),
-        new THREE.MeshStandardMaterial({ color: 0x0f766e, roughness: 0.5 })
+        new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 })
       );
       schoolMain.position.set(4, 0.7, 4);
       schoolMain.castShadow = true;
       modelGroup.add(schoolMain);
       objectsRef.current.roof = schoolMain;
 
-      // Central Reservoir Icon
+      // Central Reservoir Icon (Agua Azul)
       const reservoir = new THREE.Mesh(
         new THREE.CylinderGeometry(1.8, 1.8, 0.6, 24),
-        new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.2 })
+        new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, transparent: true, opacity: 0.85 })
       );
       reservoir.position.set(4, 0.3, 0);
       modelGroup.add(reservoir);
@@ -604,6 +632,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     if (objectsRef.current.cistern) objectsRef.current.cistern.visible = !!activeLayers.cistern;
     if (objectsRef.current.louvers) objectsRef.current.louvers.visible = !!activeLayers.louvers;
     if (objectsRef.current.terrain) objectsRef.current.terrain.visible = !!activeLayers.terrain;
+    if (objectsRef.current.ocean) objectsRef.current.ocean.visible = !!activeLayers.ocean;
     if (objectsRef.current.grid) objectsRef.current.grid.visible = !!activeLayers.grid;
 
     // Revit Model layers
@@ -671,18 +700,43 @@ export default function ModelViewer3D({ onSelectModule }) {
         currentModelGroupRef.current = null;
       }
 
+      // Rotar -90° en X para que la cota Z de Revit quede en el eje vertical Y de Three.js (terreno horizontal)
+      modelGroup.rotation.x = -Math.PI / 2;
+      modelGroup.updateMatrixWorld(true);
+
       // Compute bounding box and normalize scale & center
       const box = new THREE.Box3().setFromObject(modelGroup);
       const size = box.getSize(new THREE.Vector3());
       const center = box.getCenter(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const targetSize = 24;
+      const maxDim = Math.max(size.x, size.z);
+      const targetSize = 36;
       const scale = targetSize / (maxDim || 1);
 
       modelGroup.scale.set(scale, scale, scale);
       modelGroup.position.x = -center.x * scale;
-      modelGroup.position.y = -center.y * scale + (size.y * scale) / 2;
+      modelGroup.position.y = -box.min.y * scale + 0.05;
       modelGroup.position.z = -center.z * scale;
+
+      const rootContainer = new THREE.Group();
+      rootContainer.add(modelGroup);
+
+      // Plano de Mar Caribe (Agua Azul)
+      const oceanGeo = new THREE.PlaneGeometry(85, 85);
+      const oceanMat = new THREE.MeshStandardMaterial({
+        color: 0x0284c7,
+        transparent: true,
+        opacity: 0.82,
+        roughness: 0.1,
+        metalness: 0.35,
+        side: THREE.DoubleSide
+      });
+      const oceanMesh = new THREE.Mesh(oceanGeo, oceanMat);
+      oceanMesh.rotation.x = -Math.PI / 2;
+      oceanMesh.position.y = 0.02;
+      oceanMesh.receiveShadow = true;
+      oceanMesh.visible = activeLayers.ocean;
+      rootContainer.add(oceanMesh);
+      objectsRef.current.ocean = oceanMesh;
 
       objectsRef.current.revitTerrain = [];
       objectsRef.current.revitWalls = [];
@@ -697,9 +751,9 @@ export default function ModelViewer3D({ onSelectModule }) {
 
           if (name.includes('Toposolid') || name.toLowerCase().includes('terrain') || matName.includes('Toposolid')) {
             child.material = new THREE.MeshStandardMaterial({
-              color: 0x2e4a3d,
+              color: 0x3d8b57, // Verde vegetación insular
               roughness: 0.85,
-              metalness: 0.1,
+              metalness: 0.05,
               side: THREE.DoubleSide
             });
             child.userData.layer = 'terrain';
@@ -707,8 +761,8 @@ export default function ModelViewer3D({ onSelectModule }) {
             child.visible = activeLayers.terrain;
           } else if (name.includes('Partición') || name.includes('Interior') || name.toLowerCase().includes('muro') || matName.includes('muro') || matName.includes('yeso')) {
             child.material = new THREE.MeshStandardMaterial({
-              color: 0xc2785c,
-              roughness: 0.75,
+              color: 0xc26d4a, // Terracota BTC
+              roughness: 0.7,
               metalness: 0.1,
               side: THREE.DoubleSide
             });
@@ -717,9 +771,9 @@ export default function ModelViewer3D({ onSelectModule }) {
             child.visible = activeLayers.walls;
           } else {
             child.material = new THREE.MeshStandardMaterial({
-              color: 0x0f766e,
-              roughness: 0.6,
-              metalness: 0.2,
+              color: 0xf8fafc, // Blanco arquitectónico nítido
+              roughness: 0.35,
+              metalness: 0.15,
               side: THREE.DoubleSide
             });
             child.userData.layer = 'buildings';
@@ -729,8 +783,8 @@ export default function ModelViewer3D({ onSelectModule }) {
         }
       });
 
-      scene.add(modelGroup);
-      currentModelGroupRef.current = modelGroup;
+      scene.add(rootContainer);
+      currentModelGroupRef.current = rootContainer;
 
       objectsRef.current.roof = modelGroup;
       objectsRef.current.structure = modelGroup;
@@ -1086,6 +1140,25 @@ export default function ModelViewer3D({ onSelectModule }) {
         <div className="space-y-1.5">
           {(selected3DModel === 'revit' || selected3DModel === 'custom') && (
             <>
+              {/* Capa 0: Mar Caribe / Océano */}
+              <button
+                onClick={() => toggleLayer('ocean')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
+                  activeLayers.ocean 
+                    ? 'bg-blue-950/50 text-blue-300 border border-blue-500/50 shadow-sm' 
+                    : 'bg-slate-900/50 text-slate-500 border border-slate-800 line-through'
+                }`}
+              >
+                <div className="flex items-center space-x-2 text-left">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0 shadow-sm" />
+                  <div>
+                    <span className="block font-bold">Mar Caribe / Océano</span>
+                    <span className="text-[9px] text-slate-400 font-normal">Cota 0.00m (Agua Azul)</span>
+                  </div>
+                </div>
+                {activeLayers.ocean ? <Eye className="w-3.5 h-3.5 text-blue-400" /> : <EyeOff className="w-3.5 h-3.5" />}
+              </button>
+
               {/* Capa 1: Topografía */}
               <button
                 onClick={() => toggleLayer('terrain')}
@@ -1099,7 +1172,7 @@ export default function ModelViewer3D({ onSelectModule }) {
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 shadow-sm" />
                   <div>
                     <span className="block font-bold">Topografía Insular</span>
-                    <span className="text-[9px] text-slate-400 font-normal">Toposolid / Terreno</span>
+                    <span className="text-[9px] text-slate-400 font-normal">Toposolid / Terreno Verde</span>
                   </div>
                 </div>
                 {activeLayers.terrain ? <Eye className="w-3.5 h-3.5 text-emerald-400" /> : <EyeOff className="w-3.5 h-3.5" />}
