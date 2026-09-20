@@ -144,28 +144,32 @@ export default function ModelViewer3D({ onSelectModule }) {
       const basePath = import.meta.env.BASE_URL || '/';
       const modelUrl = `${basePath.endsWith('/') ? basePath : basePath + '/'}models/tierrabomba_revit.glb`;
 
-      // Cargar texturas de alta calidad enviadas por el usuario
+      // Cargar texturas de alta calidad enviadas por el usuario con espacio de color sRGB
       const textureLoader = new THREE.TextureLoader();
 
-      // 1. Textura Planimétrica / Ortofoto Mapbox (media_1789923163811.png)
+      // 1. Textura Planimétrica / Ortofoto Mapbox (media_1789923441158.png)
       const orthoTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/tierrabomba_ortho.png`);
+      orthoTex.colorSpace = THREE.SRGBColorSpace;
       orthoTex.wrapS = THREE.ClampToEdgeWrapping;
       orthoTex.wrapT = THREE.ClampToEdgeWrapping;
 
       // 2. Textura Topografía Verde (media_1789922503319.jpg)
       const terrainTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/terrain_green.jpg`);
+      terrainTex.colorSpace = THREE.SRGBColorSpace;
       terrainTex.wrapS = THREE.RepeatWrapping;
       terrainTex.wrapT = THREE.RepeatWrapping;
       terrainTex.repeat.set(12, 12);
 
       // 3. Textura Mar Caribe Acuarela (media_1789922552576.png)
       const waterTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/water_blue.png`);
+      waterTex.colorSpace = THREE.SRGBColorSpace;
       waterTex.wrapS = THREE.RepeatWrapping;
       waterTex.wrapT = THREE.RepeatWrapping;
       waterTex.repeat.set(28, 28);
 
       // 4. Textura Concreto Gris para Vías y Muros (media_1789922679458.png)
       const concreteTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/concrete_grey.png`);
+      concreteTex.colorSpace = THREE.SRGBColorSpace;
       concreteTex.wrapS = THREE.RepeatWrapping;
       concreteTex.wrapT = THREE.RepeatWrapping;
       concreteTex.repeat.set(16, 16);
@@ -245,18 +249,23 @@ export default function ModelViewer3D({ onSelectModule }) {
                   metalness: 0.02,
                   side: THREE.DoubleSide
                 });
+                child.renderOrder = 1;
                 child.userData.layer = 'terrain';
                 objectsRef.current.revitTerrain.push(child);
                 child.visible = activeLayers.terrain;
               } else if (name.includes('Walls') || name.includes('Partición') || name.includes('Interior') || name.includes('muro') || matName.includes('Walls')) {
-                // Vías, Muros y Trazados: Blanco/Gris Concreto limpio y visible
+                // Vías, Muros y Trazados: Blanco Puro para máxima legibilidad de vías y senderos
                 child.material = new THREE.MeshStandardMaterial({
-                  color: isOrtho ? 0xffffff : 0xd4d4d8,
+                  color: 0xffffff,
                   map: concreteTex,
-                  roughness: 0.65,
+                  roughness: 0.45,
                   metalness: 0.1,
-                  side: THREE.DoubleSide
+                  side: THREE.DoubleSide,
+                  polygonOffset: true,
+                  polygonOffsetFactor: -3.0,
+                  polygonOffsetUnits: -6.0,
                 });
+                child.renderOrder = 3;
                 child.userData.layer = 'walls';
                 objectsRef.current.revitWalls.push(child);
                 child.visible = activeLayers.walls;
@@ -264,10 +273,14 @@ export default function ModelViewer3D({ onSelectModule }) {
                 // Edificaciones y Masas Urbanas: Gris Carbón Arquitectónico Destacado
                 child.material = new THREE.MeshStandardMaterial({
                   color: isOrtho ? 0x1e293b : 0x475569, // Gris carbón que resalta los bloques edificados
-                  roughness: 0.45,
+                  roughness: 0.4,
                   metalness: 0.2,
-                  side: THREE.DoubleSide
+                  side: THREE.DoubleSide,
+                  polygonOffset: true,
+                  polygonOffsetFactor: -4.0,
+                  polygonOffsetUnits: -8.0,
                 });
+                child.renderOrder = 4;
                 child.userData.layer = 'buildings';
                 objectsRef.current.revitBuildings.push(child);
                 child.visible = activeLayers.buildings;
@@ -571,6 +584,9 @@ export default function ModelViewer3D({ onSelectModule }) {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
     rendererRef.current = renderer;
 
     while (container.firstChild) {
@@ -761,6 +777,7 @@ export default function ModelViewer3D({ onSelectModule }) {
             metalness: 0.02,
             side: THREE.DoubleSide
           });
+          child.renderOrder = 1;
         }
       });
     }
@@ -769,12 +786,16 @@ export default function ModelViewer3D({ onSelectModule }) {
       objectsRef.current.revitWalls.forEach((child) => {
         if (child && child.isMesh) {
           child.material = new THREE.MeshStandardMaterial({
-            color: isOrtho ? 0xffffff : 0xd4d4d8,
+            color: 0xffffff,
             map: concreteTex,
-            roughness: 0.65,
+            roughness: 0.45,
             metalness: 0.1,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            polygonOffset: true,
+            polygonOffsetFactor: -3.0,
+            polygonOffsetUnits: -6.0,
           });
+          child.renderOrder = 3;
         }
       });
     }
@@ -784,10 +805,14 @@ export default function ModelViewer3D({ onSelectModule }) {
         if (child && child.isMesh) {
           child.material = new THREE.MeshStandardMaterial({
             color: isOrtho ? 0x1e293b : 0x475569,
-            roughness: 0.45,
+            roughness: 0.4,
             metalness: 0.2,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            polygonOffset: true,
+            polygonOffsetFactor: -4.0,
+            polygonOffsetUnits: -8.0,
           });
+          child.renderOrder = 4;
         }
       });
     }
