@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { 
   Layers, 
   RotateCcw, 
@@ -19,17 +21,28 @@ import {
   Compass,
   X,
   Droplets,
-  Wind
+  Wind,
+  UploadCloud,
+  FileCode,
+  FileUp,
+  FolderUp,
+  AlertCircle
 } from 'lucide-react';
 
 export default function ModelViewer3D({ onSelectModule }) {
   const mountRef = useRef(null);
-  const [selected3DModel, setSelected3DModel] = useState('colegio'); // 'colegio' | 'vivienda' | 'masterplan'
+  const fileInputRef = useRef(null);
+  const [selected3DModel, setSelected3DModel] = useState('colegio'); // 'colegio' | 'vivienda' | 'masterplan' | 'custom'
   const [wireframe, setWireframe] = useState(false);
   const [explodedView, setExplodedView] = useState(false);
   const [sunIntensity, setSunIntensity] = useState(1.2);
   const [sunAngle, setSunAngle] = useState(45);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [isLoadingFile, setIsLoadingFile] = useState(false);
+  const [loadError, setLoadError] = useState('');
+  const [customModel, setCustomModel] = useState(null);
   const [activeLayers, setActiveLayers] = useState({
     roof: true,
     structure: true,
@@ -506,6 +519,118 @@ export default function ModelViewer3D({ onSelectModule }) {
     setActiveLayers(prev => ({ ...prev, [layerKey]: !prev[layerKey] }));
   };
 
+  // Load custom 3D file (GLTF / GLB / OBJ from Revit)
+  const loadCustom3DFile = (file) => {
+    if (!file) return;
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['glb', 'gltf', 'obj'].includes(ext)) {
+      setLoadError('Por favor sube un archivo 3D compatible exportado de Revit (.glb, .gltf o .obj)');
+      setShowUploadModal(true);
+      return;
+    }
+
+    setIsLoadingFile(true);
+    setLoadError('');
+
+    const scene = sceneRef.current;
+    if (!scene) {
+      setIsLoadingFile(false);
+      return;
+    }
+
+    const fileUrl = URL.createObjectURL(file);
+
+    const onModelLoaded = (modelGroup) => {
+      if (currentModelGroupRef.current) {
+        scene.remove(currentModelGroupRef.current);
+        currentModelGroupRef.current = null;
+      }
+
+      // Compute bounding box and normalize scale & center
+      const box = new THREE.Box3().setFromObject(modelGroup);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const targetSize = 22;
+      const scale = targetSize / (maxDim || 1);
+
+      modelGroup.scale.set(scale, scale, scale);
+      modelGroup.position.x = -center.x * scale;
+      modelGroup.position.y = -center.y * scale + (size.y * scale) / 2;
+      modelGroup.position.z = -center.z * scale;
+
+      modelGroup.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          if (child.material) {
+            child.material.side = THREE.DoubleSide;
+          }
+        }
+      });
+
+      scene.add(modelGroup);
+      currentModelGroupRef.current = modelGroup;
+
+      objectsRef.current.roof = modelGroup;
+      objectsRef.current.structure = modelGroup;
+      objectsRef.current.cistern = null;
+      objectsRef.current.louvers = null;
+
+      setCustomModel({
+        name: file.name,
+        sizeMB: (file.size / (1024 * 1024)).toFixed(2),
+        group: modelGroup
+      });
+      setSelected3DModel('custom');
+      setIsLoadingFile(false);
+      setShowUploadModal(false);
+      URL.revokeObjectURL(fileUrl);
+    };
+
+    if (ext === 'glb' || ext === 'gltf') {
+      const gltfLoader = new GLTFLoader();
+      gltfLoader.load(
+        fileUrl,
+        (gltf) => {
+          onModelLoaded(gltf.scene);
+        },
+        undefined,
+        (err) => {
+          console.error("GLTF Load Error:", err);
+          setLoadError('Error al leer el archivo GLTF/GLB: ' + (err.message || 'Verifica el formato del archivo'));
+          setIsLoadingFile(false);
+          setShowUploadModal(true);
+          URL.revokeObjectURL(fileUrl);
+        }
+      );
+    } else if (ext === 'obj') {
+      const objLoader = new OBJLoader();
+      objLoader.load(
+        fileUrl,
+        (obj) => {
+          onModelLoaded(obj);
+        },
+        undefined,
+        (err) => {
+          console.error("OBJ Load Error:", err);
+          setLoadError('Error al leer el archivo OBJ: ' + (err.message || 'Verifica el formato'));
+          setIsLoadingFile(false);
+          setShowUploadModal(true);
+          URL.revokeObjectURL(fileUrl);
+        }
+      );
+    }
+  };
+
+  const handleDropFile = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      loadCustom3DFile(e.dataTransfer.files[0]);
+    }
+  };
+
   const modelDetails = {
     colegio: {
       title: "Equipamiento Educativo, Comunitario & Dispensario Hídrico",
@@ -542,12 +667,64 @@ export default function ModelViewer3D({ onSelectModule }) {
         { label: "Bio-Humedales", value: "Fitodepuración de aguas" }
       ],
       desc: "Implantación territorial central que articula vivienda digna, equipamiento escolar y soberanía alimentaria lejos del borde de erosión marina."
+    },
+    custom: {
+      title: customModel ? `Modelo Revit / BIM: ${customModel.name}` : "Modelo Personalizado Revit",
+      capacity: "Modelo 3D Importado",
+      area: customModel ? `${customModel.sizeMB} MB` : "Geometría WebGL",
+      specs: [
+        { label: "Origen", value: "Autodesk Revit" },
+        { label: "Formato", value: customModel ? customModel.name.split('.').pop().toUpperCase() : "GLB / OBJ" },
+        { label: "Renderizado", value: "Three.js WebGL" },
+        { label: "Sombras & Luces", value: "Tiempo Real" }
+      ],
+      desc: "Modelo arquitectónico de Revit importado directamente en el visor WebGL de la plataforma de tesis."
     }
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden animate-fade-in select-none bg-slate-950">
+    <div 
+      className={`relative w-full h-screen overflow-hidden animate-fade-in select-none bg-slate-950 ${
+        isDragOver ? 'ring-4 ring-teal-400 ring-inset' : ''
+      }`}
+      onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+      onDragLeave={() => setIsDragOver(false)}
+      onDrop={handleDropFile}
+    >
       
+      {/* Hidden File Input for 3D model upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={(e) => {
+          if (e.target.files && e.target.files[0]) {
+            loadCustom3DFile(e.target.files[0]);
+          }
+        }}
+        accept=".glb,.gltf,.obj"
+        className="hidden"
+      />
+
+      {/* Drag & Drop Overlay */}
+      {isDragOver && (
+        <div className="absolute inset-0 bg-teal-950/80 backdrop-blur-md z-[500] flex flex-col items-center justify-center p-6 text-white pointer-events-none animate-fade-in">
+          <div className="w-20 h-20 rounded-3xl bg-teal-500/20 border-2 border-teal-400 flex items-center justify-center mb-4 animate-bounce">
+            <UploadCloud className="w-10 h-10 text-teal-300" />
+          </div>
+          <h3 className="font-bold text-2xl text-white">Suelta tu archivo de Revit (.glb / .gltf / .obj) aquí</h3>
+          <p className="text-sm text-teal-200 mt-2 font-mono">Se cargará e iluminará en 3D en tiempo real</p>
+        </div>
+      )}
+
+      {/* Loading Model Overlay */}
+      {isLoadingFile && (
+        <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md z-[500] flex flex-col items-center justify-center p-6 text-white pointer-events-none animate-fade-in">
+          <div className="w-12 h-12 rounded-full border-4 border-teal-500 border-t-transparent animate-spin mb-4" />
+          <h3 className="font-bold text-lg text-white">Procesando geometría 3D de Revit...</h3>
+          <p className="text-xs text-slate-400 font-mono mt-1">Calculando normales, sombras y materiales WebGL</p>
+        </div>
+      )}
+
       {/* 1. FULLSCREEN 3D WEBGL CANVAS */}
       <div ref={mountRef} className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing z-0" />
 
@@ -561,7 +738,7 @@ export default function ModelViewer3D({ onSelectModule }) {
         {/* Module Title Card */}
         <div className="glass-dark px-4 py-3 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-lg text-white">
           <div className="w-10 h-10 rounded-xl bg-teal-500 text-slate-950 flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
-            06
+            05
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
@@ -573,15 +750,18 @@ export default function ModelViewer3D({ onSelectModule }) {
               </span>
             </div>
             <h2 className="font-bold text-sm text-white truncate">
-              {modelDetails[selected3DModel].title}
+              {modelDetails[selected3DModel]?.title || "Modelo 3D"}
             </h2>
           </div>
         </div>
 
         {/* 3D Model Switcher Bar */}
-        <div className="glass-dark p-1 rounded-2xl pointer-events-auto flex items-center gap-1 self-start md:self-center text-white">
+        <div className="glass-dark p-1 rounded-2xl pointer-events-auto flex items-center gap-1 self-start md:self-center text-white flex-wrap">
           <button
-            onClick={() => setSelected3DModel('colegio')}
+            onClick={() => {
+              setSelected3DModel('colegio');
+              buildModel('colegio');
+            }}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               selected3DModel === 'colegio'
                 ? 'bg-teal-500 text-slate-950 shadow-sm'
@@ -592,7 +772,10 @@ export default function ModelViewer3D({ onSelectModule }) {
             <span>Colegio & Aljibe</span>
           </button>
           <button
-            onClick={() => setSelected3DModel('vivienda')}
+            onClick={() => {
+              setSelected3DModel('vivienda');
+              buildModel('vivienda');
+            }}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               selected3DModel === 'vivienda'
                 ? 'bg-terracotta-500 text-white shadow-sm'
@@ -603,7 +786,10 @@ export default function ModelViewer3D({ onSelectModule }) {
             <span>Vivienda +0.60m</span>
           </button>
           <button
-            onClick={() => setSelected3DModel('masterplan')}
+            onClick={() => {
+              setSelected3DModel('masterplan');
+              buildModel('masterplan');
+            }}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               selected3DModel === 'masterplan'
                 ? 'bg-emerald-500 text-slate-950 shadow-sm'
@@ -612,6 +798,39 @@ export default function ModelViewer3D({ onSelectModule }) {
           >
             <Compass className="w-3.5 h-3.5" />
             <span>Masterplan (+22m)</span>
+          </button>
+
+          {customModel && (
+            <button
+              onClick={() => {
+                setSelected3DModel('custom');
+                if (sceneRef.current && customModel.group) {
+                  if (currentModelGroupRef.current) sceneRef.current.remove(currentModelGroupRef.current);
+                  sceneRef.current.add(customModel.group);
+                  currentModelGroupRef.current = customModel.group;
+                }
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+                selected3DModel === 'custom'
+                  ? 'bg-amber-500 text-slate-950 shadow-sm ring-2 ring-amber-400/50'
+                  : 'text-amber-300 hover:text-white bg-amber-500/10'
+              }`}
+            >
+              <FileCode className="w-3.5 h-3.5" />
+              <span className="truncate max-w-[120px]">{customModel.name}</span>
+            </button>
+          )}
+
+          <div className="w-px h-4 bg-white/20 mx-0.5" />
+
+          {/* Button to Upload Revit / 3D File */}
+          <button
+            onClick={() => setShowUploadModal(true)}
+            className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 bg-gradient-to-r from-amber-600/30 to-amber-500/30 hover:from-amber-600/50 hover:to-amber-500/50 text-amber-200 border border-amber-400/40 transition-all shadow-sm hover:scale-[1.02]"
+            title="Importar archivo exportado desde Revit (.glb, .gltf, .obj)"
+          >
+            <UploadCloud className="w-3.5 h-3.5 text-amber-300" />
+            <span>Cargar Revit</span>
           </button>
         </div>
 
@@ -791,6 +1010,113 @@ export default function ModelViewer3D({ onSelectModule }) {
                 className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-mono text-xs font-bold hover:bg-slate-800 transition-colors"
               >
                 Cerrar y Continuar Orbitando
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 4. REVIT / 3D MODEL UPLOAD & INTEGRATION MODAL                            */}
+      {/* ========================================================================= */}
+      {showUploadModal && (
+        <div 
+          onClick={() => setShowUploadModal(false)}
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-fade-in"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative text-slate-900 space-y-6 animate-scale-up"
+          >
+            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-600 text-white flex items-center justify-center shadow-md">
+                  <UploadCloud className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                    INTEGRACIÓN AUTODESK REVIT / BIM
+                  </span>
+                  <h3 className="font-bold text-xl text-slate-900 mt-0.5">
+                    Cargar Modelo 3D de la Tesis
+                  </h3>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowUploadModal(false)}
+                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {loadError && (
+              <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-mono flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{loadError}</span>
+              </div>
+            )}
+
+            {/* Dropzone Container */}
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-amber-300 hover:border-amber-500 rounded-3xl p-8 bg-amber-50/40 hover:bg-amber-50/80 transition-all cursor-pointer flex flex-col items-center justify-center text-center space-y-3 group"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-white shadow-md border border-amber-200 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
+                <FolderUp className="w-8 h-8" />
+              </div>
+              <div>
+                <h4 className="font-bold text-base text-slate-900">
+                  Haz clic aquí para seleccionar tu archivo 3D
+                </h4>
+                <p className="text-xs text-slate-500 font-sans mt-1">
+                  o arrastra y suelta directamente tu archivo en esta ventana
+                </p>
+              </div>
+              <div className="flex items-center space-x-2 pt-1">
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  .GLB (Recomendado)
+                </span>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-300">
+                  .GLTF
+                </span>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
+                  .OBJ
+                </span>
+              </div>
+            </div>
+
+            {/* Step by Step Guide from Revit */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 block">
+                💡 ¿Cómo exportarlo desde Revit?
+              </span>
+              <ul className="text-xs text-slate-700 space-y-1.5 font-sans">
+                <li className="flex items-start space-x-2">
+                  <span className="w-4 h-4 rounded-full bg-slate-900 text-white font-mono text-[9px] flex items-center justify-center shrink-0 mt-0.5">1</span>
+                  <span><b>Exportar a .GLB/.GLTF:</b> Usa el plugin gratuito <i>Revit to glTF</i> o exporta vía Datasmith / Blender / Enscape.</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="w-4 h-4 rounded-full bg-slate-900 text-white font-mono text-[9px] flex items-center justify-center shrink-0 mt-0.5">2</span>
+                  <span><b>Exportar a FBX/OBJ:</b> En Revit: <i>Archivo &gt; Exportar &gt; FBX</i> (o convertirlo a GLB).</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="w-4 h-4 rounded-full bg-slate-900 text-white font-mono text-[9px] flex items-center justify-center shrink-0 mt-0.5">3</span>
+                  <span><b>Ubicación local directa:</b> También puedes guardar el archivo en la carpeta <code>public/models/</code> de este proyecto.</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-[11px] font-mono text-slate-400">
+                Soporte WebGL Three.js // Sombras & Órbita en tiempo real
+              </span>
+              <button
+                onClick={() => setShowUploadModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-xs font-bold transition-colors"
+              >
+                Cerrar
               </button>
             </div>
           </div>
