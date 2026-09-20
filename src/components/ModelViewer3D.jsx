@@ -52,7 +52,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     walls: true,
     buildings: true,
     ocean: true,
-    grid: true,
+    grid: false,
     roof: true,
     structure: true,
     cistern: true,
@@ -107,6 +107,10 @@ export default function ModelViewer3D({ onSelectModule }) {
       setLoadProgress(15);
       setLoadPhase('Conectando con modelo BIM ultra-optimizado...');
 
+      // Configuración de horizonte oceánico infinito y sin bordes
+      scene.background = new THREE.Color(0x9fc0cb);
+      scene.fog = new THREE.Fog(0x9fc0cb, 60, 260);
+
       const gltfLoader = new GLTFLoader();
       const dracoLoader = new DRACOLoader();
       dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
@@ -115,12 +119,26 @@ export default function ModelViewer3D({ onSelectModule }) {
       const basePath = import.meta.env.BASE_URL || '/';
       const modelUrl = `${basePath.endsWith('/') ? basePath : basePath + '/'}models/tierrabomba_revit.glb`;
 
-      // Cargar textura de concreto gris para vías y muros
+      // Cargar texturas de alta calidad enviadas por el usuario
       const textureLoader = new THREE.TextureLoader();
+
+      // 1. Textura Topografía Verde (media_1789922503319.jpg)
+      const terrainTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/terrain_green.jpg`);
+      terrainTex.wrapS = THREE.RepeatWrapping;
+      terrainTex.wrapT = THREE.RepeatWrapping;
+      terrainTex.repeat.set(12, 12);
+
+      // 2. Textura Mar Caribe Acuarela (media_1789922552576.png)
+      const waterTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/water_blue.png`);
+      waterTex.wrapS = THREE.RepeatWrapping;
+      waterTex.wrapT = THREE.RepeatWrapping;
+      waterTex.repeat.set(28, 28);
+
+      // 3. Textura Concreto Gris para Vías y Muros (media_1789922679458.png)
       const concreteTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/concrete_grey.png`);
       concreteTex.wrapS = THREE.RepeatWrapping;
       concreteTex.wrapT = THREE.RepeatWrapping;
-      concreteTex.repeat.set(12, 12);
+      concreteTex.repeat.set(16, 16);
 
       gltfLoader.load(
         modelUrl,
@@ -153,19 +171,17 @@ export default function ModelViewer3D({ onSelectModule }) {
           const rootContainer = new THREE.Group();
           rootContainer.add(model);
 
-          // Plano de Mar Caribe (Agua Azul)
-          const oceanGeo = new THREE.PlaneGeometry(85, 85);
+          // Plano de Mar Caribe Infinito y Sin Bordes
+          const oceanGeo = new THREE.PlaneGeometry(800, 800);
           const oceanMat = new THREE.MeshStandardMaterial({
-            color: 0x0284c7, // Azul mar Caribe cristalino
-            transparent: true,
-            opacity: 0.82,
-            roughness: 0.1,
-            metalness: 0.35,
+            map: waterTex,
+            roughness: 0.2,
+            metalness: 0.1,
             side: THREE.DoubleSide
           });
           const oceanMesh = new THREE.Mesh(oceanGeo, oceanMat);
           oceanMesh.rotation.x = -Math.PI / 2;
-          oceanMesh.position.y = 0.02;
+          oceanMesh.position.y = 0.01;
           oceanMesh.receiveShadow = true;
           oceanMesh.visible = activeLayers.ocean;
           rootContainer.add(oceanMesh);
@@ -184,23 +200,22 @@ export default function ModelViewer3D({ onSelectModule }) {
               const matName = child.material ? child.material.name : '';
 
               if (name.includes('Terrain') || matName.includes('Terrain') || name.includes('Toposolid')) {
-                // Topografía / Terreno: Verde natural vivo y definido (no tenue)
+                // Topografía / Terreno: Textura verde natural fotográfica
                 child.material = new THREE.MeshStandardMaterial({
-                  color: 0x388e3c, // Verde natural vibrante
-                  roughness: 0.82,
-                  metalness: 0.05,
+                  map: terrainTex,
+                  roughness: 0.88,
+                  metalness: 0.02,
                   side: THREE.DoubleSide
                 });
                 child.userData.layer = 'terrain';
                 objectsRef.current.revitTerrain.push(child);
                 child.visible = activeLayers.terrain;
               } else if (name.includes('Walls') || name.includes('Partición') || name.includes('Interior') || name.includes('muro') || matName.includes('Walls')) {
-                // Vías, Muros y Trazados: Gris Concreto con Textura
+                // Vías, Muros y Trazados: Textura Concreto Gris
                 child.material = new THREE.MeshStandardMaterial({
-                  color: 0x94a3b8, // Gris concreto claro
                   map: concreteTex,
                   roughness: 0.85,
-                  metalness: 0.1,
+                  metalness: 0.08,
                   side: THREE.DoubleSide
                 });
                 child.userData.layer = 'walls';
@@ -209,9 +224,9 @@ export default function ModelViewer3D({ onSelectModule }) {
               } else {
                 // Edificaciones y Masas Urbanas: Gris Arquitectónico / Caserío
                 child.material = new THREE.MeshStandardMaterial({
-                  color: 0x64748b, // Gris arquitectónico medio que resalta las casitas
-                  roughness: 0.45,
-                  metalness: 0.15,
+                  color: 0x475569, // Gris arquitectónico medio que resalta las edificaciones
+                  roughness: 0.5,
+                  metalness: 0.18,
                   side: THREE.DoubleSide
                 });
                 child.userData.layer = 'buildings';
@@ -496,7 +511,8 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     // Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0f172a); // Deep slate
+    scene.background = new THREE.Color(0x9fc0cb);
+    scene.fog = new THREE.Fog(0x9fc0cb, 60, 260);
     sceneRef.current = scene;
 
     // Camera
@@ -748,22 +764,40 @@ export default function ModelViewer3D({ onSelectModule }) {
       modelGroup.position.y = -box.min.y * scale + 0.05;
       modelGroup.position.z = -center.z * scale;
 
+      const basePath = import.meta.env.BASE_URL || '/';
+      const textureLoader = new THREE.TextureLoader();
+      const terrainTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/terrain_green.jpg`);
+      terrainTex.wrapS = THREE.RepeatWrapping;
+      terrainTex.wrapT = THREE.RepeatWrapping;
+      terrainTex.repeat.set(12, 12);
+
+      const waterTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/water_blue.png`);
+      waterTex.wrapS = THREE.RepeatWrapping;
+      waterTex.wrapT = THREE.RepeatWrapping;
+      waterTex.repeat.set(28, 28);
+
+      const concreteTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/concrete_grey.png`);
+      concreteTex.wrapS = THREE.RepeatWrapping;
+      concreteTex.wrapT = THREE.RepeatWrapping;
+      concreteTex.repeat.set(16, 16);
+
+      scene.background = new THREE.Color(0x9fc0cb);
+      scene.fog = new THREE.Fog(0x9fc0cb, 60, 260);
+
       const rootContainer = new THREE.Group();
       rootContainer.add(modelGroup);
 
-      // Plano de Mar Caribe (Agua Azul)
-      const oceanGeo = new THREE.PlaneGeometry(85, 85);
+      // Plano de Mar Caribe Infinito y Sin Bordes
+      const oceanGeo = new THREE.PlaneGeometry(800, 800);
       const oceanMat = new THREE.MeshStandardMaterial({
-        color: 0x0284c7,
-        transparent: true,
-        opacity: 0.82,
-        roughness: 0.1,
-        metalness: 0.35,
+        map: waterTex,
+        roughness: 0.2,
+        metalness: 0.1,
         side: THREE.DoubleSide
       });
       const oceanMesh = new THREE.Mesh(oceanGeo, oceanMat);
       oceanMesh.rotation.x = -Math.PI / 2;
-      oceanMesh.position.y = 0.02;
+      oceanMesh.position.y = 0.01;
       oceanMesh.receiveShadow = true;
       oceanMesh.visible = activeLayers.ocean;
       rootContainer.add(oceanMesh);
@@ -780,21 +814,21 @@ export default function ModelViewer3D({ onSelectModule }) {
           const name = child.name || '';
           const matName = child.material ? child.material.name : '';
 
-          if (name.includes('Toposolid') || name.toLowerCase().includes('terrain') || matName.includes('Toposolid')) {
+          if (name.includes('Toposolid') || name.toLowerCase().includes('terrain') || matName.includes('Toposolid') || matName.toLowerCase().includes('terrain')) {
             child.material = new THREE.MeshStandardMaterial({
-              color: 0x3d8b57, // Verde vegetación insular
-              roughness: 0.85,
-              metalness: 0.05,
+              map: terrainTex,
+              roughness: 0.88,
+              metalness: 0.02,
               side: THREE.DoubleSide
             });
             child.userData.layer = 'terrain';
             objectsRef.current.revitTerrain.push(child);
             child.visible = activeLayers.terrain;
-          } else if (name.includes('Partición') || name.includes('Interior') || name.toLowerCase().includes('muro') || matName.includes('muro') || matName.includes('yeso')) {
+          } else if (name.includes('Partición') || name.includes('Interior') || name.toLowerCase().includes('muro') || name.toLowerCase().includes('wall') || matName.includes('muro') || matName.includes('Walls')) {
             child.material = new THREE.MeshStandardMaterial({
-              color: 0xc26d4a, // Terracota BTC
-              roughness: 0.7,
-              metalness: 0.1,
+              map: concreteTex,
+              roughness: 0.85,
+              metalness: 0.08,
               side: THREE.DoubleSide
             });
             child.userData.layer = 'walls';
@@ -802,9 +836,9 @@ export default function ModelViewer3D({ onSelectModule }) {
             child.visible = activeLayers.walls;
           } else {
             child.material = new THREE.MeshStandardMaterial({
-              color: 0xf8fafc, // Blanco arquitectónico nítido
-              roughness: 0.35,
-              metalness: 0.15,
+              color: 0x475569,
+              roughness: 0.5,
+              metalness: 0.18,
               side: THREE.DoubleSide
             });
             child.userData.layer = 'buildings';
