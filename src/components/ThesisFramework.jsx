@@ -37,9 +37,11 @@ import {
   Sliders,
   Eye,
   Eraser,
-  RefreshCw
+  RefreshCw,
+  Image as ImageIcon
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
+import calqueImage from '../assets/calque_tierrabomba.png';
 import L from 'leaflet';
 
 // Fix Leaflet marker icons safely in Vite/React
@@ -261,6 +263,13 @@ export const DEFAULT_DELIMITATIONS = {
   custom: []
 };
 
+export const DEFAULT_CALQUE_BOUNDS = {
+  south: 10.3320,
+  west: -75.5935,
+  north: 10.3828,
+  east: -75.5410
+};
+
 export const ZONE_CONFIG = {
   island: {
     id: "island",
@@ -429,6 +438,44 @@ export default function ThesisFramework({ onSelectModule }) {
   const [saveToast, setSaveToast] = useState(false);
   const [copyToast, setCopyToast] = useState(false);
   const [deleteToast, setDeleteToast] = useState(false);
+
+  // Reference Calque Image Overlay State (Plano para calcar)
+  const [showCalque, setShowCalque] = useState(true);
+  const [calqueOpacity, setCalqueOpacity] = useState(0.70);
+  const [calqueBounds, setCalqueBounds] = useState(DEFAULT_CALQUE_BOUNDS);
+  const [showCalqueControls, setShowCalqueControls] = useState(false);
+  const calqueOverlayRef = useRef(null);
+
+  const moveCalqueLat = (delta) => {
+    setCalqueBounds(prev => ({
+      ...prev,
+      south: Number((prev.south + delta).toFixed(5)),
+      north: Number((prev.north + delta).toFixed(5))
+    }));
+  };
+
+  const moveCalqueLng = (delta) => {
+    setCalqueBounds(prev => ({
+      ...prev,
+      west: Number((prev.west + delta).toFixed(5)),
+      east: Number((prev.east + delta).toFixed(5))
+    }));
+  };
+
+  const scaleCalque = (factor) => {
+    setCalqueBounds(prev => {
+      const centerLat = (prev.north + prev.south) / 2;
+      const centerLng = (prev.east + prev.west) / 2;
+      const halfLat = ((prev.north - prev.south) * factor) / 2;
+      const halfLng = ((prev.east - prev.west) * factor) / 2;
+      return {
+        south: Number((centerLat - halfLat).toFixed(5)),
+        north: Number((centerLat + halfLat).toFixed(5)),
+        west: Number((centerLng - halfLng).toFixed(5)),
+        east: Number((centerLng + halfLng).toFixed(5))
+      };
+    });
+  };
 
   // Cinematic Intro Animation States
   const [isIntroZooming, setIsIntroZooming] = useState(true);
@@ -820,6 +867,28 @@ export default function ThesisFramework({ onSelectModule }) {
       customLayer.setLatLngs(delimitations.custom);
     }
   }, [delimitations]);
+
+  // Synchronize Reference Calque Image Overlay on the map
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const bounds = L.latLngBounds(
+      [calqueBounds.south, calqueBounds.west],
+      [calqueBounds.north, calqueBounds.east]
+    );
+
+    if (!calqueOverlayRef.current) {
+      calqueOverlayRef.current = L.imageOverlay(calqueImage, bounds, {
+        opacity: showCalque ? calqueOpacity : 0,
+        interactive: false,
+        zIndex: 200
+      }).addTo(map);
+    } else {
+      calqueOverlayRef.current.setBounds(bounds);
+      calqueOverlayRef.current.setOpacity(showCalque ? calqueOpacity : 0);
+    }
+  }, [showCalque, calqueOpacity, calqueBounds]);
 
   // =========================================================================
   // 3. RENDER INTERACTIVE DRAGGABLE & DELETABLE NODE HANDLERS IN EDIT MODE
@@ -1273,7 +1342,7 @@ export default function ThesisFramework({ onSelectModule }) {
           )}
         </div>
 
-        {/* Aerial Satellite / Carto Layer Toggle Button */}
+        {/* Aerial Satellite / Carto Layer Toggle & Calque Button */}
         <div className="glass-hud p-1 rounded-2xl pointer-events-auto flex items-center gap-1 self-start md:self-auto shadow-xl">
           <button
             onClick={() => setMapLayerType('satellite')}
@@ -1296,6 +1365,19 @@ export default function ThesisFramework({ onSelectModule }) {
           >
             <Compass className="w-3.5 h-3.5" />
             <span>Plano</span>
+          </button>
+          <div className="w-px h-4 bg-slate-300/80 mx-0.5" />
+          <button
+            onClick={() => setShowCalque(!showCalque)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              showCalque
+                ? 'bg-amber-500 text-slate-950 shadow-sm ring-2 ring-amber-400/40'
+                : 'text-slate-600 hover:text-slate-950'
+            }`}
+            title="Mostrar u ocultar la imagen de referencia para calcar"
+          >
+            <ImageIcon className="w-3.5 h-3.5" />
+            <span>{showCalque ? 'Calco ON' : 'Calco'}</span>
           </button>
         </div>
 
@@ -1380,6 +1462,127 @@ export default function ThesisFramework({ onSelectModule }) {
                 <span>Borrador</span>
               </button>
             </div>
+          </div>
+
+          {/* Reference Calque Image Overlay Control (Calcar Plano) */}
+          <div className="p-3 bg-slate-100/90 rounded-2xl border border-slate-200/80 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <ImageIcon className="w-4 h-4 text-amber-600" />
+                <span className="text-xs font-serif font-bold text-slate-800">
+                  Imagen para Calcar
+                </span>
+              </div>
+              <button
+                onClick={() => setShowCalque(!showCalque)}
+                className={`px-2.5 py-1 rounded-xl text-[10px] font-mono font-bold transition-all ${
+                  showCalque
+                    ? 'bg-amber-500 text-slate-950 shadow-sm ring-1 ring-amber-400'
+                    : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                }`}
+              >
+                {showCalque ? '👁️ Visible' : 'Oculto'}
+              </button>
+            </div>
+
+            {showCalque && (
+              <div className="space-y-2 pt-1 border-t border-slate-200">
+                <div className="flex items-center justify-between text-[10px] font-mono text-slate-600">
+                  <span>Opacidad: {Math.round(calqueOpacity * 100)}%</span>
+                  <button
+                    onClick={() => setShowCalqueControls(!showCalqueControls)}
+                    className="text-amber-800 hover:underline flex items-center space-x-1 font-bold"
+                  >
+                    <Sliders className="w-3 h-3" />
+                    <span>{showCalqueControls ? 'Cerrar Ajustes' : 'Calibrar Posición'}</span>
+                  </button>
+                </div>
+
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1"
+                  step="0.05"
+                  value={calqueOpacity}
+                  onChange={(e) => setCalqueOpacity(parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-600"
+                />
+
+                {showCalqueControls && (
+                  <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-[11px] font-mono space-y-2 animate-fade-in shadow-xs">
+                    <div className="flex items-center justify-between font-bold text-slate-700 text-[10px] uppercase">
+                      <span>Calibración de la Imagen</span>
+                      <button
+                        onClick={() => setCalqueBounds(DEFAULT_CALQUE_BOUNDS)}
+                        className="text-amber-700 hover:text-amber-900 underline font-bold"
+                      >
+                        Restablecer
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <div className="space-y-1 text-center bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                        <span className="text-[9px] text-slate-500 font-bold block">Norte / Sur</span>
+                        <div className="flex items-center justify-center space-x-1">
+                          <button
+                            onClick={() => moveCalqueLat(0.0003)}
+                            className="px-2 py-1 rounded bg-slate-200 hover:bg-slate-300 font-bold text-[10px]"
+                            title="Mover al Norte"
+                          >
+                            ▲ N
+                          </button>
+                          <button
+                            onClick={() => moveCalqueLat(-0.0003)}
+                            className="px-2 py-1 rounded bg-slate-200 hover:bg-slate-300 font-bold text-[10px]"
+                            title="Mover al Sur"
+                          >
+                            ▼ S
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1 text-center bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                        <span className="text-[9px] text-slate-500 font-bold block">Este / Oeste</span>
+                        <div className="flex items-center justify-center space-x-1">
+                          <button
+                            onClick={() => moveCalqueLng(-0.0003)}
+                            className="px-2 py-1 rounded bg-slate-200 hover:bg-slate-300 font-bold text-[10px]"
+                            title="Mover al Oeste"
+                          >
+                            ◀ O
+                          </button>
+                          <button
+                            onClick={() => moveCalqueLng(0.0003)}
+                            className="px-2 py-1 rounded bg-slate-200 hover:bg-slate-300 font-bold text-[10px]"
+                            title="Mover al Este"
+                          >
+                            ▶ E
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 text-center pt-1 border-t border-slate-100">
+                      <span className="text-[9px] text-slate-500 font-bold block">Escala / Tamaño</span>
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={() => scaleCalque(1.02)}
+                          className="px-2.5 py-1 rounded bg-slate-200 hover:bg-slate-300 font-bold text-[10px] flex-1"
+                        >
+                          + Agrandar
+                        </button>
+                        <button
+                          onClick={() => scaleCalque(0.98)}
+                          className="px-2.5 py-1 rounded bg-slate-200 hover:bg-slate-300 font-bold text-[10px] flex-1"
+                        >
+                          - Reducir
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Zone Selector Pills */}
