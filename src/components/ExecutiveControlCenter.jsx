@@ -23,6 +23,7 @@ import {
   X,
   ExternalLink,
   ChevronRight,
+  ChevronLeft,
   Maximize2,
   Eye,
   ZoomIn,
@@ -31,7 +32,9 @@ import {
   Sliders,
   FileText,
   Info,
-  BookOpen
+  BookOpen,
+  Clock,
+  ShieldAlert
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 import { HISTORICAL_MAPS_DATA } from '../data/historicalMaps';
@@ -304,6 +307,7 @@ export const URBAN_HOUSE_BLOCKS = [
 
 export default function ExecutiveControlCenter({ onSelectModule }) {
   const [selectedYear, setSelectedYear] = useState(1690); // Default to first historical map (1690) as requested
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [activeHotspotModal, setActiveHotspotModal] = useState(null);
   const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
   const [showHistoricalGalleryModal, setShowHistoricalGalleryModal] = useState(false);
@@ -323,12 +327,82 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
   const labelsLayerRef = useRef(null);
   const markersRef = useRef([]);
   const relocationGroupRef = useRef(null);
+  const transitionTimerRef = useRef(null);
 
   const currentTimelineData = TIMELINE_EPOCHS.find(y => y.year === selectedYear) || TIMELINE_EPOCHS[6];
   const isHistoricalMode = currentTimelineData.type === 'historical';
   const currentHistoricalMap = isHistoricalMode 
     ? HISTORICAL_MAPS_DATA.find(m => m.id === currentTimelineData.mapId) || HISTORICAL_MAPS_DATA[0]
     : null;
+
+  // Cinematic Year Transition Handler with Dynamic Camera FlyTo
+  const handleSelectYear = (targetYear) => {
+    if (targetYear === selectedYear) return;
+
+    setIsTransitioning(true);
+    if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
+    transitionTimerRef.current = setTimeout(() => {
+      setIsTransitioning(false);
+    }, 750);
+
+    setSelectedYear(targetYear);
+
+    // If target is modern and map instance exists, trigger cinematic camera sweeps
+    const targetEpoch = TIMELINE_EPOCHS.find(e => e.year === targetYear);
+    if (targetEpoch && targetEpoch.type === 'modern' && bayMapInstanceRef.current) {
+      const map = bayMapInstanceRef.current;
+      map.invalidateSize();
+      if (targetYear === 1980) {
+        map.flyTo([10.365, -75.550], 12.8, {
+          animate: true,
+          duration: 1.8,
+          easeLinearity: 0.25
+        });
+      } else if (targetYear === 2026) {
+        map.flyTo([10.3600, -75.5860], 15.2, {
+          animate: true,
+          duration: 2.0,
+          easeLinearity: 0.25
+        });
+      } else if (targetYear === 2050) {
+        map.flyTo([10.3730, -75.5759], 15.6, {
+          animate: true,
+          duration: 2.2,
+          easeLinearity: 0.25
+        });
+      }
+    }
+  };
+
+  const handlePrevEpoch = () => {
+    const currentIndex = TIMELINE_EPOCHS.findIndex(e => e.year === selectedYear);
+    if (currentIndex > 0) {
+      handleSelectYear(TIMELINE_EPOCHS[currentIndex - 1].year);
+    }
+  };
+
+  const handleNextEpoch = () => {
+    const currentIndex = TIMELINE_EPOCHS.findIndex(e => e.year === selectedYear);
+    if (currentIndex < TIMELINE_EPOCHS.length - 1) {
+      handleSelectYear(TIMELINE_EPOCHS[currentIndex + 1].year);
+    }
+  };
+
+  // Keyboard navigation for epochs (Left / Right arrow keys)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger if user is interacting with an input or modal
+      if (activeHotspotModal || showHistoricalGalleryModal) return;
+      if (e.key === 'ArrowLeft') {
+        handlePrevEpoch();
+      } else if (e.key === 'ArrowRight') {
+        handleNextEpoch();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedYear, activeHotspotModal, showHistoricalGalleryModal]);
 
   // Reset zoom & pan when switching years, and invalidate map size for modern years
   useEffect(() => {
@@ -338,13 +412,11 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
     if (!isHistoricalMode && bayMapInstanceRef.current) {
       const map = bayMapInstanceRef.current;
       map.invalidateSize();
-      map.setView([10.365, -75.550], 13, { animate: false });
       const timer1 = setTimeout(() => {
         map.invalidateSize();
       }, 50);
       const timer2 = setTimeout(() => {
         map.invalidateSize();
-        map.setView([10.365, -75.550], 13, { animate: false });
       }, 200);
       const timer3 = setTimeout(() => {
         map.invalidateSize();
@@ -551,6 +623,9 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
     }
   };
 
+  const currentEpochIndex = TIMELINE_EPOCHS.findIndex(e => e.year === selectedYear);
+  const progressPercent = Math.max(0, Math.min(100, (currentEpochIndex / (TIMELINE_EPOCHS.length - 1)) * 100));
+
   return (
     <div 
       className="relative w-full h-screen overflow-hidden animate-fade-in select-none"
@@ -579,7 +654,8 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
 
           {/* Map Image with Zoom, Pan and Archival Filters */}
           <div 
-            className="transition-transform duration-75 ease-out select-none"
+            key={currentHistoricalMap.id}
+            className="transition-transform duration-100 ease-out select-none animate-fade-in"
             style={{
               transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel})`,
               filter: getFilterStyle()
@@ -589,7 +665,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
               src={currentHistoricalMap.image} 
               alt={currentHistoricalMap.title}
               loading="eager"
-              className="max-w-none max-h-[88vh] rounded-lg shadow-2xl border-4 border-amber-950/40 pointer-events-none"
+              className="max-w-none max-h-[88vh] rounded-lg shadow-2xl border-4 border-amber-950/40 pointer-events-none transition-all duration-300"
               draggable={false}
             />
           </div>
@@ -655,18 +731,65 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 2. FLOATING TOP BAR: CHRONOLOGICAL TIMELINE & CONTROLS                    */}
+      {/* 2. CINEMATIC TEMPORAL WARP HUD OVERLAY (Triggered on Epoch Transition)    */}
+      {/* ========================================================================= */}
+      {isTransitioning && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[850] pointer-events-none animate-warp-entry">
+          <div className="relative px-8 py-5 rounded-3xl bg-slate-950/92 text-white border border-white/30 backdrop-blur-2xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col items-center space-y-2 overflow-hidden min-w-[340px] max-w-lg text-center">
+            
+            {/* Scanning Laser Beam Effect */}
+            <div 
+              className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-temporal-scan"
+              style={{
+                boxShadow: '0 0 16px #22d3ee'
+              }}
+            />
+
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+              <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-300 font-bold">
+                {isHistoricalMode ? 'REGISTRO CARTOGRÁFICO // ARCHIVO' : 'TELEMETRÍA TERRITORIAL // SIG'}
+              </span>
+            </div>
+
+            <div className="flex items-baseline space-x-2.5">
+              <span className="font-serif font-black text-3xl sm:text-4xl text-white tracking-tight drop-shadow-lg">
+                {selectedYear}
+              </span>
+              <span className="text-xs font-mono font-bold text-slate-400">
+                {isHistoricalMode ? currentHistoricalMap?.period : 'Cartagena de Indias'}
+              </span>
+            </div>
+
+            <p className="text-xs font-serif italic text-slate-200 line-clamp-1">
+              {currentTimelineData.title}
+            </p>
+
+            {/* Glowing Accent Bar */}
+            <div 
+              className="w-28 h-1 rounded-full mt-1"
+              style={{ 
+                backgroundColor: currentTimelineData.color,
+                boxShadow: `0 0 12px ${currentTimelineData.color}` 
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3. FLOATING TOP BAR: CHRONOLOGICAL TIMELINE & CONTROLS                    */}
       {/* ========================================================================= */}
       <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
         {/* Module Title Card */}
-        <div className="glass-hud px-4 py-2.5 rounded-2xl pointer-events-auto flex items-center space-x-3 shrink-0 shadow-xl">
+        <div className="glass-hud px-4 py-2.5 rounded-2xl pointer-events-auto flex items-center space-x-3 shrink-0 shadow-xl transition-all duration-300 hover:scale-[1.01]">
           <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-md">
             01
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
-              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
+              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded transition-colors ${
                 isHistoricalMode 
                   ? 'bg-amber-100/90 text-amber-900 border border-amber-300/80' 
                   : 'bg-blue-50/90 text-blue-700 border border-blue-200/80'
@@ -683,37 +806,68 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
           </div>
         </div>
 
-        {/* 8-Epoch Timeline Selector (1690 to 2050) */}
-        <div className="glass-hud p-1.5 rounded-2xl pointer-events-auto flex items-center gap-1 overflow-x-auto max-w-full no-scrollbar shadow-xl">
-          {TIMELINE_EPOCHS.map((t) => {
-            const isSelected = selectedYear === t.year;
-            const isHist = t.type === 'historical';
-            return (
-              <button
-                key={t.year}
-                onClick={() => setSelectedYear(t.year)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all whitespace-nowrap flex items-center space-x-1.5 ${
-                  isSelected
-                    ? isHist 
-                      ? 'bg-amber-700 text-white shadow-md' 
-                      : 'bg-slate-900 text-white shadow-md'
-                    : isHist 
-                      ? 'text-amber-900/80 hover:text-amber-950 hover:bg-amber-100/50' 
-                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100/60'
-                }`}
-              >
-                {isHist && <BookOpen className="w-3 h-3 text-amber-500 shrink-0" />}
-                <span>{t.year}</span>
-              </button>
-            );
-          })}
+        {/* 8-Epoch Timeline Selector with Previous/Next Arrows & Progress Track */}
+        <div className="glass-hud p-1.5 rounded-2xl pointer-events-auto flex flex-col shadow-xl max-w-full">
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+            {/* Step Back Arrow */}
+            <button
+              onClick={handlePrevEpoch}
+              disabled={currentEpochIndex === 0}
+              className="p-1.5 rounded-xl text-slate-600 hover:text-slate-950 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+              title="Época anterior (Flecha Izquierda)"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            {/* Epoch Buttons */}
+            {TIMELINE_EPOCHS.map((t) => {
+              const isSelected = selectedYear === t.year;
+              const isHist = t.type === 'historical';
+              return (
+                <button
+                  key={t.year}
+                  onClick={() => handleSelectYear(t.year)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all duration-300 whitespace-nowrap flex items-center space-x-1.5 ${
+                    isSelected
+                      ? isHist 
+                        ? 'bg-amber-700 text-white shadow-md ring-2 ring-amber-400/80 scale-105' 
+                        : 'bg-slate-900 text-white shadow-md ring-2 ring-cyan-400/80 scale-105'
+                      : isHist 
+                        ? 'text-amber-900/80 hover:text-amber-950 hover:bg-amber-100/60' 
+                        : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100/70'
+                  }`}
+                >
+                  {isHist && <BookOpen className="w-3 h-3 text-amber-400 shrink-0" />}
+                  <span>{t.year}</span>
+                </button>
+              );
+            })}
+
+            {/* Step Forward Arrow */}
+            <button
+              onClick={handleNextEpoch}
+              disabled={currentEpochIndex === TIMELINE_EPOCHS.length - 1}
+              className="p-1.5 rounded-xl text-slate-600 hover:text-slate-950 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+              title="Siguiente época (Flecha Derecha)"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Animated Timeline Progress Track */}
+          <div className="w-full h-1 bg-slate-200/70 rounded-full overflow-hidden mt-1 px-1 relative">
+            <div 
+              className="h-full bg-gradient-to-r from-amber-600 via-sky-600 to-teal-500 rounded-full transition-all duration-500 ease-out shadow-xs" 
+              style={{ width: `${progressPercent}%` }} 
+            />
+          </div>
         </div>
 
         {/* Action Buttons: Gallery + Mode Toggle */}
         <div className="glass-hud p-1 rounded-2xl pointer-events-auto flex items-center gap-1 self-start md:self-auto shrink-0 shadow-xl">
           <button
             onClick={() => setShowHistoricalGalleryModal(true)}
-            className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300/60 transition-colors shadow-xs"
+            className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300/60 transition-colors shadow-xs hover:scale-[1.02]"
           >
             <Layers className="w-3.5 h-3.5 text-amber-700" />
             <span>Atlas Histórico</span>
@@ -722,7 +876,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
           {!isHistoricalMode && (
             <button
               onClick={() => setMapLayerType(mapLayerType === 'satellite' ? 'carto' : 'satellite')}
-              className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 bg-slate-100/80 hover:bg-slate-200 text-slate-800 transition-colors"
+              className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 bg-slate-100/80 hover:bg-slate-200 text-slate-800 transition-colors hover:scale-[1.02]"
             >
               <Compass className="w-3.5 h-3.5 text-slate-700" />
               <span>{mapLayerType === 'satellite' ? 'Vista Satélite' : 'Plano'}</span>
@@ -733,10 +887,13 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. FLOATING LEFT DETAIL CARD (Context & Urban Evolution)                 */}
+      {/* 4. FLOATING LEFT DETAIL CARD (Context & Urban Evolution)                 */}
       {/* ========================================================================= */}
       <div className="absolute top-24 left-4 z-[400] hidden lg:block max-w-sm pointer-events-none">
-        <div className="glass-panel p-4 rounded-2xl pointer-events-auto space-y-3 shadow-2xl">
+        <div 
+          key={selectedYear}
+          className="glass-panel p-4 rounded-2xl pointer-events-auto space-y-3 shadow-2xl animate-slide-in-left-smooth"
+        >
           <div className="flex items-center justify-between">
             <span className={`text-[9px] font-mono font-bold uppercase tracking-wider ${
               isHistoricalMode ? 'text-amber-800' : 'text-slate-500'
@@ -767,7 +924,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
           {/* Metrics Grid */}
           <div className="grid grid-cols-2 gap-1.5 pt-1">
             {currentTimelineData.metrics.map((m, idx) => (
-              <div key={idx} className="p-2 rounded-xl bg-white/70 border border-white/80 text-[10px] font-mono shadow-xs">
+              <div key={idx} className="p-2 rounded-xl bg-white/70 border border-white/80 text-[10px] font-mono shadow-xs hover:bg-white transition-colors">
                 <span className="text-slate-500 block truncate">{m.label}</span>
                 <span className="font-bold text-slate-900 block truncate">{m.value}</span>
               </div>
@@ -811,7 +968,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 4. FLOATING BOTTOM: 6 THESIS KPI STRIP (Only visible in 2026 and 2050)    */}
+      {/* 5. FLOATING BOTTOM: 6 THESIS KPI STRIP (Only visible in 2026 and 2050)    */}
       {/* ========================================================================= */}
       {selectedYear >= 2026 && (
         <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none animate-fade-in">
@@ -820,10 +977,10 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
             {/* KPI 1: Housing - Toggles Corregimiento Housing Contour on Satellite Map */}
             <div 
               onClick={() => setHighlightRelocationHouses(prev => !prev)}
-              className={`glass-card p-3 rounded-2xl cursor-pointer group transition-all duration-300 ${
+              className={`glass-card p-3 rounded-2xl cursor-pointer group transition-all duration-300 hover:-translate-y-1.5 ${
                 highlightRelocationHouses
-                  ? 'border-terracotta-600 ring-2 ring-terracotta-400 bg-terracotta-50/60 shadow-2xl scale-105'
-                  : 'hover:border-terracotta-500 hover:scale-102 shadow-lg'
+                  ? 'border-terracotta-600 ring-2 ring-terracotta-400 bg-terracotta-50/70 shadow-[0_12px_30px_rgba(239,68,68,0.35)] scale-105'
+                  : 'hover:border-terracotta-500 hover:shadow-[0_12px_30px_rgba(239,68,68,0.25)] shadow-lg'
               }`}
               title="Haz clic para contornear las 120 casas del corregimiento en riesgo"
             >
@@ -849,7 +1006,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
             {/* KPI 2: School */}
             <div 
               onClick={() => onSelectModule && onSelectModule('programs')}
-              className="glass-card p-3 rounded-2xl hover:border-teal-500 cursor-pointer group"
+              className="glass-card p-3 rounded-2xl hover:border-teal-500 hover:shadow-[0_12px_30px_rgba(13,148,136,0.3)] hover:-translate-y-1.5 cursor-pointer group transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
@@ -867,7 +1024,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
             {/* KPI 3: Water */}
             <div 
               onClick={() => onSelectModule && onSelectModule('water')}
-              className="glass-card p-3 rounded-2xl hover:border-blue-500 cursor-pointer group"
+              className="glass-card p-3 rounded-2xl hover:border-blue-500 hover:shadow-[0_12px_30px_rgba(14,165,233,0.3)] hover:-translate-y-1.5 cursor-pointer group transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
@@ -885,7 +1042,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
             {/* KPI 4: Safe Plateau */}
             <div 
               onClick={() => onSelectModule && onSelectModule('gis')}
-              className="glass-card p-3 rounded-2xl hover:border-emerald-500 cursor-pointer group"
+              className="glass-card p-3 rounded-2xl hover:border-emerald-500 hover:shadow-[0_12px_30px_rgba(16,185,129,0.3)] hover:-translate-y-1.5 cursor-pointer group transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
@@ -903,7 +1060,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
             {/* KPI 5: 3D BIM Viewer */}
             <div 
               onClick={() => onSelectModule && onSelectModule('3dviewer')}
-              className="glass-card p-3 rounded-2xl hover:border-indigo-500 cursor-pointer group"
+              className="glass-card p-3 rounded-2xl hover:border-indigo-500 hover:shadow-[0_12px_30px_rgba(99,102,241,0.3)] hover:-translate-y-1.5 cursor-pointer group transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
@@ -921,7 +1078,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
             {/* KPI 6: Simulation Lab */}
             <div 
               onClick={() => onSelectModule && onSelectModule('simulations')}
-              className="glass-card p-3 rounded-2xl hover:border-purple-500 cursor-pointer group"
+              className="glass-card p-3 rounded-2xl hover:border-purple-500 hover:shadow-[0_12px_30px_rgba(168,85,247,0.3)] hover:-translate-y-1.5 cursor-pointer group transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600">
