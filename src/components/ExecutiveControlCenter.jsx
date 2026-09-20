@@ -309,6 +309,7 @@ export const URBAN_HOUSE_BLOCKS = [
 
 export default function ExecutiveControlCenter({ onSelectModule }) {
   const [selectedYear, setSelectedYear] = useState(1690); // Default to first historical map (1690) as requested
+  const [canvasBgTheme, setCanvasBgTheme] = useState('warm-dark'); // 'warm-dark' | 'parchment' | 'neutral'
   const [activeHotspotModal, setActiveHotspotModal] = useState(null);
   const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
   const [showHistoricalGalleryModal, setShowHistoricalGalleryModal] = useState(false);
@@ -640,11 +641,23 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
       {/* B. High-Resolution Historical Map Viewer Canvas (for 1690, 1730, 1770, 1780, 1915) */}
       {isHistoricalMode && currentHistoricalMap && (
         <div 
-          className="absolute inset-0 w-full h-full bg-slate-950 flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing z-10 animate-fade-in"
+          className={`absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing z-10 animate-fade-in transition-colors duration-300 ${
+            canvasBgTheme === 'parchment' 
+              ? 'bg-[#faf5eb]' 
+              : canvasBgTheme === 'neutral'
+                ? 'bg-[#18181b]'
+                : 'bg-[#13110f]'
+          }`}
           onMouseDown={handleMouseDown}
         >
           {/* Subtle grid pattern background */}
-          <div className="absolute inset-0 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px] opacity-20 pointer-events-none" />
+          <div className={`absolute inset-0 [background-size:24px_24px] opacity-25 pointer-events-none ${
+            canvasBgTheme === 'parchment'
+              ? 'bg-[radial-gradient(#c2b59b_1px,transparent_1px)]'
+              : canvasBgTheme === 'neutral'
+                ? 'bg-[radial-gradient(#3f3f46_1px,transparent_1px)]'
+                : 'bg-[radial-gradient(#38332c_1px,transparent_1px)]'
+          }`} />
 
           {/* Map Image with Zoom, Pan and Archival Filters */}
           <div 
@@ -659,13 +672,17 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
               src={currentHistoricalMap.image} 
               alt={currentHistoricalMap.title}
               loading="eager"
-              className="max-w-none max-h-[88vh] rounded-lg shadow-2xl border-4 border-amber-950/40 pointer-events-none transition-all duration-300"
+              className={`max-w-none max-h-[88vh] rounded-lg shadow-2xl border-4 pointer-events-none transition-all duration-300 ${
+                canvasBgTheme === 'parchment'
+                  ? 'border-amber-900/30 shadow-amber-950/20'
+                  : 'border-amber-950/50 shadow-black/80'
+              }`}
               draggable={false}
             />
           </div>
 
-          {/* Historical Controls HUD (Zoom, Filters, Reset) */}
-          <div className="absolute right-4 top-24 z-[400] flex flex-col gap-2 pointer-events-auto bg-slate-900/90 backdrop-blur-md p-2 rounded-2xl border border-white/10 shadow-2xl">
+          {/* Historical Controls HUD (Zoom, Filters, Theme, Reset) */}
+          <div className="absolute right-4 top-24 z-[400] flex flex-col gap-2 pointer-events-auto bg-stone-900/90 backdrop-blur-md p-2 rounded-2xl border border-white/10 shadow-2xl">
             <button
               onClick={() => setZoomLevel(prev => Math.min(prev + 0.25, 3.5))}
               className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
@@ -701,10 +718,21 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
             >
               <Sliders className="w-4 h-4" />
             </button>
+            <button
+              onClick={() => {
+                const themes = ['warm-dark', 'parchment', 'neutral'];
+                const nextIdx = (themes.indexOf(canvasBgTheme) + 1) % themes.length;
+                setCanvasBgTheme(themes[nextIdx]);
+              }}
+              className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-amber-300 transition-colors"
+              title={`Tono de Fondo: ${canvasBgTheme === 'warm-dark' ? 'Grafito Cálido' : canvasBgTheme === 'parchment' ? 'Pergamino Claro' : 'Gris Neutro'}`}
+            >
+              <Sun className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Historical Cartouche Annotation Box */}
-          <div className="absolute bottom-24 right-4 z-[400] max-w-sm hidden md:block pointer-events-auto bg-slate-900/95 backdrop-blur-md p-4 rounded-2xl border border-amber-500/30 text-white shadow-2xl space-y-2">
+          <div className="absolute bottom-24 right-4 z-[400] max-w-sm hidden md:block pointer-events-auto bg-stone-900/95 backdrop-blur-md p-4 rounded-2xl border border-amber-500/30 text-white shadow-2xl space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest">
                 Fuente Primaria // Archivo Histórico
@@ -731,7 +759,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
         
         {/* Module Title Card */}
         <div className="glass-hud px-4 py-2.5 rounded-2xl pointer-events-auto flex items-center space-x-3 shrink-0 shadow-xl transition-all duration-300 hover:scale-[1.01]">
-          <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-md">
+          <div className="w-9 h-9 rounded-xl bg-stone-900 text-white flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-md">
             01
           </div>
           <div className="min-w-0">
@@ -739,7 +767,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
               <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded transition-colors ${
                 isHistoricalMode 
                   ? 'bg-amber-100/90 text-amber-900 border border-amber-300/80' 
-                  : 'bg-blue-50/90 text-blue-700 border border-blue-200/80'
+                  : 'bg-sand-100/90 text-sand-900 border border-sand-300/80'
               }`}>
                 {isHistoricalMode ? 'CARTOGRAFÍA HISTÓRICA' : 'VISTA AÉREA GIS'}
               </span>
@@ -778,7 +806,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                     isSelected
                       ? isHist 
                         ? 'bg-amber-700 text-white shadow-md ring-2 ring-amber-400/80 scale-105' 
-                        : 'bg-slate-900 text-white shadow-md ring-2 ring-cyan-400/80 scale-105'
+                        : 'bg-stone-900 text-white shadow-md ring-2 ring-amber-500/80 scale-105'
                       : isHist 
                         ? 'text-amber-900/80 hover:text-amber-950 hover:bg-amber-100/60' 
                         : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100/70'
@@ -804,7 +832,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
           {/* Animated Timeline Progress Track */}
           <div className="w-full h-1 bg-slate-200/70 rounded-full overflow-hidden mt-1 px-1 relative">
             <div 
-              className="h-full bg-gradient-to-r from-amber-600 via-sky-600 to-teal-500 rounded-full transition-all duration-500 ease-out shadow-xs" 
+              className="h-full bg-gradient-to-r from-amber-600 via-terracotta-500 to-teal-500 rounded-full transition-all duration-500 ease-out shadow-xs" 
               style={{ width: `${progressPercent}%` }} 
             />
           </div>
@@ -840,10 +868,10 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
         {isLeftPanelCollapsed ? (
           <button
             onClick={() => setIsLeftPanelCollapsed(false)}
-            className="glass-dark px-3.5 py-2 rounded-2xl pointer-events-auto flex items-center space-x-2.5 text-white border border-white/15 shadow-2xl hover:bg-slate-900/90 transition-all hover:scale-105 group"
+            className="glass-dark px-3.5 py-2 rounded-2xl pointer-events-auto flex items-center space-x-2.5 text-white border border-white/15 shadow-2xl hover:bg-stone-900/90 transition-all hover:scale-105 group"
             title="Expandir panel de análisis"
           >
-            <div className={`w-2 h-2 rounded-full animate-pulse ${isHistoricalMode ? 'bg-amber-400' : 'bg-cyan-400'}`} />
+            <div className={`w-2 h-2 rounded-full animate-pulse ${isHistoricalMode ? 'bg-amber-400' : 'bg-emerald-400'}`} />
             <span className="text-xs font-mono font-bold tracking-tight truncate max-w-[210px]">
               {selectedYear} &bull; {currentTimelineData.title.split(':')[1]?.trim() || currentTimelineData.title}
             </span>
@@ -857,9 +885,9 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
             {/* Header Row with Era Tag, Badge & Collapse Button */}
             <div className="flex items-center justify-between pb-1 border-b border-white/10">
               <div className="flex items-center space-x-1.5 min-w-0">
-                <div className={`w-2 h-2 rounded-full ${isHistoricalMode ? 'bg-amber-400 animate-pulse' : 'bg-cyan-400 animate-pulse'}`} />
+                <div className={`w-2 h-2 rounded-full ${isHistoricalMode ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400 animate-pulse'}`} />
                 <span className={`text-[10px] font-mono font-bold tracking-wider uppercase truncate ${
-                  isHistoricalMode ? 'text-amber-400' : 'text-cyan-400'
+                  isHistoricalMode ? 'text-amber-400' : 'text-emerald-400'
                 }`}>
                   {isHistoricalMode ? 'Cartografía Histórica' : 'Telemetría SIG'}
                 </span>
@@ -1017,13 +1045,13 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
             {/* KPI 3: Water */}
             <div 
               onClick={() => onSelectModule && onSelectModule('programs')}
-              className="glass-card p-3 rounded-2xl hover:border-blue-500 hover:shadow-[0_12px_30px_rgba(14,165,233,0.3)] hover:-translate-y-1.5 cursor-pointer group transition-all duration-300"
+              className="glass-card p-3 rounded-2xl hover:border-teal-500 hover:shadow-[0_12px_30px_rgba(13,148,136,0.3)] hover:-translate-y-1.5 cursor-pointer group transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-1">
-                <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
+                <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
                   <Droplets className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-blue-50 text-blue-700">
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-teal-50 text-teal-700">
                   AUTOSUFICIENCIA
                 </span>
               </div>
