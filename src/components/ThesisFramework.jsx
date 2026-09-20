@@ -610,10 +610,13 @@ export default function ThesisFramework({ onSelectModule }) {
   const layersRef = useRef({
     islandLayer: null,
     erosionLayer: null,
-    schoolMarker: null,
+    schoolLayer: null,
     masterplanLayer: null,
-    plateauMarker: null,
-    customLayer: null
+    customLayer: null,
+    marker1: null,
+    marker2: null,
+    marker3: null,
+    marker4: null
   });
 
   const nodeMarkersGroupRef = useRef(null);
@@ -625,7 +628,7 @@ export default function ThesisFramework({ onSelectModule }) {
     title: "Inspección Panorámica",
     badge: "MOD 02 // Territorio",
     targetName: "Isla Tierrabomba (Cartagena)",
-    center: [10.352, -75.572],
+    center: [10.352, -75.568],
     zoom: 13.2,
     highlight: "overview",
     modalType: "problem",
@@ -653,7 +656,7 @@ export default function ThesisFramework({ onSelectModule }) {
     const map = targetMap || mapInstanceRef.current;
     if (!map) return;
 
-    const islandCoords = delimitations.island || [];
+    const islandCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
     if (islandCoords.length < 3) return;
 
     // Clear any previous running animation
@@ -677,18 +680,19 @@ export default function ThesisFramework({ onSelectModule }) {
     setIsIntroAnimating(true);
     setAnimProgress(0);
 
-    // Hide static island polygon initially
-    if (layersRef.current.islandLayer) {
-      layersRef.current.islandLayer.setStyle({
-        opacity: 0,
-        fillOpacity: 0
-      });
-    }
+    // Hide all contours initially during animation
+    if (layersRef.current.islandLayer) layersRef.current.islandLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+    if (layersRef.current.erosionLayer) layersRef.current.erosionLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+    if (layersRef.current.schoolLayer) layersRef.current.schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+    if (layersRef.current.masterplanLayer) layersRef.current.masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
 
-    // Ensure camera is perfectly framed on Tierrabomba
-    map.flyTo([10.352, -75.572], 13.2, {
+    // Ensure camera is perfectly framed on Tierrabomba delimitation
+    const islandBounds = L.latLngBounds(islandCoords);
+    map.fitBounds(islandBounds, {
+      paddingTopLeft: [70, 70],
+      paddingBottomRight: [70, 130],
       animate: true,
-      duration: 1.2
+      duration: 1.0
     });
 
     // Create animated polyline & glow polyline
@@ -784,12 +788,22 @@ export default function ThesisFramework({ onSelectModule }) {
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
-    // Initialize map firmly centered on Tierrabomba (no jarring camera jumps)
+    const islandCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
+    const islandBounds = L.latLngBounds(islandCoords);
+
+    // Initialize map firmly centered & framed on Tierrabomba
     const map = L.map(mapRef.current, {
-      center: [10.352, -75.572],
+      center: [10.352, -75.568],
       zoom: 13.2,
       zoomControl: false,
       attributionControl: false
+    });
+
+    // Fit bounds immediately to frame Card 01 island delimitation perfectly!
+    map.fitBounds(islandBounds, {
+      paddingTopLeft: [70, 70],
+      paddingBottomRight: [70, 130],
+      animate: false
     });
 
     // High-Res Satellite Aerial Imagery (Esri World Imagery)
@@ -804,52 +818,137 @@ export default function ThesisFramework({ onSelectModule }) {
     // Node Markers Layer Group (for editor)
     nodeMarkersGroupRef.current = L.layerGroup().addTo(map);
 
-    // Initial Smooth Resize
+    // Initial Smooth Resize & Frame Zoom
     setTimeout(() => {
       map.invalidateSize();
+      map.fitBounds(islandBounds, {
+        paddingTopLeft: [70, 70],
+        paddingBottomRight: [70, 130],
+        animate: true,
+        duration: 0.8
+      });
       setIsIntroZooming(false);
-    }, 100);
+    }, 150);
+
+    // =========================================================================
+    // CONTOURS / POLYGONS: ALL INITIALLY OFF (OPACITY: 0) UNTIL A CARD IS PRESSED!
+    // =========================================================================
 
     // 1. Island Perimeter Polygon (Initially hidden, revealed on Card 01 click!)
     const islandLayer = L.polygon(delimitations.island || [], {
       color: '#ea580c',
-      weight: 4,
+      weight: 4.5,
       dashArray: '8, 8',
-      fillColor: '#ea580c',
+      fillColor: 'transparent',
       fillOpacity: 0,
       opacity: 0,
       interactive: false
     }).addTo(map);
 
-    // 2. Coastal Erosion Line
+    // 2. Coastal Erosion Line (Initially hidden, revealed on Card 02 click!)
     const erosionLayer = L.polyline(delimitations.erosion || [], {
       color: '#dc2626',
-      weight: 6,
+      weight: 7,
       opacity: 0,
       dashArray: '10, 6',
       interactive: false
     }).addTo(map);
 
-    // 3. Current School Vulnerable Polygon & Pin
+    // 3. Current School Vulnerable Polygon (Initially hidden, revealed on Card 03 click!)
     const schoolLayer = L.polygon(delimitations.school || [], {
       color: '#ef4444',
-      weight: 3.5,
+      weight: 4,
       dashArray: '6, 6',
       fillColor: '#ef4444',
-      fillOpacity: 0.2,
+      fillOpacity: 0,
+      opacity: 0,
       interactive: false
     }).addTo(map);
 
-    const schoolIcon = L.divIcon({
-      className: 'custom-school-pin pointer-events-none',
+    // 4. Safe Plateau Polygon (+22m) (Initially hidden, revealed on Card 04 click! - NO FILL, BORDER ONLY)
+    const masterplanLayer = L.polygon(delimitations.plateau || [], {
+      color: '#0d9488',
+      weight: 4.5,
+      dashArray: '8, 8',
+      fillColor: 'transparent',
+      fillOpacity: 0,
+      opacity: 0,
+      interactive: false
+    }).addTo(map);
+
+    // 5. Custom Polygon Layer (Initially hidden)
+    const customLayer = L.polygon(delimitations.custom || [], {
+      color: '#06b6d4',
+      weight: 3.5,
+      dashArray: '6, 6',
+      fillColor: '#06b6d4',
+      fillOpacity: 0,
+      opacity: 0,
+      interactive: false
+    }).addTo(map);
+
+    // =========================================================================
+    // 4 DISTINCT INTERACTIVE MARKER ICONS (ALWAYS VISIBLE & CLICKABLE ON MAP)
+    // =========================================================================
+
+    // Marker 1: Delimitación Territorial (Isla Tierrabomba)
+    const marker1Icon = L.divIcon({
+      className: 'custom-framework-pin-1 cursor-pointer',
       html: `
-        <div class="relative flex items-center justify-center group pointer-events-none">
-          <div class="absolute -inset-2 rounded-full bg-red-500/40 animate-ping"></div>
-          <div class="w-8 h-8 rounded-xl bg-red-600 border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-110">
+        <div class="relative flex items-center justify-center group cursor-pointer">
+          <div class="absolute -inset-2.5 rounded-full bg-amber-500/40 animate-ping"></div>
+          <div class="w-8 h-8 rounded-xl bg-amber-600 border-2 border-white shadow-2xl flex items-center justify-center text-white transition-transform group-hover:scale-115">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+          </div>
+          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-amber-950/95 text-[10px] text-amber-300 font-mono font-bold shadow-xl border border-amber-400/40 pointer-events-none group-hover:scale-105 transition-transform">
+            1. Delimitación Territorial
+          </div>
+        </div>
+      `,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
+    });
+
+    const marker1 = L.marker([10.3540, -75.5700], { icon: marker1Icon, interactive: true }).addTo(map);
+    marker1.on('click', () => {
+      setCurrentStepIndex(0);
+      startIslandTraceAnimation();
+    });
+
+    // Marker 2: Franja de Erosión Costera
+    const marker2Icon = L.divIcon({
+      className: 'custom-framework-pin-2 cursor-pointer',
+      html: `
+        <div class="relative flex items-center justify-center group cursor-pointer">
+          <div class="absolute -inset-2.5 rounded-full bg-red-600/40 animate-pulse"></div>
+          <div class="w-8 h-8 rounded-xl bg-red-600 border-2 border-white shadow-2xl flex items-center justify-center text-white transition-transform group-hover:scale-115">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-950/95 text-[10px] text-red-300 font-mono font-bold shadow-xl border border-red-500/40 pointer-events-none group-hover:scale-105 transition-transform">
+            2. Franja de Erosión (-1.8m/año)
+          </div>
+        </div>
+      `,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
+    });
+
+    const marker2 = L.marker([10.3585, -75.5905], { icon: marker2Icon, interactive: true }).addTo(map);
+    marker2.on('click', () => {
+      setCurrentStepIndex(1);
+    });
+
+    // Marker 3: Colegio Actual en Riesgo
+    const marker3Icon = L.divIcon({
+      className: 'custom-framework-pin-3 cursor-pointer',
+      html: `
+        <div class="relative flex items-center justify-center group cursor-pointer">
+          <div class="absolute -inset-2.5 rounded-full bg-rose-500/40 animate-ping"></div>
+          <div class="w-8 h-8 rounded-xl bg-rose-600 border-2 border-white shadow-2xl flex items-center justify-center text-white transition-transform group-hover:scale-115">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
           </div>
-          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-900/95 text-[10px] text-white font-mono font-bold shadow-xl border border-white/20 pointer-events-none">
-            Colegio Actual (+1.5m)
+          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-900/95 text-[10px] text-white font-mono font-bold shadow-xl border border-rose-400/40 pointer-events-none group-hover:scale-105 transition-transform">
+            3. Colegio Actual (+1.5m)
           </div>
         </div>
       `,
@@ -860,29 +959,22 @@ export default function ThesisFramework({ onSelectModule }) {
     const schoolCenter = (delimitations.school && delimitations.school.length > 0) 
       ? delimitations.school[0] 
       : [10.3805, -75.5761];
-    const schoolMarker = L.marker(schoolCenter, { icon: schoolIcon, interactive: false }).addTo(map);
+    const marker3 = L.marker(schoolCenter, { icon: marker3Icon, interactive: true }).addTo(map);
+    marker3.on('click', () => {
+      setCurrentStepIndex(2);
+    });
 
-    // 4. Safe Plateau Polygon (+22m) - NO FILL, BORDER ONLY
-    const masterplanLayer = L.polygon(delimitations.plateau || [], {
-      color: '#0d9488',
-      weight: 3.5,
-      dashArray: '8, 8',
-      fillColor: '#0d9488',
-      fillOpacity: 0,
-      opacity: 0.85,
-      interactive: false
-    }).addTo(map);
-
-    const plateauIcon = L.divIcon({
-      className: 'custom-plateau-pin pointer-events-none',
+    // Marker 4: Meseta Segura (+22m)
+    const marker4Icon = L.divIcon({
+      className: 'custom-framework-pin-4 cursor-pointer',
       html: `
-        <div class="relative flex items-center justify-center group pointer-events-none">
-          <div class="absolute -inset-2 rounded-full bg-teal-400/40 animate-pulse"></div>
-          <div class="w-8 h-8 rounded-xl bg-teal-600 border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-110">
+        <div class="relative flex items-center justify-center group cursor-pointer">
+          <div class="absolute -inset-2.5 rounded-full bg-teal-400/40 animate-pulse"></div>
+          <div class="w-8 h-8 rounded-xl bg-teal-600 border-2 border-white shadow-2xl flex items-center justify-center text-white transition-transform group-hover:scale-115">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
           </div>
-          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-teal-950/95 text-[10px] text-teal-300 font-mono font-bold shadow-xl border border-white/20 pointer-events-none">
-            Meseta Segura +22m
+          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-teal-950/95 text-[10px] text-teal-300 font-mono font-bold shadow-xl border border-teal-400/40 pointer-events-none group-hover:scale-105 transition-transform">
+            4. Meseta Segura (+22.00m)
           </div>
         </div>
       `,
@@ -890,26 +982,21 @@ export default function ThesisFramework({ onSelectModule }) {
       iconAnchor: [18, 18]
     });
 
-    const plateauMarker = L.marker([10.3730, -75.5759], { icon: plateauIcon, interactive: false }).addTo(map);
-
-    // 5. Custom Polygon Layer
-    const customLayer = L.polygon(delimitations.custom || [], {
-      color: '#06b6d4',
-      weight: 3.5,
-      dashArray: '6, 6',
-      fillColor: '#06b6d4',
-      fillOpacity: 0.22,
-      interactive: false
-    }).addTo(map);
+    const marker4 = L.marker([10.3730, -75.5759], { icon: marker4Icon, interactive: true }).addTo(map);
+    marker4.on('click', () => {
+      setCurrentStepIndex(3);
+    });
 
     layersRef.current = {
       islandLayer,
       erosionLayer,
       schoolLayer,
-      schoolMarker,
       masterplanLayer,
-      plateauMarker,
-      customLayer
+      customLayer,
+      marker1,
+      marker2,
+      marker3,
+      marker4
     };
 
     mapInstanceRef.current = map;
@@ -952,7 +1039,7 @@ export default function ThesisFramework({ onSelectModule }) {
   // 2. SYNCHRONIZE LEAFLET GEOMETRY WITH DELIMITATION STATE
   // =========================================================================
   useEffect(() => {
-    const { islandLayer, erosionLayer, schoolLayer, schoolMarker, masterplanLayer, customLayer } = layersRef.current;
+    const { islandLayer, erosionLayer, schoolLayer, masterplanLayer, customLayer, marker3 } = layersRef.current;
     if (islandLayer && delimitations.island) {
       islandLayer.setLatLngs(delimitations.island);
     }
@@ -962,8 +1049,8 @@ export default function ThesisFramework({ onSelectModule }) {
     if (schoolLayer && delimitations.school) {
       schoolLayer.setLatLngs(delimitations.school);
     }
-    if (schoolMarker && delimitations.school && delimitations.school.length > 0) {
-      schoolMarker.setLatLng(delimitations.school[0]);
+    if (marker3 && delimitations.school && delimitations.school.length > 0) {
+      marker3.setLatLng(delimitations.school[0]);
     }
     if (masterplanLayer && delimitations.plateau) {
       masterplanLayer.setLatLngs(delimitations.plateau);
@@ -1096,6 +1183,8 @@ export default function ThesisFramework({ onSelectModule }) {
     const map = mapInstanceRef.current;
     if (!map) return;
 
+    const { islandLayer, erosionLayer, schoolLayer, masterplanLayer, customLayer } = layersRef.current;
+
     if (isEditMode) {
       // Cancel animation if running
       if (animationTimerRef.current) {
@@ -1114,37 +1203,51 @@ export default function ThesisFramework({ onSelectModule }) {
         map.removeLayer(tracerMarkerRef.current);
         tracerMarkerRef.current = null;
       }
-      if (layersRef.current.islandLayer) {
-        layersRef.current.islandLayer.setStyle({
-          opacity: 1,
-          fillOpacity: 0.15,
-          weight: 3.5
-        });
-      }
       setIsIntroAnimating(false);
+
+      if (islandLayer) islandLayer.setStyle({ opacity: activeZoneKey === 'island' ? 1 : 0.25, fillOpacity: 0, weight: 4 });
+      if (erosionLayer) erosionLayer.setStyle({ opacity: activeZoneKey === 'erosion' ? 1 : 0.25, weight: 6 });
+      if (schoolLayer) schoolLayer.setStyle({ opacity: activeZoneKey === 'school' ? 1 : 0.25, fillOpacity: activeZoneKey === 'school' ? 0.3 : 0, weight: 4 });
+      if (masterplanLayer) masterplanLayer.setStyle({ opacity: activeZoneKey === 'plateau' ? 1 : 0.25, fillOpacity: 0, weight: 4 });
+      if (customLayer) customLayer.setStyle({ opacity: activeZoneKey === 'custom' ? 1 : 0.25, fillOpacity: activeZoneKey === 'custom' ? 0.2 : 0, weight: 3.5 });
       return;
     }
 
-    // If still in initial overview approach (no card clicked yet)
+    // =========================================================================
+    // IF NO CARD IS PRESSED YET (currentStepIndex === null): ALL CONTOURS OFF
+    // =========================================================================
     if (currentStepIndex === null) {
+      if (islandLayer) islandLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (erosionLayer) erosionLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (customLayer) customLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       return;
     }
 
     if (currentStepIndex === 0) {
       // Step 1: Delimitación Territorial (NO FILL, clean high-contrast contour)
-      if (!isIntroAnimating && layersRef.current.islandLayer) {
-        map.flyTo(currentStep.center, currentStep.zoom, {
+      if (!isIntroAnimating) {
+        const islandBounds = L.latLngBounds(delimitations.island || DEFAULT_DELIMITATIONS.island);
+        map.fitBounds(islandBounds, {
+          paddingTopLeft: [70, 70],
+          paddingBottomRight: [70, 130],
           animate: true,
-          duration: 1.2
+          duration: 1.0
         });
-        layersRef.current.islandLayer.setStyle({
-          opacity: 1,
-          fillOpacity: 0,
-          weight: 4.5,
-          color: '#ea580c',
-          dashArray: '8, 8'
-        });
+        if (islandLayer) {
+          islandLayer.setStyle({
+            opacity: 1,
+            fillOpacity: 0,
+            weight: 4.5,
+            color: '#ea580c',
+            dashArray: '8, 8'
+          });
+        }
       }
+      if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
+      if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
     } else {
       // Steps 2, 3, 4: Cancel animation if running
       if (animationTimerRef.current) {
@@ -1170,44 +1273,42 @@ export default function ThesisFramework({ onSelectModule }) {
         duration: currentStep.step === 2 ? 1.8 : 1.2
       });
 
-      if (layersRef.current.islandLayer) {
-        layersRef.current.islandLayer.setStyle({
-          opacity: 0.5,
+      if (islandLayer) {
+        islandLayer.setStyle({
+          opacity: 0.2,
           fillOpacity: 0,
-          weight: 2.5,
+          weight: 2,
           color: '#ea580c',
           dashArray: '8, 8'
         });
       }
-    }
 
-    const { erosionLayer, schoolLayer, masterplanLayer } = layersRef.current;
+      if (erosionLayer) {
+        erosionLayer.setStyle({
+          weight: currentStep.step === 2 ? 8 : 0,
+          opacity: currentStep.step === 2 ? 1 : 0
+        });
+      }
 
-    if (erosionLayer) {
-      erosionLayer.setStyle({
-        weight: currentStep.step === 2 ? 8 : 4,
-        opacity: currentStep.step === 2 ? 1 : 0.4
-      });
-    }
+      if (schoolLayer) {
+        schoolLayer.setStyle({
+          fillOpacity: currentStep.step === 3 ? 0.35 : 0,
+          weight: currentStep.step === 3 ? 5 : 0,
+          opacity: currentStep.step === 3 ? 1 : 0
+        });
+      }
 
-    if (schoolLayer) {
-      schoolLayer.setStyle({
-        fillOpacity: currentStep.step === 3 ? 0.45 : 0.2,
-        weight: currentStep.step === 3 ? 5 : 3.5,
-        opacity: currentStep.step === 3 ? 1 : 0.7
-      });
+      if (masterplanLayer) {
+        masterplanLayer.setStyle({
+          fillOpacity: 0,
+          opacity: currentStep.step === 4 ? 1 : 0,
+          weight: currentStep.step === 4 ? 4.5 : 0,
+          color: '#0d9488',
+          dashArray: '8, 8'
+        });
+      }
     }
-
-    if (masterplanLayer) {
-      masterplanLayer.setStyle({
-        fillOpacity: 0,
-        opacity: currentStep.step === 4 ? 1 : 0.65,
-        weight: currentStep.step === 4 ? 4.5 : 3,
-        color: '#0d9488',
-        dashArray: '8, 8'
-      });
-    }
-  }, [currentStepIndex, isEditMode, isIntroAnimating]);
+  }, [currentStepIndex, isEditMode, isIntroAnimating, activeZoneKey]);
 
   // Autoplay sequence timer
   useEffect(() => {
