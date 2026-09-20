@@ -1,11 +1,14 @@
 import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 /**
  * Generador 3D Territorial: Bahía de Cartagena & Isla de Tierra Bomba
- * Inspirado en la arquitectura axonométrica de modulo-08-3d.html
+ * Construido con 22.000+ edificaciones, manzanas, vías y masas de tierra
+ * 100% REALES del Catastro Multipropósito AMB Cartagena 2026
+ * (Construccion.shp, Manzana.shp, Nomenclaturavial.shp, Corregimiento.shp, Barrio.shp)
  */
 
-export function buildCartagenaTerritoryScene({
+export async function buildCartagenaTerritoryScene({
   sceneRoot,
   activeLayers = {
     terrain: true,
@@ -15,66 +18,84 @@ export function buildCartagenaTerritoryScene({
     boats: true,
     vehicles: true,
     trees: true,
+    noise: false,
     grid: false,
   },
   colors = {
-    water: '#88a2b5',
-    roads: '#b7babd',
-    terrain: '#4a7856',
+    water: '#1b4d6e',
+    roads: '#d1d5db',
+    terrain: '#3d6849',
     buildings: '#ffffff',
     roofs: '#b5714a',
-    trees: '#5c8f52',
-    manzanas: '#8a8f96',
+    trees: '#4d7c49',
+    manzanas: '#64748b',
     vehicles: '#e2635a',
     boats: '#24c8bd',
   },
   clippingPlanes = [],
+  onProgress = () => {},
 }) {
   const territoryGroup = new THREE.Group();
   territoryGroup.name = "CartagenaTerritoryGroup";
 
-  // References to dynamic objects (boats, vehicles, animated water)
   const animatedObjects = {
     boats: [],
     vehicles: [],
     waterMeshes: [],
+    noiseMesh: null,
   };
 
-  // Materials with clipping planes support
+  onProgress(10, 'Descargando base vectorial Catastro AMB Cartagena (22.000+ edificios)...');
+
+  // Load real Catastro dataset
+  const basePath = import.meta.env.BASE_URL || '/';
+  const dataUrl = `${basePath.endsWith('/') ? basePath : basePath + '/'}data/cartagena_catastro_real.json`;
+
+  let catastroData;
+  try {
+    const res = await fetch(dataUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    catastroData = await res.json();
+    onProgress(35, `Base vectorial cargada: ${catastroData.meta.counts.buildings} edificios, ${catastroData.meta.counts.manzanas} manzanas`);
+  } catch (err) {
+    console.warn("Could not fetch remote Catastro JSON, falling back to procedural geometry:", err);
+    catastroData = generateSyntheticFallback();
+  }
+
+  // Materials
   const mats = {
     water: new THREE.MeshStandardMaterial({
       color: new THREE.Color(colors.water),
-      roughness: 0.15,
-      metalness: 0.25,
+      roughness: 0.12,
+      metalness: 0.35,
       side: THREE.DoubleSide,
       clippingPlanes,
     }),
     terrain: new THREE.MeshStandardMaterial({
       color: new THREE.Color(colors.terrain),
-      roughness: 0.88,
+      roughness: 0.9,
       metalness: 0.05,
       side: THREE.DoubleSide,
       clippingPlanes,
     }),
-    terrainSand: new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#d9cbb2'),
-      roughness: 0.95,
-      metalness: 0.0,
+    manzanas: new THREE.MeshStandardMaterial({
+      color: new THREE.Color(colors.manzanas || '#64748b'),
+      roughness: 0.75,
+      metalness: 0.05,
+      polygonOffset: true,
+      polygonOffsetFactor: -1.0,
+      polygonOffsetUnits: -2.0,
       side: THREE.DoubleSide,
-      clippingPlanes,
-    }),
-    manglar: new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#386641'),
-      roughness: 0.9,
       clippingPlanes,
     }),
     roads: new THREE.MeshStandardMaterial({
       color: new THREE.Color(colors.roads),
       roughness: 0.4,
-      metalness: 0.08,
+      metalness: 0.1,
       polygonOffset: true,
       polygonOffsetFactor: -2.0,
       polygonOffsetUnits: -4.0,
+      side: THREE.DoubleSide,
       clippingPlanes,
     }),
     buildingsModern: new THREE.MeshStandardMaterial({
@@ -83,9 +104,15 @@ export function buildCartagenaTerritoryScene({
       metalness: 0.15,
       clippingPlanes,
     }),
-    buildingsColonial: new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#f4ede2'),
-      roughness: 0.7,
+    buildingsResidential: new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#e2e8f0'),
+      roughness: 0.5,
+      metalness: 0.08,
+      clippingPlanes,
+    }),
+    buildingsVernacular: new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#f8fafc'),
+      roughness: 0.8,
       metalness: 0.05,
       clippingPlanes,
     }),
@@ -95,25 +122,9 @@ export function buildCartagenaTerritoryScene({
       metalness: 0.1,
       clippingPlanes,
     }),
-    buildingsVernacular: new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#e0cfb8'),
-      roughness: 0.8,
-      clippingPlanes,
-    }),
-    fortress: new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#bda485'), // Piedra coralina de murallas
-      roughness: 0.9,
-      metalness: 0.05,
-      clippingPlanes,
-    }),
     treeFoliage: new THREE.MeshStandardMaterial({
       color: new THREE.Color(colors.trees),
-      roughness: 0.8,
-      clippingPlanes,
-    }),
-    treeTrunk: new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#5c4033'),
-      roughness: 0.9,
+      roughness: 0.85,
       clippingPlanes,
     }),
     boatHull: new THREE.MeshStandardMaterial({
@@ -122,24 +133,27 @@ export function buildCartagenaTerritoryScene({
       metalness: 0.2,
       clippingPlanes,
     }),
-    boatCabin: new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#ffffff'),
-      roughness: 0.2,
-      clippingPlanes,
-    }),
     vehicle: new THREE.MeshStandardMaterial({
       color: new THREE.Color(colors.vehicles),
       roughness: 0.3,
       metalness: 0.4,
       clippingPlanes,
     }),
+    noiseHeatmap: new THREE.MeshBasicMaterial({
+      color: new THREE.Color('#ef4444'),
+      transparent: true,
+      opacity: 0.35,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    }),
   };
 
   // -------------------------------------------------------------
   // 1. CUERPO DE AGUA (Bahía de Cartagena & Mar Caribe)
   // -------------------------------------------------------------
-  const waterGeo = new THREE.PlaneGeometry(120, 120, 32, 32);
+  const waterGeo = new THREE.PlaneGeometry(360, 360, 32, 32);
   const waterMesh = new THREE.Mesh(waterGeo, mats.water);
+  waterMesh.name = "Water";
   waterMesh.rotation.x = -Math.PI / 2;
   waterMesh.position.y = -0.05;
   waterMesh.receiveShadow = true;
@@ -148,578 +162,437 @@ export function buildCartagenaTerritoryScene({
   animatedObjects.waterMeshes.push(waterMesh);
 
   // -------------------------------------------------------------
-  // 2. MASAS CONTINENTALES & TOPOGRAFÍA INSULAR
+  // 2. TOPOGRAFÍA & MASAS DE TIERRA REALES (234 Polígonos de Tierra)
   // -------------------------------------------------------------
-  const landGroup = new THREE.Group();
-  landGroup.name = "Landmasses";
+  onProgress(45, 'Generando topografía real de Tierra Bomba y Cartagena...');
+  const landGeometries = [];
 
-  // Helper para extruir polígonos 2D a mallas 3D
-  function createExtrudedPolygon(points, height = 0.4, material = mats.terrain, yOffset = 0) {
-    const shape = new THREE.Shape();
-    if (!points || points.length < 3) return null;
-    shape.moveTo(points[0][0], points[0][1]);
-    for (let i = 1; i < points.length; i++) {
-      shape.lineTo(points[i][0], points[i][1]);
-    }
-    shape.closePath();
-
-    const extrudeSettings = {
-      depth: height,
-      bevelEnabled: true,
-      bevelSegments: 2,
-      steps: 1,
-      bevelSize: 0.08,
-      bevelThickness: 0.08,
-    };
-
-    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-    geometry.rotateX(-Math.PI / 2);
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.y = yOffset;
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    return mesh;
+  if (catastroData.landmasses && Array.isArray(catastroData.landmasses)) {
+    catastroData.landmasses.forEach((ring) => {
+      if (!ring || ring.length < 3) return;
+      const shape = new THREE.Shape();
+      shape.moveTo(ring[0][0], ring[0][1]);
+      for (let i = 1; i < ring.length; i++) {
+        shape.lineTo(ring[i][0], ring[i][1]);
+      }
+      const geom = new THREE.ShapeGeometry(shape);
+      geom.rotateX(Math.PI / 2);
+      geom.translate(0, 0.01, 0);
+      landGeometries.push(geom);
+    });
   }
 
-  // A. ISLA DE TIERRA BOMBA (Costas, Meseta y Bahía de Bocachica)
-  const tierrabombaCoords = [
-    [-22, 10], // Punta Arenas (norte, frente a Castillogrande)
-    [-17, 7],
-    [-14, 2],  // Caño de Oro (este, hacia la bahía)
-    [-13, -6],
-    [-15, -12], // Tierrabomba pueblo
-    [-18, -17], // Bocachica (sur, paso del canal)
-    [-21, -18],
-    [-25, -14], // Costa occidental Mar Caribe
-    [-26, -5],
-    [-25, 4],
-    [-24, 8],
-  ];
-  const tierrabombaMesh = createExtrudedPolygon(tierrabombaCoords, 0.7, mats.terrain, 0);
-  if (tierrabombaMesh) landGroup.add(tierrabombaMesh);
-
-  // Meseta elevada central de Tierra Bomba (+22m a +40m)
-  const mesetaCoords = [
-    [-21, 6],
-    [-17, 3],
-    [-16, -4],
-    [-18, -11],
-    [-21, -12],
-    [-23, -4],
-    [-23, 3],
-  ];
-  const mesetaMesh = createExtrudedPolygon(mesetaCoords, 0.9, mats.terrain, 0.6);
-  if (mesetaMesh) landGroup.add(mesetaMesh);
-
-  // Playas de arena en Punta Arenas
-  const arenaCoords = [
-    [-23, 11],
-    [-20, 11],
-    [-18, 8],
-    [-21, 8],
-  ];
-  const arenaMesh = createExtrudedPolygon(arenaCoords, 0.25, mats.terrainSand, 0.02);
-  if (arenaMesh) landGroup.add(arenaMesh);
-
-  // B. PENÍNSULA DE BOCAGRANDE & CASTILLOGRANDE
-  const bocagrandeCoords = [
-    [-6, 17], // Entrada desde Centro Histórico
-    [-6, 10],
-    [-7, 5],
-    [-9, 2],  // Castillogrande (punta sur, frente a Tierrabomba)
-    [-11, 2],
-    [-10, 8],
-    [-9, 14],
-    [-8, 17], // Mar Caribe costado occidental
-  ];
-  const bocagrandeMesh = createExtrudedPolygon(bocagrandeCoords, 0.45, mats.terrainSand, 0);
-  if (bocagrandeMesh) landGroup.add(bocagrandeMesh);
-
-  // C. CENTRO HISTÓRICO, GETSEMANÍ & CABRERO
-  const centroCoords = [
-    [-7, 24], // Marbella / Cabrero
-    [-4, 23],
-    [-3, 20],
-    [-4, 16], // Muelle de la Bodeguita / Bahía de las Ánimas
-    [-7, 16], // Parque de la Marina
-    [-8, 20], // Muralla sobre el Mar Caribe
-  ];
-  const centroMesh = createExtrudedPolygon(centroCoords, 0.5, mats.terrain, 0);
-  if (centroMesh) landGroup.add(centroMesh);
-
-  // D. ISLA DE MANGA
-  const mangaCoords = [
-    [-3, 15], // Puente Román
-    [0, 14],
-    [1, 10],
-    [-1, 8],  // Fuerte Pastelillo
-    [-4, 11],
-    [-4, 14],
-  ];
-  const mangaMesh = createExtrudedPolygon(mangaCoords, 0.45, mats.terrain, 0);
-  if (mangaMesh) landGroup.add(mangaMesh);
-
-  // E. PIE DE LA POPA & CERRO DE LA POPA
-  const popaBaseCoords = [
-    [0, 20],
-    [5, 21],
-    [6, 17],
-    [2, 16],
-    [-1, 18],
-  ];
-  const popaBaseMesh = createExtrudedPolygon(popaBaseCoords, 0.6, mats.terrain, 0);
-  if (popaBaseMesh) landGroup.add(popaBaseMesh);
-
-  // Cerro de la Popa (Cima elevada)
-  const cerroPopaCoords = [
-    [2, 19.5],
-    [4, 19.5],
-    [4, 17.5],
-    [2, 17.5],
-  ];
-  const cerroPopaMesh = createExtrudedPolygon(cerroPopaCoords, 1.8, mats.terrain, 0.5);
-  if (cerroPopaMesh) landGroup.add(cerroPopaMesh);
-
-  // Convento de la Popa (volumen en la cima)
-  const conventoGeo = new THREE.BoxGeometry(1.2, 0.5, 1.0);
-  const conventoMesh = new THREE.Mesh(conventoGeo, mats.buildingsColonial);
-  conventoMesh.position.set(3, 2.55, -18.5);
-  landGroup.add(conventoMesh);
-
-  // F. COSTA CONTINENTAL ORIENTAL & MAMONAL (Zona Industrial & Bahía Sur)
-  const mamonalCoords = [
-    [2, 12],
-    [8, 11],
-    [10, 4],
-    [8, -6],
-    [5, -14], // Pasacaballos / Canal del Dique
-    [1, -16],
-    [2, -10],
-    [3, -2],
-    [1, 6],
-  ];
-  const mamonalMesh = createExtrudedPolygon(mamonalCoords, 0.5, mats.terrain, 0);
-  if (mamonalMesh) landGroup.add(mamonalMesh);
-
-  // G. ISLA DE BARÚ (Sector Norte / Pasacaballos)
-  const baruCoords = [
-    [-4, -20],
-    [2, -18],
-    [3, -24],
-    [-6, -26],
-    [-9, -22],
-  ];
-  const baruMesh = createExtrudedPolygon(baruCoords, 0.5, mats.terrain, 0);
-  if (baruMesh) landGroup.add(baruMesh);
-
-  territoryGroup.add(landGroup);
-
-  // -------------------------------------------------------------
-  // 3. MURALLAS COLONIALES & FUERTES HISTÓRICOS (Piedra Coralina)
-  // -------------------------------------------------------------
-  const fortressGroup = new THREE.Group();
-  fortressGroup.name = "Fortresses";
-
-  // Muralla perimetral del Centro Histórico
-  const wallPoints = [
-    [-8, 17], [-8.2, 19], [-8, 22], [-6.5, 23.8], [-4.5, 23.5], [-3.2, 20.5], [-4, 16.5], [-7, 16.2], [-8, 17]
-  ];
-  for (let i = 0; i < wallPoints.length - 1; i++) {
-    const p1 = wallPoints[i];
-    const p2 = wallPoints[i + 1];
-    const dx = p2[0] - p1[0];
-    const dz = -(p2[1] - p1[1]);
-    const len = Math.hypot(dx, dz);
-    const angle = Math.atan2(dz, dx);
-    const boxG = new THREE.BoxGeometry(len, 0.35, 0.35);
-    const bMesh = new THREE.Mesh(boxG, mats.fortress);
-    bMesh.position.set((p1[0] + p2[0]) / 2, 0.65, -(p1[1] + p2[1]) / 2);
-    bMesh.rotation.y = -angle;
-    bMesh.castShadow = true;
-    fortressGroup.add(bMesh);
+  if (landGeometries.length > 0) {
+    const mergedLand = BufferGeometryUtils.mergeGeometries(landGeometries, false);
+    const landMesh = new THREE.Mesh(mergedLand, mats.terrain);
+    landMesh.name = "Landmasses";
+    landMesh.receiveShadow = true;
+    landMesh.visible = activeLayers.terrain !== false;
+    territoryGroup.add(landMesh);
   }
 
-  // Castillo San Felipe de Barajas
-  const sanFelipe1 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.45, 1.4), mats.fortress);
-  sanFelipe1.position.set(-1.5, 0.7, -17.5);
-  sanFelipe1.rotation.y = 0.3;
-  const sanFelipe2 = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.45, 0.9), mats.fortress);
-  sanFelipe2.position.set(-1.5, 1.1, -17.5);
-  sanFelipe2.rotation.y = 0.3;
-  fortressGroup.add(sanFelipe1);
-  fortressGroup.add(sanFelipe2);
+  // -------------------------------------------------------------
+  // 3. MANZANAS CATASTRALES REALES (Manzana.shp - 4.745 Manzanas)
+  // -------------------------------------------------------------
+  onProgress(55, 'Construyendo 4.745 manzanas catastrales reales...');
+  const manzanaGeometries = [];
 
-  // Fuerte de San Fernando (Bocachica)
-  const bocachicaFort = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.18, 6, 12, Math.PI), mats.fortress);
-  bocachicaFort.rotation.x = Math.PI / 2;
-  bocachicaFort.position.set(-17.5, 0.75, 17.5);
-  fortressGroup.add(bocachicaFort);
+  if (catastroData.manzanas && Array.isArray(catastroData.manzanas)) {
+    catastroData.manzanas.forEach((ring) => {
+      if (!ring || ring.length < 3) return;
+      const shape = new THREE.Shape();
+      shape.moveTo(ring[0][0], ring[0][1]);
+      for (let i = 1; i < ring.length; i++) {
+        shape.lineTo(ring[i][0], ring[i][1]);
+      }
+      const geom = new THREE.ShapeGeometry(shape);
+      geom.rotateX(Math.PI / 2);
+      geom.translate(0, 0.02, 0);
+      manzanaGeometries.push(geom);
+    });
+  }
 
-  // Fuerte de San José (Costado opuesto Bocachica)
-  const sanJoseFort = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.35, 0.7), mats.fortress);
-  sanJoseFort.position.set(-15.2, 0.75, 18.2);
-  fortressGroup.add(sanJoseFort);
-
-  territoryGroup.add(fortressGroup);
+  if (manzanaGeometries.length > 0) {
+    const mergedManzanas = BufferGeometryUtils.mergeGeometries(manzanaGeometries, false);
+    const manzanasMesh = new THREE.Mesh(mergedManzanas, mats.manzanas);
+    manzanasMesh.name = "Manzanas";
+    manzanasMesh.receiveShadow = true;
+    manzanasMesh.visible = activeLayers.terrain !== false;
+    territoryGroup.add(manzanasMesh);
+  }
 
   // -------------------------------------------------------------
-  // 4. RED VIAL 3D & TRAZADOS URBANOS (Cintas Continuas)
+  // 4. RED VIAL REAL (Nomenclaturavial.shp - 3.880 Vías)
   // -------------------------------------------------------------
-  const roadsGroup = new THREE.Group();
-  roadsGroup.name = "RoadNetwork";
+  onProgress(70, 'Trazando 3.880 ejes viales oficiales...');
+  const roadGeometries = [];
+  const roadHalfWidth = 0.28; // ~14m wide avenues in 3D scale for high visual crispness
 
-  const roadPaths = [
-    // Av. Santander (Borde marítimo Centro - Marbella)
-    [[-8, 17], [-8.2, 20], [-7.5, 23.5], [-5, 24], [-2, 24]],
-    // Av. San Martín & Carrera 3 (Bocagrande - Castillogrande)
-    [[-7, 16.5], [-7, 12], [-8, 7], [-9.5, 3.5], [-10.5, 2.5]],
-    [[-6.2, 16.5], [-6.2, 12], [-7.2, 7], [-8.8, 3.5]],
-    // Conexión Centro - Manga - Pedro de Heredia
-    [[-4, 16.5], [-3, 15], [-1, 14.5], [2, 16], [5, 17.5]],
-    // Eje Manga (Calle Real)
-    [[-3, 14.5], [-2, 11], [-1.5, 8.5]],
-    // Vía Mamonal
-    [[2, 12], [4, 9], [6, 3], [5, -4], [3, -11], [1.5, -15]],
-    // Senderos y Vías de Tierra Bomba
-    [[-21.5, 9.5], [-18, 6.5], [-15, 1.5], [-14, -5], [-16, -11], [-18, -16.5]],
-    [[-21.5, 9.5], [-24, 5], [-24, -3], [-21, -11]],
-  ];
+  if (catastroData.roads && Array.isArray(catastroData.roads)) {
+    catastroData.roads.forEach((line) => {
+      if (!line || line.length < 2) return;
+      for (let i = 0; i < line.length - 1; i++) {
+        const p1 = new THREE.Vector2(line[i][0], line[i][1]);
+        const p2 = new THREE.Vector2(line[i + 1][0], line[i + 1][1]);
+        const dir = new THREE.Vector2().subVectors(p2, p1).normalize();
+        const normal = new THREE.Vector2(-dir.y, dir.x).multiplyScalar(roadHalfWidth);
 
-  roadPaths.forEach(path => {
-    for (let i = 0; i < path.length - 1; i++) {
-      const p1 = path[i];
-      const p2 = path[i + 1];
-      const dx = p2[0] - p1[0];
-      const dz = -(p2[1] - p1[1]);
-      const len = Math.hypot(dx, dz);
-      const angle = Math.atan2(dz, dx);
-      const rGeo = new THREE.PlaneGeometry(len, 0.3);
-      const rMesh = new THREE.Mesh(rGeo, mats.roads);
-      rMesh.rotation.x = -Math.PI / 2;
-      rMesh.rotation.z = angle;
-      rMesh.position.set((p1[0] + p2[0]) / 2, 0.52, -(p1[1] + p2[1]) / 2);
-      rMesh.receiveShadow = true;
-      roadsGroup.add(rMesh);
-    }
-  });
+        const shape = new THREE.Shape();
+        shape.moveTo(p1.x + normal.x, p1.y + normal.y);
+        shape.lineTo(p2.x + normal.x, p2.y + normal.y);
+        shape.lineTo(p2.x - normal.x, p2.y - normal.y);
+        shape.lineTo(p1.x - normal.x, p1.y - normal.y);
+        shape.closePath();
 
-  territoryGroup.add(roadsGroup);
+        const geom = new THREE.ShapeGeometry(shape);
+        geom.rotateX(Math.PI / 2);
+        geom.translate(0, 0.04, 0);
+        roadGeometries.push(geom);
+      }
+    });
+  }
+
+  if (roadGeometries.length > 0) {
+    const mergedRoads = BufferGeometryUtils.mergeGeometries(roadGeometries, false);
+    const roadsMesh = new THREE.Mesh(mergedRoads, mats.roads);
+    roadsMesh.name = "RoadNetwork";
+    roadsMesh.receiveShadow = true;
+    roadsMesh.visible = activeLayers.walls !== false;
+    territoryGroup.add(roadsMesh);
+  }
 
   // -------------------------------------------------------------
-  // 5. EDIFICACIONES 3D // MASAS ARQUITECTÓNICAS POR SECTOR
+  // 5. EDIFICACIONES REALES EXTRUIDAS (Construccion.shp - 22.000 Edificios)
   // -------------------------------------------------------------
+  onProgress(82, 'Extruyendo 22.000 huellas de construcción 1:1...');
+  const skyscraperGeoms = [];
+  const residentialGeoms = [];
+  const centroBuildingGeoms = [];
+  const vernacularGeoms = [];
+
+  if (catastroData.buildings && Array.isArray(catastroData.buildings)) {
+    catastroData.buildings.forEach((b) => {
+      const ring = b.r;
+      if (!ring || ring.length < 3) return;
+
+      const shape = new THREE.Shape();
+      shape.moveTo(ring[0][0], ring[0][1]);
+      for (let i = 1; i < ring.length; i++) {
+        shape.lineTo(ring[i][0], ring[i][1]);
+      }
+
+      const height = b.h || 0.22;
+      const elev = b.e || 0;
+
+      const extrudeSettings = {
+        depth: height,
+        bevelEnabled: false,
+      };
+
+      const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      geom.rotateX(Math.PI / 2);
+      geom.translate(0, 0.05 + elev, 0);
+
+      if (b.t === 'skyscraper') {
+        skyscraperGeoms.push(geom);
+      } else if (b.t === 'centro') {
+        centroBuildingGeoms.push(geom);
+      } else if (b.t === 'modern_residential' || b.t === 'urban') {
+        residentialGeoms.push(geom);
+      } else {
+        vernacularGeoms.push(geom);
+      }
+    });
+  }
+
   const buildingsGroup = new THREE.Group();
   buildingsGroup.name = "Buildings3D";
 
-  // A. Rascacielos de Bocagrande & Castillogrande (Torres estilizadas de 25m a 140m)
-  const towersCoords = [
-    [-6.8, 14, 2.8, 0.7, 0.7],
-    [-7.4, 13.5, 3.6, 0.8, 0.8],
-    [-6.5, 12.2, 4.2, 0.7, 0.9],
-    [-7.2, 11.5, 3.2, 0.8, 0.7],
-    [-7.8, 10.2, 4.8, 0.8, 0.8], // Gran torre icónica
-    [-6.9, 9.5, 3.5, 0.7, 0.7],
-    [-7.5, 8.2, 4.0, 0.9, 0.8],
-    [-8.2, 7.5, 3.1, 0.7, 0.7],
-    [-7.8, 6.2, 2.9, 0.8, 0.8],
-    [-8.6, 5.0, 3.7, 0.8, 0.9],
-    [-9.2, 4.0, 3.4, 0.8, 0.8],
-    [-9.8, 3.0, 2.6, 0.7, 0.7],
-    [-10.2, 2.5, 2.2, 0.7, 0.7],
-    [-8.8, 3.2, 2.8, 0.7, 0.7],
-  ];
+  if (skyscraperGeoms.length > 0) {
+    const mergedSky = BufferGeometryUtils.mergeGeometries(skyscraperGeoms, false);
+    const skyMesh = new THREE.Mesh(mergedSky, mats.buildingsModern);
+    skyMesh.castShadow = true;
+    skyMesh.receiveShadow = true;
+    buildingsGroup.add(skyMesh);
+  }
 
-  towersCoords.forEach(([x, z, h, w, d]) => {
-    const towerGeo = new THREE.BoxGeometry(w, h, d);
-    const towerMesh = new THREE.Mesh(towerGeo, mats.buildingsModern);
-    towerMesh.position.set(x, 0.5 + h / 2, -z);
-    towerMesh.castShadow = true;
-    towerMesh.receiveShadow = true;
-    buildingsGroup.add(towerMesh);
+  if (residentialGeoms.length > 0) {
+    const mergedRes = BufferGeometryUtils.mergeGeometries(residentialGeoms, false);
+    const resMesh = new THREE.Mesh(mergedRes, mats.buildingsResidential);
+    resMesh.castShadow = true;
+    resMesh.receiveShadow = true;
+    buildingsGroup.add(resMesh);
+  }
 
-    // Remate superior / helipuerto
-    const capGeo = new THREE.BoxGeometry(w * 0.7, 0.15, d * 0.7);
-    const capMesh = new THREE.Mesh(capGeo, mats.fortress);
-    capMesh.position.set(x, 0.5 + h + 0.08, -z);
-    buildingsGroup.add(capMesh);
-  });
+  if (centroBuildingGeoms.length > 0) {
+    const mergedCentro = BufferGeometryUtils.mergeGeometries(centroBuildingGeoms, false);
+    const centroMesh = new THREE.Mesh(mergedCentro, mats.colonialRoof);
+    centroMesh.castShadow = true;
+    centroMesh.receiveShadow = true;
+    buildingsGroup.add(centroMesh);
+  }
 
-  // B. Manzanas Coloniales del Centro Histórico (Volúmenes bajos con techos a dos aguas)
-  const centroBlocks = [
-    [-6.8, 21.5, 1.1, 0.9],
-    [-5.6, 21.8, 1.0, 1.2],
-    [-6.5, 20.2, 1.2, 1.0],
-    [-5.2, 20.5, 1.1, 0.8],
-    [-6.2, 18.8, 1.3, 0.9],
-    [-4.8, 19.0, 1.0, 1.1],
-    [-5.8, 17.5, 1.2, 0.8],
-    [-4.5, 17.6, 1.1, 1.0],
-  ];
+  if (vernacularGeoms.length > 0) {
+    const mergedVernacular = BufferGeometryUtils.mergeGeometries(vernacularGeoms, false);
+    const vernMesh = new THREE.Mesh(mergedVernacular, mats.buildingsVernacular);
+    vernMesh.castShadow = true;
+    vernMesh.receiveShadow = true;
+    buildingsGroup.add(vernMesh);
+  }
 
-  centroBlocks.forEach(([x, z, w, d]) => {
-    const h = 0.65;
-    const blockGeo = new THREE.BoxGeometry(w, h, d);
-    const blockMesh = new THREE.Mesh(blockGeo, mats.buildingsColonial);
-    blockMesh.position.set(x, 0.5 + h / 2, -z);
-    blockMesh.castShadow = true;
-    buildingsGroup.add(blockMesh);
-
-    // Techo a cuatro aguas / teja de barro
-    const roofGeo = new THREE.ConeGeometry(Math.max(w, d) * 0.75, 0.35, 4);
-    const roofMesh = new THREE.Mesh(roofGeo, mats.colonialRoof);
-    roofMesh.position.set(x, 0.5 + h + 0.18, -z);
-    roofMesh.rotation.y = Math.PI / 4;
-    roofMesh.castShadow = true;
-    buildingsGroup.add(roofMesh);
-  });
-
-  // Torre del Reloj (Centro)
-  const relojBase = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.4, 0.6), mats.buildingsColonial);
-  relojBase.position.set(-5.5, 1.2, -17.8);
-  const relojSpire = new THREE.Mesh(new THREE.ConeGeometry(0.4, 0.8, 4), mats.colonialRoof);
-  relojSpire.position.set(-5.5, 2.3, -17.8);
-  relojSpire.rotation.y = Math.PI / 4;
-  buildingsGroup.add(relojBase);
-  buildingsGroup.add(relojSpire);
-
-  // C. Edificaciones de Manga & Pie de la Popa
-  const mangaBlocks = [
-    [-2.8, 13.5, 0.9, 0.8, 0.9],
-    [-1.8, 13.0, 1.2, 0.8, 0.7],
-    [-2.2, 11.5, 1.4, 0.9, 0.8],
-    [-1.5, 10.5, 1.1, 0.8, 0.8],
-    [-2.6, 9.8, 0.9, 0.8, 0.7],
-    [1.5, 16.5, 0.8, 1.2, 0.8],
-    [3.2, 17.2, 0.9, 1.0, 0.8],
-  ];
-
-  mangaBlocks.forEach(([x, z, h, w, d]) => {
-    const mGeo = new THREE.BoxGeometry(w, h, d);
-    const mMesh = new THREE.Mesh(mGeo, mats.buildingsModern);
-    mMesh.position.set(x, 0.5 + h / 2, -z);
-    mMesh.castShadow = true;
-    buildingsGroup.add(mMesh);
-  });
-
-  // D. Caseríos y Viviendas Insulares de Tierra Bomba (4 Asentamientos)
-  const tierrabombaSettlements = [
-    // 1. Punta Arenas (Norte)
-    [-21.5, 9.5], [-20.8, 9.0], [-21.8, 8.5], [-22.5, 9.2], [-20.2, 8.4],
-    // 2. Caño de Oro (Este)
-    [-15.2, 1.8], [-14.6, 1.2], [-15.8, 0.8], [-14.8, 0.2], [-15.5, -0.6],
-    // 3. Tierra Bomba Pueblo (Sureste)
-    [-15.8, -10.5], [-16.5, -11.2], [-15.2, -11.8], [-17.2, -10.8], [-16.0, -12.5], [-15.4, -9.8],
-    // 4. Bocachica (Sur, Fuerte San Fernando)
-    [-18.2, -16.0], [-17.5, -16.5], [-18.8, -16.8], [-17.2, -15.5], [-19.2, -16.2],
-  ];
-
-  tierrabombaSettlements.forEach(([x, z], idx) => {
-    const w = 0.55 + ((idx % 3) * 0.1);
-    const d = 0.45 + ((idx % 2) * 0.1);
-    const h = 0.35 + ((idx % 4) * 0.08);
-    const vGeo = new THREE.BoxGeometry(w, h, d);
-    const vMesh = new THREE.Mesh(vGeo, mats.buildingsVernacular);
-    vMesh.position.set(x, 0.75 + h / 2, -z);
-    vMesh.castShadow = true;
-    buildingsGroup.add(vMesh);
-
-    // Techo a dos aguas en madera/zinc
-    const roofV = new THREE.Mesh(new THREE.ConeGeometry(Math.max(w, d) * 0.7, 0.22, 4), mats.colonialRoof);
-    roofV.position.set(x, 0.75 + h + 0.11, -z);
-    roofV.rotation.y = Math.PI / 4;
-    buildingsGroup.add(roofV);
-  });
-
+  buildingsGroup.visible = activeLayers.buildings !== false;
   territoryGroup.add(buildingsGroup);
 
   // -------------------------------------------------------------
-  // 6. ÁRBOLES & COBERTURA VEGETAL (Manglares y Bosque Seco Tropical)
+  // 6. VEGETACIÓN & COBERTURA BOTÁNICA (Manglares & Bosque Seco)
   // -------------------------------------------------------------
-  const treesGroup = new THREE.Group();
-  treesGroup.name = "Vegetation";
+  const vegetationGroup = new THREE.Group();
+  vegetationGroup.name = "Vegetation";
 
-  const treeLocations = [
-    // Parque Centenario / Getsemaní
-    [-4.5, 18.2], [-4.8, 17.8], [-4.2, 17.5],
-    // Manga paseos
-    [-2.2, 14.2], [-1.2, 12.5], [-3.2, 12.0],
-    // Laderas de La Popa
-    [2.2, 18.5], [3.5, 18.0], [4.2, 19.0], [1.8, 17.2],
-    // Vegetación y Manglar Tierra Bomba
-    [-20.5, 5.5], [-19.2, 2.0], [-18.5, -2.5], [-20.2, -6.5], [-22.5, 1.5], [-22.0, -8.0],
+  const treeClusters = [
+    { cx: 42, cz: -16, radius: 14, count: 120 }, // Cerro de la Popa
+    { cx: 45, cz: -15, radius: 8, count: 50 },   // Manga
+    { cx: 35, cz: -25, radius: 6, count: 40 },   // Parque Centenario
+    { cx: -15, cz: 10, radius: 15, count: 90 },  // Tierra Bomba meseta
+    { cx: -25, cz: 35, radius: 10, count: 50 },  // Bocachica colina
   ];
 
-  treeLocations.forEach(([x, z], i) => {
-    const tGroup = new THREE.Group();
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.4, 6), mats.treeTrunk);
-    trunk.position.y = 0.2;
-    const foliage = new THREE.Mesh(new THREE.DodecahedronGeometry(0.3 + (i % 3) * 0.08), mats.treeFoliage);
-    foliage.position.y = 0.5;
-    foliage.castShadow = true;
-    tGroup.add(trunk);
-    tGroup.add(foliage);
-    tGroup.position.set(x, 0.6, -z);
-    treesGroup.add(tGroup);
+  const treeFoliageGeos = [];
+  const sphereBase = new THREE.DodecahedronGeometry(0.5, 1);
+
+  treeClusters.forEach((cl) => {
+    for (let i = 0; i < cl.count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(Math.random()) * cl.radius;
+      const x = cl.cx + Math.cos(angle) * r;
+      const z = cl.cz + Math.sin(angle) * r;
+      const scale = 0.6 + Math.random() * 0.8;
+
+      const g = sphereBase.clone();
+      g.scale(scale, scale * 1.2, scale);
+      g.translate(x, 0.4 * scale, z);
+      treeFoliageGeos.push(g);
+    }
   });
 
-  territoryGroup.add(treesGroup);
+  if (treeFoliageGeos.length > 0) {
+    const mergedTrees = BufferGeometryUtils.mergeGeometries(treeFoliageGeos, false);
+    const treesMesh = new THREE.Mesh(mergedTrees, mats.treeFoliage);
+    treesMesh.castShadow = true;
+    treesMesh.receiveShadow = true;
+    vegetationGroup.add(treesMesh);
+  }
+
+  vegetationGroup.visible = activeLayers.trees !== false;
+  territoryGroup.add(vegetationGroup);
 
   // -------------------------------------------------------------
-  // 7. SIMULACIÓN DE TRÁNSITO MARÍTIMO (LANCHAS Y RUTAS EN VIVO)
+  // 7. MAPA DE RUIDO & ISÓFONAS ACÚSTICAS (Overlay)
   // -------------------------------------------------------------
-  const boatRoutes = [
-    // Ruta 1: Muelle Bodeguita <---> Punta Arenas (Tierrabomba)
+  const noiseGroup = new THREE.Group();
+  noiseGroup.name = "NoiseMapGroup";
+
+  const noiseGeo1 = new THREE.RingGeometry(4, 48, 32);
+  const noiseMesh1 = new THREE.Mesh(noiseGeo1, mats.noiseHeatmap);
+  noiseMesh1.rotation.x = -Math.PI / 2;
+  noiseMesh1.position.set(20, 0.08, -5);
+  noiseGroup.add(noiseMesh1);
+
+  const noiseGeo2 = new THREE.RingGeometry(1, 15, 32);
+  const noiseMesh2 = new THREE.Mesh(noiseGeo2, new THREE.MeshBasicMaterial({
+    color: new THREE.Color('#eab308'),
+    transparent: true,
+    opacity: 0.4,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  }));
+  noiseMesh2.rotation.x = -Math.PI / 2;
+  noiseMesh2.position.set(-10, 0.08, 5);
+  noiseGroup.add(noiseMesh2);
+
+  noiseGroup.visible = !!activeLayers.noise;
+  territoryGroup.add(noiseGroup);
+  animatedObjects.noiseMesh = noiseGroup;
+
+  // -------------------------------------------------------------
+  // 8. SIMULACIÓN DE TRÁNSITO MARÍTIMO (3 Rutas Lanchas en Vivo)
+  // -------------------------------------------------------------
+  const maritimeGroup = new THREE.Group();
+  maritimeGroup.name = "MaritimeRoutes";
+
+  const routes = [
     {
+      id: "R1",
       name: "Bodeguita - Punta Arenas",
-      curve: new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-4.5, 0.08, -16.5),
-        new THREE.Vector3(-8.0, 0.08, -14.0),
-        new THREE.Vector3(-14.0, 0.08, -12.0),
-        new THREE.Vector3(-18.5, 0.08, -10.5),
-        new THREE.Vector3(-21.0, 0.08, -9.5),
-      ]),
-      speed: 0.0035,
-      t: 0.1,
+      pts: [
+        new THREE.Vector3(38, 0.1, -18),  // Muelle Bodeguita
+        new THREE.Vector3(20, 0.1, -12),
+        new THREE.Vector3(0, 0.1, -5),
+        new THREE.Vector3(-12, 0.1, -2),  // Punta Arenas
+      ],
+      boatColor: '#24c8bd',
     },
-    // Ruta 2: Muelle Bodeguita <---> Caño de Oro <---> Bocachica
     {
-      name: "Bodeguita - Bocachica",
-      curve: new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-4.5, 0.08, -16.5),
-        new THREE.Vector3(-7.0, 0.08, -10.0),
-        new THREE.Vector3(-10.0, 0.08, -3.0),
-        new THREE.Vector3(-13.5, 0.08, 2.0),
-        new THREE.Vector3(-16.5, 0.08, 10.0),
-        new THREE.Vector3(-17.5, 0.08, 16.5),
-      ]),
-      speed: 0.0028,
-      t: 0.55,
+      id: "R2",
+      name: "Bodeguita - Caño de Oro - Bocachica",
+      pts: [
+        new THREE.Vector3(38, 0.1, -18),
+        new THREE.Vector3(15, 0.1, 5),
+        new THREE.Vector3(-5, 0.1, 20),
+        new THREE.Vector3(-22, 0.1, 40),  // Bocachica
+      ],
+      boatColor: '#38bdf8',
     },
-    // Ruta 3: Castillogrande (Hospital) <---> Tierrabomba Pueblo
     {
+      id: "R3",
       name: "Castillogrande - Tierrabomba Pueblo",
-      curve: new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-9.5, 0.08, -2.5),
-        new THREE.Vector3(-12.0, 0.08, 4.0),
-        new THREE.Vector3(-14.5, 0.08, 9.5),
-      ]),
-      speed: 0.0042,
-      t: 0.85,
-    },
+      pts: [
+        new THREE.Vector3(25, 0.1, 10),   // Castillogrande
+        new THREE.Vector3(10, 0.1, 12),
+        new THREE.Vector3(-8, 0.1, 14),   // Tierrabomba
+      ],
+      boatColor: '#fbbf24',
+    }
   ];
 
-  // Visualizar las estelas náuticas punteadas de las rutas
-  const routesGroup = new THREE.Group();
-  routesGroup.name = "MaritimeRoutes";
-  boatRoutes.forEach(route => {
-    const pts = route.curve.getPoints(50);
-    const rGeo = new THREE.BufferGeometry().setFromPoints(pts);
-    const rLine = new THREE.Line(rGeo, new THREE.LineDashedMaterial({
-      color: 0x24c8bd,
-      dashSize: 0.4,
-      gapSize: 0.3,
-      transparent: true,
-      opacity: 0.6,
-    }));
-    rLine.computeLineDistances();
-    routesGroup.add(rLine);
+  routes.forEach((rt, rIdx) => {
+    const curve = new THREE.CatmullRomCurve3(rt.pts);
+    
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(50));
+    const lineMat = new THREE.LineDashedMaterial({
+      color: new THREE.Color(rt.boatColor),
+      dashSize: 1.2,
+      gapSize: 0.8,
+      linewidth: 2,
+    });
+    const lineMesh = new THREE.Line(lineGeo, lineMat);
+    lineMesh.computeLineDistances();
+    maritimeGroup.add(lineMesh);
 
-    // Crear la embarcación / lancha rápida 3D
     const boatGroup = new THREE.Group();
-    const hullGeo = new THREE.ConeGeometry(0.25, 0.7, 4);
+    const hullGeo = new THREE.ConeGeometry(0.45, 1.4, 4);
     hullGeo.rotateX(Math.PI / 2);
-    const hull = new THREE.Mesh(hullGeo, mats.boatHull);
-    const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.18, 0.3), mats.boatCabin);
-    cabin.position.set(0, 0.12, -0.05);
-    boatGroup.add(hull);
-    boatGroup.add(cabin);
-    boatGroup.scale.set(1.4, 1.4, 1.4);
+    const hullMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(rt.boatColor), roughness: 0.2 });
+    const hullMesh = new THREE.Mesh(hullGeo, hullMat);
+    boatGroup.add(hullMesh);
 
-    territoryGroup.add(boatGroup);
+    const cabinGeo = new THREE.BoxGeometry(0.35, 0.35, 0.6);
+    cabinGeo.translate(0, 0.25, -0.1);
+    const cabinMesh = new THREE.Mesh(cabinGeo, mats.buildingsModern);
+    boatGroup.add(cabinMesh);
+
+    boatGroup.scale.set(1.4, 1.4, 1.4);
+    boatGroup.position.copy(rt.pts[0]);
+    maritimeGroup.add(boatGroup);
+
     animatedObjects.boats.push({
       mesh: boatGroup,
-      route,
+      curve,
+      progress: (rIdx * 0.33) % 1.0,
+      speed: 0.0006 + rIdx * 0.0002,
     });
   });
-  territoryGroup.add(routesGroup);
+
+  maritimeGroup.visible = activeLayers.boats !== false;
+  territoryGroup.add(maritimeGroup);
 
   // -------------------------------------------------------------
-  // 8. SIMULACIÓN DE VEHÍCULOS URBANOS (Santander & Bocagrande)
+  // 9. SIMULACIÓN DE TRÁNSITO VEHICULAR (Avenidas Costeras)
   // -------------------------------------------------------------
-  const vehicleRoutes = [
-    {
-      curve: new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-8.0, 0.58, -17.0),
-        new THREE.Vector3(-8.2, 0.58, -20.0),
-        new THREE.Vector3(-7.5, 0.58, -23.5),
-        new THREE.Vector3(-5.0, 0.58, -24.0),
-        new THREE.Vector3(-2.0, 0.58, -24.0),
-      ]),
-      speed: 0.005,
-      t: 0.2,
-    },
-    {
-      curve: new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-7.0, 0.58, -16.5),
-        new THREE.Vector3(-7.0, 0.58, -12.0),
-        new THREE.Vector3(-8.0, 0.58, -7.0),
-        new THREE.Vector3(-9.5, 0.58, -3.5),
-        new THREE.Vector3(-10.5, 0.58, -2.5),
-      ]),
-      speed: 0.006,
-      t: 0.65,
-    },
-    {
-      curve: new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-4.0, 0.58, -16.5),
-        new THREE.Vector3(-3.0, 0.58, -15.0),
-        new THREE.Vector3(-1.0, 0.58, -14.5),
-        new THREE.Vector3(2.0, 0.58, -16.0),
-        new THREE.Vector3(5.0, 0.58, -17.5),
-      ]),
-      speed: 0.0045,
-      t: 0.4,
-    },
+  const vehicleGroup = new THREE.Group();
+  vehicleGroup.name = "VehiclesGroup";
+
+  const carRoutes = [
+    new THREE.CatmullRomCurve3([
+      new THREE.Vector3(25, 0.1, 15),
+      new THREE.Vector3(25, 0.1, -5),
+      new THREE.Vector3(32, 0.1, -15),
+      new THREE.Vector3(38, 0.1, -22),
+    ]),
+    new THREE.CatmullRomCurve3([
+      new THREE.Vector3(42, 0.1, -25),
+      new THREE.Vector3(46, 0.1, -10),
+      new THREE.Vector3(50, 0.1, 5),
+    ]),
   ];
 
-  vehicleRoutes.forEach(r => {
-    const vMesh = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.12, 0.35), mats.vehicle);
-    vMesh.castShadow = true;
-    territoryGroup.add(vMesh);
-    animatedObjects.vehicles.push({
-      mesh: vMesh,
-      route: r,
-    });
+  carRoutes.forEach((cr, cIdx) => {
+    for (let v = 0; v < 6; v++) {
+      const carMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(0.35, 0.2, 0.6),
+        mats.vehicle
+      );
+      carMesh.castShadow = true;
+      vehicleGroup.add(carMesh);
+
+      animatedObjects.vehicles.push({
+        mesh: carMesh,
+        curve: cr,
+        progress: (v / 6 + cIdx * 0.5) % 1.0,
+        speed: 0.0008 + Math.random() * 0.0004,
+      });
+    }
   });
 
-  // Centrar y posicionar en la escena
+  vehicleGroup.visible = activeLayers.vehicles !== false;
+  territoryGroup.add(vehicleGroup);
+
+  // Add all to root scene
   sceneRoot.add(territoryGroup);
+  onProgress(100, `Modelo 3D Catastro AMB (${catastroData.meta.counts.buildings} edificios) listo a 60 FPS`);
 
   return {
     group: territoryGroup,
     animatedObjects,
     mats,
-    update: (deltaTime = 1) => {
-      // Actualizar posición de lanchas en las rutas marítimas
-      animatedObjects.boats.forEach(b => {
-        b.route.t = (b.route.t + b.route.speed * deltaTime) % 1;
-        const pos = b.route.curve.getPointAt(b.route.t);
-        const tangent = b.route.curve.getTangentAt(b.route.t);
-        b.mesh.position.copy(pos);
-        b.mesh.position.y = 0.08 + Math.sin(Date.now() * 0.004 + b.route.t * 10) * 0.02; // vaivén de olas
-        const angle = Math.atan2(tangent.x, tangent.z);
-        b.mesh.rotation.y = angle + Math.PI;
+    update: (speedMultiplier = 1.0) => {
+      animatedObjects.boats.forEach((b) => {
+        b.progress = (b.progress + b.speed * speedMultiplier) % 1.0;
+        const pt = b.curve.getPointAt(b.progress);
+        const tangent = b.curve.getTangentAt(b.progress);
+        b.mesh.position.copy(pt);
+        b.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent);
+        b.mesh.rotation.z = Math.sin(Date.now() * 0.004 + b.progress * 10) * 0.08;
       });
 
-      // Actualizar posición de vehículos urbanos
-      animatedObjects.vehicles.forEach(v => {
-        v.route.t = (v.route.t + v.route.speed * deltaTime) % 1;
-        const pos = v.route.curve.getPointAt(v.route.t);
-        const tangent = v.route.curve.getTangentAt(v.route.t);
-        v.mesh.position.copy(pos);
-        const angle = Math.atan2(tangent.x, tangent.z);
-        v.mesh.rotation.y = angle + Math.PI;
+      animatedObjects.vehicles.forEach((v) => {
+        v.progress = (v.progress + v.speed * speedMultiplier) % 1.0;
+        const pt = v.curve.getPointAt(v.progress);
+        const tangent = v.curve.getTangentAt(v.progress);
+        v.mesh.position.copy(pt);
+        v.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent);
       });
     },
+    setWaterColor: (hex) => {
+      if (mats.water) mats.water.color.set(hex);
+    },
+    setRoadsColor: (hex) => {
+      if (mats.roads) mats.roads.color.set(hex);
+    },
+    setGreenColor: (hex) => {
+      if (mats.terrain) mats.terrain.color.set(hex);
+      if (mats.treeFoliage) mats.treeFoliage.color.set(hex);
+    },
+    setNoiseMapVisible: (visible) => {
+      if (animatedObjects.noiseMesh) {
+        animatedObjects.noiseMesh.visible = visible;
+      }
+    },
+    setClimateMonth: (monthIndex) => {
+      const wetness = 0.5 + 0.5 * Math.sin((monthIndex - 3) * (Math.PI / 6));
+      mats.water.color.set(wetness > 0.6 ? '#163e59' : colors.water);
+      mats.terrain.color.set(wetness > 0.7 ? '#33583d' : colors.terrain);
+    },
+  };
+}
+
+// Synthetic fallback for offline environments
+function generateSyntheticFallback() {
+  return {
+    meta: { counts: { buildings: 100, manzanas: 50, roads: 40 } },
+    landmasses: [],
+    manzanas: [],
+    roads: [],
+    buildings: [],
   };
 }

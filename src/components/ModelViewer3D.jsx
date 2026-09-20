@@ -53,6 +53,14 @@ export default function ModelViewer3D({ onSelectModule }) {
   const [simulationSpeed, setSimulationSpeed] = useState(1.5);
   const simulationSpeedRef = useRef(1.5);
   const cartagenaTerritoryRef = useRef(null);
+
+  // Paleta de Colores Arquitectónicos y Ambientales (Inspirado en modulo-08-3d.html)
+  const [waterColor, setWaterColor] = useState('#88a2b5');
+  const [roadsColor, setRoadsColor] = useState('#b7babd');
+  const [greenColor, setGreenColor] = useState('#4a7856');
+  const [showNoiseMap, setShowNoiseMap] = useState(false);
+  const [climateMonth, setClimateMonth] = useState(0); // 0 = Ene, 11 = Dic
+  const [isPlayingClimate, setIsPlayingClimate] = useState(false);
   
   // Parámetros Solares & Vista Axonométrica a 35°
   const [sunAzimuth, setSunAzimuth] = useState(130);
@@ -88,6 +96,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     boats: true,
     vehicles: true,
     trees: true,
+    noise: false,
     grid: false,
     roof: true,
     structure: true,
@@ -158,7 +167,7 @@ export default function ModelViewer3D({ onSelectModule }) {
   };
 
   // Re-build 3D Model whenever selected3DModel changes
-  const buildModel = (modelType) => {
+  const buildModel = async (modelType) => {
     const scene = sceneRef.current;
     if (!scene) return;
 
@@ -179,12 +188,12 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     if (modelType === 'revit') {
       setIsLoadingFile(true);
-      setLoadProgress(30);
-      setLoadPhase('Construyendo sistema territorial Bahía de Cartagena & Tierra Bomba...');
+      setLoadProgress(15);
+      setLoadPhase('Cargando Catastro Oficial AMB Cartagena (MAGNA-SIRGAS)...');
 
       const bgColor = 0x0b0c0f;
       scene.background = new THREE.Color(bgColor);
-      scene.fog = new THREE.Fog(bgColor, 180, 500);
+      scene.fog = new THREE.Fog(bgColor, 180, 550);
 
       const clipPlanesArray = [
         secPlanesRef.current.xMin,
@@ -197,13 +206,30 @@ export default function ModelViewer3D({ onSelectModule }) {
 
       const rootContainer = new THREE.Group();
       
-      const territory = buildCartagenaTerritoryScene({
+      const territory = await buildCartagenaTerritoryScene({
         sceneRoot: rootContainer,
         activeLayers,
+        colors: {
+          water: waterColor,
+          roads: roadsColor,
+          terrain: greenColor,
+          buildings: '#ffffff',
+          roofs: '#b5714a',
+          trees: '#5c8f52',
+          manzanas: '#8a8f96',
+          vehicles: '#e2635a',
+          boats: '#24c8bd',
+        },
         clippingPlanes: clipPlanesArray,
+        onProgress: (p, msg) => {
+          setLoadProgress(p);
+          setLoadPhase(msg);
+        }
       });
 
       cartagenaTerritoryRef.current = territory;
+      if (territory.setNoiseMapVisible) territory.setNoiseMapVisible(showNoiseMap);
+      if (territory.setClimateMonth) territory.setClimateMonth(climateMonth);
 
       // Centrar y encuadrar todo el sistema de la bahía (Cartagena - Tierrabomba)
       rootContainer.position.set(5, 0, 0);
@@ -759,6 +785,46 @@ export default function ModelViewer3D({ onSelectModule }) {
     buildModel(selected3DModel);
   }, [selected3DModel]);
 
+  // Sync colors with 3D model
+  useEffect(() => {
+    if (cartagenaTerritoryRef.current?.setWaterColor) {
+      cartagenaTerritoryRef.current.setWaterColor(waterColor);
+    }
+  }, [waterColor]);
+
+  useEffect(() => {
+    if (cartagenaTerritoryRef.current?.setRoadsColor) {
+      cartagenaTerritoryRef.current.setRoadsColor(roadsColor);
+    }
+  }, [roadsColor]);
+
+  useEffect(() => {
+    if (cartagenaTerritoryRef.current?.setGreenColor) {
+      cartagenaTerritoryRef.current.setGreenColor(greenColor);
+    }
+  }, [greenColor]);
+
+  useEffect(() => {
+    if (cartagenaTerritoryRef.current?.setNoiseMapVisible) {
+      cartagenaTerritoryRef.current.setNoiseMapVisible(showNoiseMap);
+    }
+  }, [showNoiseMap]);
+
+  useEffect(() => {
+    if (cartagenaTerritoryRef.current?.setClimateMonth) {
+      cartagenaTerritoryRef.current.setClimateMonth(climateMonth);
+    }
+  }, [climateMonth]);
+
+  // Climate animation timer (cycles through 12 months)
+  useEffect(() => {
+    if (!isPlayingClimate) return;
+    const interval = setInterval(() => {
+      setClimateMonth((prev) => (prev + 1) % 12);
+    }, 1200);
+    return () => clearInterval(interval);
+  }, [isPlayingClimate]);
+
   // Update Wireframe mode
   useEffect(() => {
     if (!sceneRef.current) return;
@@ -876,6 +942,29 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     const spherical = { radius: 45, theta: Math.PI / 4, phi: Math.PI * 55 / 180 };
     const panTarget = { x: 0, y: 1.5, z: 0 };
+    camera.position.x = panTarget.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+    camera.position.y = panTarget.y + spherical.radius * Math.cos(spherical.phi);
+    camera.position.z = panTarget.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+    camera.lookAt(panTarget.x, panTarget.y, panTarget.z);
+  };
+
+  // Vista Panorámica Aérea de toda la Bahía y Cartagena (Encuadre Urbano Completo)
+  const setBirdEyeView = () => {
+    if (!cameraRef.current || !mountRef.current) return;
+    const container = mountRef.current;
+    const aspect = container.clientWidth / container.clientHeight;
+    const viewSize = 46;
+    const camera = cameraRef.current;
+    if (camera.isOrthographicCamera) {
+      camera.left = -viewSize * aspect;
+      camera.right = viewSize * aspect;
+      camera.top = viewSize;
+      camera.bottom = -viewSize;
+      camera.updateProjectionMatrix();
+    }
+
+    const spherical = { radius: 88, theta: -Math.PI * 0.42, phi: Math.PI * 48 / 180 };
+    const panTarget = { x: 26, y: 0, z: -8 };
     camera.position.x = panTarget.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
     camera.position.y = panTarget.y + spherical.radius * Math.cos(spherical.phi);
     camera.position.z = panTarget.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
@@ -1352,6 +1441,18 @@ export default function ModelViewer3D({ onSelectModule }) {
             <span>Ficha Técnica</span>
           </button>
 
+          {/* Botón Vista Panorámica Aérea (Cartagena) */}
+          {selected3DModel === 'revit' && (
+            <button
+              onClick={setBirdEyeView}
+              className="px-3.5 py-2 rounded-2xl text-xs font-mono font-bold bg-gradient-to-r from-blue-600/30 to-teal-500/30 hover:from-blue-600/50 hover:to-teal-500/50 text-blue-200 border border-blue-400/40 transition-all flex items-center space-x-1.5 shadow-xl hover:scale-[1.02] active:scale-95"
+              title="Encuadre aéreo panorámico de toda Cartagena y la Bahía"
+            >
+              <Maximize2 className="w-3.5 h-3.5 text-blue-300" />
+              <span>Vista Panorámica Ciudad</span>
+            </button>
+          )}
+
           {/* Botón Principal: Restablecer Vista Axonométrica (a 35°) */}
           <button
             onClick={resetAxonometricView}
@@ -1743,7 +1844,7 @@ export default function ModelViewer3D({ onSelectModule }) {
         </div>
       </div>
 
-      {/* Floating Right: Axonometric Section Box & Sun Lighting Controls (matching reference) */}
+      {/* Floating Right: Axonometric Controls Panel (Sun, Colors, Noise, Climate & Section Box) */}
       <div className="absolute top-20 right-4 z-[400] glass-dark p-4 rounded-2xl space-y-3.5 pointer-events-auto text-white w-72 max-h-[calc(100vh-100px)] overflow-y-auto shadow-2xl border border-white/10 backdrop-blur-xl">
         
         {/* Sol — Acimut & Altura */}
@@ -1777,13 +1878,103 @@ export default function ModelViewer3D({ onSelectModule }) {
             <input
               type="range"
               min="5"
-              max="90"
+              max="85"
               value={sunElevation}
               onChange={(e) => setSunElevation(Number(e.target.value))}
               className="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
             />
           </div>
         </div>
+
+        {/* Paleta de Colores del Territorio (modulo-08-3d.html) */}
+        {selected3DModel === 'revit' && (
+          <div className="pt-2.5 border-t border-white/10 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-teal-300 flex items-center gap-1.5">
+                <Palette className="w-3.5 h-3.5 text-teal-400" />
+                Color del Territorio
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-300">Color del agua</span>
+              <input
+                type="color"
+                value={waterColor}
+                onChange={(e) => setWaterColor(e.target.value)}
+                className="w-8 h-6 rounded cursor-pointer border border-white/20 bg-transparent p-0"
+              />
+            </div>
+
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-300">Color de las vías</span>
+              <input
+                type="color"
+                value={roadsColor}
+                onChange={(e) => setRoadsColor(e.target.value)}
+                className="w-8 h-6 rounded cursor-pointer border border-white/20 bg-transparent p-0"
+              />
+            </div>
+
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-300">Color de lo verde</span>
+              <input
+                type="color"
+                value={greenColor}
+                onChange={(e) => setGreenColor(e.target.value)}
+                className="w-8 h-6 rounded cursor-pointer border border-white/20 bg-transparent p-0"
+              />
+            </div>
+
+            {/* Botón Mapa de Ruido */}
+            <div className="pt-1.5">
+              <button
+                onClick={() => setShowNoiseMap(!showNoiseMap)}
+                className={`w-full py-2 px-3 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all shadow-md ${
+                  showNoiseMap
+                    ? 'bg-rose-500 text-white shadow-rose-500/30'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-white/10'
+                }`}
+              >
+                <Activity className="w-3.5 h-3.5" />
+                <span>{showNoiseMap ? '🔊 Ocultar mapa de ruido' : '🔊 Mostrar mapa de ruido'}</span>
+              </button>
+            </div>
+
+            {/* Reloj Climático Anual (Marea de Leva / Bahía) */}
+            <div className="pt-2 border-t border-white/10 space-y-1.5">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-300 flex items-center gap-1">
+                  <Droplets className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Reloj climático</span>
+                </span>
+                <span className="text-[#24c8bd] font-bold">
+                  {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'][climateMonth]}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="11"
+                step="1"
+                value={climateMonth}
+                onChange={(e) => setClimateMonth(Number(e.target.value))}
+                className="w-full accent-[#24c8bd] cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+              />
+              <button
+                onClick={() => setIsPlayingClimate(!isPlayingClimate)}
+                className={`w-full py-1.5 rounded-lg text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 transition-all ${
+                  isPlayingClimate
+                    ? 'bg-[#24c8bd] text-slate-950 font-bold'
+                    : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700'
+                }`}
+              >
+                {isPlayingClimate ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current" />}
+                <span>{isPlayingClimate ? '⏸ Pausar ciclo' : '▶ Reproducir año completo'}</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Caja de Sección / Corte Axonométrico 3D */}
         <div className="pt-2.5 border-t border-white/10 space-y-2.5">
@@ -1891,30 +2082,55 @@ export default function ModelViewer3D({ onSelectModule }) {
         </div>
       )}
 
-      {/* Floating Bottom Left: Architectural Legend */}
-      <div className="absolute bottom-6 left-4 z-[400] glass-dark p-3 rounded-2xl pointer-events-auto text-white shadow-xl border border-white/10 space-y-1.5 text-xs font-mono">
+      {/* Floating Bottom Left: Architectural Legend (matching reference) */}
+      <div className="absolute bottom-6 left-4 z-[400] glass-dark p-3.5 rounded-2xl pointer-events-auto text-white shadow-xl border border-white/10 space-y-1.5 text-xs font-mono max-h-[38vh] overflow-y-auto">
+        <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">
+          {selected3DModel === 'revit' ? 'Leyenda Territorial // AMB' : 'Leyenda Arquitectónica'}
+        </div>
         {selected3DModel === 'revit' ? (
           <>
             <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0 shadow-sm animate-pulse" />
-              <span className="text-slate-200">Lanchas en Ruta (Bodeguita ↔ Tierra Bomba)</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#e2635a] shrink-0 shadow-sm" />
+              <span className="text-slate-200">Vehículo</span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shrink-0 border border-slate-600 shadow-sm" />
-              <span className="text-slate-200">Huellas & Manzanas (Construccion.shp)</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#24c8bd] shrink-0 shadow-sm animate-pulse" />
+              <span className="text-slate-200">Lancha en ruta</span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 border border-slate-400 shadow-sm" />
-              <span className="text-slate-200">Red Vial Oficial (Nomenclaturavial.shp)</span>
+              <span className="w-2.5 h-2.5 rounded-full shrink-0 border border-slate-400 shadow-sm" style={{ backgroundColor: roadsColor }} />
+              <span className="text-slate-200">Vía (Nomenclaturavial.shp)</span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#477857] shrink-0 shadow-sm" />
-              <span className="text-slate-200">Topografía & Meseta Insular (+22m)</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 border border-slate-600 shadow-sm" />
+              <span className="text-slate-200">Edificio (Construccion.shp — 6.719)</span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#1b3b5f] shrink-0 border border-blue-400/30 shadow-sm" />
-              <span className="text-slate-200">Bahía de Cartagena & Mar Caribe</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#5c8f52] shrink-0 shadow-sm" />
+              <span className="text-slate-200">Árbol / Manglar</span>
             </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: waterColor }} />
+              <span className="text-slate-200">Cuerpo de agua (Bahía & Mar)</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#8a8f96] shrink-0 shadow-sm border border-slate-500" />
+              <span className="text-slate-200">Manzana (Manzana.shp — 2.419)</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: greenColor }} />
+              <span className="text-slate-200">Parque / Zona verde (+22m)</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#b5714a] shrink-0 shadow-sm" />
+              <span className="text-slate-200">Techo a dos aguas / Colonial</span>
+            </div>
+            {showNoiseMap && (
+              <div className="flex items-center space-x-2 pt-1 border-t border-white/10">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444] shrink-0 shadow-sm animate-pulse" />
+                <span className="text-red-300 font-bold">Isófonas de Ruido (&gt; 65 dB)</span>
+              </div>
+            )}
           </>
         ) : (
           <>
