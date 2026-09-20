@@ -512,6 +512,57 @@ function calculatePolylineLengthKm(coords) {
   return Number((totalMeters / 1000).toFixed(2));
 }
 
+// Function to resample any polygon or polyline into N equidistant points along its length/perimeter
+function resampleCoordinates(coords, isPolygon, numSamples = 120) {
+  if (!coords || coords.length < 2) return coords || [];
+
+  const points = isPolygon ? [...coords, coords[0]] : [...coords];
+  
+  // 1. Calculate cumulative segment distances
+  const distances = [0];
+  let totalLength = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const lat1 = points[i][0];
+    const lng1 = points[i][1];
+    const lat2 = points[i + 1][0];
+    const lng2 = points[i + 1][1];
+    const dist = Math.hypot(lat2 - lat1, lng2 - lng1);
+    totalLength += dist;
+    distances.push(totalLength);
+  }
+
+  if (totalLength === 0) return points;
+
+  // 2. Sample evenly at step intervals
+  const resampled = [];
+  const stepDist = totalLength / (numSamples - 1);
+
+  for (let i = 0; i < numSamples; i++) {
+    const targetDist = i * stepDist;
+
+    let segIdx = 0;
+    while (segIdx < distances.length - 1 && distances[segIdx + 1] < targetDist) {
+      segIdx++;
+    }
+
+    if (segIdx >= points.length - 1) {
+      resampled.push(points[points.length - 1]);
+      continue;
+    }
+
+    const segStartDist = distances[segIdx];
+    const segEndDist = distances[segIdx + 1];
+    const segLen = segEndDist - segStartDist;
+    const t = segLen > 0 ? (targetDist - segStartDist) / segLen : 0;
+
+    const lat = points[segIdx][0] + (points[segIdx + 1][0] - points[segIdx][0]) * t;
+    const lng = points[segIdx][1] + (points[segIdx + 1][1] - points[segIdx][1]) * t;
+    resampled.push([Number(lat.toFixed(6)), Number(lng.toFixed(6))]);
+  }
+
+  return resampled;
+}
+
 export default function ThesisFramework({ onSelectModule }) {
   // Navigation & Step States: starts at null for clean panoramic zoom approach
   const [currentStepIndex, setCurrentStepIndex] = useState(null);
@@ -651,12 +702,13 @@ export default function ThesisFramework({ onSelectModule }) {
 
   // =========================================================================
   // ANIMATED BOUNDARY TRACING (RUNS ON ANY CARD / STEP SELECTION)
+  // Standardized 2.4s uniform, smooth pacing & style across ALL 4 cards
   // =========================================================================
   const startZoneTraceAnimation = (stepIdx, targetMap) => {
     const map = targetMap || mapInstanceRef.current;
     if (!map) return;
 
-    let coords = [];
+    let rawCoords = [];
     let isPolygon = true;
     let mainColor = '#ea580c';
     let glowColor = '#f59e0b';
@@ -664,36 +716,39 @@ export default function ThesisFramework({ onSelectModule }) {
     let cameraZoom = 13.2;
 
     if (stepIdx === 0) {
-      coords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
+      rawCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
       isPolygon = true;
       mainColor = '#ea580c';
       glowColor = '#f59e0b';
       cameraCenter = [10.352, -75.568];
       cameraZoom = 13.2;
     } else if (stepIdx === 1) {
-      coords = delimitations.erosion || DEFAULT_DELIMITATIONS.erosion || [];
+      rawCoords = delimitations.erosion || DEFAULT_DELIMITATIONS.erosion || [];
       isPolygon = false;
       mainColor = '#dc2626';
       glowColor = '#f87171';
       cameraCenter = [10.3585, -75.5905];
-      cameraZoom = 16.5;
+      cameraZoom = 16.2;
     } else if (stepIdx === 2) {
-      coords = delimitations.school || DEFAULT_DELIMITATIONS.school || [];
+      rawCoords = delimitations.school || DEFAULT_DELIMITATIONS.school || [];
       isPolygon = true;
-      mainColor = '#ef4444';
-      glowColor = '#fca5a5';
+      mainColor = '#f43f5e';
+      glowColor = '#fda4af';
       cameraCenter = [10.3805, -75.5761];
-      cameraZoom = 18.5;
+      cameraZoom = 18.2;
     } else if (stepIdx === 3) {
-      coords = delimitations.plateau || DEFAULT_DELIMITATIONS.plateau || [];
+      rawCoords = delimitations.plateau || DEFAULT_DELIMITATIONS.plateau || [];
       isPolygon = true;
       mainColor = '#0d9488';
       glowColor = '#2dd4bf';
       cameraCenter = [10.3730, -75.5759];
-      cameraZoom = 16.5;
+      cameraZoom = 16.2;
     }
 
-    if (coords.length < 2) return;
+    if (rawCoords.length < 2) return;
+
+    // Standardize all geometries to exactly 120 equidistant points so EVERY card animation pace is identical
+    const sampledCoords = resampleCoordinates(rawCoords, isPolygon, 120);
 
     // Clear any previous running animation
     if (animationTimerRef.current) {
@@ -716,41 +771,42 @@ export default function ThesisFramework({ onSelectModule }) {
     setIsIntroAnimating(true);
     setAnimProgress(0);
 
-    // Hide or dim static layers during active tracing
+    // Hide static layers during active tracing
     const { islandLayer, erosionLayer, schoolLayer, masterplanLayer } = layersRef.current;
-    if (islandLayer) islandLayer.setStyle({ opacity: stepIdx === 0 ? 0 : 0.2, fillOpacity: 0, weight: 2 });
+    if (islandLayer) islandLayer.setStyle({ opacity: stepIdx === 0 ? 0 : 0.15, fillOpacity: 0, weight: 2 });
     if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
     if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
     if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
 
-    // Smooth camera fly
+    // Smooth, cinematic camera motion (duration 2.0s to match contour trace)
     if (stepIdx === 0) {
-      const islandBounds = L.latLngBounds(coords);
+      const islandBounds = L.latLngBounds(rawCoords);
       map.fitBounds(islandBounds, {
         paddingTopLeft: [70, 70],
         paddingBottomRight: [70, 130],
         animate: true,
-        duration: 1.0
+        duration: 2.0
       });
     } else {
       map.flyTo(cameraCenter, cameraZoom, {
         animate: true,
-        duration: 1.2
+        duration: 2.0
       });
     }
 
-    // Create glowing trace lines
+    // Outer glow halo line
     const glowLine = L.polyline([], {
       color: glowColor,
-      weight: 9,
-      opacity: 0.65,
+      weight: 8,
+      opacity: 0.6,
       lineCap: 'round',
       lineJoin: 'round'
     }).addTo(map);
 
+    // Core crisp neon line
     const mainLine = L.polyline([], {
       color: mainColor,
-      weight: 4.5,
+      weight: 4,
       opacity: 1,
       lineCap: 'round',
       lineJoin: 'round'
@@ -760,7 +816,7 @@ export default function ThesisFramework({ onSelectModule }) {
       className: 'custom-anim-lead-node',
       html: `
         <div class="relative flex items-center justify-center pointer-events-none">
-          <div class="absolute -inset-3 rounded-full animate-ping opacity-85" style="background-color: ${glowColor}"></div>
+          <div class="absolute -inset-3 rounded-full animate-ping opacity-80" style="background-color: ${glowColor}"></div>
           <div class="w-5 h-5 rounded-full border-2 border-white shadow-2xl flex items-center justify-center" style="background-color: ${mainColor}">
             <div class="w-2 h-2 rounded-full bg-white"></div>
           </div>
@@ -770,7 +826,7 @@ export default function ThesisFramework({ onSelectModule }) {
       iconAnchor: [13, 13]
     });
 
-    const leadMarker = L.marker(coords[0], {
+    const leadMarker = L.marker(sampledCoords[0], {
       icon: leadIcon,
       zIndexOffset: 3000
     }).addTo(map);
@@ -779,43 +835,38 @@ export default function ThesisFramework({ onSelectModule }) {
     animatingLayerRef.current = mainLine;
     tracerMarkerRef.current = leadMarker;
 
-    const totalPoints = coords.length;
-    // Fluid responsive trace duration (~2000ms for island, ~1400ms for smaller polygons)
-    const targetDurationMs = stepIdx === 0 ? 2400 : 1400;
-    const intervalMs = Math.max(35, Math.floor(targetDurationMs / totalPoints));
-    let currentIdx = 1;
+    const totalSteps = sampledCoords.length;
+    let stepCount = 1;
+    // Exactly 20ms per step across 120 steps = 2.4s uniform duration for EVERY card!
+    const stepIntervalMs = 20;
 
     animationTimerRef.current = setInterval(() => {
-      currentIdx++;
-      const currentPts = coords.slice(0, currentIdx);
-
-      if (isPolygon && currentIdx >= totalPoints) {
-        currentPts.push(coords[0]);
-      }
+      stepCount++;
+      const currentPts = sampledCoords.slice(0, stepCount);
 
       glowLine.setLatLngs(currentPts);
       mainLine.setLatLngs(currentPts);
 
-      const currentHead = coords[Math.min(currentIdx - 1, totalPoints - 1)];
+      const currentHead = sampledCoords[Math.min(stepCount - 1, totalSteps - 1)];
       leadMarker.setLatLng(currentHead);
 
-      const pct = Math.min(100, Math.round((currentIdx / totalPoints) * 100));
+      const pct = Math.min(100, Math.round((stepCount / totalSteps) * 100));
       setAnimProgress(pct);
 
-      const finishThreshold = isPolygon ? totalPoints + 1 : totalPoints;
-      if (currentIdx >= finishThreshold) {
+      if (stepCount >= totalSteps) {
         clearInterval(animationTimerRef.current);
         animationTimerRef.current = null;
 
         setTimeout(() => {
+          // Display the final crisp contour (identical weight: 4.5, dashArray: '6, 6' for all)
           if (stepIdx === 0 && islandLayer) {
-            islandLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#ea580c', dashArray: '8, 8' });
+            islandLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#ea580c', dashArray: '6, 6' });
           } else if (stepIdx === 1 && erosionLayer) {
-            erosionLayer.setStyle({ opacity: 1, weight: 7, color: '#dc2626', dashArray: '10, 6' });
+            erosionLayer.setStyle({ opacity: 1, weight: 5.5, color: '#dc2626', dashArray: '6, 6' });
           } else if (stepIdx === 2 && schoolLayer) {
-            schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.25, weight: 4, color: '#ef4444', dashArray: '6, 6' });
+            schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.25, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
           } else if (stepIdx === 3 && masterplanLayer) {
-            masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '8, 8' });
+            masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '6, 6' });
           }
 
           if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
@@ -824,7 +875,7 @@ export default function ThesisFramework({ onSelectModule }) {
           setIsIntroAnimating(false);
         }, 200);
       }
-    }, intervalMs);
+    }, stepIntervalMs);
   };
 
   // =========================================================================
@@ -1241,17 +1292,20 @@ export default function ThesisFramework({ onSelectModule }) {
       }
       setIsIntroAnimating(false);
 
-      if (islandLayer) islandLayer.setStyle({ opacity: activeZoneKey === 'island' ? 1 : 0.25, fillOpacity: 0, weight: 4 });
-      if (erosionLayer) erosionLayer.setStyle({ opacity: activeZoneKey === 'erosion' ? 1 : 0.25, weight: 6 });
-      if (schoolLayer) schoolLayer.setStyle({ opacity: activeZoneKey === 'school' ? 1 : 0.25, fillOpacity: activeZoneKey === 'school' ? 0.3 : 0, weight: 4 });
-      if (masterplanLayer) masterplanLayer.setStyle({ opacity: activeZoneKey === 'plateau' ? 1 : 0.25, fillOpacity: 0, weight: 4 });
-      if (customLayer) customLayer.setStyle({ opacity: activeZoneKey === 'custom' ? 1 : 0.25, fillOpacity: activeZoneKey === 'custom' ? 0.2 : 0, weight: 3.5 });
+      if (islandLayer) islandLayer.setStyle({ opacity: activeZoneKey === 'island' ? 1 : 0.2, fillOpacity: 0, weight: 4 });
+      if (erosionLayer) erosionLayer.setStyle({ opacity: activeZoneKey === 'erosion' ? 1 : 0.2, weight: 5.5 });
+      if (schoolLayer) schoolLayer.setStyle({ opacity: activeZoneKey === 'school' ? 1 : 0.2, fillOpacity: activeZoneKey === 'school' ? 0.3 : 0, weight: 4.5 });
+      if (masterplanLayer) masterplanLayer.setStyle({ opacity: activeZoneKey === 'plateau' ? 1 : 0.2, fillOpacity: 0, weight: 4.5 });
+      if (customLayer) customLayer.setStyle({ opacity: activeZoneKey === 'custom' ? 1 : 0.2, fillOpacity: activeZoneKey === 'custom' ? 0.2 : 0, weight: 3.5 });
       return;
     }
 
-    // =========================================================================
-    // IF NO CARD IS PRESSED YET (currentStepIndex === null): ALL CONTOURS OFF
-    // =========================================================================
+    // If active intro animation is tracing, do NOT overwrite styles
+    if (isIntroAnimating) {
+      return;
+    }
+
+    // If no card is pressed yet (currentStepIndex === null), all contours off
     if (currentStepIndex === null) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0, fillOpacity: 0 });
@@ -1261,88 +1315,27 @@ export default function ThesisFramework({ onSelectModule }) {
       return;
     }
 
+    // Static display when animation is not running
     if (currentStepIndex === 0) {
-      // Step 1: Delimitación Territorial (NO FILL, clean high-contrast contour)
-      if (!isIntroAnimating) {
-        const islandBounds = L.latLngBounds(delimitations.island || DEFAULT_DELIMITATIONS.island);
-        map.fitBounds(islandBounds, {
-          paddingTopLeft: [70, 70],
-          paddingBottomRight: [70, 130],
-          animate: true,
-          duration: 1.0
-        });
-        if (islandLayer) {
-          islandLayer.setStyle({
-            opacity: 1,
-            fillOpacity: 0,
-            weight: 4.5,
-            color: '#ea580c',
-            dashArray: '8, 8'
-          });
-        }
-      }
+      if (islandLayer) islandLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#ea580c', dashArray: '6, 6' });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-    } else {
-      // Steps 2, 3, 4: Cancel animation if running
-      if (animationTimerRef.current) {
-        clearInterval(animationTimerRef.current);
-        animationTimerRef.current = null;
-      }
-      if (animatingGlowRef.current) {
-        map.removeLayer(animatingGlowRef.current);
-        animatingGlowRef.current = null;
-      }
-      if (animatingLayerRef.current) {
-        map.removeLayer(animatingLayerRef.current);
-        animatingLayerRef.current = null;
-      }
-      if (tracerMarkerRef.current) {
-        map.removeLayer(tracerMarkerRef.current);
-        tracerMarkerRef.current = null;
-      }
-      setIsIntroAnimating(false);
-
-      map.flyTo(currentStep.center, currentStep.zoom, {
-        animate: true,
-        duration: currentStep.step === 2 ? 1.8 : 1.2
-      });
-
-      if (islandLayer) {
-        islandLayer.setStyle({
-          opacity: 0.2,
-          fillOpacity: 0,
-          weight: 2,
-          color: '#ea580c',
-          dashArray: '8, 8'
-        });
-      }
-
-      if (erosionLayer) {
-        erosionLayer.setStyle({
-          weight: currentStep.step === 2 ? 8 : 0,
-          opacity: currentStep.step === 2 ? 1 : 0
-        });
-      }
-
-      if (schoolLayer) {
-        schoolLayer.setStyle({
-          fillOpacity: currentStep.step === 3 ? 0.35 : 0,
-          weight: currentStep.step === 3 ? 5 : 0,
-          opacity: currentStep.step === 3 ? 1 : 0
-        });
-      }
-
-      if (masterplanLayer) {
-        masterplanLayer.setStyle({
-          fillOpacity: 0,
-          opacity: currentStep.step === 4 ? 1 : 0,
-          weight: currentStep.step === 4 ? 4.5 : 0,
-          color: '#0d9488',
-          dashArray: '8, 8'
-        });
-      }
+    } else if (currentStepIndex === 1) {
+      if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
+      if (erosionLayer) erosionLayer.setStyle({ opacity: 1, weight: 5.5, color: '#dc2626', dashArray: '6, 6' });
+      if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+    } else if (currentStepIndex === 2) {
+      if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
+      if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
+      if (schoolLayer) schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.25, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
+      if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+    } else if (currentStepIndex === 3) {
+      if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
+      if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
+      if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (masterplanLayer) masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '6, 6' });
     }
   }, [currentStepIndex, isEditMode, isIntroAnimating, activeZoneKey]);
 
