@@ -261,7 +261,7 @@ export const DEFAULT_DELIMITATIONS = {
 export const ZONE_CONFIG = {
   island: {
     id: "island",
-    name: "1. Contorno Isla Tierrabomba",
+    name: "1. Delimitación Territorial",
     type: "polygon",
     color: "#ea580c",
     fillColor: "transparent",
@@ -352,7 +352,7 @@ export const FRAMEWORK_STEPS = [
   {
     step: 4,
     id: "meseta",
-    title: "4. Meseta Segura (+22m)",
+    title: "4. Meseta Segura (+22.00m)",
     badge: "Paso 04 // Masterplan",
     targetName: "Suelo Firme Libre de Socavación",
     center: [10.3730, -75.5759],
