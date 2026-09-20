@@ -409,7 +409,7 @@ export const ZONE_CONFIG = {
     name: "4. Meseta Segura (+22.00m)",
     type: "polygon",
     color: "#0d9488",
-    fillColor: "#0d9488",
+    fillColor: "transparent",
     badge: "Cota Segura Masterplan",
     desc: "Área de implantación protegida para vivienda y colegio."
   },
@@ -432,12 +432,12 @@ export const FRAMEWORK_STEPS = [
     badge: "Paso 01 // Territorio",
     targetName: "Isla Tierrabomba (4.300 hab)",
     center: [10.352, -75.572],
-    zoom: 13,
+    zoom: 13.2,
     highlight: "island",
     modalType: "problem",
     btnLabel: "Planteamiento del Problema",
     description: "Inspección perimetral de la isla, contexto insular caribeño y diagnóstico de aislamiento.",
-    hint: "Haz clic sobre la isla delimitada para abrir el Planteamiento del Problema"
+    hint: "Haz clic en Animar Trazo para proyectar el contorno insular"
   },
   {
     step: 2,
@@ -460,7 +460,7 @@ export const FRAMEWORK_STEPS = [
     badge: "Paso 03 // Vulnerabilidad",
     targetName: "I.E. Tierrabomba en Cota +1.5m",
     center: [10.3805, -75.5761],
-    zoom: 17.5,
+    zoom: 18.5,
     highlight: "currentSchool",
     modalType: "objectives",
     btnLabel: "Objetivos de la Investigación",
@@ -474,12 +474,12 @@ export const FRAMEWORK_STEPS = [
     badge: "Paso 04 // Masterplan",
     targetName: "Suelo Firme Libre de Socavación",
     center: [10.3730, -75.5759],
-    zoom: 15.5,
+    zoom: 16.2,
     highlight: "masterplan",
     modalType: "solution",
     btnLabel: "Criterios del Masterplan",
     description: "Reubicación integral: 120 viviendas, colegio bioclimático y soberanía hídrica 450kL.",
-    hint: "Haz clic sobre el polígono verdeazulado de la meseta para abrir los Criterios"
+    hint: "Haz clic sobre el contorno verdeazulado de la meseta para abrir los Criterios"
   }
 ];
 
@@ -531,6 +531,12 @@ export default function ThesisFramework({ onSelectModule }) {
       const saved = localStorage.getItem('thesis_custom_delimitations');
       if (saved) {
         const parsed = JSON.parse(saved);
+        if (parsed.school && (parsed.school.length < 8 || (parsed.school[0] && parsed.school[0][0] < 10.37))) {
+          parsed.school = DEFAULT_DELIMITATIONS.school;
+        }
+        if (parsed.plateau && parsed.plateau.length < 12) {
+          parsed.plateau = DEFAULT_DELIMITATIONS.plateau;
+        }
         return { ...DEFAULT_DELIMITATIONS, ...parsed };
       }
     } catch (e) {
@@ -545,8 +551,8 @@ export default function ThesisFramework({ onSelectModule }) {
   const [copyToast, setCopyToast] = useState(false);
   const [deleteToast, setDeleteToast] = useState(false);
 
-  // Reference Calque Image Overlay State (Plano para calcar)
-  const [showCalque, setShowCalque] = useState(true);
+  // Reference Calque Image Overlay State (Plano para calcar - oculto por defecto para no estorbar)
+  const [showCalque, setShowCalque] = useState(false);
   const [calqueOpacity, setCalqueOpacity] = useState(0.70);
   const [calqueBounds, setCalqueBounds] = useState(DEFAULT_CALQUE_BOUNDS);
   const [showCalqueControls, setShowCalqueControls] = useState(false);
@@ -725,9 +731,9 @@ export default function ThesisFramework({ onSelectModule }) {
     animatingLayerRef.current = mainLine;
     tracerMarkerRef.current = leadMarker;
 
-    // Total animation time ~2800ms divided across coords length
+    // Total animation time ~6500ms divided across coords length for a smooth, visible, cinematic trace
     const totalPoints = islandCoords.length;
-    const intervalMs = Math.max(16, Math.floor(2800 / totalPoints));
+    const intervalMs = Math.max(50, Math.floor(6500 / totalPoints));
     let stepIndex = 1;
 
     animationTimerRef.current = setInterval(() => {
@@ -778,10 +784,10 @@ export default function ThesisFramework({ onSelectModule }) {
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
-    // Start wide from Cartagena Bay
+    // Initialize map firmly centered on Tierrabomba (no jarring camera jumps)
     const map = L.map(mapRef.current, {
-      center: [10.370, -75.542],
-      zoom: 11.8,
+      center: [10.352, -75.572],
+      zoom: 13.2,
       zoomControl: false,
       attributionControl: false
     });
@@ -798,15 +804,16 @@ export default function ThesisFramework({ onSelectModule }) {
     // Node Markers Layer Group (for editor)
     nodeMarkersGroupRef.current = L.layerGroup().addTo(map);
 
-    // Initial Resize
+    // Initial Smooth Resize
     setTimeout(() => {
       map.invalidateSize();
-    }, 150);
+      setIsIntroZooming(false);
+    }, 100);
 
     // 1. Island Perimeter Polygon (Initially hidden, revealed on Card 01 click!)
     const islandLayer = L.polygon(delimitations.island || [], {
       color: '#ea580c',
-      weight: 3.5,
+      weight: 4,
       dashArray: '8, 8',
       fillColor: '#ea580c',
       fillOpacity: 0,
@@ -855,13 +862,14 @@ export default function ThesisFramework({ onSelectModule }) {
       : [10.3805, -75.5761];
     const schoolMarker = L.marker(schoolCenter, { icon: schoolIcon, interactive: false }).addTo(map);
 
-    // 4. Safe Plateau Polygon (+22m)
+    // 4. Safe Plateau Polygon (+22m) - NO FILL, BORDER ONLY
     const masterplanLayer = L.polygon(delimitations.plateau || [], {
       color: '#0d9488',
       weight: 3.5,
+      dashArray: '8, 8',
       fillColor: '#0d9488',
       fillOpacity: 0,
-      opacity: 0,
+      opacity: 0.85,
       interactive: false
     }).addTo(map);
 
@@ -886,10 +894,11 @@ export default function ThesisFramework({ onSelectModule }) {
 
     // 5. Custom Polygon Layer
     const customLayer = L.polygon(delimitations.custom || [], {
-      color: '#6366f1',
+      color: '#06b6d4',
       weight: 3.5,
-      fillColor: '#6366f1',
-      fillOpacity: 0.25,
+      dashArray: '6, 6',
+      fillColor: '#06b6d4',
+      fillOpacity: 0.22,
       interactive: false
     }).addTo(map);
 
@@ -904,19 +913,6 @@ export default function ThesisFramework({ onSelectModule }) {
     };
 
     mapInstanceRef.current = map;
-
-    // Smooth, slow cinematic camera zoom into Tierrabomba over 4.2 seconds!
-    // No delimitations are shown during this initial approach.
-    setTimeout(() => {
-      map.flyTo([10.352, -75.572], 13.2, {
-        animate: true,
-        duration: 4.2,
-        easeLinearity: 0.25
-      });
-      setTimeout(() => {
-        setIsIntroZooming(false);
-      }, 4300);
-    }, 200);
 
     return () => {
       if (animationTimerRef.current) clearInterval(animationTimerRef.current);
@@ -1204,8 +1200,11 @@ export default function ThesisFramework({ onSelectModule }) {
 
     if (masterplanLayer) {
       masterplanLayer.setStyle({
-        fillOpacity: currentStep.step === 4 ? 0.45 : 0.15,
-        weight: currentStep.step === 4 ? 5 : 2
+        fillOpacity: 0,
+        opacity: currentStep.step === 4 ? 1 : 0.65,
+        weight: currentStep.step === 4 ? 4.5 : 3,
+        color: '#0d9488',
+        dashArray: '8, 8'
       });
     }
   }, [currentStepIndex, isEditMode, isIntroAnimating]);
