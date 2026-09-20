@@ -241,10 +241,14 @@ export const DEFAULT_DELIMITATIONS = {
     [10.34204, -75.59229]
   ],
   school: [
-    [10.3630, -75.5818],
-    [10.3630, -75.5802],
-    [10.3615, -75.5802],
-    [10.3615, -75.5818]
+    [10.38053, -75.57612],
+    [10.38061, -75.57617],
+    [10.38051, -75.57630],
+    [10.38042, -75.57622],
+    [10.38045, -75.57614],
+    [10.38040, -75.57608],
+    [10.38049, -75.57590],
+    [10.38059, -75.57592]
   ],
   plateau: [
     [10.37487, -75.57396],
@@ -455,8 +459,8 @@ export const FRAMEWORK_STEPS = [
     title: "3. Colegio Actual en Riesgo",
     badge: "Paso 03 // Vulnerabilidad",
     targetName: "I.E. Tierrabomba en Cota +1.5m",
-    center: [10.362, -75.581],
-    zoom: 15,
+    center: [10.3805, -75.5761],
+    zoom: 17.5,
     highlight: "currentSchool",
     modalType: "objectives",
     btnLabel: "Objetivos de la Investigación",
@@ -846,7 +850,10 @@ export default function ThesisFramework({ onSelectModule }) {
       iconAnchor: [18, 18]
     });
 
-    const schoolMarker = L.marker([10.362, -75.581], { icon: schoolIcon, interactive: false }).addTo(map);
+    const schoolCenter = (delimitations.school && delimitations.school.length > 0) 
+      ? delimitations.school[0] 
+      : [10.3805, -75.5761];
+    const schoolMarker = L.marker(schoolCenter, { icon: schoolIcon, interactive: false }).addTo(map);
 
     // 4. Safe Plateau Polygon (+22m)
     const masterplanLayer = L.polygon(delimitations.plateau || [], {
@@ -1178,12 +1185,20 @@ export default function ThesisFramework({ onSelectModule }) {
       }
     }
 
-    const { erosionLayer, masterplanLayer } = layersRef.current;
+    const { erosionLayer, schoolLayer, masterplanLayer } = layersRef.current;
 
     if (erosionLayer) {
       erosionLayer.setStyle({
         weight: currentStep.step === 2 ? 8 : 4,
         opacity: currentStep.step === 2 ? 1 : 0.4
+      });
+    }
+
+    if (schoolLayer) {
+      schoolLayer.setStyle({
+        fillOpacity: currentStep.step === 3 ? 0.45 : 0.2,
+        weight: currentStep.step === 3 ? 5 : 3.5,
+        opacity: currentStep.step === 3 ? 1 : 0.7
       });
     }
 
