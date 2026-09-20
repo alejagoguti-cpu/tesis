@@ -173,7 +173,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
 
   // Active state
   const [selectedBandId, setSelectedBandId] = useState('ndvi');
-  const [spectralDisplayMode, setSpectralDisplayMode] = useState('swipe'); // 'swipe' | 'overlay' | 'scanner'
+  const [spectralDisplayMode, setSpectralDisplayMode] = useState('overlay'); // 'overlay' | 'swipe' | 'scanner'
   const [swipePosition, setSwipePosition] = useState(50); // 0 to 100%
   const [isDraggingSwipe, setIsDraggingSwipe] = useState(false);
   const [filterIntensity, setFilterIntensity] = useState(100); // 10% to 100%
@@ -659,16 +659,6 @@ export default function DiagnosisMap({ onNavigateModule }) {
               </span>
               <div className="flex items-center p-0.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono">
                 <button
-                  onClick={() => setSpectralDisplayMode('swipe')}
-                  className={`px-3 py-1 rounded-lg font-bold flex items-center space-x-1.5 transition-all ${
-                    spectralDisplayMode === 'swipe' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <SlidersHorizontal className="w-3 h-3 text-amber-400" />
-                  <span>Cortina Swipe</span>
-                </button>
-
-                <button
                   onClick={() => setSpectralDisplayMode('overlay')}
                   className={`px-3 py-1 rounded-lg font-bold flex items-center space-x-1.5 transition-all ${
                     spectralDisplayMode === 'overlay' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
@@ -676,6 +666,16 @@ export default function DiagnosisMap({ onNavigateModule }) {
                 >
                   <Layers className="w-3 h-3 text-teal-400" />
                   <span>Superposición Total</span>
+                </button>
+
+                <button
+                  onClick={() => setSpectralDisplayMode('swipe')}
+                  className={`px-3 py-1 rounded-lg font-bold flex items-center space-x-1.5 transition-all ${
+                    spectralDisplayMode === 'swipe' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <SlidersHorizontal className="w-3 h-3 text-amber-400" />
+                  <span>Cortina Swipe</span>
                 </button>
 
                 <button
