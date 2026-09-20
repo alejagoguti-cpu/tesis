@@ -3,23 +3,23 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 
 /**
  * Generador 3D Territorial: Bahía de Cartagena & Isla de Tierra Bomba
- * Construido con 25.000+ edificaciones reales extruidas en 3D volumétrico,
- * 4.745 manzanas, 3.880 vías y 234 masas de tierra 100% REALES del Catastro AMB Cartagena 2026.
+ * Construido con 35.000+ edificaciones reales extruidas en 3D volumétrico,
+ * 3.460 manzanas, 2.513 vías y 108 masas de tierra 100% REALES del Catastro AMB Cartagena 2026.
  */
 
 // Topographic elevation function (Cerro de la Popa +150m & Tierra Bomba hills)
 function getTopographicElevation(x3D, yMap) {
   // Cerro de la Popa (Cartagena continental +150m)
-  const popaDist = Math.hypot(x3D - 42, yMap - (-16));
-  if (popaDist < 18) {
-    const factor = Math.cos((popaDist / 18) * (Math.PI / 2));
-    return parseFloat((factor * factor * 4.5).toFixed(2));
+  const popaDist = Math.hypot(x3D - 60, yMap - 108);
+  if (popaDist < 22) {
+    const factor = Math.cos((popaDist / 22) * (Math.PI / 2));
+    return parseFloat((factor * factor * 5.5).toFixed(2));
   }
-  // Tierra Bomba central hills
-  const tbDist = Math.hypot(x3D - (-18), yMap - 8);
-  if (tbDist < 25) {
-    const factor = Math.cos((tbDist / 25) * (Math.PI / 2));
-    return parseFloat((factor * 0.8).toFixed(2));
+  // Tierra Bomba central hills (+45m)
+  const tbDist = Math.hypot(x3D - (-35), yMap - (-65));
+  if (tbDist < 45) {
+    const factor = Math.cos((tbDist / 45) * (Math.PI / 2));
+    return parseFloat((factor * factor * 2.2).toFixed(2));
   }
   return 0;
 }
@@ -33,18 +33,16 @@ export async function buildCartagenaTerritoryScene({
     water: true,
     boats: false,
     vehicles: false,
-    trees: true,
     noise: false,
     grid: false,
   },
   colors = {
     water: '#88a2b5',
-    roads: '#b7babd',
-    terrain: '#4a7856',
+    roads: '#64748b',
+    terrain: '#3b6e4a',
     buildings: '#ffffff',
-    roofs: '#b5714a',
-    trees: '#5c8f52',
-    manzanas: '#8a8f96',
+    roofs: '#c2613b',
+    manzanas: '#828b94',
     vehicles: '#e2635a',
     boats: '#24c8bd',
   },
@@ -61,7 +59,7 @@ export async function buildCartagenaTerritoryScene({
     noiseMesh: null,
   };
 
-  onProgress(10, 'Descargando base vectorial Catastro AMB Cartagena (25.000+ edificios 3D)...');
+  onProgress(10, 'Descargando base vectorial Catastro AMB Cartagena (35.000+ edificios 3D)...');
 
   // Load real Catastro dataset
   const basePath = import.meta.env.BASE_URL || '/';
@@ -95,7 +93,7 @@ export async function buildCartagenaTerritoryScene({
       clippingPlanes,
     }),
     manzanas: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.manzanas || '#8a8f96'),
+      color: new THREE.Color(colors.manzanas || '#828b94'),
       roughness: 0.75,
       metalness: 0.05,
       polygonOffset: true,
@@ -105,7 +103,7 @@ export async function buildCartagenaTerritoryScene({
       clippingPlanes,
     }),
     roads: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.roads),
+      color: new THREE.Color(colors.roads || '#64748b'),
       roughness: 0.45,
       metalness: 0.08,
       polygonOffset: true,
@@ -133,20 +131,15 @@ export async function buildCartagenaTerritoryScene({
       clippingPlanes,
     }),
     buildingsVernacular: new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#f8fafc'),
+      color: new THREE.Color('#fef3c7'),
       roughness: 0.8,
       metalness: 0.02,
       clippingPlanes,
     }),
     colonialRoof: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.roofs),
+      color: new THREE.Color(colors.roofs || '#c2613b'),
       roughness: 0.6,
       metalness: 0.1,
-      clippingPlanes,
-    }),
-    treeFoliage: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.trees),
-      roughness: 0.85,
       clippingPlanes,
     }),
     boatHull: new THREE.MeshStandardMaterial({
@@ -173,7 +166,7 @@ export async function buildCartagenaTerritoryScene({
   // -------------------------------------------------------------
   // 1. CUERPO DE AGUA REAL (Bahía de Cartagena & Mar Caribe)
   // -------------------------------------------------------------
-  const waterGeo = new THREE.PlaneGeometry(450, 450, 32, 32);
+  const waterGeo = new THREE.PlaneGeometry(600, 600, 32, 32);
   const waterMesh = new THREE.Mesh(waterGeo, mats.water);
   waterMesh.name = "Water";
   waterMesh.rotation.x = -Math.PI / 2;
@@ -184,7 +177,7 @@ export async function buildCartagenaTerritoryScene({
   animatedObjects.waterMeshes.push(waterMesh);
 
   // -------------------------------------------------------------
-  // 2. MASAS DE TIERRA & TOPOGRAFÍA REAL (234 Polígonos de Costas e Islas)
+  // 2. MASAS DE TIERRA & TOPOGRAFÍA REAL (108 Polígonos de Costas e Islas)
   // -------------------------------------------------------------
   onProgress(45, 'Generando topografía real de Tierra Bomba y Cartagena...');
   const landGeometries = [];
@@ -219,9 +212,9 @@ export async function buildCartagenaTerritoryScene({
   }
 
   // -------------------------------------------------------------
-  // 3. MANZANAS CATASTRALES REALES (Manzana.shp - 4.745 Manzanas)
+  // 3. MANZANAS CATASTRALES REALES (Manzana.shp - 3.460 Manzanas)
   // -------------------------------------------------------------
-  onProgress(55, 'Construyendo 4.745 manzanas catastrales reales...');
+  onProgress(55, 'Construyendo 3.460 manzanas catastrales reales...');
   const manzanaGeometries = [];
 
   if (catastroData.manzanas && Array.isArray(catastroData.manzanas)) {
@@ -254,11 +247,11 @@ export async function buildCartagenaTerritoryScene({
   }
 
   // -------------------------------------------------------------
-  // 4. RED VIAL REAL (Nomenclaturavial.shp - 3.880 Vías)
+  // 4. RED VIAL REAL (Nomenclaturavial.shp - 2.513 Vías)
   // -------------------------------------------------------------
-  onProgress(70, 'Trazando 3.880 ejes viales oficiales...');
+  onProgress(70, 'Trazando 2.513 ejes viales oficiales...');
   const roadGeometries = [];
-  const roadHalfWidth = 0.28;
+  const roadHalfWidth = 0.35;
 
   if (catastroData.roads && Array.isArray(catastroData.roads)) {
     catastroData.roads.forEach((line) => {
@@ -296,9 +289,9 @@ export async function buildCartagenaTerritoryScene({
   }
 
   // -------------------------------------------------------------
-  // 5. EDIFICACIONES REALES EXTRUIDAS EN 3D (25.000 Edificios Volumétricos)
+  // 5. EDIFICACIONES REALES EXTRUIDAS EN 3D (35.000 Edificios Volumétricos)
   // -------------------------------------------------------------
-  onProgress(82, 'Extruyendo 25.000 edificaciones 3D reales con alturas...');
+  onProgress(82, 'Extruyendo 35.000 edificaciones 3D reales con alturas...');
   const skyscraperGeoms = [];
   const residentialGeoms = [];
   const urbanGeoms = [];
@@ -316,7 +309,7 @@ export async function buildCartagenaTerritoryScene({
         shape.lineTo(ring[i][0], ring[i][1]);
       }
 
-      const height = b.h || 0.8;
+      const height = b.h || 1.0;
       const elev = b.e || 0;
 
       const extrudeSettings = {
@@ -336,10 +329,10 @@ export async function buildCartagenaTerritoryScene({
         centroBuildingGeoms.push(geom);
       } else if (b.t === 'modern_residential') {
         residentialGeoms.push(geom);
-      } else if (b.t === 'urban') {
-        urbanGeoms.push(geom);
-      } else {
+      } else if (b.t === 'vernacular') {
         vernacularGeoms.push(geom);
+      } else {
+        urbanGeoms.push(geom);
       }
     });
   }
@@ -391,72 +384,16 @@ export async function buildCartagenaTerritoryScene({
   territoryGroup.add(buildingsGroup);
 
   // -------------------------------------------------------------
-  // 6. VEGETACIÓN & COBERTURA BOTÁNICA (Manglares & Bosque Seco)
-  // -------------------------------------------------------------
-  const vegetationGroup = new THREE.Group();
-  vegetationGroup.name = "Vegetation";
-
-  const treeClusters = [
-    { cx: 42, cz: -16, radius: 14, count: 120 }, // Cerro de la Popa
-    { cx: 45, cz: -15, radius: 8, count: 50 },   // Manga
-    { cx: 35, cz: -25, radius: 6, count: 40 },   // Parque Centenario
-    { cx: -15, cz: 10, radius: 15, count: 90 },  // Tierra Bomba meseta
-    { cx: -25, cz: 35, radius: 10, count: 50 },  // Bocachica colina
-  ];
-
-  const treeFoliageGeos = [];
-  const sphereBase = new THREE.DodecahedronGeometry(0.6, 1);
-
-  treeClusters.forEach((cl) => {
-    for (let i = 0; i < cl.count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const r = Math.sqrt(Math.random()) * cl.radius;
-      const x = cl.cx + Math.cos(angle) * r;
-      const z = cl.cz + Math.sin(angle) * r;
-      const scale = 0.8 + Math.random() * 0.8;
-      const elev = getTopographicElevation(x, -z);
-
-      const g = sphereBase.clone();
-      g.scale(scale, scale * 1.3, scale);
-      g.translate(x, 0.4 * scale + elev, z);
-      treeFoliageGeos.push(g);
-    }
-  });
-
-  if (treeFoliageGeos.length > 0) {
-    const mergedTrees = BufferGeometryUtils.mergeGeometries(treeFoliageGeos, false);
-    const treesMesh = new THREE.Mesh(mergedTrees, mats.treeFoliage);
-    treesMesh.castShadow = true;
-    treesMesh.receiveShadow = true;
-    vegetationGroup.add(treesMesh);
-  }
-
-  vegetationGroup.visible = activeLayers.trees !== false;
-  territoryGroup.add(vegetationGroup);
-
-  // -------------------------------------------------------------
-  // 7. MAPA DE RUIDO & ISÓFONAS ACÚSTICAS (Overlay)
+  // 6. MAPA DE RUIDO & ISÓFONAS ACÚSTICAS (Overlay Opcional)
   // -------------------------------------------------------------
   const noiseGroup = new THREE.Group();
   noiseGroup.name = "NoiseMapGroup";
 
-  const noiseGeo1 = new THREE.RingGeometry(4, 48, 32);
+  const noiseGeo1 = new THREE.RingGeometry(10, 80, 32);
   const noiseMesh1 = new THREE.Mesh(noiseGeo1, mats.noiseHeatmap);
   noiseMesh1.rotation.x = -Math.PI / 2;
-  noiseMesh1.position.set(20, 0.08, -5);
+  noiseMesh1.position.set(10, 0.08, -50);
   noiseGroup.add(noiseMesh1);
-
-  const noiseGeo2 = new THREE.RingGeometry(1, 15, 32);
-  const noiseMesh2 = new THREE.Mesh(noiseGeo2, new THREE.MeshBasicMaterial({
-    color: new THREE.Color('#eab308'),
-    transparent: true,
-    opacity: 0.4,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-  }));
-  noiseMesh2.rotation.x = -Math.PI / 2;
-  noiseMesh2.position.set(-10, 0.08, 5);
-  noiseGroup.add(noiseMesh2);
 
   noiseGroup.visible = !!activeLayers.noise;
   territoryGroup.add(noiseGroup);
@@ -464,15 +401,13 @@ export async function buildCartagenaTerritoryScene({
 
   // Add all to root scene
   sceneRoot.add(territoryGroup);
-  onProgress(100, `Modelo 3D Catastro AMB (${catastroData.meta.counts.buildings} edificios 3D) listo a 60 FPS`);
+  onProgress(100, `Modelo 3D Catastro AMB (${catastroData.meta.counts.buildings} edificios 3D) listo`);
 
   return {
     group: territoryGroup,
     animatedObjects,
     mats,
-    update: (speedMultiplier = 1.0) => {
-      // No continuous simulation when idle
-    },
+    update: () => {},
     setWaterColor: (hex) => {
       if (mats.water) mats.water.color.set(hex);
     },
@@ -481,7 +416,6 @@ export async function buildCartagenaTerritoryScene({
     },
     setGreenColor: (hex) => {
       if (mats.terrain) mats.terrain.color.set(hex);
-      if (mats.treeFoliage) mats.treeFoliage.color.set(hex);
     },
     setNoiseMapVisible: (visible) => {
       if (animatedObjects.noiseMesh) {
@@ -491,7 +425,7 @@ export async function buildCartagenaTerritoryScene({
     setClimateMonth: (monthIndex) => {
       const wetness = 0.5 + 0.5 * Math.sin((monthIndex - 3) * (Math.PI / 6));
       mats.water.color.set(wetness > 0.6 ? '#6a8ea8' : colors.water);
-      mats.terrain.color.set(wetness > 0.7 ? '#3e6b47' : colors.terrain);
+      mats.terrain.color.set(wetness > 0.7 ? '#345e3f' : colors.terrain);
     },
   };
 }
@@ -499,7 +433,7 @@ export async function buildCartagenaTerritoryScene({
 // Synthetic fallback for offline environments
 function generateSyntheticFallback() {
   return {
-    meta: { counts: { buildings: 100, manzanas: 50, roads: 40 } },
+    meta: { counts: { buildings: 0, manzanas: 0, roads: 0 } },
     landmasses: [],
     manzanas: [],
     roads: [],

@@ -232,7 +232,7 @@ export default function ModelViewer3D({ onSelectModule }) {
       if (territory.setClimateMonth) territory.setClimateMonth(climateMonth);
 
       // Centrar y encuadrar todo el sistema de la bahía (Cartagena - Tierrabomba)
-      rootContainer.position.set(5, 0, 0);
+      rootContainer.position.set(0, 0, 0);
 
       scene.add(rootContainer);
       currentModelGroupRef.current = rootContainer;
@@ -590,14 +590,14 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     // Cámara Ortográfica para Proyección Axonométrica Paralela a 35° (sin distorsión de perspectiva)
     const aspect = container.clientWidth / container.clientHeight;
-    let viewSize = selected3DModel === 'revit' ? 48 : 22;
+    let viewSize = selected3DModel === 'revit' ? 130 : 22;
     const camera = new THREE.OrthographicCamera(
       -viewSize * aspect,
       viewSize * aspect,
       viewSize,
       -viewSize,
       0.1,
-      1000
+      2000
     );
     cameraRef.current = camera;
 
@@ -629,13 +629,13 @@ export default function ModelViewer3D({ onSelectModule }) {
     container.appendChild(renderer.domElement);
 
     // Iluminación Solar con Acimut y Altura
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x334155, 0.8);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x334155, 0.85);
     scene.add(hemiLight);
 
     const dirLight = new THREE.DirectionalLight(0xfffaed, sunIntensity);
     const radAz = (sunAzimuth * Math.PI) / 180;
     const radEl = (sunElevation * Math.PI) / 180;
-    const dist = 90;
+    const dist = selected3DModel === 'revit' ? 220 : 90;
     dirLight.position.set(
       dist * Math.cos(radAz) * Math.cos(radEl),
       dist * Math.sin(radEl),
@@ -644,12 +644,12 @@ export default function ModelViewer3D({ onSelectModule }) {
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
-    dirLight.shadow.camera.near = 0.5;
-    dirLight.shadow.camera.far = 250;
-    dirLight.shadow.camera.left = -90;
-    dirLight.shadow.camera.right = 90;
-    dirLight.shadow.camera.top = 90;
-    dirLight.shadow.camera.bottom = -90;
+    dirLight.shadow.camera.near = 1;
+    dirLight.shadow.camera.far = 500;
+    dirLight.shadow.camera.left = -160;
+    dirLight.shadow.camera.right = 160;
+    dirLight.shadow.camera.top = 160;
+    dirLight.shadow.camera.bottom = -160;
     scene.add(dirLight);
     objectsRef.current.dirLight = dirLight;
 
@@ -669,10 +669,10 @@ export default function ModelViewer3D({ onSelectModule }) {
     let prevMousePos = { x: 0, y: 0 };
     // Ángulo axonométrico panorámico de Cartagena mirando hacia el noreste
     let spherical = selected3DModel === 'revit'
-      ? { radius: 88, theta: -Math.PI * 0.42, phi: Math.PI * 48 / 180 }
+      ? { radius: 220, theta: -Math.PI * 0.40, phi: Math.PI * 45 / 180 }
       : { radius: 45, theta: Math.PI / 4, phi: Math.PI * 55 / 180 };
     let panTarget = selected3DModel === 'revit'
-      ? { x: 26, y: 0, z: -8 }
+      ? { x: 5, y: 0, z: -10 }
       : { x: 0, y: 1.5, z: 0 };
 
     const updateCameraPosition = () => {
@@ -725,7 +725,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     const onWheel = (e) => {
       e.preventDefault();
       const zoomFactor = e.deltaY > 0 ? 1.08 : 0.92;
-      viewSize = Math.max(5, Math.min(80, viewSize * zoomFactor));
+      viewSize = Math.max(5, Math.min(280, viewSize * zoomFactor));
       const currentAspect = container.clientWidth / container.clientHeight;
       camera.left = -viewSize * currentAspect;
       camera.right = viewSize * currentAspect;
@@ -962,7 +962,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     if (!cameraRef.current || !mountRef.current) return;
     const container = mountRef.current;
     const aspect = container.clientWidth / container.clientHeight;
-    const viewSize = 46;
+    const viewSize = 130;
     const camera = cameraRef.current;
     if (camera.isOrthographicCamera) {
       camera.left = -viewSize * aspect;
@@ -972,8 +972,8 @@ export default function ModelViewer3D({ onSelectModule }) {
       camera.updateProjectionMatrix();
     }
 
-    const spherical = { radius: 88, theta: -Math.PI * 0.42, phi: Math.PI * 48 / 180 };
-    const panTarget = { x: 26, y: 0, z: -8 };
+    const spherical = { radius: 220, theta: -Math.PI * 0.40, phi: Math.PI * 45 / 180 };
+    const panTarget = { x: 5, y: 0, z: -10 };
     camera.position.x = panTarget.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
     camera.position.y = panTarget.y + spherical.radius * Math.cos(spherical.phi);
     camera.position.z = panTarget.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
