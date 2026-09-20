@@ -59,15 +59,49 @@ export async function buildCartagenaTerritoryScene({
     catastroData = generateSyntheticFallback();
   }
 
+  // Animated Water Shader Uniforms (GPU vertex displacement and normal caustics)
+  const waterUniforms = {
+    uTime: { value: 0.0 },
+  };
+
+  const waterMat = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(colors.water),
+    roughness: 0.18,
+    metalness: 0.28,
+    side: THREE.DoubleSide,
+    clippingPlanes,
+  });
+
+  waterMat.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = waterUniforms.uTime;
+    shader.vertexShader = `
+      uniform float uTime;
+      ${shader.vertexShader}
+    `;
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      `
+      #include <begin_vertex>
+      // Multi-harmonic ocean swell and dynamic wave ripples
+      float waveA = sin(transformed.x * 0.06 + uTime * 1.6 + transformed.y * 0.05) * 0.18;
+      float waveB = cos(transformed.x * 0.14 - uTime * 2.2 + transformed.y * 0.10) * 0.09;
+      float waveC = sin(transformed.x * 0.28 + transformed.y * 0.24 + uTime * 3.0) * 0.04;
+      transformed.z += (waveA + waveB + waveC);
+
+      // Dynamic normal perturbation for shimmering sunlight caustics
+      float dAx = 0.06 * cos(transformed.x * 0.06 + uTime * 1.6 + transformed.y * 0.05) * 0.18;
+      float dAy = 0.05 * cos(transformed.x * 0.06 + uTime * 1.6 + transformed.y * 0.05) * 0.18;
+      float dBx = -0.14 * sin(transformed.x * 0.14 - uTime * 2.2 + transformed.y * 0.10) * 0.09;
+      float dBy = 0.10 * -sin(transformed.x * 0.14 - uTime * 2.2 + transformed.y * 0.10) * 0.09;
+      vec3 waveNormal = normalize(vec3(-(dAx + dBx), -(dAy + dBy), 1.0));
+      objectNormal = waveNormal;
+      `
+    );
+  };
+
   // Pure architectural standard materials (Museum Masterplan Standard)
   const mats = {
-    water: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.water),
-      roughness: 0.20,
-      metalness: 0.20,
-      side: THREE.DoubleSide,
-      clippingPlanes,
-    }),
+    water: waterMat,
     terrain: new THREE.MeshStandardMaterial({
       color: new THREE.Color(colors.terrain),
       roughness: 0.85,
@@ -135,13 +169,13 @@ export async function buildCartagenaTerritoryScene({
   };
 
   // -------------------------------------------------------------
-  // 1. CUERPO DE AGUA REAL (Bahía de Cartagena & Mar Caribe)
+  // 1. CUERPO DE AGUA REAL ANIMADO (Bahía de Cartagena & Mar Caribe)
   // -------------------------------------------------------------
-  const waterGeo = new THREE.PlaneGeometry(650, 650, 8, 8);
+  const waterGeo = new THREE.PlaneGeometry(650, 650, 160, 160);
   const waterMesh = new THREE.Mesh(waterGeo, mats.water);
   waterMesh.name = "Water";
   waterMesh.rotation.x = -Math.PI / 2;
-  waterMesh.position.y = -0.01;
+  waterMesh.position.y = -0.06;
   waterMesh.receiveShadow = true;
   waterMesh.visible = activeLayers.water !== false;
   territoryGroup.add(waterMesh);
@@ -367,7 +401,9 @@ export async function buildCartagenaTerritoryScene({
     group: territoryGroup,
     animatedObjects,
     mats,
-    update: () => {},
+    update: (speedMultiplier = 1.0) => {
+      waterUniforms.uTime.value += 0.018 * speedMultiplier;
+    },
     setWaterColor: (hex) => {
       if (mats.water) mats.water.color.set(hex);
     },

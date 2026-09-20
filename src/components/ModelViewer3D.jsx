@@ -754,8 +754,8 @@ export default function ModelViewer3D({ onSelectModule }) {
     let reqId;
     const animate = () => {
       reqId = requestAnimationFrame(animate);
-      if (cartagenaTerritoryRef.current && isPlayingSimulationRef.current) {
-        cartagenaTerritoryRef.current.update(simulationSpeedRef.current);
+      if (cartagenaTerritoryRef.current) {
+        cartagenaTerritoryRef.current.update(isPlayingSimulationRef.current ? simulationSpeedRef.current : 1.0);
       }
       if (currentModelGroupRef.current && !isDragging && selected3DModel !== 'revit') {
         currentModelGroupRef.current.rotation.y += 0.0005; // subtle idle rotation for modules
