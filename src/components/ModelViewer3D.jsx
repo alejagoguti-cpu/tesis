@@ -1085,16 +1085,16 @@ export default function ModelViewer3D({ onSelectModule }) {
 
   const modelDetails = {
     revit: {
-      title: "Simulación 3D Territorial — Bahía de Cartagena & Tierra Bomba",
-      capacity: "Escala Metropolitana & Bahía Insular",
-      area: "Bahía de Cartagena, Bocagrande, Manga, Centro & Isla de Tierra Bomba",
+      title: "Cartografía 3D Territorial — Cartagena + Tierra Bomba (Catastro AMB)",
+      capacity: "Catastro Multipropósito AMB Cartagena 2026 (GDB & SHP)",
+      area: "Isla de Tierra Bomba (Bocachica, Caño de Oro, Punta Arenas, Tierrabomba) + Bahía de Cartagena",
       specs: [
-        { label: "Tránsito Marítimo", value: "3 Rutas de Lanchas en Vivo" },
-        { label: "Topografía", value: "Continental + Meseta Insular" },
-        { label: "Patrimonio", value: "Murallas, Castillo & Fuertes" },
-        { label: "Urbanismo", value: "Rascacielos & Caseríos Insulares" }
+        { label: "Base Cartográfica", value: "Catastro AMB Cartagena" },
+        { label: "Proyección", value: "MAGNA-SIRGAS (EPSG:9377)" },
+        { label: "Capas Vectoriales", value: "Construcción, Manzanas, Vías" },
+        { label: "Tránsito Marítimo", value: "3 Rutas Lanchas en Vivo" }
       ],
-      desc: "Simulación tridimensional interactiva inspirada en el modelamiento territorial a escala urbana. Integra el cuerpo de agua de la bahía de Cartagena, el mar Caribe, las masas continentales e insulares, el tejido vial, las murallas históricas, la silueta de rascacielos y el flujo continuo de embarcaciones hacia los 4 asentamientos de Tierra Bomba."
+      desc: "Modelo tridimensional territorial integrado con la base cartográfica oficial del Catastro Multipropósito del Área Metropolitana / Alcaldía de Cartagena (AMB). Articula la delimitación de los corregimientos insulares (Tierra Bomba, Bocachica, Caño de Oro y Punta Arenas), el trazado parcelario y de manzanas (Manzana.shp), los ejes viales y nomenclatura (Nomenclaturavial.shp), las huellas de construcciones (Construccion.shp), la topografía continental e insular y el sistema hidrográfico de la Bahía con simulación de transporte marítimo y vehicular en tiempo real."
     },
     masterplan: {
       title: "Masterplan Arquitectónico BIM (Tierra Bomba)",
@@ -1230,7 +1230,7 @@ export default function ModelViewer3D({ onSelectModule }) {
             <div className="flex items-center space-x-2">
               <h1 className="font-bold text-sm text-white tracking-wide truncate">
                 {selected3DModel === 'revit'
-                  ? 'Simulación 3D Territorial — Cartagena & Tierra Bomba'
+                  ? 'Cartagena + Tierra Bomba (Catastro AMB)'
                   : selected3DModel === 'masterplan'
                   ? 'Corte axonométrico — Masterplan Tierrabomba'
                   : selected3DModel === 'colegio'
@@ -1238,12 +1238,12 @@ export default function ModelViewer3D({ onSelectModule }) {
                   : 'Prototipo Vivienda Palafítica'}
               </h1>
               <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#24c8bd]/20 text-[#24c8bd] border border-[#24c8bd]/30 shrink-0">
-                {selected3DModel === 'revit' ? 'TERRITORIO 3D' : 'AXONO 35°'}
+                {selected3DModel === 'revit' ? 'CATASTRO AMB 3D' : 'AXONO 35°'}
               </span>
             </div>
             <p className="text-[11px] text-slate-400 truncate mt-0.5 font-sans">
               {selected3DModel === 'revit'
-                ? 'Bahía de Cartagena & Tierrabomba • Lanchas en vivo • Arrastra para girar • Rueda para zoom • Clic derecho para mover'
+                ? 'Catastro Oficial AMB Cartagena (MAGNA-SIRGAS EPSG:9377) • Manzanas, Vías & Edificaciones • Lanchas en vivo'
                 : 'Proyección axonométrica a 35° • Arrastra para girar • Rueda para zoom • Clic derecho para mover'}
             </p>
           </div>
@@ -1264,7 +1264,7 @@ export default function ModelViewer3D({ onSelectModule }) {
               }`}
             >
               <Ship className="w-3.5 h-3.5" />
-              <span>Cartagena + Tierrabomba</span>
+              <span>Cartagena + Tierra Bomba</span>
             </button>
             <button
               onClick={() => {
@@ -1342,6 +1342,16 @@ export default function ModelViewer3D({ onSelectModule }) {
             </button>
           </div>
 
+          {/* Botón Ficha Técnica Catastral */}
+          <button
+            onClick={() => setShowInfoModal(true)}
+            className="px-3 py-2 rounded-2xl text-xs font-mono font-bold bg-[#24c8bd]/20 hover:bg-[#24c8bd]/30 text-[#24c8bd] border border-[#24c8bd]/40 transition-all flex items-center space-x-1.5 shadow-xl hover:scale-[1.02] active:scale-95"
+            title="Ver Ficha Técnica y Metadatos Catastrales AMB"
+          >
+            <Info className="w-3.5 h-3.5" />
+            <span>Ficha Técnica</span>
+          </button>
+
           {/* Botón Principal: Restablecer Vista Axonométrica (a 35°) */}
           <button
             onClick={resetAxonometricView}
@@ -1363,7 +1373,7 @@ export default function ModelViewer3D({ onSelectModule }) {
             Capas 3D Visibles
           </span>
           <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-slate-300 border border-white/10">
-            {selected3DModel === 'revit' ? 'Territorio Regional' : selected3DModel === 'masterplan' ? 'Masterplan BIM' : selected3DModel === 'custom' ? 'Revit Custom' : 'Módulo BIM'}
+            {selected3DModel === 'revit' ? 'Catastro AMB (EPSG:9377)' : selected3DModel === 'masterplan' ? 'Masterplan BIM' : selected3DModel === 'custom' ? 'Revit Custom' : 'Módulo BIM'}
           </span>
         </div>
 
@@ -1382,8 +1392,8 @@ export default function ModelViewer3D({ onSelectModule }) {
                 <div className="flex items-center space-x-2 text-left">
                   <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0 shadow-sm" />
                   <div>
-                    <span className="block font-bold">Bahía & Océano</span>
-                    <span className="text-[9px] text-blue-400/80 font-normal">Plano de Agua 3D</span>
+                    <span className="block font-bold">Bahía & Mar Caribe</span>
+                    <span className="text-[9px] text-blue-400/80 font-normal">Plano Hidrográfico AMB</span>
                   </div>
                 </div>
                 {activeLayers.water ? <Eye className="w-3.5 h-3.5 text-blue-400" /> : <EyeOff className="w-3.5 h-3.5" />}
@@ -1401,8 +1411,8 @@ export default function ModelViewer3D({ onSelectModule }) {
                 <div className="flex items-center space-x-2 text-left">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#477857] shrink-0 shadow-sm" />
                   <div>
-                    <span className="block font-bold">Topografía Insular</span>
-                    <span className="text-[9px] text-emerald-400/80 font-normal">Tierrabomba & Cartagena</span>
+                    <span className="block font-bold">Topografía & Meseta</span>
+                    <span className="text-[9px] text-emerald-400/80 font-normal">Isla Tierra Bomba (+22m)</span>
                   </div>
                 </div>
                 {activeLayers.terrain ? <Eye className="w-3.5 h-3.5 text-emerald-400" /> : <EyeOff className="w-3.5 h-3.5" />}
@@ -1420,14 +1430,14 @@ export default function ModelViewer3D({ onSelectModule }) {
                 <div className="flex items-center space-x-2 text-left">
                   <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 shadow-sm border border-slate-400" />
                   <div>
-                    <span className="block font-bold">Red Vial & Avenidas</span>
-                    <span className="text-[9px] text-slate-400 font-normal">Bocagrande, Manga, Popa</span>
+                    <span className="block font-bold">Red Vial & Ejes</span>
+                    <span className="text-[9px] text-slate-400 font-normal">Nomenclaturavial.shp</span>
                   </div>
                 </div>
                 {activeLayers.walls ? <Eye className="w-3.5 h-3.5 text-slate-200" /> : <EyeOff className="w-3.5 h-3.5" />}
               </button>
 
-              {/* Capa Rascacielos & Masas */}
+              {/* Capa Edificaciones & Manzanas Catastrales */}
               <button
                 onClick={() => toggleLayer('buildings')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
@@ -1439,8 +1449,8 @@ export default function ModelViewer3D({ onSelectModule }) {
                 <div className="flex items-center space-x-2 text-left">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#1e293b] border border-slate-600 shrink-0 shadow-sm" />
                   <div>
-                    <span className="block font-bold">Rascacielos & Murallas</span>
-                    <span className="text-[9px] text-slate-400 font-normal">Volumetrías 3D</span>
+                    <span className="block font-bold">Edificaciones & Masas</span>
+                    <span className="text-[9px] text-slate-400 font-normal">Construccion.shp & Manzanas</span>
                   </div>
                 </div>
                 {activeLayers.buildings ? <Eye className="w-3.5 h-3.5 text-teal-400" /> : <EyeOff className="w-3.5 h-3.5" />}
@@ -1887,23 +1897,23 @@ export default function ModelViewer3D({ onSelectModule }) {
           <>
             <div className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0 shadow-sm animate-pulse" />
-              <span className="text-slate-200">Lanchas en Ruta (Bodeguita - Isla)</span>
+              <span className="text-slate-200">Lanchas en Ruta (Bodeguita ↔ Tierra Bomba)</span>
             </div>
             <div className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shrink-0 border border-slate-600 shadow-sm" />
-              <span className="text-slate-200">Rascacielos & Murallas</span>
+              <span className="text-slate-200">Huellas & Manzanas (Construccion.shp)</span>
             </div>
             <div className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 border border-slate-400 shadow-sm" />
-              <span className="text-slate-200">Red Vial & Avenidas</span>
+              <span className="text-slate-200">Red Vial Oficial (Nomenclaturavial.shp)</span>
             </div>
             <div className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#477857] shrink-0 shadow-sm" />
-              <span className="text-slate-200">Topografía & Meseta Insular</span>
+              <span className="text-slate-200">Topografía & Meseta Insular (+22m)</span>
             </div>
             <div className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#1b3b5f] shrink-0 border border-blue-400/30 shadow-sm" />
-              <span className="text-slate-200">Bahía de Cartagena & Mar</span>
+              <span className="text-slate-200">Bahía de Cartagena & Mar Caribe</span>
             </div>
           </>
         ) : (
@@ -1945,12 +1955,12 @@ export default function ModelViewer3D({ onSelectModule }) {
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative text-slate-900 space-y-6"
+            className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative text-slate-900 space-y-6 max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-start justify-between">
               <div>
                 <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-200">
-                  FICHA TÉCNICA 3D BIM // ARQUITECTURA
+                  {selected3DModel === 'revit' ? 'CARTOGRAFÍA OFICIAL // CATASTRO AMB CARTAGENA' : 'FICHA TÉCNICA 3D BIM // ARQUITECTURA'}
                 </span>
                 <h3 className="font-bold text-xl text-slate-900 mt-2">
                   {modelDetails[selected3DModel].title}
@@ -1971,6 +1981,47 @@ export default function ModelViewer3D({ onSelectModule }) {
             <p className="text-sm text-slate-700 leading-relaxed font-light">
               {modelDetails[selected3DModel].desc}
             </p>
+
+            {/* Ficha Catastral AMB Detallada */}
+            {selected3DModel === 'revit' && (
+              <div className="p-4 rounded-2xl bg-teal-50/80 border border-teal-200 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-teal-800 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-teal-600" />
+                    Capas del Catastro Multipropósito AMB Cartagena
+                  </span>
+                  <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-teal-200/60 text-teal-900">
+                    MAGNA-SIRGAS EPSG:9377
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-mono">
+                  <div className="bg-white/90 p-2.5 rounded-xl border border-teal-200 shadow-sm">
+                    <span className="font-bold block text-teal-900 text-[11px]">Construccion.shp</span>
+                    <span className="text-[10px] text-slate-500 font-sans">Huellas 1:1 de edificios</span>
+                  </div>
+                  <div className="bg-white/90 p-2.5 rounded-xl border border-teal-200 shadow-sm">
+                    <span className="font-bold block text-teal-900 text-[11px]">Manzana.shp</span>
+                    <span className="text-[10px] text-slate-500 font-sans">Trazado y parcelario</span>
+                  </div>
+                  <div className="bg-white/90 p-2.5 rounded-xl border border-teal-200 shadow-sm">
+                    <span className="font-bold block text-teal-900 text-[11px]">Nomenclaturavial.shp</span>
+                    <span className="text-[10px] text-slate-500 font-sans">Ejes y vías oficiales</span>
+                  </div>
+                  <div className="bg-white/90 p-2.5 rounded-xl border border-teal-200 shadow-sm">
+                    <span className="font-bold block text-teal-900 text-[11px]">Corregimiento.shp</span>
+                    <span className="text-[10px] text-slate-500 font-sans">Límites Tierra Bomba</span>
+                  </div>
+                  <div className="bg-white/90 p-2.5 rounded-xl border border-teal-200 shadow-sm">
+                    <span className="font-bold block text-teal-900 text-[11px]">GDB_Catastro.gdb</span>
+                    <span className="text-[10px] text-slate-500 font-sans">Geodatabase Esri</span>
+                  </div>
+                  <div className="bg-white/90 p-2.5 rounded-xl border border-teal-200 shadow-sm">
+                    <span className="font-bold block text-teal-900 text-[11px]">Terreno.shp</span>
+                    <span className="text-[10px] text-slate-500 font-sans">Predios y lotes</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {modelDetails[selected3DModel].specs.map((spec, i) => (
