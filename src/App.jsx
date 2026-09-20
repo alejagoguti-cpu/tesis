@@ -4,7 +4,6 @@ import ExecutiveControlCenter from './components/ExecutiveControlCenter';
 import ThesisFramework from './components/ThesisFramework';
 import DiagnosisMap from './components/DiagnosisMap';
 import HousingRelocation from './components/HousingRelocation';
-import StrategyRelocation from './components/StrategyRelocation';
 import ModelViewer3D from './components/ModelViewer3D';
 import BlueprintPlotter from './components/BlueprintPlotter';
 import WaterSustainability from './components/WaterSustainability';
@@ -118,17 +117,10 @@ export default function App() {
                 </SafeSection>
               )}
 
-              {/* Module 03: Viviendas & Equipamiento */}
+              {/* Module 04: Viviendas & Equipamiento */}
               {activeModule === 'programs' && (
                 <SafeSection name="Programa Arquitectónico">
                   <HousingRelocation onSelectModule={(modId) => setActiveModule(modId)} />
-                </SafeSection>
-              )}
-
-              {/* Module 04: Estrategia Bioclimática */}
-              {activeModule === 'bioclimatic' && (
-                <SafeSection name="Estrategia Bioclimática">
-                  <StrategyRelocation onSelectModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
@@ -184,10 +176,6 @@ export default function App() {
 
               <SafeSection name="Programa Arquitectónico">
                 <HousingRelocation />
-              </SafeSection>
-
-              <SafeSection name="Estrategia Bioclimática">
-                <StrategyRelocation />
               </SafeSection>
 
               <SafeSection name="Visor 3D BIM">

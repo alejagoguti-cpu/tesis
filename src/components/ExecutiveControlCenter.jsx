@@ -874,7 +874,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                   <Droplets className="w-3.5 h-3.5" />
                 </div>
                 <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-blue-50 text-blue-700">
-                  MOD 08
+                  MOD 07
                 </span>
               </div>
               <p className="text-[10px] font-mono text-slate-500">Reserva Hídrica</p>
@@ -900,40 +900,40 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
               <p className="text-[9px] text-slate-500 truncate">0% riesgo marino</p>
             </div>
 
-            {/* KPI 5: Solar */}
+            {/* KPI 5: 3D BIM Viewer */}
             <div 
-              onClick={() => onSelectModule && onSelectModule('bioclimatic')}
-              className="glass-card p-3 rounded-2xl hover:border-amber-500 cursor-pointer group"
+              onClick={() => onSelectModule && onSelectModule('3dviewer')}
+              className="glass-card p-3 rounded-2xl hover:border-indigo-500 cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-1">
-                <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
-                  <Sun className="w-3.5 h-3.5" />
+                <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+                  <Box className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-50 text-amber-700">
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700">
                   MOD 05
                 </span>
               </div>
-              <p className="text-[10px] font-mono text-slate-500">Matriz Solar</p>
-              <h4 className="font-serif font-bold text-lg text-slate-900">100% FV</h4>
-              <p className="text-[9px] text-slate-500 truncate">Autonomía total</p>
+              <p className="text-[10px] font-mono text-slate-500">Visor 3D WebGL</p>
+              <h4 className="font-serif font-bold text-lg text-slate-900">Modelo BIM</h4>
+              <p className="text-[9px] text-slate-500 truncate">Despiece & Speckle</p>
             </div>
 
-            {/* KPI 6: Bioclimatic Comfort */}
+            {/* KPI 6: Simulation Lab */}
             <div 
-              onClick={() => onSelectModule && onSelectModule('bioclimatic')}
-              className="glass-card p-3 rounded-2xl hover:border-teal-500 cursor-pointer group"
+              onClick={() => onSelectModule && onSelectModule('simulations')}
+              className="glass-card p-3 rounded-2xl hover:border-purple-500 cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-1">
-                <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
-                  <Wind className="w-3.5 h-3.5" />
+                <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600">
+                  <Activity className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-teal-50 text-teal-700">
-                  CONFORT
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-purple-50 text-purple-700">
+                  MOD 08
                 </span>
               </div>
-              <p className="text-[10px] font-mono text-slate-500">Pasivo</p>
-              <h4 className="font-serif font-bold text-lg text-slate-900">-5.2 °C</h4>
-              <p className="text-[9px] text-slate-500 truncate">Alisios N-NE</p>
+              <p className="text-[10px] font-mono text-slate-500">Simulaciones</p>
+              <h4 className="font-serif font-bold text-lg text-slate-900">4 Motores</h4>
+              <p className="text-[9px] text-slate-500 truncate">CFD, Marea & Redes</p>
             </div>
 
           </div>
