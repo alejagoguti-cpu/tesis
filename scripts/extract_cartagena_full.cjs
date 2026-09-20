@@ -6,7 +6,7 @@ const outPath = path.join(__dirname, '../public/data/cartagena_catastro_real.jso
 
 // Exact Bounding Box for Cartagena Bay + Isla de Tierra Bomba (EPSG:9377 MAGNA-SIRGAS)
 const BBOX = {
-  minX: 4715000,
+  minX: 4714500,
   maxX: 4726500,
   minY: 2697000,
   maxY: 2715000
@@ -58,7 +58,8 @@ function parseDbf(dbfPath) {
   return records;
 }
 
-function parseShpPolygons(shpPath, filterFn = null) {
+// Parses ALL parts of multi-part polygons (ensures 100% of islands, mainland, and parcels are extracted)
+function parseShpPolygonsAllParts(shpPath, filterFn = null) {
   if (!fs.existsSync(shpPath)) return [];
   const buf = fs.readFileSync(shpPath);
   let offset = 100;
@@ -86,24 +87,28 @@ function parseShpPolygons(shpPath, filterFn = null) {
         }
 
         const pointsOffset = offset + 52 + numParts * 4;
-        const endPart = parts.length > 1 ? parts[1] : numPoints;
-        const ring = [];
 
-        let lastX = null, lastY = null;
-        for (let pt = parts[0]; pt < endPart; pt++) {
-          const x = buf.readDoubleLE(pointsOffset + pt * 16);
-          const y = buf.readDoubleLE(pointsOffset + pt * 16 + 8);
-          const pt3D = to3D(x, y);
+        for (let p = 0; p < numParts; p++) {
+          const start = parts[p];
+          const end = (p + 1 < numParts) ? parts[p + 1] : numPoints;
+          const ring = [];
 
-          if (lastX === null || Math.hypot(pt3D[0] - lastX, pt3D[1] - lastY) > 0.03) {
-            ring.push(pt3D);
-            lastX = pt3D[0];
-            lastY = pt3D[1];
+          let lastX = null, lastY = null;
+          for (let pt = start; pt < end; pt++) {
+            const x = buf.readDoubleLE(pointsOffset + pt * 16);
+            const y = buf.readDoubleLE(pointsOffset + pt * 16 + 8);
+            const pt3D = to3D(x, y);
+
+            if (lastX === null || Math.hypot(pt3D[0] - lastX, pt3D[1] - lastY) > 0.03) {
+              ring.push(pt3D);
+              lastX = pt3D[0];
+              lastY = pt3D[1];
+            }
           }
-        }
 
-        if (ring.length >= 3) {
-          items.push({ ring, index, box: { minX: boxMinX, minY: boxMinY, maxX: boxMaxX, maxY: boxMaxY } });
+          if (ring.length >= 3) {
+            items.push({ ring, index, partIndex: p });
+          }
         }
       }
     }
@@ -113,7 +118,7 @@ function parseShpPolygons(shpPath, filterFn = null) {
   return items;
 }
 
-function parseShpLines(shpPath) {
+function parseShpLinesAllParts(shpPath) {
   if (!fs.existsSync(shpPath)) return [];
   const buf = fs.readFileSync(shpPath);
   let offset = 100;
@@ -140,17 +145,21 @@ function parseShpLines(shpPath) {
       }
 
       const pointsOffset = offset + 52 + numParts * 4;
-      const endPart = parts.length > 1 ? parts[1] : numPoints;
-      const line = [];
 
-      for (let pt = parts[0]; pt < endPart; pt++) {
-        const x = buf.readDoubleLE(pointsOffset + pt * 16);
-        const y = buf.readDoubleLE(pointsOffset + pt * 16 + 8);
-        line.push(to3D(x, y));
-      }
+      for (let p = 0; p < numParts; p++) {
+        const start = parts[p];
+        const end = (p + 1 < numParts) ? parts[p + 1] : numPoints;
+        const line = [];
 
-      if (line.length >= 2) {
-        items.push(line);
+        for (let pt = start; pt < end; pt++) {
+          const x = buf.readDoubleLE(pointsOffset + pt * 16);
+          const y = buf.readDoubleLE(pointsOffset + pt * 16 + 8);
+          line.push(to3D(x, y));
+        }
+
+        if (line.length >= 2) {
+          items.push(line);
+        }
       }
     }
     index++;
@@ -159,34 +168,34 @@ function parseShpLines(shpPath) {
   return items;
 }
 
-console.log('=== EXTRACTING COMPLETE 100% REAL CARTAGENA & TIERRA BOMBA GIS DATASET ===');
+console.log('=== EXTRACTING 100% REAL CARTAGENA & TIERRA BOMBA GIS DATASET ===');
 
-// 1. Landmasses (Corregimiento.shp for complete islands & Barrio.shp for continent)
-console.log('1. Extracting landmasses...');
+// 1. Landmasses (Extract all parts of Corregimiento.shp and Barrio.shp)
+console.log('1. Extracting landmasses (100% complete Tierra Bomba island + continental coast)...');
 const corregDbf = parseDbf(path.join(shpDir, 'Corregimiento.dbf'));
-const landCorreg = parseShpPolygons(path.join(shpDir, 'Corregimiento.shp'), (idx) => {
+const landCorreg = parseShpPolygonsAllParts(path.join(shpDir, 'Corregimiento.shp'), (idx) => {
   const nom = (corregDbf[idx]?.nombre || '').toUpperCase();
   return nom.includes('TIERRA BOMBA') || nom.includes('CAÑO DEL ORO') || nom.includes('BOCACHICA') || nom.includes('BOQUILLA');
 }).map(i => i.ring);
 
 const barrioDbf = parseDbf(path.join(shpDir, 'Barrio.dbf'));
-const landBarrios = parseShpPolygons(path.join(shpDir, 'Barrio.shp'), (idx) => {
+const landBarrios = parseShpPolygonsAllParts(path.join(shpDir, 'Barrio.shp'), (idx) => {
   const nom = (barrioDbf[idx]?.nombre || '').toUpperCase();
-  // Keep continental coastal barrios and islands
+  // Keep continental coastal barrios and islands, skip redundant inner barrios of Tierra Bomba to prevent z-fighting
   return !nom.includes('TIERRA BOMBA') && !nom.includes('CAÑO DEL ORO') && !nom.includes('BOCACHICA') && !nom.includes('PUNTA ARENAS');
 }).map(i => i.ring);
 
 const landmasses = [...landCorreg, ...landBarrios];
-console.log(`Landmasses: ${landmasses.length} clean polygons`);
+console.log(`Landmasses: ${landmasses.length} clean polygons extracted`);
 
 // 2. Manzanas (Manzana.shp)
-console.log('2. Extracting manzanas...');
-const manzanas = parseShpPolygons(path.join(shpDir, 'Manzana.shp')).map(i => i.ring);
+console.log('2. Extracting cadastral blocks (Manzanas)...');
+const manzanas = parseShpPolygonsAllParts(path.join(shpDir, 'Manzana.shp')).map(i => i.ring);
 console.log(`Manzanas: ${manzanas.length} cadastral blocks`);
 
 // 3. Roads (Nomenclaturavial.shp)
 console.log('3. Extracting road network...');
-const roads = parseShpLines(path.join(shpDir, 'Nomenclaturavial.shp'));
+const roads = parseShpLinesAllParts(path.join(shpDir, 'Nomenclaturavial.shp'));
 console.log(`Roads: ${roads.length} road axes`);
 
 // 4. Buildings (Construccion.shp + Construccion.dbf)
@@ -194,12 +203,12 @@ console.log('4. Extracting ALL buildings and calculating proportional real-world
 const construccionDbf = parseDbf(path.join(shpDir, 'Construccion.dbf'));
 console.log(`Construccion.dbf: ${construccionDbf.length} records`);
 
-const rawBuildings = parseShpPolygons(path.join(shpDir, 'Construccion.shp'));
+const rawBuildings = parseShpPolygonsAllParts(path.join(shpDir, 'Construccion.shp'));
 console.log(`Buildings found in territory BBox: ${rawBuildings.length}`);
 
 // Transform and classify each building with real-world proportional metric heights
 // Scale: 1 unit = 50m. Real floor = 3.0m => 3/50 = 0.06 units per floor.
-const buildings = rawBuildings.map(({ ring, index, box }) => {
+const buildings = rawBuildings.map(({ ring, index }) => {
   let sumX = 0, sumY = 0;
   ring.forEach(pt => { sumX += pt[0]; sumY += pt[1]; });
   const cx = sumX / ring.length;
