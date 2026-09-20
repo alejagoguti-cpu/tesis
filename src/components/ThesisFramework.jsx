@@ -238,6 +238,9 @@ export const DEFAULT_DELIMITATIONS = {
     [10.34373, -75.59246],
     [10.34204, -75.59229]
   ],
+  school: [
+    [10.362, -75.581]
+  ],
   plateau: [
     [10.37487, -75.57396],
     [10.37523, -75.57534],
@@ -274,9 +277,18 @@ export const ZONE_CONFIG = {
     badge: "Riesgo 1.8 m/año",
     desc: "Línea de socavación marina activa en el flanco occidental."
   },
+  school: {
+    id: "school",
+    name: "3. Colegio Actual en Riesgo",
+    type: "point",
+    color: "#ef4444",
+    fillColor: "#ef4444",
+    badge: "Cota +1.5m Vulnerable",
+    desc: "Ubicación del equipamiento educativo actual en riesgo de inundación."
+  },
   plateau: {
     id: "plateau",
-    name: "3. Meseta Segura (+22.00m)",
+    name: "4. Meseta Segura (+22.00m)",
     type: "polygon",
     color: "#0d9488",
     fillColor: "#0d9488",
@@ -285,7 +297,7 @@ export const ZONE_CONFIG = {
   },
   custom: {
     id: "custom",
-    name: "4. Polígono Libre / Personalizado",
+    name: "5. Polígono Libre / Personalizado",
     type: "polygon",
     color: "#6366f1",
     fillColor: "#6366f1",
@@ -772,6 +784,12 @@ export default function ThesisFramework({ onSelectModule }) {
       
       setDelimitations(prev => {
         const currentZone = prev[activeZoneKey] || [];
+        if (ZONE_CONFIG[activeZoneKey]?.type === 'point') {
+          return {
+            ...prev,
+            [activeZoneKey]: [newCoord]
+          };
+        }
         return {
           ...prev,
           [activeZoneKey]: [...currentZone, newCoord]
@@ -789,12 +807,15 @@ export default function ThesisFramework({ onSelectModule }) {
   // 2. SYNCHRONIZE LEAFLET GEOMETRY WITH DELIMITATION STATE
   // =========================================================================
   useEffect(() => {
-    const { islandLayer, erosionLayer, masterplanLayer, customLayer } = layersRef.current;
+    const { islandLayer, erosionLayer, schoolMarker, masterplanLayer, customLayer } = layersRef.current;
     if (islandLayer && delimitations.island) {
       islandLayer.setLatLngs(delimitations.island);
     }
     if (erosionLayer && delimitations.erosion) {
       erosionLayer.setLatLngs(delimitations.erosion);
+    }
+    if (schoolMarker && delimitations.school && delimitations.school[0]) {
+      schoolMarker.setLatLng(delimitations.school[0]);
     }
     if (masterplanLayer && delimitations.plateau) {
       masterplanLayer.setLatLngs(delimitations.plateau);
@@ -1185,6 +1206,12 @@ export default function ThesisFramework({ onSelectModule }) {
         <div className="glass-hud p-1.5 rounded-2xl pointer-events-auto flex items-center gap-1.5 self-start md:self-center shadow-xl">
           <button
             onClick={() => {
+              if (!isEditMode) {
+                if (currentStepIndex === 0) setActiveZoneKey('island');
+                else if (currentStepIndex === 1) setActiveZoneKey('erosion');
+                else if (currentStepIndex === 2) setActiveZoneKey('school');
+                else if (currentStepIndex === 3) setActiveZoneKey('plateau');
+              }
               setIsEditMode(!isEditMode);
               setSelectedNodeIndex(null);
             }}
