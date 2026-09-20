@@ -17,22 +17,22 @@ function to3D(x, y) {
 
 // Topographic elevation function (Cerro de la Popa + Tierra Bomba hills)
 function getTopographicElevation(x3D, y3D) {
-  // Cerro de la Popa (Cartagena)
+  // Cerro de la Popa (Cartagena continental +150m)
   const popaDist = Math.hypot(x3D - 42, y3D - (-16));
-  if (popaDist < 16) {
-    const factor = Math.cos((popaDist / 16) * (Math.PI / 2));
-    return parseFloat((factor * factor * 2.8).toFixed(2));
+  if (popaDist < 18) {
+    const factor = Math.cos((popaDist / 18) * (Math.PI / 2));
+    return parseFloat((factor * factor * 4.5).toFixed(2));
   }
-  // Tierra Bomba central plateau
+  // Tierra Bomba central plateau (+35m)
   const tbDist = Math.hypot(x3D - (-18), y3D - 8);
   if (tbDist < 25) {
     const factor = Math.cos((tbDist / 25) * (Math.PI / 2));
-    return parseFloat((factor * 0.45).toFixed(2));
+    return parseFloat((factor * 0.8).toFixed(2));
   }
   return 0;
 }
 
-function parseShpPolygons(shpPath, maxCount = 20000, step = 1, minPoints = 3) {
+function parseShpPolygons(shpPath, maxCount = 25000, step = 1, minPoints = 3) {
   if (!fs.existsSync(shpPath)) return [];
   const buf = fs.readFileSync(shpPath);
   let offset = 100;
@@ -79,7 +79,7 @@ function parseShpPolygons(shpPath, maxCount = 20000, step = 1, minPoints = 3) {
   return items;
 }
 
-function parseShpLines(shpPath, maxCount = 5000, step = 1) {
+function parseShpLines(shpPath, maxCount = 6000, step = 1) {
   if (!fs.existsSync(shpPath)) return [];
   const buf = fs.readFileSync(shpPath);
   let offset = 100;
@@ -140,7 +140,7 @@ console.log(`Roads: ${roads.length} segments`);
 
 // 4. Buildings (Construccion.shp - dense sampling across the whole city)
 console.log('4. Extracting building footprints across all sectors of Cartagena & Tierra Bomba...');
-const rawBuildings = parseShpPolygons(path.join(shpDir, 'Construccion.shp'), 22000, 8, 3);
+const rawBuildings = parseShpPolygons(path.join(shpDir, 'Construccion.shp'), 25000, 7, 3);
 
 const buildings = rawBuildings.map((ring) => {
   let sumX = 0, sumY = 0;
@@ -151,32 +151,32 @@ const buildings = rawBuildings.map((ring) => {
   const elev = getTopographicElevation(cx, cy);
 
   let type = 'tb';
-  let height = 0.22;
+  let height = 0.8;
 
-  // Bocagrande, Castillogrande, El Laguito (towers)
+  // Bocagrande, Castillogrande, El Laguito (towers: 15 to 45 floors)
   if (cx >= 12 && cx <= 32 && cy >= -28 && cy <= 18) {
     type = 'skyscraper';
-    height = parseFloat((1.2 + Math.random() * 3.6).toFixed(2)); // 15 - 45 floors
+    height = parseFloat((3.5 + Math.random() * 5.5).toFixed(2)); // 3.5 - 9.0 units (tall 3D towers)
   }
-  // Centro Histórico, San Diego, Getsemaní
+  // Centro Histórico, San Diego, Getsemaní (colonial: 2 to 4 floors)
   else if (cx >= 28 && cx <= 46 && cy >= -26 && cy <= -10) {
     type = 'centro';
-    height = parseFloat((0.4 + Math.random() * 0.5).toFixed(2)); // colonial 2 - 4 floors
+    height = parseFloat((0.8 + Math.random() * 0.8).toFixed(2)); // 0.8 - 1.6 units
   }
-  // Manga, Torices, Cabrero, Marbella, Crespo
+  // Manga, Torices, Cabrero, Marbella, Crespo (residential & midrise: 4 to 15 floors)
   else if (cx >= 32 && cx <= 65 && cy >= -20 && cy <= 12) {
     type = 'modern_residential';
-    height = parseFloat((0.5 + Math.random() * 1.4).toFixed(2)); // 4 - 12 floors
+    height = parseFloat((1.2 + Math.random() * 2.8).toFixed(2)); // 1.2 - 4.0 units
   }
-  // Industrial / Urban East
+  // Industrial / Urban East (Olaya, etc.)
   else if (cx >= 45) {
     type = 'urban';
-    height = parseFloat((0.25 + Math.random() * 0.4).toFixed(2));
+    height = parseFloat((0.7 + Math.random() * 0.9).toFixed(2));
   }
-  // Tierra Bomba (Isla)
+  // Tierra Bomba (Isla: 1 to 2 floors)
   else {
     type = 'vernacular';
-    height = parseFloat((0.18 + Math.random() * 0.22).toFixed(2));
+    height = parseFloat((0.5 + Math.random() * 0.6).toFixed(2)); // 0.5 - 1.1 units
   }
 
   return {

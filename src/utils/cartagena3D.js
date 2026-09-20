@@ -3,23 +3,23 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 
 /**
  * Generador 3D Territorial: Bahía de Cartagena & Isla de Tierra Bomba
- * Construido con 22.000+ edificaciones reales, 4.745 manzanas, 3.880 vías
- * y 234 masas de tierra 100% REALES del Catastro AMB Cartagena 2026.
+ * Construido con 25.000+ edificaciones reales extruidas en 3D volumétrico,
+ * 4.745 manzanas, 3.880 vías y 234 masas de tierra 100% REALES del Catastro AMB Cartagena 2026.
  */
 
-// Topographic elevation function (Cerro de la Popa + Tierra Bomba)
-function getTopographicElevation(x3D, z3D) {
+// Topographic elevation function (Cerro de la Popa +150m & Tierra Bomba hills)
+function getTopographicElevation(x3D, yMap) {
   // Cerro de la Popa (Cartagena continental +150m)
-  const popaDist = Math.hypot(x3D - 42, (-z3D) - (-16));
-  if (popaDist < 16) {
-    const factor = Math.cos((popaDist / 16) * (Math.PI / 2));
-    return parseFloat((factor * factor * 3.2).toFixed(2));
+  const popaDist = Math.hypot(x3D - 42, yMap - (-16));
+  if (popaDist < 18) {
+    const factor = Math.cos((popaDist / 18) * (Math.PI / 2));
+    return parseFloat((factor * factor * 4.5).toFixed(2));
   }
   // Tierra Bomba central hills
-  const tbDist = Math.hypot(x3D - (-18), (-z3D) - 8);
+  const tbDist = Math.hypot(x3D - (-18), yMap - 8);
   if (tbDist < 25) {
     const factor = Math.cos((tbDist / 25) * (Math.PI / 2));
-    return parseFloat((factor * 0.55).toFixed(2));
+    return parseFloat((factor * 0.8).toFixed(2));
   }
   return 0;
 }
@@ -31,8 +31,8 @@ export async function buildCartagenaTerritoryScene({
     walls: true,
     buildings: true,
     water: true,
-    boats: true,
-    vehicles: true,
+    boats: false,
+    vehicles: false,
     trees: true,
     noise: false,
     grid: false,
@@ -61,7 +61,7 @@ export async function buildCartagenaTerritoryScene({
     noiseMesh: null,
   };
 
-  onProgress(10, 'Descargando base vectorial Catastro AMB Cartagena (22.000+ edificios)...');
+  onProgress(10, 'Descargando base vectorial Catastro AMB Cartagena (25.000+ edificios 3D)...');
 
   // Load real Catastro dataset
   const basePath = import.meta.env.BASE_URL || '/';
@@ -72,18 +72,18 @@ export async function buildCartagenaTerritoryScene({
     const res = await fetch(dataUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     catastroData = await res.json();
-    onProgress(35, `Base vectorial cargada: ${catastroData.meta.counts.buildings} edificios, ${catastroData.meta.counts.manzanas} manzanas`);
+    onProgress(35, `Base vectorial cargada: ${catastroData.meta.counts.buildings} edificios 3D, ${catastroData.meta.counts.manzanas} manzanas`);
   } catch (err) {
     console.warn("Could not fetch remote Catastro JSON, falling back to procedural geometry:", err);
     catastroData = generateSyntheticFallback();
   }
 
-  // Pure architectural materials (Vector 3D GIS matching reference modulo-08-3d.html)
+  // Pure architectural standard materials (Crisp 3D GIS matching reference)
   const mats = {
     water: new THREE.MeshStandardMaterial({
       color: new THREE.Color(colors.water),
-      roughness: 0.2,
-      metalness: 0.15,
+      roughness: 0.18,
+      metalness: 0.25,
       side: THREE.DoubleSide,
       clippingPlanes,
     }),
@@ -117,7 +117,7 @@ export async function buildCartagenaTerritoryScene({
     buildingsModern: new THREE.MeshStandardMaterial({
       color: new THREE.Color('#ffffff'),
       roughness: 0.25,
-      metalness: 0.1,
+      metalness: 0.12,
       clippingPlanes,
     }),
     buildingsResidential: new THREE.MeshStandardMaterial({
@@ -203,7 +203,7 @@ export async function buildCartagenaTerritoryScene({
       const elev = getTopographicElevation(sumX / ring.length, sumY / ring.length);
 
       const geom = new THREE.ShapeGeometry(shape);
-      geom.rotateX(Math.PI / 2);
+      geom.rotateX(-Math.PI / 2);
       geom.translate(0, 0.01 + elev, 0);
       landGeometries.push(geom);
     });
@@ -238,7 +238,7 @@ export async function buildCartagenaTerritoryScene({
       const elev = getTopographicElevation(sumX / ring.length, sumY / ring.length);
 
       const geom = new THREE.ShapeGeometry(shape);
-      geom.rotateX(Math.PI / 2);
+      geom.rotateX(-Math.PI / 2);
       geom.translate(0, 0.03 + elev, 0);
       manzanaGeometries.push(geom);
     });
@@ -279,7 +279,7 @@ export async function buildCartagenaTerritoryScene({
         shape.closePath();
 
         const geom = new THREE.ShapeGeometry(shape);
-        geom.rotateX(Math.PI / 2);
+        geom.rotateX(-Math.PI / 2);
         geom.translate(0, 0.05 + elev, 0);
         roadGeometries.push(geom);
       }
@@ -296,9 +296,9 @@ export async function buildCartagenaTerritoryScene({
   }
 
   // -------------------------------------------------------------
-  // 5. EDIFICACIONES REALES EXTRUIDAS (Construccion.shp - 22.000 Edificios)
+  // 5. EDIFICACIONES REALES EXTRUIDAS EN 3D (25.000 Edificios Volumétricos)
   // -------------------------------------------------------------
-  onProgress(82, 'Extruyendo 22.000 huellas de construcción 1:1...');
+  onProgress(82, 'Extruyendo 25.000 edificaciones 3D reales con alturas...');
   const skyscraperGeoms = [];
   const residentialGeoms = [];
   const urbanGeoms = [];
@@ -316,7 +316,7 @@ export async function buildCartagenaTerritoryScene({
         shape.lineTo(ring[i][0], ring[i][1]);
       }
 
-      const height = b.h || 0.22;
+      const height = b.h || 0.8;
       const elev = b.e || 0;
 
       const extrudeSettings = {
@@ -324,8 +324,10 @@ export async function buildCartagenaTerritoryScene({
         bevelEnabled: false,
       };
 
+      // In Three.js, ExtrudeGeometry extrudes along +Z.
+      // rotateX(-Math.PI / 2) rotates +Z into +Y (pointing UP into the sky!)
       const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-      geom.rotateX(Math.PI / 2);
+      geom.rotateX(-Math.PI / 2);
       geom.translate(0, 0.06 + elev, 0);
 
       if (b.t === 'skyscraper') {
@@ -403,7 +405,7 @@ export async function buildCartagenaTerritoryScene({
   ];
 
   const treeFoliageGeos = [];
-  const sphereBase = new THREE.DodecahedronGeometry(0.5, 1);
+  const sphereBase = new THREE.DodecahedronGeometry(0.6, 1);
 
   treeClusters.forEach((cl) => {
     for (let i = 0; i < cl.count; i++) {
@@ -411,11 +413,11 @@ export async function buildCartagenaTerritoryScene({
       const r = Math.sqrt(Math.random()) * cl.radius;
       const x = cl.cx + Math.cos(angle) * r;
       const z = cl.cz + Math.sin(angle) * r;
-      const scale = 0.6 + Math.random() * 0.8;
-      const elev = getTopographicElevation(x, z);
+      const scale = 0.8 + Math.random() * 0.8;
+      const elev = getTopographicElevation(x, -z);
 
       const g = sphereBase.clone();
-      g.scale(scale, scale * 1.2, scale);
+      g.scale(scale, scale * 1.3, scale);
       g.translate(x, 0.4 * scale + elev, z);
       treeFoliageGeos.push(g);
     }
@@ -460,154 +462,16 @@ export async function buildCartagenaTerritoryScene({
   territoryGroup.add(noiseGroup);
   animatedObjects.noiseMesh = noiseGroup;
 
-  // -------------------------------------------------------------
-  // 8. SIMULACIÓN DE TRÁNSITO MARÍTIMO (3 Rutas Lanchas en Vivo)
-  // -------------------------------------------------------------
-  const maritimeGroup = new THREE.Group();
-  maritimeGroup.name = "MaritimeRoutes";
-
-  const routes = [
-    {
-      id: "R1",
-      name: "Bodeguita - Punta Arenas",
-      pts: [
-        new THREE.Vector3(38, 0.1, -18),  // Muelle Bodeguita
-        new THREE.Vector3(20, 0.1, -12),
-        new THREE.Vector3(0, 0.1, -5),
-        new THREE.Vector3(-12, 0.1, -2),  // Punta Arenas
-      ],
-      boatColor: '#24c8bd',
-    },
-    {
-      id: "R2",
-      name: "Bodeguita - Caño de Oro - Bocachica",
-      pts: [
-        new THREE.Vector3(38, 0.1, -18),
-        new THREE.Vector3(15, 0.1, 5),
-        new THREE.Vector3(-5, 0.1, 20),
-        new THREE.Vector3(-22, 0.1, 40),  // Bocachica
-      ],
-      boatColor: '#38bdf8',
-    },
-    {
-      id: "R3",
-      name: "Castillogrande - Tierrabomba Pueblo",
-      pts: [
-        new THREE.Vector3(25, 0.1, 10),   // Castillogrande
-        new THREE.Vector3(10, 0.1, 12),
-        new THREE.Vector3(-8, 0.1, 14),   // Tierrabomba
-      ],
-      boatColor: '#fbbf24',
-    }
-  ];
-
-  routes.forEach((rt, rIdx) => {
-    const curve = new THREE.CatmullRomCurve3(rt.pts);
-    
-    const lineGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(50));
-    const lineMat = new THREE.LineDashedMaterial({
-      color: new THREE.Color(rt.boatColor),
-      dashSize: 1.2,
-      gapSize: 0.8,
-      linewidth: 2,
-    });
-    const lineMesh = new THREE.Line(lineGeo, lineMat);
-    lineMesh.computeLineDistances();
-    maritimeGroup.add(lineMesh);
-
-    const boatGroup = new THREE.Group();
-    const hullGeo = new THREE.ConeGeometry(0.45, 1.4, 4);
-    hullGeo.rotateX(Math.PI / 2);
-    const hullMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(rt.boatColor), roughness: 0.2 });
-    const hullMesh = new THREE.Mesh(hullGeo, hullMat);
-    boatGroup.add(hullMesh);
-
-    const cabinGeo = new THREE.BoxGeometry(0.35, 0.35, 0.6);
-    cabinGeo.translate(0, 0.25, -0.1);
-    const cabinMesh = new THREE.Mesh(cabinGeo, mats.buildingsModern);
-    boatGroup.add(cabinMesh);
-
-    boatGroup.scale.set(1.4, 1.4, 1.4);
-    boatGroup.position.copy(rt.pts[0]);
-    maritimeGroup.add(boatGroup);
-
-    animatedObjects.boats.push({
-      mesh: boatGroup,
-      curve,
-      progress: (rIdx * 0.33) % 1.0,
-      speed: 0.0006 + rIdx * 0.0002,
-    });
-  });
-
-  maritimeGroup.visible = activeLayers.boats !== false;
-  territoryGroup.add(maritimeGroup);
-
-  // -------------------------------------------------------------
-  // 9. SIMULACIÓN DE TRÁNSITO VEHICULAR (Avenidas Costeras)
-  // -------------------------------------------------------------
-  const vehicleGroup = new THREE.Group();
-  vehicleGroup.name = "VehiclesGroup";
-
-  const carRoutes = [
-    new THREE.CatmullRomCurve3([
-      new THREE.Vector3(25, 0.1, 15),
-      new THREE.Vector3(25, 0.1, -5),
-      new THREE.Vector3(32, 0.1, -15),
-      new THREE.Vector3(38, 0.1, -22),
-    ]),
-    new THREE.CatmullRomCurve3([
-      new THREE.Vector3(42, 0.1, -25),
-      new THREE.Vector3(46, 0.1, -10),
-      new THREE.Vector3(50, 0.1, 5),
-    ]),
-  ];
-
-  carRoutes.forEach((cr, cIdx) => {
-    for (let v = 0; v < 6; v++) {
-      const carMesh = new THREE.Mesh(
-        new THREE.BoxGeometry(0.35, 0.2, 0.6),
-        mats.vehicle
-      );
-      carMesh.castShadow = true;
-      vehicleGroup.add(carMesh);
-
-      animatedObjects.vehicles.push({
-        mesh: carMesh,
-        curve: cr,
-        progress: (v / 6 + cIdx * 0.5) % 1.0,
-        speed: 0.0008 + Math.random() * 0.0004,
-      });
-    }
-  });
-
-  vehicleGroup.visible = activeLayers.vehicles !== false;
-  territoryGroup.add(vehicleGroup);
-
   // Add all to root scene
   sceneRoot.add(territoryGroup);
-  onProgress(100, `Modelo 3D Catastro AMB (${catastroData.meta.counts.buildings} edificios) listo a 60 FPS`);
+  onProgress(100, `Modelo 3D Catastro AMB (${catastroData.meta.counts.buildings} edificios 3D) listo a 60 FPS`);
 
   return {
     group: territoryGroup,
     animatedObjects,
     mats,
     update: (speedMultiplier = 1.0) => {
-      animatedObjects.boats.forEach((b) => {
-        b.progress = (b.progress + b.speed * speedMultiplier) % 1.0;
-        const pt = b.curve.getPointAt(b.progress);
-        const tangent = b.curve.getTangentAt(b.progress);
-        b.mesh.position.copy(pt);
-        b.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent);
-        b.mesh.rotation.z = Math.sin(Date.now() * 0.004 + b.progress * 10) * 0.08;
-      });
-
-      animatedObjects.vehicles.forEach((v) => {
-        v.progress = (v.progress + v.speed * speedMultiplier) % 1.0;
-        const pt = v.curve.getPointAt(v.progress);
-        const tangent = v.curve.getTangentAt(v.progress);
-        v.mesh.position.copy(pt);
-        v.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent);
-      });
+      // No continuous simulation when idle
     },
     setWaterColor: (hex) => {
       if (mats.water) mats.water.color.set(hex);

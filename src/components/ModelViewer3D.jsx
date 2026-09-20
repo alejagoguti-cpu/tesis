@@ -635,7 +635,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     const dirLight = new THREE.DirectionalLight(0xfffaed, sunIntensity);
     const radAz = (sunAzimuth * Math.PI) / 180;
     const radEl = (sunElevation * Math.PI) / 180;
-    const dist = 45;
+    const dist = 90;
     dirLight.position.set(
       dist * Math.cos(radAz) * Math.cos(radEl),
       dist * Math.sin(radEl),
@@ -645,11 +645,11 @@ export default function ModelViewer3D({ onSelectModule }) {
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
     dirLight.shadow.camera.near = 0.5;
-    dirLight.shadow.camera.far = 120;
-    dirLight.shadow.camera.left = -30;
-    dirLight.shadow.camera.right = 30;
-    dirLight.shadow.camera.top = 30;
-    dirLight.shadow.camera.bottom = -30;
+    dirLight.shadow.camera.far = 250;
+    dirLight.shadow.camera.left = -90;
+    dirLight.shadow.camera.right = 90;
+    dirLight.shadow.camera.top = 90;
+    dirLight.shadow.camera.bottom = -90;
     scene.add(dirLight);
     objectsRef.current.dirLight = dirLight;
 
@@ -787,6 +787,11 @@ export default function ModelViewer3D({ onSelectModule }) {
   // Update Model on switch
   useEffect(() => {
     buildModel(selected3DModel);
+    if (selected3DModel === 'revit') {
+      setBirdEyeView();
+    } else {
+      resetAxonometricView();
+    }
   }, [selected3DModel]);
 
   // Sync colors with 3D model
@@ -917,7 +922,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     if (!light) return;
     const radAz = (sunAzimuth * Math.PI) / 180;
     const radEl = (sunElevation * Math.PI) / 180;
-    const dist = 45;
+    const dist = 90;
     light.position.x = dist * Math.cos(radAz) * Math.cos(radEl);
     light.position.y = dist * Math.sin(radEl);
     light.position.z = dist * Math.sin(radAz) * Math.cos(radEl);
