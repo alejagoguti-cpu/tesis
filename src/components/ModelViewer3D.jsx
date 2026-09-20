@@ -4,6 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
+import { buildCartagenaTerritoryScene } from '../utils/cartagena3D.js';
 import { 
   Layers, 
   RotateCcw, 
@@ -31,15 +32,27 @@ import {
   AlertCircle,
   Scissors,
   Palette,
-  Minimize2
+  Minimize2,
+  Play,
+  Pause,
+  FastForward,
+  Ship,
+  Activity
 } from 'lucide-react';
 
 export default function ModelViewer3D({ onSelectModule }) {
   const mountRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [selected3DModel, setSelected3DModel] = useState('revit'); // 'revit' | 'colegio' | 'vivienda' | 'masterplan' | 'custom'
+  const [selected3DModel, setSelected3DModel] = useState('revit'); // 'revit' (Cartagena + Tierrabomba) | 'masterplan' (BIM Tierrabomba) | 'colegio' | 'vivienda' | 'custom'
   const [wireframe, setWireframe] = useState(false);
   const [explodedView, setExplodedView] = useState(false);
+
+  // Simulación de Tránsito Marítimo y Urbano en Vivo (modulo-08-3d.html)
+  const [isPlayingSimulation, setIsPlayingSimulation] = useState(true);
+  const isPlayingSimulationRef = useRef(true);
+  const [simulationSpeed, setSimulationSpeed] = useState(1.5);
+  const simulationSpeedRef = useRef(1.5);
+  const cartagenaTerritoryRef = useRef(null);
   
   // Parámetros Solares & Vista Axonométrica a 35°
   const [sunAzimuth, setSunAzimuth] = useState(130);
@@ -71,6 +84,10 @@ export default function ModelViewer3D({ onSelectModule }) {
     terrain: true,
     walls: true,
     buildings: true,
+    water: true,
+    boats: true,
+    vehicles: true,
+    trees: true,
     grid: false,
     roof: true,
     structure: true,
@@ -162,20 +179,12 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     if (modelType === 'revit') {
       setIsLoadingFile(true);
-      setLoadProgress(15);
-      setLoadPhase('Cargando geometría BIM oficial...');
+      setLoadProgress(30);
+      setLoadPhase('Construyendo sistema territorial Bahía de Cartagena & Tierra Bomba...');
 
       const bgColor = 0x0b0c0f;
       scene.background = new THREE.Color(bgColor);
-      scene.fog = new THREE.Fog(bgColor, 160, 450);
-
-      const gltfLoader = new GLTFLoader();
-      const dracoLoader = new DRACOLoader();
-      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
-      gltfLoader.setDRACOLoader(dracoLoader);
-
-      const basePath = import.meta.env.BASE_URL || '/';
-      const modelUrl = `${basePath.endsWith('/') ? basePath : basePath + '/'}models/tierrabomba_revit.glb`;
+      scene.fog = new THREE.Fog(bgColor, 180, 500);
 
       const clipPlanesArray = [
         secPlanesRef.current.xMin,
@@ -186,122 +195,23 @@ export default function ModelViewer3D({ onSelectModule }) {
         secPlanesRef.current.zMax,
       ];
 
-      gltfLoader.load(
-        modelUrl,
-        (gltf) => {
-          setLoadProgress(100);
-          setLoadPhase('¡Modelo cargado a 60 FPS!');
+      const rootContainer = new THREE.Group();
+      
+      const territory = buildCartagenaTerritoryScene({
+        sceneRoot: rootContainer,
+        activeLayers,
+        clippingPlanes: clipPlanesArray,
+      });
 
-          if (currentModelGroupRef.current) {
-            scene.remove(currentModelGroupRef.current);
-            currentModelGroupRef.current = null;
-          }
-          const model = gltf.scene;
+      cartagenaTerritoryRef.current = territory;
 
-          // Rotar -90° en X para que la cota Z de Revit quede en el eje vertical Y de Three.js (terreno horizontal)
-          model.rotation.x = -Math.PI / 2;
-          model.updateMatrixWorld(true);
+      // Centrar y encuadrar todo el sistema de la bahía (Cartagena - Tierrabomba)
+      rootContainer.position.set(5, 0, 0);
 
-          const box = new THREE.Box3().setFromObject(model);
-          const size = box.getSize(new THREE.Vector3());
-          const center = box.getCenter(new THREE.Vector3());
-          const maxDim = Math.max(size.x, size.z);
-          const targetSize = 36;
-          const scale = targetSize / (maxDim || 1);
-
-          model.scale.set(scale, scale, scale);
-          model.position.x = -center.x * scale;
-          model.position.y = -box.min.y * scale + 0.05;
-          model.position.z = -center.z * scale;
-
-          const rootContainer = new THREE.Group();
-          rootContainer.add(model);
-
-          objectsRef.current.revitTerrain = [];
-          objectsRef.current.revitWalls = [];
-          objectsRef.current.revitBuildings = [];
-
-          model.traverse((child) => {
-            if (child.isMesh) {
-              child.castShadow = true;
-              child.receiveShadow = true;
-
-              if (child.geometry) {
-                child.geometry.computeVertexNormals();
-              }
-
-              const name = (child.name || '') + (child.parent?.name || '');
-              const matName = child.material ? child.material.name : '';
-
-              if (name.includes('Terrain') || matName.includes('Terrain') || name.includes('Toposolid')) {
-                // Topografía / Relieve: Tono verde arquitectónico sólido
-                child.material = new THREE.MeshStandardMaterial({
-                  color: 0x477857,
-                  roughness: 0.85,
-                  metalness: 0.02,
-                  side: THREE.DoubleSide,
-                  clippingPlanes: clipPlanesArray,
-                });
-                child.renderOrder = 1;
-                child.userData.layer = 'terrain';
-                objectsRef.current.revitTerrain.push(child);
-                child.visible = activeLayers.terrain;
-              } else if (name.includes('Walls') || name.includes('Partición') || name.includes('Interior') || name.includes('muro') || matName.includes('Walls')) {
-                // Vías, Muros y Trazados: Blanco Puro para máxima legibilidad sin Z-fighting
-                child.material = new THREE.MeshStandardMaterial({
-                  color: 0xffffff,
-                  roughness: 0.35,
-                  metalness: 0.05,
-                  side: THREE.DoubleSide,
-                  polygonOffset: true,
-                  polygonOffsetFactor: -2.0,
-                  polygonOffsetUnits: -4.0,
-                  clippingPlanes: clipPlanesArray,
-                });
-                child.renderOrder = 3;
-                child.userData.layer = 'walls';
-                objectsRef.current.revitWalls.push(child);
-                child.visible = activeLayers.walls;
-              } else {
-                // Edificaciones y Caserío: Gris Carbón Arquitectónico Destacado
-                child.material = new THREE.MeshStandardMaterial({
-                  color: 0x1e293b,
-                  roughness: 0.45,
-                  metalness: 0.15,
-                  side: THREE.DoubleSide,
-                  polygonOffset: true,
-                  polygonOffsetFactor: -3.0,
-                  polygonOffsetUnits: -6.0,
-                  clippingPlanes: clipPlanesArray,
-                });
-                child.renderOrder = 4;
-                child.userData.layer = 'buildings';
-                objectsRef.current.revitBuildings.push(child);
-                child.visible = activeLayers.buildings;
-              }
-            }
-          });
-
-          scene.add(rootContainer);
-          currentModelGroupRef.current = rootContainer;
-          setIsLoadingFile(false);
-        },
-        (xhr) => {
-          if (xhr.lengthComputable && xhr.total > 0) {
-            const percent = Math.round((xhr.loaded / xhr.total) * 100);
-            setLoadProgress(percent);
-            const loadedMB = (xhr.loaded / (1024 * 1024)).toFixed(1);
-            const totalMB = (xhr.total / (1024 * 1024)).toFixed(1);
-            setLoadPhase(`Descargando geometría BIM (${loadedMB} MB / ${totalMB} MB)`);
-          } else {
-            setLoadProgress(prev => Math.min(95, prev + 25));
-          }
-        },
-        (err) => {
-          console.error("Error loading tierrabomba_revit.glb:", err);
-          setIsLoadingFile(false);
-        }
-      );
+      scene.add(rootContainer);
+      currentModelGroupRef.current = rootContainer;
+      setLoadProgress(100);
+      setIsLoadingFile(false);
       return;
     }
 
@@ -500,51 +410,142 @@ export default function ModelViewer3D({ onSelectModule }) {
       objectsRef.current.roof = roofGroup;
     }
     else if (modelType === 'masterplan') {
-      // MODEL 3: MASTERPLAN URBANO MESETA (+22m)
-      const terrainGeo = new THREE.CylinderGeometry(18, 20, 2, 32);
-      const terrainMat = new THREE.MeshStandardMaterial({ color: 0x3d8b57, roughness: 0.85 });
-      const terrainMesh = new THREE.Mesh(terrainGeo, terrainMat);
-      terrainMesh.position.set(0, -1, 0);
-      terrainMesh.receiveShadow = true;
-      modelGroup.add(terrainMesh);
-      objectsRef.current.terrain = terrainMesh;
+      setIsLoadingFile(true);
+      setLoadProgress(15);
+      setLoadPhase('Cargando Masterplan BIM Revit (Tierrabomba)...');
 
-      // Manzanas de Viviendas
-      const housesGroup = new THREE.Group();
-      const houseBlockMat = new THREE.MeshStandardMaterial({ color: 0xc26d4a, roughness: 0.75 });
-      for (let r = 5; r <= 14; r += 3.2) {
-        const count = Math.floor(r * 2);
-        for (let i = 0; i < count; i++) {
-          const angle = (i / count) * Math.PI * 2;
-          if (Math.sin(angle) > 0.6 && Math.cos(angle) > 0.2) continue; // Leave central educational plaza empty
-          const hMesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 1.6), houseBlockMat);
-          hMesh.position.set(Math.cos(angle) * r, 0.4, Math.sin(angle) * r);
-          hMesh.rotation.y = -angle;
-          hMesh.castShadow = true;
-          housesGroup.add(hMesh);
+      const bgColor = 0x0b0c0f;
+      scene.background = new THREE.Color(bgColor);
+      scene.fog = new THREE.Fog(bgColor, 160, 450);
+
+      const gltfLoader = new GLTFLoader();
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+      gltfLoader.setDRACOLoader(dracoLoader);
+
+      const basePath = import.meta.env.BASE_URL || '/';
+      const modelUrl = `${basePath.endsWith('/') ? basePath : basePath + '/'}models/tierrabomba_revit.glb`;
+
+      const clipPlanesArray = [
+        secPlanesRef.current.xMin,
+        secPlanesRef.current.xMax,
+        secPlanesRef.current.yMin,
+        secPlanesRef.current.yMax,
+        secPlanesRef.current.zMin,
+        secPlanesRef.current.zMax,
+      ];
+
+      gltfLoader.load(
+        modelUrl,
+        (gltf) => {
+          setLoadProgress(100);
+          setLoadPhase('¡Masterplan BIM cargado!');
+
+          if (currentModelGroupRef.current) {
+            scene.remove(currentModelGroupRef.current);
+            currentModelGroupRef.current = null;
+          }
+          const model = gltf.scene;
+
+          model.rotation.x = -Math.PI / 2;
+          model.updateMatrixWorld(true);
+
+          const box = new THREE.Box3().setFromObject(model);
+          const size = box.getSize(new THREE.Vector3());
+          const center = box.getCenter(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.z);
+          const targetSize = 36;
+          const scale = targetSize / (maxDim || 1);
+
+          model.scale.set(scale, scale, scale);
+          model.position.x = -center.x * scale;
+          model.position.y = -box.min.y * scale + 0.05;
+          model.position.z = -center.z * scale;
+
+          const rootContainer = new THREE.Group();
+          rootContainer.add(model);
+
+          objectsRef.current.revitTerrain = [];
+          objectsRef.current.revitWalls = [];
+          objectsRef.current.revitBuildings = [];
+
+          model.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+
+              if (child.geometry) {
+                child.geometry.computeVertexNormals();
+              }
+
+              const name = (child.name || '') + (child.parent?.name || '');
+              const matName = child.material ? child.material.name : '';
+
+              if (name.includes('Terrain') || matName.includes('Terrain') || name.includes('Toposolid')) {
+                child.material = new THREE.MeshStandardMaterial({
+                  color: 0x477857,
+                  roughness: 0.85,
+                  metalness: 0.02,
+                  side: THREE.DoubleSide,
+                  clippingPlanes: clipPlanesArray,
+                });
+                child.renderOrder = 1;
+                child.userData.layer = 'terrain';
+                objectsRef.current.revitTerrain.push(child);
+                child.visible = activeLayers.terrain;
+              } else if (name.includes('Walls') || name.includes('Partición') || name.includes('Interior') || name.includes('muro') || matName.includes('Walls')) {
+                child.material = new THREE.MeshStandardMaterial({
+                  color: 0xffffff,
+                  roughness: 0.35,
+                  metalness: 0.05,
+                  side: THREE.DoubleSide,
+                  polygonOffset: true,
+                  polygonOffsetFactor: -2.0,
+                  polygonOffsetUnits: -4.0,
+                  clippingPlanes: clipPlanesArray,
+                });
+                child.renderOrder = 3;
+                child.userData.layer = 'walls';
+                objectsRef.current.revitWalls.push(child);
+                child.visible = activeLayers.walls;
+              } else {
+                child.material = new THREE.MeshStandardMaterial({
+                  color: 0x1e293b,
+                  roughness: 0.45,
+                  metalness: 0.15,
+                  side: THREE.DoubleSide,
+                  polygonOffset: true,
+                  polygonOffsetFactor: -3.0,
+                  polygonOffsetUnits: -6.0,
+                  clippingPlanes: clipPlanesArray,
+                });
+                child.renderOrder = 4;
+                child.userData.layer = 'buildings';
+                objectsRef.current.revitBuildings.push(child);
+                child.visible = activeLayers.buildings;
+              }
+            }
+          });
+
+          scene.add(rootContainer);
+          currentModelGroupRef.current = rootContainer;
+          setIsLoadingFile(false);
+        },
+        (xhr) => {
+          if (xhr.lengthComputable && xhr.total > 0) {
+            const percent = Math.round((xhr.loaded / xhr.total) * 100);
+            setLoadProgress(percent);
+            const loadedMB = (xhr.loaded / (1024 * 1024)).toFixed(1);
+            const totalMB = (xhr.total / (1024 * 1024)).toFixed(1);
+            setLoadPhase(`Descargando Masterplan BIM (${loadedMB} MB / ${totalMB} MB)`);
+          }
+        },
+        (err) => {
+          console.error("Error loading masterplan BIM model:", err);
+          setIsLoadingFile(false);
         }
-      }
-      modelGroup.add(housesGroup);
-      objectsRef.current.structure = housesGroup;
-
-      // Central School Block
-      const schoolMain = new THREE.Mesh(
-        new THREE.BoxGeometry(5.5, 1.4, 4),
-        new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 })
       );
-      schoolMain.position.set(4, 0.7, 4);
-      schoolMain.castShadow = true;
-      modelGroup.add(schoolMain);
-      objectsRef.current.roof = schoolMain;
-
-      // Central Reservoir Icon (Agua Azul)
-      const reservoir = new THREE.Mesh(
-        new THREE.CylinderGeometry(1.8, 1.8, 0.6, 24),
-        new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, transparent: true, opacity: 0.85 })
-      );
-      reservoir.position.set(4, 0.3, 0);
-      modelGroup.add(reservoir);
-      objectsRef.current.cistern = reservoir;
+      return;
     }
 
     scene.add(modelGroup);
@@ -723,8 +724,11 @@ export default function ModelViewer3D({ onSelectModule }) {
     let reqId;
     const animate = () => {
       reqId = requestAnimationFrame(animate);
-      if (currentModelGroupRef.current && !isDragging) {
-        currentModelGroupRef.current.rotation.y += 0.001; // subtle idle rotation
+      if (cartagenaTerritoryRef.current && isPlayingSimulationRef.current) {
+        cartagenaTerritoryRef.current.update(simulationSpeedRef.current);
+      }
+      if (currentModelGroupRef.current && !isDragging && selected3DModel !== 'revit') {
+        currentModelGroupRef.current.rotation.y += 0.0005; // subtle idle rotation for modules
       }
       renderer.render(scene, camera);
     };
@@ -740,6 +744,15 @@ export default function ModelViewer3D({ onSelectModule }) {
       if (renderer) renderer.dispose();
     };
   }, []);
+
+  // Sync simulation refs with state
+  useEffect(() => {
+    isPlayingSimulationRef.current = isPlayingSimulation;
+  }, [isPlayingSimulation]);
+
+  useEffect(() => {
+    simulationSpeedRef.current = simulationSpeed;
+  }, [simulationSpeed]);
 
   // Update Model on switch
   useEffect(() => {
@@ -778,7 +791,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     if (objectsRef.current.terrain) objectsRef.current.terrain.visible = !!activeLayers.terrain;
     if (objectsRef.current.grid) objectsRef.current.grid.visible = !!activeLayers.grid;
 
-    // Revit Model layers
+    // Revit Model layers (Tierrabomba BIM)
     if (objectsRef.current.revitTerrain && objectsRef.current.revitTerrain.length > 0) {
       objectsRef.current.revitTerrain.forEach(mesh => {
         if (mesh) mesh.visible = !!activeLayers.terrain;
@@ -792,6 +805,38 @@ export default function ModelViewer3D({ onSelectModule }) {
     if (objectsRef.current.revitBuildings && objectsRef.current.revitBuildings.length > 0) {
       objectsRef.current.revitBuildings.forEach(mesh => {
         if (mesh) mesh.visible = !!activeLayers.buildings;
+      });
+    }
+
+    // Cartagena Territorial simulation layers
+    if (cartagenaTerritoryRef.current && cartagenaTerritoryRef.current.group) {
+      const grp = cartagenaTerritoryRef.current.group;
+      const waterM = cartagenaTerritoryRef.current.animatedObjects.waterMeshes;
+      waterM.forEach(w => { if (w) w.visible = !!activeLayers.water; });
+
+      const land = grp.getObjectByName("Landmasses");
+      if (land) land.visible = !!activeLayers.terrain;
+
+      const forts = grp.getObjectByName("Fortresses");
+      if (forts) forts.visible = !!activeLayers.buildings;
+
+      const roads = grp.getObjectByName("RoadNetwork");
+      if (roads) roads.visible = !!activeLayers.walls;
+
+      const bldgs = grp.getObjectByName("Buildings3D");
+      if (bldgs) bldgs.visible = !!activeLayers.buildings;
+
+      const veg = grp.getObjectByName("Vegetation");
+      if (veg) veg.visible = !!activeLayers.trees;
+
+      const rts = grp.getObjectByName("MaritimeRoutes");
+      if (rts) rts.visible = !!activeLayers.boats;
+
+      cartagenaTerritoryRef.current.animatedObjects.boats.forEach(b => {
+        if (b.mesh) b.mesh.visible = !!activeLayers.boats;
+      });
+      cartagenaTerritoryRef.current.animatedObjects.vehicles.forEach(v => {
+        if (v.mesh) v.mesh.visible = !!activeLayers.vehicles;
       });
     }
   }, [activeLayers]);
@@ -1039,6 +1084,30 @@ export default function ModelViewer3D({ onSelectModule }) {
   };
 
   const modelDetails = {
+    revit: {
+      title: "Simulación 3D Territorial — Bahía de Cartagena & Tierra Bomba",
+      capacity: "Escala Metropolitana & Bahía Insular",
+      area: "Bahía de Cartagena, Bocagrande, Manga, Centro & Isla de Tierra Bomba",
+      specs: [
+        { label: "Tránsito Marítimo", value: "3 Rutas de Lanchas en Vivo" },
+        { label: "Topografía", value: "Continental + Meseta Insular" },
+        { label: "Patrimonio", value: "Murallas, Castillo & Fuertes" },
+        { label: "Urbanismo", value: "Rascacielos & Caseríos Insulares" }
+      ],
+      desc: "Simulación tridimensional interactiva inspirada en el modelamiento territorial a escala urbana. Integra el cuerpo de agua de la bahía de Cartagena, el mar Caribe, las masas continentales e insulares, el tejido vial, las murallas históricas, la silueta de rascacielos y el flujo continuo de embarcaciones hacia los 4 asentamientos de Tierra Bomba."
+    },
+    masterplan: {
+      title: "Masterplan Arquitectónico BIM (Tierra Bomba)",
+      capacity: "4.472 Elementos BIM Clasificados",
+      area: "Toposolid + Equipamiento + Viviendas + Muros",
+      specs: [
+        { label: "Topografía", value: "Toposolid Insular Activo" },
+        { label: "Vías y Muros", value: "3.452 Elementos (138mm)" },
+        { label: "Edificaciones", value: "1.019 Masas Arquitectónicas" },
+        { label: "Caja de Sección", value: "6 Planos de Corte en Vivo" }
+      ],
+      desc: "Modelo tridimensional BIM original exportado directamente desde Autodesk Revit. Permite encender o apagar independientemente la topografía insular, los muros/particiones interiores y los volúmenes de las edificaciones con caja de sección y corte axonométrico en tiempo real."
+    },
     colegio: {
       title: "Equipamiento Educativo, Comunitario & Dispensario Hídrico",
       capacity: "350 Estudiantes + 1.200 Usuarios de Fin de Semana",
@@ -1062,30 +1131,6 @@ export default function ModelViewer3D({ onSelectModule }) {
         { label: "Materialidad", value: "Madera tratada + Bloque BTC" }
       ],
       desc: "Vivienda progresiva que respeta las costumbres pesqueras isleñas, con pórticos de sombra para reparación de redes y captación pluvial directa."
-    },
-    masterplan: {
-      title: "Masterplan Asentamiento Seguro Meseta (+22.00m)",
-      capacity: "120 Familias Reubicadas (480 Hab)",
-      area: "65 Hectáreas de Suelo Seguro",
-      specs: [
-        { label: "Cota de Seguridad", value: "+22.00 m.s.n.m." },
-        { label: "Riesgo Marino", value: "0% Inmune a oleaje" },
-        { label: "Ejes Peatonales", value: "Senderos bioclimáticos" },
-        { label: "Bio-Humedales", value: "Fitodepuración de aguas" }
-      ],
-      desc: "Implantación territorial central que articula vivienda digna, equipamiento escolar y soberanía alimentaria lejos del borde de erosión marina."
-    },
-    revit: {
-      title: "Modelo BIM Oficial de Revit (Tierrabomba)",
-      capacity: "4.472 Elementos BIM Clasificados",
-      area: "Toposolid + Equipamiento + Viviendas",
-      specs: [
-        { label: "Topografía", value: "Toposolid Insular Activo" },
-        { label: "Muros y Particiones", value: "3.452 Elementos (138mm)" },
-        { label: "Edificaciones", value: "1.019 Masas Arquitectónicas" },
-        { label: "Control de Capas", value: "100% Interactivo" }
-      ],
-      desc: "Modelo tridimensional BIM original exportado directamente desde Autodesk Revit. Permite encender o apagar independientemente la topografía insular, los muros/particiones interiores y los volúmenes de las edificaciones con iluminación solar en tiempo real."
     },
     custom: {
       title: customModel ? `Modelo Revit / BIM: ${customModel.name}` : "Modelo Personalizado Revit",
@@ -1144,10 +1189,10 @@ export default function ModelViewer3D({ onSelectModule }) {
           </div>
 
           <h3 className="font-bold text-xl text-white tracking-tight">
-            Cargando Modelo 3D de Revit
+            {selected3DModel === 'revit' ? 'Cargando Territorio Cartagena & Tierrabomba' : 'Cargando Modelo 3D BIM'}
           </h3>
           <p className="text-xs text-teal-200/80 font-mono mt-1 text-center">
-            {loadPhase || 'Optimizando geometría BIM a 60 FPS...'}
+            {loadPhase || 'Optimizando geometría 3D a 60 FPS...'}
           </p>
 
           {/* Real-time Progress Bar */}
@@ -1160,7 +1205,7 @@ export default function ModelViewer3D({ onSelectModule }) {
             </div>
             <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 px-1">
               <span>{loadProgress > 0 ? `${loadProgress}%` : 'Conectando...'}</span>
-              <span className="text-teal-300 font-bold">1.95 MB Ultraligero</span>
+              <span className="text-teal-300 font-bold">60 FPS WebGL</span>
             </div>
           </div>
         </div>
@@ -1179,19 +1224,27 @@ export default function ModelViewer3D({ onSelectModule }) {
         {/* Module Title & Axonometric Description Card */}
         <div className="glass-dark px-4 py-2.5 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-xl text-white shadow-xl">
           <div className="w-9 h-9 rounded-xl bg-[#24c8bd] text-slate-950 flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
-            05
+            {selected3DModel === 'revit' ? '08' : '05'}
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
               <h1 className="font-bold text-sm text-white tracking-wide truncate">
-                Corte axonométrico — Tierrabomba
+                {selected3DModel === 'revit'
+                  ? 'Simulación 3D Territorial — Cartagena & Tierra Bomba'
+                  : selected3DModel === 'masterplan'
+                  ? 'Corte axonométrico — Masterplan Tierrabomba'
+                  : selected3DModel === 'colegio'
+                  ? 'Equipamiento Educativo & Dispensario Hídrico'
+                  : 'Prototipo Vivienda Palafítica'}
               </h1>
               <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#24c8bd]/20 text-[#24c8bd] border border-[#24c8bd]/30 shrink-0">
-                AXONO 35°
+                {selected3DModel === 'revit' ? 'TERRITORIO 3D' : 'AXONO 35°'}
               </span>
             </div>
             <p className="text-[11px] text-slate-400 truncate mt-0.5 font-sans">
-              Proyección axonométrica a 35° &bull; arrastra para girar &bull; rueda para zoom &bull; clic derecho para mover la vista
+              {selected3DModel === 'revit'
+                ? 'Bahía de Cartagena & Tierrabomba • Lanchas en vivo • Arrastra para girar • Rueda para zoom • Clic derecho para mover'
+                : 'Proyección axonométrica a 35° • Arrastra para girar • Rueda para zoom • Clic derecho para mover'}
             </p>
           </div>
         </div>
@@ -1206,12 +1259,26 @@ export default function ModelViewer3D({ onSelectModule }) {
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
                 selected3DModel === 'revit'
+                  ? 'bg-[#24c8bd] text-slate-950 shadow-sm ring-2 ring-[#24c8bd]/50'
+                  : 'text-teal-300 hover:text-white bg-teal-500/10'
+              }`}
+            >
+              <Ship className="w-3.5 h-3.5" />
+              <span>Cartagena + Tierrabomba</span>
+            </button>
+            <button
+              onClick={() => {
+                setSelected3DModel('masterplan');
+                buildModel('masterplan');
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+                selected3DModel === 'masterplan'
                   ? 'bg-amber-500 text-slate-950 shadow-sm ring-2 ring-amber-400/50'
                   : 'text-amber-300 hover:text-white bg-amber-500/10'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Modelo Revit</span>
+              <Compass className="w-3.5 h-3.5" />
+              <span>Masterplan Tierrabomba</span>
             </button>
             <button
               onClick={() => {
@@ -1240,20 +1307,6 @@ export default function ModelViewer3D({ onSelectModule }) {
             >
               <Home className="w-3.5 h-3.5" />
               <span>Vivienda</span>
-            </button>
-            <button
-              onClick={() => {
-                setSelected3DModel('masterplan');
-                buildModel('masterplan');
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-                selected3DModel === 'masterplan'
-                  ? 'bg-emerald-500 text-slate-950 shadow-sm'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <Compass className="w-3.5 h-3.5" />
-              <span>Masterplan</span>
             </button>
 
             {customModel && (
@@ -1310,16 +1363,33 @@ export default function ModelViewer3D({ onSelectModule }) {
             Capas 3D Visibles
           </span>
           <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-slate-300 border border-white/10">
-            {selected3DModel === 'revit' ? 'BIM Revit' : selected3DModel === 'custom' ? 'Revit Custom' : 'Módulo 3D'}
+            {selected3DModel === 'revit' ? 'Territorio Regional' : selected3DModel === 'masterplan' ? 'Masterplan BIM' : selected3DModel === 'custom' ? 'Revit Custom' : 'Módulo BIM'}
           </span>
         </div>
 
         <div className="space-y-1.5">
-          {(selected3DModel === 'revit' || selected3DModel === 'custom') && (
+          {selected3DModel === 'revit' && (
             <>
+              {/* Capa Mar & Bahía */}
+              <button
+                onClick={() => toggleLayer('water')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
+                  activeLayers.water 
+                    ? 'bg-blue-950/60 text-blue-300 border border-blue-500/50 shadow-sm' 
+                    : 'bg-slate-900/50 text-slate-500 border border-slate-800 line-through'
+                }`}
+              >
+                <div className="flex items-center space-x-2 text-left">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0 shadow-sm" />
+                  <div>
+                    <span className="block font-bold">Bahía & Océano</span>
+                    <span className="text-[9px] text-blue-400/80 font-normal">Plano de Agua 3D</span>
+                  </div>
+                </div>
+                {activeLayers.water ? <Eye className="w-3.5 h-3.5 text-blue-400" /> : <EyeOff className="w-3.5 h-3.5" />}
+              </button>
 
-
-              {/* Capa 1: Topografía */}
+              {/* Capa Topografía */}
               <button
                 onClick={() => toggleLayer('terrain')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
@@ -1329,35 +1399,35 @@ export default function ModelViewer3D({ onSelectModule }) {
                 }`}
               >
                 <div className="flex items-center space-x-2 text-left">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 shadow-sm" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#477857] shrink-0 shadow-sm" />
                   <div>
                     <span className="block font-bold">Topografía Insular</span>
-                    <span className="text-[9px] text-slate-400 font-normal">Terreno Verde Natural</span>
+                    <span className="text-[9px] text-emerald-400/80 font-normal">Tierrabomba & Cartagena</span>
                   </div>
                 </div>
                 {activeLayers.terrain ? <Eye className="w-3.5 h-3.5 text-emerald-400" /> : <EyeOff className="w-3.5 h-3.5" />}
               </button>
 
-              {/* Capa 2: Vías & Muros */}
+              {/* Capa Vías */}
               <button
                 onClick={() => toggleLayer('walls')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
                   activeLayers.walls 
-                    ? 'bg-slate-800/80 text-slate-200 border border-slate-500/50 shadow-sm' 
+                    ? 'bg-slate-800/80 text-slate-200 border border-slate-400/50 shadow-sm' 
                     : 'bg-slate-900/50 text-slate-500 border border-slate-800 line-through'
                 }`}
               >
                 <div className="flex items-center space-x-2 text-left">
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0 shadow-sm" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 shadow-sm border border-slate-400" />
                   <div>
-                    <span className="block font-bold">Vías, Muros & Trazados</span>
-                    <span className="text-[9px] text-slate-400 font-normal">Gris Concreto Arquitectónico</span>
+                    <span className="block font-bold">Red Vial & Avenidas</span>
+                    <span className="text-[9px] text-slate-400 font-normal">Bocagrande, Manga, Popa</span>
                   </div>
                 </div>
-                {activeLayers.walls ? <Eye className="w-3.5 h-3.5 text-slate-300" /> : <EyeOff className="w-3.5 h-3.5" />}
+                {activeLayers.walls ? <Eye className="w-3.5 h-3.5 text-slate-200" /> : <EyeOff className="w-3.5 h-3.5" />}
               </button>
 
-              {/* Capa 3: Edificaciones y Masas */}
+              {/* Capa Rascacielos & Masas */}
               <button
                 onClick={() => toggleLayer('buildings')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
@@ -1367,11 +1437,170 @@ export default function ModelViewer3D({ onSelectModule }) {
                 }`}
               >
                 <div className="flex items-center space-x-2 text-left">
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-500 shrink-0 shadow-sm" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#1e293b] border border-slate-600 shrink-0 shadow-sm" />
+                  <div>
+                    <span className="block font-bold">Rascacielos & Murallas</span>
+                    <span className="text-[9px] text-slate-400 font-normal">Volumetrías 3D</span>
+                  </div>
+                </div>
+                {activeLayers.buildings ? <Eye className="w-3.5 h-3.5 text-teal-400" /> : <EyeOff className="w-3.5 h-3.5" />}
+              </button>
+
+              {/* Capa Lanchas en Vivo */}
+              <button
+                onClick={() => toggleLayer('boats')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
+                  activeLayers.boats 
+                    ? 'bg-cyan-950/60 text-cyan-300 border border-cyan-500/50 shadow-sm' 
+                    : 'bg-slate-900/50 text-slate-500 border border-slate-800 line-through'
+                }`}
+              >
+                <div className="flex items-center space-x-2 text-left">
+                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0 shadow-sm animate-pulse" />
+                  <div>
+                    <span className="block font-bold">Lanchas en Vivo</span>
+                    <span className="text-[9px] text-cyan-400/80 font-normal">3 Rutas Marítimas</span>
+                  </div>
+                </div>
+                {activeLayers.boats ? <Eye className="w-3.5 h-3.5 text-cyan-400" /> : <EyeOff className="w-3.5 h-3.5" />}
+              </button>
+
+              {/* Capa Tránsito Vehicular */}
+              <button
+                onClick={() => toggleLayer('vehicles')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
+                  activeLayers.vehicles 
+                    ? 'bg-amber-950/50 text-amber-300 border border-amber-500/50 shadow-sm' 
+                    : 'bg-slate-900/50 text-slate-500 border border-slate-800 line-through'
+                }`}
+              >
+                <div className="flex items-center space-x-2 text-left">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 shadow-sm" />
+                  <div>
+                    <span className="block font-bold">Tránsito Vehicular</span>
+                    <span className="text-[9px] text-amber-400/80 font-normal">Flujo en Avenidas</span>
+                  </div>
+                </div>
+                {activeLayers.vehicles ? <Eye className="w-3.5 h-3.5 text-amber-400" /> : <EyeOff className="w-3.5 h-3.5" />}
+              </button>
+
+              {/* Capa Vegetación */}
+              <button
+                onClick={() => toggleLayer('trees')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
+                  activeLayers.trees 
+                    ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-600/40 shadow-sm' 
+                    : 'bg-slate-900/50 text-slate-500 border border-slate-800 line-through'
+                }`}
+              >
+                <div className="flex items-center space-x-2 text-left">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 shrink-0 shadow-sm" />
+                  <div>
+                    <span className="block font-bold">Árboles & Manglares</span>
+                    <span className="text-[9px] text-emerald-400/80 font-normal">Capa Botánica</span>
+                  </div>
+                </div>
+                {activeLayers.trees ? <Eye className="w-3.5 h-3.5 text-emerald-400" /> : <EyeOff className="w-3.5 h-3.5" />}
+              </button>
+            </>
+          )}
+
+          {selected3DModel === 'masterplan' && (
+            <>
+              {/* Capa 1: Topografía BIM */}
+              <button
+                onClick={() => toggleLayer('terrain')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
+                  activeLayers.terrain 
+                    ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-500/50 shadow-sm' 
+                    : 'bg-slate-900/50 text-slate-500 border border-slate-800 line-through'
+                }`}
+              >
+                <div className="flex items-center space-x-2 text-left">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#477857] shrink-0 shadow-sm" />
+                  <div>
+                    <span className="block font-bold">Topografía Insular</span>
+                    <span className="text-[9px] text-emerald-400/80 font-normal">Relieve Verde Sólido</span>
+                  </div>
+                </div>
+                {activeLayers.terrain ? <Eye className="w-3.5 h-3.5 text-emerald-400" /> : <EyeOff className="w-3.5 h-3.5" />}
+              </button>
+
+              {/* Capa 2: Vías & Muros BIM */}
+              <button
+                onClick={() => toggleLayer('walls')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
+                  activeLayers.walls 
+                    ? 'bg-slate-800/80 text-slate-200 border border-slate-400/50 shadow-sm' 
+                    : 'bg-slate-900/50 text-slate-500 border border-slate-800 line-through'
+                }`}
+              >
+                <div className="flex items-center space-x-2 text-left">
+                  <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 shadow-sm border border-slate-400" />
+                  <div>
+                    <span className="block font-bold">Vías & Muros</span>
+                    <span className="text-[9px] text-slate-400 font-normal">Trazado Blanco Nítido</span>
+                  </div>
+                </div>
+                {activeLayers.walls ? <Eye className="w-3.5 h-3.5 text-slate-200" /> : <EyeOff className="w-3.5 h-3.5" />}
+              </button>
+
+              {/* Capa 3: Edificaciones y Masas BIM */}
+              <button
+                onClick={() => toggleLayer('buildings')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
+                  activeLayers.buildings 
+                    ? 'bg-slate-800/80 text-teal-300 border border-teal-500/50 shadow-sm' 
+                    : 'bg-slate-900/50 text-slate-500 border border-slate-800 line-through'
+                }`}
+              >
+                <div className="flex items-center space-x-2 text-left">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#1e293b] border border-slate-600 shrink-0 shadow-sm" />
                   <div>
                     <span className="block font-bold">Edificaciones & Caserío</span>
-                    <span className="text-[9px] text-slate-400 font-normal">Gris Urbano Arquitectónico</span>
+                    <span className="text-[9px] text-slate-400 font-normal">Grafito Arquitectónico</span>
                   </div>
+                </div>
+                {activeLayers.buildings ? <Eye className="w-3.5 h-3.5 text-teal-400" /> : <EyeOff className="w-3.5 h-3.5" />}
+              </button>
+            </>
+          )}
+
+          {selected3DModel === 'custom' && (
+            <>
+              <button
+                onClick={() => toggleLayer('terrain')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
+                  activeLayers.terrain ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-500/50' : 'bg-slate-900/50 text-slate-500 line-through'
+                }`}
+              >
+                <div className="flex items-center space-x-2 text-left">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#477857] shrink-0" />
+                  <span>Topografía</span>
+                </div>
+                {activeLayers.terrain ? <Eye className="w-3.5 h-3.5 text-emerald-400" /> : <EyeOff className="w-3.5 h-3.5" />}
+              </button>
+              <button
+                onClick={() => toggleLayer('walls')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
+                  activeLayers.walls ? 'bg-slate-800/80 text-slate-200 border border-slate-400/50' : 'bg-slate-900/50 text-slate-500 line-through'
+                }`}
+              >
+                <div className="flex items-center space-x-2 text-left">
+                  <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 border border-slate-400" />
+                  <span>Vías & Muros</span>
+                </div>
+                {activeLayers.walls ? <Eye className="w-3.5 h-3.5 text-slate-200" /> : <EyeOff className="w-3.5 h-3.5" />}
+              </button>
+              <button
+                onClick={() => toggleLayer('buildings')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
+                  activeLayers.buildings ? 'bg-slate-800/80 text-teal-300 border border-teal-500/50' : 'bg-slate-900/50 text-slate-500 line-through'
+                }`}
+              >
+                <div className="flex items-center space-x-2 text-left">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#1e293b] border border-slate-600 shrink-0" />
+                  <span>Edificaciones</span>
                 </div>
                 {activeLayers.buildings ? <Eye className="w-3.5 h-3.5 text-teal-400" /> : <EyeOff className="w-3.5 h-3.5" />}
               </button>
@@ -1480,59 +1709,6 @@ export default function ModelViewer3D({ onSelectModule }) {
                   <span>Celosías & Pórtico</span>
                 </div>
                 {activeLayers.louvers ? <Eye className="w-3.5 h-3.5 text-amber-400" /> : <EyeOff className="w-3.5 h-3.5" />}
-              </button>
-            </>
-          )}
-
-          {selected3DModel === 'masterplan' && (
-            <>
-              <button
-                onClick={() => toggleLayer('terrain')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
-                  activeLayers.terrain ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/40' : 'text-slate-500 line-through'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                  <span>Terreno Meseta (+22m)</span>
-                </div>
-                {activeLayers.terrain ? <Eye className="w-3.5 h-3.5 text-emerald-400" /> : <EyeOff className="w-3.5 h-3.5" />}
-              </button>
-              <button
-                onClick={() => toggleLayer('structure')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
-                  activeLayers.structure ? 'bg-terracotta-950/40 text-terracotta-300 border border-terracotta-500/40' : 'text-slate-500 line-through'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-terracotta-500 shrink-0" />
-                  <span>Manzanas Residenciales</span>
-                </div>
-                {activeLayers.structure ? <Eye className="w-3.5 h-3.5 text-teal-400" /> : <EyeOff className="w-3.5 h-3.5" />}
-              </button>
-              <button
-                onClick={() => toggleLayer('roof')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
-                  activeLayers.roof ? 'bg-teal-950/40 text-teal-300 border border-teal-500/40' : 'text-slate-500 line-through'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-teal-500 shrink-0" />
-                  <span>Escuela Central</span>
-                </div>
-                {activeLayers.roof ? <Eye className="w-3.5 h-3.5 text-teal-400" /> : <EyeOff className="w-3.5 h-3.5" />}
-              </button>
-              <button
-                onClick={() => toggleLayer('cistern')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
-                  activeLayers.cistern ? 'bg-blue-950/40 text-blue-300 border border-blue-500/40' : 'text-slate-500 line-through'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-                  <span>Aljibe Territorial</span>
-                </div>
-                {activeLayers.cistern ? <Eye className="w-3.5 h-3.5 text-blue-400" /> : <EyeOff className="w-3.5 h-3.5" />}
               </button>
             </>
           )}
@@ -1655,20 +1831,97 @@ export default function ModelViewer3D({ onSelectModule }) {
         </div>
       </div>
 
+      {/* Floating Bottom Center: Live Transit Simulation Controls Bar (When in Territorial Revit mode) */}
+      {selected3DModel === 'revit' && (
+        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-[400] glass-dark px-4 py-2.5 rounded-2xl flex items-center space-x-3 text-xs font-mono shadow-2xl border border-white/10 backdrop-blur-xl pointer-events-auto">
+          <div className="flex items-center space-x-2 border-r border-white/10 pr-3">
+            <button
+              onClick={() => setIsPlayingSimulation(!isPlayingSimulation)}
+              className={`p-2 rounded-xl flex items-center justify-center transition-all ${
+                isPlayingSimulation 
+                  ? 'bg-[#24c8bd] text-slate-950 font-bold shadow-lg shadow-[#24c8bd]/30 hover:scale-105' 
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+              }`}
+              title={isPlayingSimulation ? 'Pausar Simulación Marítima y Urbana' : 'Reanudar Simulación'}
+            >
+              {isPlayingSimulation ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+            </button>
+            <span className="text-slate-200 text-[11px] font-bold hidden sm:inline">
+              {isPlayingSimulation ? 'Simulación en Vivo' : 'Pausada'}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-1 border-r border-white/10 pr-3">
+            {[
+              { speed: 0.5, label: '0.5x' },
+              { speed: 1.5, label: '1x' },
+              { speed: 3.0, label: '2x' },
+              { speed: 5.0, label: '4x' },
+            ].map(({ speed, label }) => (
+              <button
+                key={speed}
+                onClick={() => setSimulationSpeed(speed)}
+                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                  simulationSpeed === speed
+                    ? 'bg-[#24c8bd] text-slate-950 shadow-sm'
+                    : 'bg-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-700'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center space-x-2 text-[10.5px] text-[#24c8bd]">
+            <Ship className="w-3.5 h-3.5 animate-pulse text-[#24c8bd] shrink-0" />
+            <span className="hidden md:inline font-sans text-slate-300">
+              3 Rutas Marítimas Activas (Bodeguita – Punta Arenas – Bocachica)
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Floating Bottom Left: Architectural Legend */}
       <div className="absolute bottom-6 left-4 z-[400] glass-dark p-3 rounded-2xl pointer-events-auto text-white shadow-xl border border-white/10 space-y-1.5 text-xs font-mono">
-        <div className="flex items-center space-x-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 border border-slate-400 shadow-sm" />
-          <span className="text-slate-200">Vías & Muros</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-slate-800 shrink-0 border border-slate-600 shadow-sm" />
-          <span className="text-slate-200">Edificaciones & Caserío</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#477857] shrink-0 shadow-sm" />
-          <span className="text-slate-200">Topografía / Relieve</span>
-        </div>
+        {selected3DModel === 'revit' ? (
+          <>
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0 shadow-sm animate-pulse" />
+              <span className="text-slate-200">Lanchas en Ruta (Bodeguita - Isla)</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shrink-0 border border-slate-600 shadow-sm" />
+              <span className="text-slate-200">Rascacielos & Murallas</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 border border-slate-400 shadow-sm" />
+              <span className="text-slate-200">Red Vial & Avenidas</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#477857] shrink-0 shadow-sm" />
+              <span className="text-slate-200">Topografía & Meseta Insular</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#1b3b5f] shrink-0 border border-blue-400/30 shadow-sm" />
+              <span className="text-slate-200">Bahía de Cartagena & Mar</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 border border-slate-400 shadow-sm" />
+              <span className="text-slate-200">Vías & Muros</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shrink-0 border border-slate-600 shadow-sm" />
+              <span className="text-slate-200">Edificaciones & Caserío</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#477857] shrink-0 shadow-sm" />
+              <span className="text-slate-200">Topografía / Relieve</span>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Floating Bottom Center: Orbit & Zoom Instruction Pill */}
