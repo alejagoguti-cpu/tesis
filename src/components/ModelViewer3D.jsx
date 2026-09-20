@@ -57,7 +57,6 @@ export default function ModelViewer3D({ onSelectModule }) {
     zMin: 0,
     zMax: 100,
   });
-  const [waterColor, setWaterColor] = useState('#b0ced2');
   const [showRightControls, setShowRightControls] = useState(true);
 
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -68,12 +67,10 @@ export default function ModelViewer3D({ onSelectModule }) {
   const [loadPhase, setLoadPhase] = useState('Descargando geometría BIM...');
   const [loadError, setLoadError] = useState('');
   const [customModel, setCustomModel] = useState(null);
-  const [terrainTextureMode, setTerrainTextureMode] = useState('ortho'); // 'ortho' (Planimetría/Vías) | 'green' (Verde Natural)
   const [activeLayers, setActiveLayers] = useState({
     terrain: true,
     walls: true,
     buildings: true,
-    ocean: true,
     grid: false,
     roof: true,
     structure: true,
@@ -96,13 +93,11 @@ export default function ModelViewer3D({ onSelectModule }) {
     cistern: null,
     louvers: null,
     terrain: null,
-    ocean: null,
     grid: null,
     dirLight: null,
     revitTerrain: [],
     revitWalls: [],
     revitBuildings: [],
-    textures: null,
   });
 
   // 6 Planos de recorte para la Caja de Sección (Corte Axonométrico 3D)
@@ -145,27 +140,6 @@ export default function ModelViewer3D({ onSelectModule }) {
     planes.zMax.constant = cutZMax;
   };
 
-  // Generador de mapeo UV planar cenital para alinear ortofoto / planimetría sobre la topografía
-  const applyPlanarUVs = (geometry) => {
-    if (!geometry || !geometry.attributes.position) return;
-    geometry.computeBoundingBox();
-    const box = geometry.boundingBox;
-    const pos = geometry.attributes.position;
-    const count = pos.count;
-    const uvs = new Float32Array(count * 2);
-    const sizeX = (box.max.x - box.min.x) || 1;
-    const sizeY = (box.max.y - box.min.y) || 1;
-
-    for (let i = 0; i < count; i++) {
-      const x = pos.getX(i);
-      const y = pos.getY(i);
-      uvs[i * 2] = (x - box.min.x) / sizeX;
-      uvs[i * 2 + 1] = (y - box.min.y) / sizeY;
-    }
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    geometry.attributes.uv.needsUpdate = true;
-  };
-
   // Re-build 3D Model whenever selected3DModel changes
   const buildModel = (modelType) => {
     const scene = sceneRef.current;
@@ -189,13 +163,11 @@ export default function ModelViewer3D({ onSelectModule }) {
     if (modelType === 'revit') {
       setIsLoadingFile(true);
       setLoadProgress(15);
-      setLoadPhase('Conectando con modelo BIM ultra-optimizado...');
+      setLoadPhase('Cargando geometría BIM oficial...');
 
-      // Configuración de horizonte oceánico infinito y sin bordes
-      const isOrtho = terrainTextureMode === 'ortho';
-      const bgColor = isOrtho ? 0xb0ced2 : 0x9fc0cb;
+      const bgColor = 0x0b0c0f;
       scene.background = new THREE.Color(bgColor);
-      scene.fog = new THREE.Fog(bgColor, 60, 260);
+      scene.fog = new THREE.Fog(bgColor, 160, 450);
 
       const gltfLoader = new GLTFLoader();
       const dracoLoader = new DRACOLoader();
@@ -205,42 +177,14 @@ export default function ModelViewer3D({ onSelectModule }) {
       const basePath = import.meta.env.BASE_URL || '/';
       const modelUrl = `${basePath.endsWith('/') ? basePath : basePath + '/'}models/tierrabomba_revit.glb`;
 
-      // Cargar texturas de alta calidad enviadas por el usuario con espacio de color sRGB
-      const textureLoader = new THREE.TextureLoader();
-
-      // 1. Textura Planimétrica / Ortofoto Mapbox (media_1789923441158.png)
-      const orthoTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/tierrabomba_ortho.png`);
-      orthoTex.colorSpace = THREE.SRGBColorSpace;
-      orthoTex.wrapS = THREE.ClampToEdgeWrapping;
-      orthoTex.wrapT = THREE.ClampToEdgeWrapping;
-
-      // 2. Textura Topografía Verde (media_1789922503319.jpg)
-      const terrainTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/terrain_green.jpg`);
-      terrainTex.colorSpace = THREE.SRGBColorSpace;
-      terrainTex.wrapS = THREE.RepeatWrapping;
-      terrainTex.wrapT = THREE.RepeatWrapping;
-      terrainTex.repeat.set(12, 12);
-
-      // 3. Textura Mar Caribe Acuarela (media_1789922552576.png)
-      const waterTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/water_blue.png`);
-      waterTex.colorSpace = THREE.SRGBColorSpace;
-      waterTex.wrapS = THREE.RepeatWrapping;
-      waterTex.wrapT = THREE.RepeatWrapping;
-      waterTex.repeat.set(28, 28);
-
-      // 4. Textura Concreto Gris para Vías y Muros (media_1789922679458.png)
-      const concreteTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/concrete_grey.png`);
-      concreteTex.colorSpace = THREE.SRGBColorSpace;
-      concreteTex.wrapS = THREE.RepeatWrapping;
-      concreteTex.wrapT = THREE.RepeatWrapping;
-      concreteTex.repeat.set(16, 16);
-
-      objectsRef.current.textures = {
-        orthoTex,
-        terrainTex,
-        waterTex,
-        concreteTex
-      };
+      const clipPlanesArray = [
+        secPlanesRef.current.xMin,
+        secPlanesRef.current.xMax,
+        secPlanesRef.current.yMin,
+        secPlanesRef.current.yMax,
+        secPlanesRef.current.zMin,
+        secPlanesRef.current.zMax,
+      ];
 
       gltfLoader.load(
         modelUrl,
@@ -273,22 +217,6 @@ export default function ModelViewer3D({ onSelectModule }) {
           const rootContainer = new THREE.Group();
           rootContainer.add(model);
 
-          // Plano de Mar Caribe Infinito y Sin Bordes
-          const oceanGeo = new THREE.PlaneGeometry(800, 800);
-          const oceanMat = new THREE.MeshStandardMaterial({
-            map: waterTex,
-            roughness: 0.2,
-            metalness: 0.1,
-            side: THREE.DoubleSide
-          });
-          const oceanMesh = new THREE.Mesh(oceanGeo, oceanMat);
-          oceanMesh.rotation.x = -Math.PI / 2;
-          oceanMesh.position.y = 0.01;
-          oceanMesh.receiveShadow = true;
-          oceanMesh.visible = activeLayers.ocean;
-          rootContainer.add(oceanMesh);
-          objectsRef.current.ocean = oceanMesh;
-
           objectsRef.current.revitTerrain = [];
           objectsRef.current.revitWalls = [];
           objectsRef.current.revitBuildings = [];
@@ -298,48 +226,53 @@ export default function ModelViewer3D({ onSelectModule }) {
               child.castShadow = true;
               child.receiveShadow = true;
 
+              if (child.geometry) {
+                child.geometry.computeVertexNormals();
+              }
+
               const name = (child.name || '') + (child.parent?.name || '');
               const matName = child.material ? child.material.name : '';
 
               if (name.includes('Terrain') || matName.includes('Terrain') || name.includes('Toposolid')) {
-                // Topografía / Terreno: Mapeo Planar cenital de la Ortofoto Mapbox o Verde Natural
-                applyPlanarUVs(child.geometry);
+                // Topografía / Relieve: Tono verde arquitectónico sólido
                 child.material = new THREE.MeshStandardMaterial({
-                  map: isOrtho ? orthoTex : terrainTex,
-                  roughness: isOrtho ? 0.82 : 0.88,
+                  color: 0x477857,
+                  roughness: 0.85,
                   metalness: 0.02,
-                  side: THREE.DoubleSide
+                  side: THREE.DoubleSide,
+                  clippingPlanes: clipPlanesArray,
                 });
                 child.renderOrder = 1;
                 child.userData.layer = 'terrain';
                 objectsRef.current.revitTerrain.push(child);
                 child.visible = activeLayers.terrain;
               } else if (name.includes('Walls') || name.includes('Partición') || name.includes('Interior') || name.includes('muro') || matName.includes('Walls')) {
-                // Vías, Muros y Trazados: Blanco Puro para máxima legibilidad de vías y senderos
+                // Vías, Muros y Trazados: Blanco Puro para máxima legibilidad sin Z-fighting
                 child.material = new THREE.MeshStandardMaterial({
                   color: 0xffffff,
-                  map: concreteTex,
-                  roughness: 0.45,
-                  metalness: 0.1,
+                  roughness: 0.35,
+                  metalness: 0.05,
                   side: THREE.DoubleSide,
                   polygonOffset: true,
-                  polygonOffsetFactor: -3.0,
-                  polygonOffsetUnits: -6.0,
+                  polygonOffsetFactor: -2.0,
+                  polygonOffsetUnits: -4.0,
+                  clippingPlanes: clipPlanesArray,
                 });
                 child.renderOrder = 3;
                 child.userData.layer = 'walls';
                 objectsRef.current.revitWalls.push(child);
                 child.visible = activeLayers.walls;
               } else {
-                // Edificaciones y Masas Urbanas: Gris Carbón Arquitectónico Destacado
+                // Edificaciones y Caserío: Gris Carbón Arquitectónico Destacado
                 child.material = new THREE.MeshStandardMaterial({
-                  color: isOrtho ? 0x1e293b : 0x475569, // Gris carbón que resalta los bloques edificados
-                  roughness: 0.4,
-                  metalness: 0.2,
+                  color: 0x1e293b,
+                  roughness: 0.45,
+                  metalness: 0.15,
                   side: THREE.DoubleSide,
                   polygonOffset: true,
-                  polygonOffsetFactor: -4.0,
-                  polygonOffsetUnits: -8.0,
+                  polygonOffsetFactor: -3.0,
+                  polygonOffsetUnits: -6.0,
+                  clippingPlanes: clipPlanesArray,
                 });
                 child.renderOrder = 4;
                 child.userData.layer = 'buildings';
@@ -359,7 +292,7 @@ export default function ModelViewer3D({ onSelectModule }) {
             setLoadProgress(percent);
             const loadedMB = (xhr.loaded / (1024 * 1024)).toFixed(1);
             const totalMB = (xhr.total / (1024 * 1024)).toFixed(1);
-            setLoadPhase(`Descargando geometría (${loadedMB} MB / ${totalMB} MB)`);
+            setLoadPhase(`Descargando geometría BIM (${loadedMB} MB / ${totalMB} MB)`);
           } else {
             setLoadProgress(prev => Math.min(95, prev + 25));
           }
@@ -624,8 +557,8 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     // Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x9fc0cb);
-    scene.fog = new THREE.Fog(0x9fc0cb, 60, 260);
+    scene.background = new THREE.Color(0x0b0c0f);
+    scene.fog = new THREE.Fog(0x0b0c0f, 160, 450);
     sceneRef.current = scene;
 
     // Cámara Ortográfica para Proyección Axonométrica Paralela a 35° (sin distorsión de perspectiva)
@@ -843,7 +776,6 @@ export default function ModelViewer3D({ onSelectModule }) {
     if (objectsRef.current.cistern) objectsRef.current.cistern.visible = !!activeLayers.cistern;
     if (objectsRef.current.louvers) objectsRef.current.louvers.visible = !!activeLayers.louvers;
     if (objectsRef.current.terrain) objectsRef.current.terrain.visible = !!activeLayers.terrain;
-    if (objectsRef.current.ocean) objectsRef.current.ocean.visible = !!activeLayers.ocean;
     if (objectsRef.current.grid) objectsRef.current.grid.visible = !!activeLayers.grid;
 
     // Revit Model layers
@@ -864,69 +796,6 @@ export default function ModelViewer3D({ onSelectModule }) {
     }
   }, [activeLayers]);
 
-  // Update Terrain Texture Style dynamically (Ortofoto vs Verde Natural)
-  useEffect(() => {
-    const scene = sceneRef.current;
-    if (!scene || !objectsRef.current.textures) return;
-    const { orthoTex, terrainTex, concreteTex } = objectsRef.current.textures;
-    if (!orthoTex || !terrainTex) return;
-
-    const isOrtho = terrainTextureMode === 'ortho';
-    const bgColor = isOrtho ? 0xb0ced2 : 0x9fc0cb;
-    scene.background = new THREE.Color(bgColor);
-    scene.fog = new THREE.Fog(bgColor, 60, 260);
-
-    if (objectsRef.current.revitTerrain) {
-      objectsRef.current.revitTerrain.forEach((child) => {
-        if (child && child.isMesh) {
-          applyPlanarUVs(child.geometry);
-          child.material = new THREE.MeshStandardMaterial({
-            map: isOrtho ? orthoTex : terrainTex,
-            roughness: isOrtho ? 0.82 : 0.88,
-            metalness: 0.02,
-            side: THREE.DoubleSide
-          });
-          child.renderOrder = 1;
-        }
-      });
-    }
-
-    if (objectsRef.current.revitWalls) {
-      objectsRef.current.revitWalls.forEach((child) => {
-        if (child && child.isMesh) {
-          child.material = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            map: concreteTex,
-            roughness: 0.45,
-            metalness: 0.1,
-            side: THREE.DoubleSide,
-            polygonOffset: true,
-            polygonOffsetFactor: -3.0,
-            polygonOffsetUnits: -6.0,
-          });
-          child.renderOrder = 3;
-        }
-      });
-    }
-
-    if (objectsRef.current.revitBuildings) {
-      objectsRef.current.revitBuildings.forEach((child) => {
-        if (child && child.isMesh) {
-          child.material = new THREE.MeshStandardMaterial({
-            color: isOrtho ? 0x1e293b : 0x475569,
-            roughness: 0.4,
-            metalness: 0.2,
-            side: THREE.DoubleSide,
-            polygonOffset: true,
-            polygonOffsetFactor: -4.0,
-            polygonOffsetUnits: -8.0,
-          });
-          child.renderOrder = 4;
-        }
-      });
-    }
-  }, [terrainTextureMode]);
-
   // Update Sun Lighting with Azimuth & Elevation
   useEffect(() => {
     const light = objectsRef.current.dirLight;
@@ -944,13 +813,6 @@ export default function ModelViewer3D({ onSelectModule }) {
   useEffect(() => {
     updateSectionPlanes(sectionLimits, sectionBoxActive);
   }, [sectionLimits, sectionBoxActive]);
-
-  // Update Water Color dynamically
-  useEffect(() => {
-    if (objectsRef.current.ocean && objectsRef.current.ocean.material) {
-      objectsRef.current.ocean.material.color = new THREE.Color(waterColor);
-    }
-  }, [waterColor]);
 
   // Restablecer Vista Axonométrica a 35° (proyección paralela)
   const resetAxonometricView = () => {
@@ -1023,44 +885,20 @@ export default function ModelViewer3D({ onSelectModule }) {
       modelGroup.position.y = -box.min.y * scale + 0.05;
       modelGroup.position.z = -center.z * scale;
 
-      const basePath = import.meta.env.BASE_URL || '/';
-      const textureLoader = new THREE.TextureLoader();
-      const terrainTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/terrain_green.jpg`);
-      terrainTex.wrapS = THREE.RepeatWrapping;
-      terrainTex.wrapT = THREE.RepeatWrapping;
-      terrainTex.repeat.set(12, 12);
+      const clipPlanesArray = [
+        secPlanesRef.current.xMin,
+        secPlanesRef.current.xMax,
+        secPlanesRef.current.yMin,
+        secPlanesRef.current.yMax,
+        secPlanesRef.current.zMin,
+        secPlanesRef.current.zMax,
+      ];
 
-      const waterTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/water_blue.png`);
-      waterTex.wrapS = THREE.RepeatWrapping;
-      waterTex.wrapT = THREE.RepeatWrapping;
-      waterTex.repeat.set(28, 28);
-
-      const concreteTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/concrete_grey.png`);
-      concreteTex.wrapS = THREE.RepeatWrapping;
-      concreteTex.wrapT = THREE.RepeatWrapping;
-      concreteTex.repeat.set(16, 16);
-
-      scene.background = new THREE.Color(0x9fc0cb);
-      scene.fog = new THREE.Fog(0x9fc0cb, 60, 260);
+      scene.background = new THREE.Color(0x0b0c0f);
+      scene.fog = new THREE.Fog(0x0b0c0f, 160, 450);
 
       const rootContainer = new THREE.Group();
       rootContainer.add(modelGroup);
-
-      // Plano de Mar Caribe Infinito y Sin Bordes
-      const oceanGeo = new THREE.PlaneGeometry(800, 800);
-      const oceanMat = new THREE.MeshStandardMaterial({
-        map: waterTex,
-        roughness: 0.2,
-        metalness: 0.1,
-        side: THREE.DoubleSide
-      });
-      const oceanMesh = new THREE.Mesh(oceanGeo, oceanMat);
-      oceanMesh.rotation.x = -Math.PI / 2;
-      oceanMesh.position.y = 0.01;
-      oceanMesh.receiveShadow = true;
-      oceanMesh.visible = activeLayers.ocean;
-      rootContainer.add(oceanMesh);
-      objectsRef.current.ocean = oceanMesh;
 
       objectsRef.current.revitTerrain = [];
       objectsRef.current.revitWalls = [];
@@ -1070,36 +908,53 @@ export default function ModelViewer3D({ onSelectModule }) {
         if (child.isMesh) {
           child.castShadow = true;
           child.receiveShadow = true;
-          const name = child.name || '';
+
+          if (child.geometry) {
+            child.geometry.computeVertexNormals();
+          }
+
+          const name = (child.name || '') + (child.parent?.name || '');
           const matName = child.material ? child.material.name : '';
 
           if (name.includes('Toposolid') || name.toLowerCase().includes('terrain') || matName.includes('Toposolid') || matName.toLowerCase().includes('terrain')) {
             child.material = new THREE.MeshStandardMaterial({
-              map: terrainTex,
-              roughness: 0.88,
+              color: 0x477857,
+              roughness: 0.85,
               metalness: 0.02,
-              side: THREE.DoubleSide
+              side: THREE.DoubleSide,
+              clippingPlanes: clipPlanesArray,
             });
+            child.renderOrder = 1;
             child.userData.layer = 'terrain';
             objectsRef.current.revitTerrain.push(child);
             child.visible = activeLayers.terrain;
           } else if (name.includes('Partición') || name.includes('Interior') || name.toLowerCase().includes('muro') || name.toLowerCase().includes('wall') || matName.includes('muro') || matName.includes('Walls')) {
             child.material = new THREE.MeshStandardMaterial({
-              map: concreteTex,
-              roughness: 0.85,
-              metalness: 0.08,
-              side: THREE.DoubleSide
+              color: 0xffffff,
+              roughness: 0.35,
+              metalness: 0.05,
+              side: THREE.DoubleSide,
+              polygonOffset: true,
+              polygonOffsetFactor: -2.0,
+              polygonOffsetUnits: -4.0,
+              clippingPlanes: clipPlanesArray,
             });
+            child.renderOrder = 3;
             child.userData.layer = 'walls';
             objectsRef.current.revitWalls.push(child);
             child.visible = activeLayers.walls;
           } else {
             child.material = new THREE.MeshStandardMaterial({
-              color: 0x475569,
-              roughness: 0.5,
-              metalness: 0.18,
-              side: THREE.DoubleSide
+              color: 0x1e293b,
+              roughness: 0.45,
+              metalness: 0.15,
+              side: THREE.DoubleSide,
+              polygonOffset: true,
+              polygonOffsetFactor: -3.0,
+              polygonOffsetUnits: -6.0,
+              clippingPlanes: clipPlanesArray,
             });
+            child.renderOrder = 4;
             child.userData.layer = 'buildings';
             objectsRef.current.revitBuildings.push(child);
             child.visible = activeLayers.buildings;
@@ -1462,58 +1317,7 @@ export default function ModelViewer3D({ onSelectModule }) {
         <div className="space-y-1.5">
           {(selected3DModel === 'revit' || selected3DModel === 'custom') && (
             <>
-              {/* Selector de Estilo de Textura */}
-              <div className="bg-slate-900/90 p-1.5 rounded-xl border border-white/10 space-y-1.5 mb-2 shadow-inner">
-                <div className="text-[9px] font-mono text-slate-400 px-1 font-bold uppercase tracking-wider flex items-center justify-between">
-                  <span>Estilo de Superficie</span>
-                  <span className="text-amber-400 font-bold">{terrainTextureMode === 'ortho' ? 'Ortofoto' : 'Natural'}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-1">
-                  <button
-                    onClick={() => setTerrainTextureMode('ortho')}
-                    className={`py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all ${
-                      terrainTextureMode === 'ortho'
-                        ? 'bg-amber-500 text-slate-950 shadow-sm ring-1 ring-amber-400 font-black'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                    }`}
-                    title="Mapa Planimétrico Mapbox con vías, caserío y trazados"
-                  >
-                    <Compass className="w-3 h-3" />
-                    <span>Ortofoto & Vías</span>
-                  </button>
-                  <button
-                    onClick={() => setTerrainTextureMode('green')}
-                    className={`py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all ${
-                      terrainTextureMode === 'green'
-                        ? 'bg-emerald-500 text-slate-950 shadow-sm ring-1 ring-emerald-400 font-black'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                    }`}
-                    title="Textura Verde Natural Fotográfica"
-                  >
-                    <Sparkles className="w-3 h-3" />
-                    <span>Verde Natural</span>
-                  </button>
-                </div>
-              </div>
 
-              {/* Capa 0: Mar Caribe / Océano */}
-              <button
-                onClick={() => toggleLayer('ocean')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
-                  activeLayers.ocean 
-                    ? 'bg-blue-950/50 text-blue-300 border border-blue-500/50 shadow-sm' 
-                    : 'bg-slate-900/50 text-slate-500 border border-slate-800 line-through'
-                }`}
-              >
-                <div className="flex items-center space-x-2 text-left">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0 shadow-sm" />
-                  <div>
-                    <span className="block font-bold">Mar Caribe / Océano</span>
-                    <span className="text-[9px] text-slate-400 font-normal">Cota 0.00m (Agua Azul)</span>
-                  </div>
-                </div>
-                {activeLayers.ocean ? <Eye className="w-3.5 h-3.5 text-blue-400" /> : <EyeOff className="w-3.5 h-3.5" />}
-              </button>
 
               {/* Capa 1: Topografía */}
               <button
@@ -1795,32 +1599,6 @@ export default function ModelViewer3D({ onSelectModule }) {
           </div>
         </div>
 
-        {/* Color del Agua */}
-        <div className="pt-2 border-t border-white/10 space-y-1.5">
-          <div className="flex items-center justify-between text-xs font-mono">
-            <span className="text-slate-300 font-bold flex items-center gap-1.5">
-              <Droplets className="w-3.5 h-3.5 text-[#24c8bd]" />
-              <span>Color del agua</span>
-            </span>
-            <div className="flex items-center gap-1.5">
-              {[
-                { hex: '#b0ced2', name: 'Aguamarina' },
-                { hex: '#0284c7', name: 'Azul Caribe' },
-                { hex: '#85b8cb', name: 'Celeste' },
-                { hex: '#475569', name: 'Gris Grafito' }
-              ].map((c) => (
-                <button
-                  key={c.hex}
-                  onClick={() => setWaterColor(c.hex)}
-                  className={`w-4 h-4 rounded-full border transition-all ${waterColor === c.hex ? 'ring-2 ring-white scale-125' : 'border-white/20'}`}
-                  style={{ backgroundColor: c.hex }}
-                  title={c.name}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* Caja de Sección / Corte Axonométrico 3D */}
         <div className="pt-2.5 border-t border-white/10 space-y-2.5">
           <button
@@ -1877,23 +1655,19 @@ export default function ModelViewer3D({ onSelectModule }) {
         </div>
       </div>
 
-      {/* Floating Bottom Left: Architectural Legend (matching reference) */}
+      {/* Floating Bottom Left: Architectural Legend */}
       <div className="absolute bottom-6 left-4 z-[400] glass-dark p-3 rounded-2xl pointer-events-auto text-white shadow-xl border border-white/10 space-y-1.5 text-xs font-mono">
         <div className="flex items-center space-x-2">
           <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 border border-slate-400 shadow-sm" />
-          <span className="text-slate-200">Vía / Trazado Vial</span>
+          <span className="text-slate-200">Vías & Muros</span>
         </div>
         <div className="flex items-center space-x-2">
           <span className="w-2.5 h-2.5 rounded-full bg-slate-800 shrink-0 border border-slate-600 shadow-sm" />
-          <span className="text-slate-200">Edificio / Caserío</span>
+          <span className="text-slate-200">Edificaciones & Caserío</span>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 shadow-sm" />
+          <span className="w-2.5 h-2.5 rounded-full bg-[#477857] shrink-0 shadow-sm" />
           <span className="text-slate-200">Topografía / Relieve</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#24c8bd] shrink-0 shadow-sm" />
-          <span className="text-slate-200">Cuerpo de agua / Mar</span>
         </div>
       </div>
 
