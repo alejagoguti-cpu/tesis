@@ -895,18 +895,15 @@ export default function ThesisFramework({ onSelectModule }) {
     const marker1Icon = L.divIcon({
       className: 'custom-framework-pin-1 cursor-pointer',
       html: `
-        <div class="relative flex items-center justify-center group cursor-pointer">
-          <div class="absolute -inset-2.5 rounded-full bg-amber-500/40 animate-ping"></div>
-          <div class="w-8 h-8 rounded-xl bg-amber-600 border-2 border-white shadow-2xl flex items-center justify-center text-white transition-transform group-hover:scale-115">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-          </div>
-          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-amber-950/95 text-[10px] text-amber-300 font-mono font-bold shadow-xl border border-amber-400/40 pointer-events-none group-hover:scale-105 transition-transform">
-            1. Delimitación Territorial
+        <div class="relative flex items-center justify-center group cursor-pointer" title="Paso 01: Delimitación Territorial">
+          <div class="absolute -inset-2 rounded-full bg-amber-500/30 animate-ping"></div>
+          <div class="w-7 h-7 rounded-xl bg-amber-600 border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-125">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
           </div>
         </div>
       `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18]
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
     });
 
     const marker1 = L.marker([10.3540, -75.5700], { icon: marker1Icon, interactive: true }).addTo(map);
@@ -919,18 +916,15 @@ export default function ThesisFramework({ onSelectModule }) {
     const marker2Icon = L.divIcon({
       className: 'custom-framework-pin-2 cursor-pointer',
       html: `
-        <div class="relative flex items-center justify-center group cursor-pointer">
-          <div class="absolute -inset-2.5 rounded-full bg-red-600/40 animate-pulse"></div>
-          <div class="w-8 h-8 rounded-xl bg-red-600 border-2 border-white shadow-2xl flex items-center justify-center text-white transition-transform group-hover:scale-115">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          </div>
-          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-950/95 text-[10px] text-red-300 font-mono font-bold shadow-xl border border-red-500/40 pointer-events-none group-hover:scale-105 transition-transform">
-            2. Franja de Erosión (-1.8m/año)
+        <div class="relative flex items-center justify-center group cursor-pointer" title="Paso 02: Franja de Erosión Costera">
+          <div class="absolute -inset-2 rounded-full bg-red-600/30 animate-pulse"></div>
+          <div class="w-7 h-7 rounded-xl bg-red-600 border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-125">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           </div>
         </div>
       `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18]
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
     });
 
     const marker2 = L.marker([10.3585, -75.5905], { icon: marker2Icon, interactive: true }).addTo(map);
@@ -942,18 +936,15 @@ export default function ThesisFramework({ onSelectModule }) {
     const marker3Icon = L.divIcon({
       className: 'custom-framework-pin-3 cursor-pointer',
       html: `
-        <div class="relative flex items-center justify-center group cursor-pointer">
-          <div class="absolute -inset-2.5 rounded-full bg-rose-500/40 animate-ping"></div>
-          <div class="w-8 h-8 rounded-xl bg-rose-600 border-2 border-white shadow-2xl flex items-center justify-center text-white transition-transform group-hover:scale-115">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-          </div>
-          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-900/95 text-[10px] text-white font-mono font-bold shadow-xl border border-rose-400/40 pointer-events-none group-hover:scale-105 transition-transform">
-            3. Colegio Actual (+1.5m)
+        <div class="relative flex items-center justify-center group cursor-pointer" title="Paso 03: Colegio Actual en Riesgo">
+          <div class="absolute -inset-2 rounded-full bg-rose-500/30 animate-ping"></div>
+          <div class="w-7 h-7 rounded-xl bg-rose-600 border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-125">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
           </div>
         </div>
       `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18]
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
     });
 
     const schoolCenter = (delimitations.school && delimitations.school.length > 0) 
@@ -968,18 +959,15 @@ export default function ThesisFramework({ onSelectModule }) {
     const marker4Icon = L.divIcon({
       className: 'custom-framework-pin-4 cursor-pointer',
       html: `
-        <div class="relative flex items-center justify-center group cursor-pointer">
-          <div class="absolute -inset-2.5 rounded-full bg-teal-400/40 animate-pulse"></div>
-          <div class="w-8 h-8 rounded-xl bg-teal-600 border-2 border-white shadow-2xl flex items-center justify-center text-white transition-transform group-hover:scale-115">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-          </div>
-          <div class="absolute -bottom-7 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-teal-950/95 text-[10px] text-teal-300 font-mono font-bold shadow-xl border border-teal-400/40 pointer-events-none group-hover:scale-105 transition-transform">
-            4. Meseta Segura (+22.00m)
+        <div class="relative flex items-center justify-center group cursor-pointer" title="Paso 04: Meseta Segura (+22.00m)">
+          <div class="absolute -inset-2 rounded-full bg-teal-400/30 animate-pulse"></div>
+          <div class="w-7 h-7 rounded-xl bg-teal-600 border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-125">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
           </div>
         </div>
       `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18]
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
     });
 
     const marker4 = L.marker([10.3730, -75.5759], { icon: marker4Icon, interactive: true }).addTo(map);
@@ -2031,16 +2019,29 @@ export default function ThesisFramework({ onSelectModule }) {
                         : 'border-white/80 shadow-lg'
                   }`}
                 >
-                  <div className="flex items-center justify-between w-full mb-1">
-                    <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
-                      isActive 
-                        ? 'bg-terracotta-100 text-terracotta-800' 
-                        : isFirstStepPrompt
-                          ? 'bg-amber-100 text-amber-900 font-black'
-                          : 'bg-slate-100/90 text-slate-600'
-                    }`}>
-                      PASO 0{step.step}
-                    </span>
+                  <div className="flex items-center justify-between w-full mb-1.5">
+                    <div className="flex items-center space-x-1.5">
+                      <div className={`p-1 rounded-lg transition-colors ${
+                        idx === 0 ? 'bg-amber-100 text-amber-700' :
+                        idx === 1 ? 'bg-red-100 text-red-700' :
+                        idx === 2 ? 'bg-rose-100 text-rose-700' :
+                        'bg-teal-100 text-teal-700'
+                      }`}>
+                        {idx === 0 && <Compass className="w-3.5 h-3.5" />}
+                        {idx === 1 && <ShieldAlert className="w-3.5 h-3.5" />}
+                        {idx === 2 && <GraduationCap className="w-3.5 h-3.5" />}
+                        {idx === 3 && <ShieldCheck className="w-3.5 h-3.5" />}
+                      </div>
+                      <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
+                        isActive 
+                          ? 'bg-terracotta-100 text-terracotta-800' 
+                          : isFirstStepPrompt
+                            ? 'bg-amber-100 text-amber-900 font-black'
+                            : 'bg-slate-100/90 text-slate-600'
+                      }`}>
+                        PASO 0{step.step}
+                      </span>
+                    </div>
                     <span className={`w-2 h-2 rounded-full ${
                       isActive 
                         ? 'bg-terracotta-500 animate-ping' 
