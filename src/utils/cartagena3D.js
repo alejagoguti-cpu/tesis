@@ -3,26 +3,9 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 
 /**
  * Generador 3D Territorial: Bahía de Cartagena & Isla de Tierra Bomba
- * Construido con 35.000+ edificaciones reales extruidas en 3D volumétrico,
- * 3.460 manzanas, 2.513 vías y 108 masas de tierra 100% REALES del Catastro AMB Cartagena 2026.
+ * Modelo Arquitectónico 100% Real y Proporcional (Escala Catastral 1:50m)
+ * 63.924 edificaciones reales, 3.464 manzanas, 2.513 vías y 102 masas de tierra oficiales.
  */
-
-// Topographic elevation function (Cerro de la Popa +150m & Tierra Bomba hills)
-function getTopographicElevation(x3D, yMap) {
-  // Cerro de la Popa (Cartagena continental +150m)
-  const popaDist = Math.hypot(x3D - 60, yMap - 108);
-  if (popaDist < 22) {
-    const factor = Math.cos((popaDist / 22) * (Math.PI / 2));
-    return parseFloat((factor * factor * 5.5).toFixed(2));
-  }
-  // Tierra Bomba central hills (+45m)
-  const tbDist = Math.hypot(x3D - (-35), yMap - (-65));
-  if (tbDist < 45) {
-    const factor = Math.cos((tbDist / 45) * (Math.PI / 2));
-    return parseFloat((factor * factor * 2.2).toFixed(2));
-  }
-  return 0;
-}
 
 export async function buildCartagenaTerritoryScene({
   sceneRoot,
@@ -38,11 +21,11 @@ export async function buildCartagenaTerritoryScene({
   },
   colors = {
     water: '#88a2b5',
-    roads: '#64748b',
-    terrain: '#3b6e4a',
+    roads: '#334155',
+    terrain: '#4a7856',
     buildings: '#ffffff',
-    roofs: '#c2613b',
-    manzanas: '#828b94',
+    roofs: '#b45309',
+    manzanas: '#9aa3af',
     vehicles: '#e2635a',
     boats: '#24c8bd',
   },
@@ -59,7 +42,7 @@ export async function buildCartagenaTerritoryScene({
     noiseMesh: null,
   };
 
-  onProgress(10, 'Descargando base vectorial Catastro AMB Cartagena (35.000+ edificios 3D)...');
+  onProgress(10, 'Descargando base vectorial Catastro AMB Cartagena (63.000+ edificios 3D)...');
 
   // Load real Catastro dataset
   const basePath = import.meta.env.BASE_URL || '/';
@@ -76,25 +59,25 @@ export async function buildCartagenaTerritoryScene({
     catastroData = generateSyntheticFallback();
   }
 
-  // Pure architectural standard materials (Crisp 3D GIS matching reference)
+  // Pure architectural standard materials (Museum Masterplan Standard)
   const mats = {
     water: new THREE.MeshStandardMaterial({
       color: new THREE.Color(colors.water),
-      roughness: 0.18,
-      metalness: 0.25,
+      roughness: 0.20,
+      metalness: 0.20,
       side: THREE.DoubleSide,
       clippingPlanes,
     }),
     terrain: new THREE.MeshStandardMaterial({
       color: new THREE.Color(colors.terrain),
-      roughness: 0.88,
+      roughness: 0.85,
       metalness: 0.05,
       side: THREE.DoubleSide,
       clippingPlanes,
     }),
     manzanas: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.manzanas || '#828b94'),
-      roughness: 0.75,
+      color: new THREE.Color(colors.manzanas || '#9aa3af'),
+      roughness: 0.70,
       metalness: 0.05,
       polygonOffset: true,
       polygonOffsetFactor: -1.0,
@@ -103,9 +86,9 @@ export async function buildCartagenaTerritoryScene({
       clippingPlanes,
     }),
     roads: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.roads || '#64748b'),
-      roughness: 0.45,
-      metalness: 0.08,
+      color: new THREE.Color(colors.roads || '#334155'),
+      roughness: 0.50,
+      metalness: 0.10,
       polygonOffset: true,
       polygonOffsetFactor: -2.0,
       polygonOffsetUnits: -4.0,
@@ -120,38 +103,26 @@ export async function buildCartagenaTerritoryScene({
     }),
     buildingsResidential: new THREE.MeshStandardMaterial({
       color: new THREE.Color('#f1f5f9'),
-      roughness: 0.4,
+      roughness: 0.40,
       metalness: 0.05,
       clippingPlanes,
     }),
     buildingsUrban: new THREE.MeshStandardMaterial({
       color: new THREE.Color('#e2e8f0'),
-      roughness: 0.6,
+      roughness: 0.60,
       metalness: 0.05,
       clippingPlanes,
     }),
     buildingsVernacular: new THREE.MeshStandardMaterial({
       color: new THREE.Color('#fef3c7'),
-      roughness: 0.8,
+      roughness: 0.75,
       metalness: 0.02,
       clippingPlanes,
     }),
     colonialRoof: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.roofs || '#c2613b'),
-      roughness: 0.6,
-      metalness: 0.1,
-      clippingPlanes,
-    }),
-    boatHull: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.boats),
-      roughness: 0.3,
-      metalness: 0.2,
-      clippingPlanes,
-    }),
-    vehicle: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.vehicles),
-      roughness: 0.3,
-      metalness: 0.4,
+      color: new THREE.Color(colors.roofs || '#b45309'),
+      roughness: 0.65,
+      metalness: 0.08,
       clippingPlanes,
     }),
     noiseHeatmap: new THREE.MeshBasicMaterial({
@@ -166,20 +137,20 @@ export async function buildCartagenaTerritoryScene({
   // -------------------------------------------------------------
   // 1. CUERPO DE AGUA REAL (Bahía de Cartagena & Mar Caribe)
   // -------------------------------------------------------------
-  const waterGeo = new THREE.PlaneGeometry(600, 600, 32, 32);
+  const waterGeo = new THREE.PlaneGeometry(650, 650, 8, 8);
   const waterMesh = new THREE.Mesh(waterGeo, mats.water);
   waterMesh.name = "Water";
   waterMesh.rotation.x = -Math.PI / 2;
-  waterMesh.position.y = -0.05;
+  waterMesh.position.y = -0.01;
   waterMesh.receiveShadow = true;
   waterMesh.visible = activeLayers.water !== false;
   territoryGroup.add(waterMesh);
   animatedObjects.waterMeshes.push(waterMesh);
 
   // -------------------------------------------------------------
-  // 2. MASAS DE TIERRA & TOPOGRAFÍA REAL (108 Polígonos de Costas e Islas)
+  // 2. MASAS DE TIERRA REALES (Isla de Tierra Bomba y Costa Continental)
   // -------------------------------------------------------------
-  onProgress(45, 'Generando topografía real de Tierra Bomba y Cartagena...');
+  onProgress(45, 'Generando masas de tierra reales de Tierra Bomba y Cartagena...');
   const landGeometries = [];
 
   if (catastroData.landmasses && Array.isArray(catastroData.landmasses)) {
@@ -191,13 +162,9 @@ export async function buildCartagenaTerritoryScene({
         shape.lineTo(ring[i][0], ring[i][1]);
       }
 
-      let sumX = 0, sumY = 0;
-      ring.forEach(pt => { sumX += pt[0]; sumY += pt[1]; });
-      const elev = getTopographicElevation(sumX / ring.length, sumY / ring.length);
-
       const geom = new THREE.ShapeGeometry(shape);
       geom.rotateX(-Math.PI / 2);
-      geom.translate(0, 0.01 + elev, 0);
+      geom.translate(0, 0.01, 0);
       landGeometries.push(geom);
     });
   }
@@ -212,9 +179,9 @@ export async function buildCartagenaTerritoryScene({
   }
 
   // -------------------------------------------------------------
-  // 3. MANZANAS CATASTRALES REALES (Manzana.shp - 3.460 Manzanas)
+  // 3. MANZANAS CATASTRALES REALES (Manzana.shp - 3.464 Manzanas)
   // -------------------------------------------------------------
-  onProgress(55, 'Construyendo 3.460 manzanas catastrales reales...');
+  onProgress(55, 'Construyendo 3.464 manzanas catastrales reales...');
   const manzanaGeometries = [];
 
   if (catastroData.manzanas && Array.isArray(catastroData.manzanas)) {
@@ -226,13 +193,9 @@ export async function buildCartagenaTerritoryScene({
         shape.lineTo(ring[i][0], ring[i][1]);
       }
 
-      let sumX = 0, sumY = 0;
-      ring.forEach(pt => { sumX += pt[0]; sumY += pt[1]; });
-      const elev = getTopographicElevation(sumX / ring.length, sumY / ring.length);
-
       const geom = new THREE.ShapeGeometry(shape);
       geom.rotateX(-Math.PI / 2);
-      geom.translate(0, 0.03 + elev, 0);
+      geom.translate(0, 0.02, 0);
       manzanaGeometries.push(geom);
     });
   }
@@ -251,7 +214,7 @@ export async function buildCartagenaTerritoryScene({
   // -------------------------------------------------------------
   onProgress(70, 'Trazando 2.513 ejes viales oficiales...');
   const roadGeometries = [];
-  const roadHalfWidth = 0.35;
+  const roadHalfWidth = 0.08; // Real scaled 8-meter street width
 
   if (catastroData.roads && Array.isArray(catastroData.roads)) {
     catastroData.roads.forEach((line) => {
@@ -262,8 +225,6 @@ export async function buildCartagenaTerritoryScene({
         const dir = new THREE.Vector2().subVectors(p2, p1).normalize();
         const normal = new THREE.Vector2(-dir.y, dir.x).multiplyScalar(roadHalfWidth);
 
-        const elev = getTopographicElevation((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
-
         const shape = new THREE.Shape();
         shape.moveTo(p1.x + normal.x, p1.y + normal.y);
         shape.lineTo(p2.x + normal.x, p2.y + normal.y);
@@ -273,7 +234,7 @@ export async function buildCartagenaTerritoryScene({
 
         const geom = new THREE.ShapeGeometry(shape);
         geom.rotateX(-Math.PI / 2);
-        geom.translate(0, 0.05 + elev, 0);
+        geom.translate(0, 0.03, 0);
         roadGeometries.push(geom);
       }
     });
@@ -289,9 +250,9 @@ export async function buildCartagenaTerritoryScene({
   }
 
   // -------------------------------------------------------------
-  // 5. EDIFICACIONES REALES EXTRUIDAS EN 3D (35.000 Edificios Volumétricos)
+  // 5. EDIFICACIONES REALES EXTRUIDAS EN 3D (63.924 Edificios Volumétricos)
   // -------------------------------------------------------------
-  onProgress(82, 'Extruyendo 35.000 edificaciones 3D reales con alturas...');
+  onProgress(82, 'Extruyendo 63.924 edificaciones 3D reales con alturas...');
   const skyscraperGeoms = [];
   const residentialGeoms = [];
   const urbanGeoms = [];
@@ -309,8 +270,7 @@ export async function buildCartagenaTerritoryScene({
         shape.lineTo(ring[i][0], ring[i][1]);
       }
 
-      const height = b.h || 1.0;
-      const elev = b.e || 0;
+      const height = b.h || 0.08;
 
       const extrudeSettings = {
         depth: height,
@@ -321,7 +281,7 @@ export async function buildCartagenaTerritoryScene({
       // rotateX(-Math.PI / 2) rotates +Z into +Y (pointing UP into the sky!)
       const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
       geom.rotateX(-Math.PI / 2);
-      geom.translate(0, 0.06 + elev, 0);
+      geom.translate(0, 0.035, 0);
 
       if (b.t === 'skyscraper') {
         skyscraperGeoms.push(geom);
@@ -392,7 +352,7 @@ export async function buildCartagenaTerritoryScene({
   const noiseGeo1 = new THREE.RingGeometry(10, 80, 32);
   const noiseMesh1 = new THREE.Mesh(noiseGeo1, mats.noiseHeatmap);
   noiseMesh1.rotation.x = -Math.PI / 2;
-  noiseMesh1.position.set(10, 0.08, -50);
+  noiseMesh1.position.set(10, 0.05, -50);
   noiseGroup.add(noiseMesh1);
 
   noiseGroup.visible = !!activeLayers.noise;
