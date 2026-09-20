@@ -33,7 +33,7 @@ import {
 export default function ModelViewer3D({ onSelectModule }) {
   const mountRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [selected3DModel, setSelected3DModel] = useState('colegio'); // 'colegio' | 'vivienda' | 'masterplan' | 'custom'
+  const [selected3DModel, setSelected3DModel] = useState('revit'); // 'revit' | 'colegio' | 'vivienda' | 'masterplan' | 'custom'
   const [wireframe, setWireframe] = useState(false);
   const [explodedView, setExplodedView] = useState(false);
   const [sunIntensity, setSunIntensity] = useState(1.2);
@@ -83,6 +83,57 @@ export default function ModelViewer3D({ onSelectModule }) {
     objectsRef.current.structure = null;
     objectsRef.current.cistern = null;
     objectsRef.current.louvers = null;
+
+    if (modelType === 'revit') {
+      setIsLoadingFile(true);
+      const gltfLoader = new GLTFLoader();
+      const basePath = import.meta.env.BASE_URL || '/';
+      const modelUrl = `${basePath.endsWith('/') ? basePath : basePath + '/'}models/tierrabomba_revit.glb`;
+
+      gltfLoader.load(
+        modelUrl,
+        (gltf) => {
+          if (currentModelGroupRef.current) {
+            scene.remove(currentModelGroupRef.current);
+            currentModelGroupRef.current = null;
+          }
+          const model = gltf.scene;
+          const box = new THREE.Box3().setFromObject(model);
+          const size = box.getSize(new THREE.Vector3());
+          const center = box.getCenter(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const targetSize = 28;
+          const scale = targetSize / (maxDim || 1);
+
+          model.scale.set(scale, scale, scale);
+          model.position.x = -center.x * scale;
+          model.position.y = -center.y * scale + (size.y * scale) / 2;
+          model.position.z = -center.z * scale;
+
+          model.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+              if (child.material) {
+                child.material.side = THREE.DoubleSide;
+              }
+            }
+          });
+
+          scene.add(model);
+          currentModelGroupRef.current = model;
+          objectsRef.current.roof = model;
+          objectsRef.current.structure = model;
+          setIsLoadingFile(false);
+        },
+        undefined,
+        (err) => {
+          console.error("Error loading tierrabomba_revit.glb:", err);
+          setIsLoadingFile(false);
+        }
+      );
+      return;
+    }
 
     if (modelType === 'colegio') {
       // A. Cisterna Subterránea (450.000 L)
@@ -683,6 +734,18 @@ export default function ModelViewer3D({ onSelectModule }) {
       ],
       desc: "Implantación territorial central que articula vivienda digna, equipamiento escolar y soberanía alimentaria lejos del borde de erosión marina."
     },
+    revit: {
+      title: "Modelo BIM Oficial de Revit (Tierrabomba)",
+      capacity: "Geometría & Topografía BIM Completa",
+      area: "Toposolid + Equipamiento + Vivienda",
+      specs: [
+        { label: "Software", value: "Autodesk Revit" },
+        { label: "Formato", value: "GLB Optimizado (42 MB)" },
+        { label: "Entorno", value: "Topografía & Proyecto" },
+        { label: "Motor", value: "Three.js WebGL 60fps" }
+      ],
+      desc: "Modelo tridimensional original exportado directamente desde Autodesk Revit con la implantación completa del proyecto y la topografía insular."
+    },
     custom: {
       title: customModel ? `Modelo Revit / BIM: ${customModel.name}` : "Modelo Personalizado Revit",
       capacity: "Modelo 3D Importado",
@@ -735,8 +798,8 @@ export default function ModelViewer3D({ onSelectModule }) {
       {isLoadingFile && (
         <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md z-[500] flex flex-col items-center justify-center p-6 text-white pointer-events-none animate-fade-in">
           <div className="w-12 h-12 rounded-full border-4 border-teal-500 border-t-transparent animate-spin mb-4" />
-          <h3 className="font-bold text-lg text-white">Procesando geometría 3D de Revit...</h3>
-          <p className="text-xs text-slate-400 font-mono mt-1">Calculando normales, sombras y materiales WebGL</p>
+          <h3 className="font-bold text-lg text-white">Cargando Modelo 3D de Revit...</h3>
+          <p className="text-xs text-slate-400 font-mono mt-1">Renderizando geometría BIM, sombras e iluminación en tiempo real</p>
         </div>
       )}
 
@@ -772,6 +835,20 @@ export default function ModelViewer3D({ onSelectModule }) {
 
         {/* 3D Model Switcher Bar */}
         <div className="glass-dark p-1 rounded-2xl pointer-events-auto flex items-center gap-1 self-start md:self-center text-white flex-wrap">
+          <button
+            onClick={() => {
+              setSelected3DModel('revit');
+              buildModel('revit');
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              selected3DModel === 'revit'
+                ? 'bg-amber-500 text-slate-950 shadow-sm ring-2 ring-amber-400/50'
+                : 'text-amber-300 hover:text-white bg-amber-500/10'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Modelo Revit (Oficial)</span>
+          </button>
           <button
             onClick={() => {
               setSelected3DModel('colegio');
