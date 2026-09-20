@@ -28,7 +28,10 @@ import {
   FileCode,
   FileUp,
   FolderUp,
-  AlertCircle
+  AlertCircle,
+  Scissors,
+  Palette,
+  Minimize2
 } from 'lucide-react';
 
 export default function ModelViewer3D({ onSelectModule }) {
@@ -37,8 +40,26 @@ export default function ModelViewer3D({ onSelectModule }) {
   const [selected3DModel, setSelected3DModel] = useState('revit'); // 'revit' | 'colegio' | 'vivienda' | 'masterplan' | 'custom'
   const [wireframe, setWireframe] = useState(false);
   const [explodedView, setExplodedView] = useState(false);
+  
+  // Parámetros Solares & Vista Axonométrica a 35°
+  const [sunAzimuth, setSunAzimuth] = useState(130);
+  const [sunElevation, setSunElevation] = useState(45);
   const [sunIntensity, setSunIntensity] = useState(1.2);
-  const [sunAngle, setSunAngle] = useState(45);
+  const [cameraMode, setCameraMode] = useState('orthographic'); // 'orthographic' (Axonométrica a 35°) | 'perspective'
+
+  // Caja de Sección (Corte Axonométrico 3D)
+  const [sectionBoxActive, setSectionBoxActive] = useState(false);
+  const [sectionLimits, setSectionLimits] = useState({
+    xMin: 0,
+    xMax: 100,
+    yMin: 0,
+    yMax: 100,
+    zMin: 0,
+    zMax: 100,
+  });
+  const [waterColor, setWaterColor] = useState('#b0ced2');
+  const [showRightControls, setShowRightControls] = useState(true);
+
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -83,6 +104,46 @@ export default function ModelViewer3D({ onSelectModule }) {
     revitBuildings: [],
     textures: null,
   });
+
+  // 6 Planos de recorte para la Caja de Sección (Corte Axonométrico 3D)
+  const secPlanesRef = useRef({
+    xMin: new THREE.Plane(new THREE.Vector3(1, 0, 0), 1e6),
+    xMax: new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1e6),
+    yMin: new THREE.Plane(new THREE.Vector3(0, 1, 0), 1e6),
+    yMax: new THREE.Plane(new THREE.Vector3(0, -1, 0), 1e6),
+    zMin: new THREE.Plane(new THREE.Vector3(0, 0, 1), 1e6),
+    zMax: new THREE.Plane(new THREE.Vector3(0, 0, -1), 1e6),
+  });
+
+  const updateSectionPlanes = (limits, active) => {
+    const planes = secPlanesRef.current;
+    if (!active) {
+      planes.xMin.constant = 1e6;
+      planes.xMax.constant = 1e6;
+      planes.yMin.constant = 1e6;
+      planes.yMax.constant = 1e6;
+      planes.zMin.constant = 1e6;
+      planes.zMax.constant = 1e6;
+      return;
+    }
+    const minX = -19, maxX = 19;
+    const minY = -2, maxY = 8;
+    const minZ = -19, maxZ = 19;
+
+    const cutXMin = minX + (limits.xMin / 100) * (maxX - minX);
+    const cutXMax = minX + (limits.xMax / 100) * (maxX - minX);
+    const cutYMin = minY + (limits.yMin / 100) * (maxY - minY);
+    const cutYMax = minY + (limits.yMax / 100) * (maxY - minY);
+    const cutZMin = minZ + (limits.zMin / 100) * (maxZ - minZ);
+    const cutZMax = minZ + (limits.zMax / 100) * (maxZ - minZ);
+
+    planes.xMin.constant = -cutXMin;
+    planes.xMax.constant = cutXMax;
+    planes.yMin.constant = -cutYMin;
+    planes.yMax.constant = cutYMax;
+    planes.zMin.constant = -cutZMin;
+    planes.zMax.constant = cutZMax;
+  };
 
   // Generador de mapeo UV planar cenital para alinear ortofoto / planimetría sobre la topografía
   const applyPlanarUVs = (geometry) => {
@@ -567,18 +628,20 @@ export default function ModelViewer3D({ onSelectModule }) {
     scene.fog = new THREE.Fog(0x9fc0cb, 60, 260);
     sceneRef.current = scene;
 
-    // Camera
-    const camera = new THREE.PerspectiveCamera(
-      45,
-      container.clientWidth / container.clientHeight,
+    // Cámara Ortográfica para Proyección Axonométrica Paralela a 35° (sin distorsión de perspectiva)
+    const aspect = container.clientWidth / container.clientHeight;
+    let viewSize = 22;
+    const camera = new THREE.OrthographicCamera(
+      -viewSize * aspect,
+      viewSize * aspect,
+      viewSize,
+      -viewSize,
       0.1,
       1000
     );
-    camera.position.set(22, 16, 26);
-    camera.lookAt(0, 2, 0);
     cameraRef.current = camera;
 
-    // Renderer
+    // Renderer con soporte para Caja de Sección (Local Clipping) y sRGB
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -587,6 +650,17 @@ export default function ModelViewer3D({ onSelectModule }) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
+    renderer.localClippingEnabled = true;
+
+    const clipPlanesArray = [
+      secPlanesRef.current.xMin,
+      secPlanesRef.current.xMax,
+      secPlanesRef.current.yMin,
+      secPlanesRef.current.yMax,
+      secPlanesRef.current.zMin,
+      secPlanesRef.current.zMax,
+    ];
+    renderer.clippingPlanes = clipPlanesArray;
     rendererRef.current = renderer;
 
     while (container.firstChild) {
@@ -594,21 +668,28 @@ export default function ModelViewer3D({ onSelectModule }) {
     }
     container.appendChild(renderer.domElement);
 
-    // Lighting
+    // Iluminación Solar con Acimut y Altura
     const hemiLight = new THREE.HemisphereLight(0xffffff, 0x334155, 0.8);
     scene.add(hemiLight);
 
     const dirLight = new THREE.DirectionalLight(0xfffaed, sunIntensity);
-    dirLight.position.set(20, 30, 20);
+    const radAz = (sunAzimuth * Math.PI) / 180;
+    const radEl = (sunElevation * Math.PI) / 180;
+    const dist = 45;
+    dirLight.position.set(
+      dist * Math.cos(radAz) * Math.cos(radEl),
+      dist * Math.sin(radEl),
+      dist * Math.sin(radAz) * Math.cos(radEl)
+    );
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
     dirLight.shadow.camera.near = 0.5;
-    dirLight.shadow.camera.far = 100;
-    dirLight.shadow.camera.left = -25;
-    dirLight.shadow.camera.right = 25;
-    dirLight.shadow.camera.top = 25;
-    dirLight.shadow.camera.bottom = -25;
+    dirLight.shadow.camera.far = 120;
+    dirLight.shadow.camera.left = -30;
+    dirLight.shadow.camera.right = 30;
+    dirLight.shadow.camera.top = 30;
+    dirLight.shadow.camera.bottom = -30;
     scene.add(dirLight);
     objectsRef.current.dirLight = dirLight;
 
@@ -622,21 +703,25 @@ export default function ModelViewer3D({ onSelectModule }) {
     // Build initial model
     buildModel(selected3DModel);
 
-    // Manual Orbit Controls Simulation
+    // Orbit & Pan Controls para Vista Axonométrica
     let isDragging = false;
+    let dragButton = 0;
     let prevMousePos = { x: 0, y: 0 };
-    let spherical = { radius: 36, theta: Math.PI / 4, phi: Math.PI / 3.5 };
+    // Ángulo axonométrico a 35° de elevación (phi = 55° medido desde el cenit)
+    let spherical = { radius: 45, theta: Math.PI / 4, phi: Math.PI * 55 / 180 };
+    let panTarget = { x: 0, y: 1.5, z: 0 };
 
     const updateCameraPosition = () => {
-      camera.position.x = spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
-      camera.position.y = spherical.radius * Math.cos(spherical.phi);
-      camera.position.z = spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
-      camera.lookAt(0, 2, 0);
+      camera.position.x = panTarget.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+      camera.position.y = panTarget.y + spherical.radius * Math.cos(spherical.phi);
+      camera.position.z = panTarget.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+      camera.lookAt(panTarget.x, panTarget.y, panTarget.z);
     };
     updateCameraPosition();
 
     const onMouseDown = (e) => {
       isDragging = true;
+      dragButton = e.button;
       prevMousePos = { x: e.clientX, y: e.clientY };
     };
 
@@ -645,8 +730,21 @@ export default function ModelViewer3D({ onSelectModule }) {
       const deltaX = e.clientX - prevMousePos.x;
       const deltaY = e.clientY - prevMousePos.y;
 
-      spherical.theta -= deltaX * 0.008;
-      spherical.phi = Math.max(0.1, Math.min(Math.PI / 2.05, spherical.phi - deltaY * 0.008));
+      if (dragButton === 0) {
+        // Rotación alrededor de la escena (Orbit)
+        spherical.theta -= deltaX * 0.007;
+        spherical.phi = Math.max(0.1, Math.min(Math.PI / 2.02, spherical.phi - deltaY * 0.007));
+      } else if (dragButton === 2 || dragButton === 1 || e.shiftKey) {
+        // Desplazamiento de plano (Pan con clic derecho)
+        const panFactor = (viewSize * 2) / container.clientHeight;
+        const forward = new THREE.Vector3();
+        camera.getWorldDirection(forward);
+        const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+
+        panTarget.x -= (right.x * deltaX) * panFactor;
+        panTarget.z -= (right.z * deltaX) * panFactor;
+        panTarget.y += (deltaY * 0.8) * panFactor;
+      }
 
       updateCameraPosition();
       prevMousePos = { x: e.clientX, y: e.clientY };
@@ -656,16 +754,27 @@ export default function ModelViewer3D({ onSelectModule }) {
       isDragging = false;
     };
 
+    const onContextMenu = (e) => {
+      e.preventDefault();
+    };
+
     const onWheel = (e) => {
       e.preventDefault();
-      spherical.radius = Math.max(8, Math.min(65, spherical.radius + e.deltaY * 0.04));
-      updateCameraPosition();
+      const zoomFactor = e.deltaY > 0 ? 1.08 : 0.92;
+      viewSize = Math.max(5, Math.min(80, viewSize * zoomFactor));
+      const currentAspect = container.clientWidth / container.clientHeight;
+      camera.left = -viewSize * currentAspect;
+      camera.right = viewSize * currentAspect;
+      camera.top = viewSize;
+      camera.bottom = -viewSize;
+      camera.updateProjectionMatrix();
     };
 
     const domElem = renderer.domElement;
     domElem.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
+    domElem.addEventListener('contextmenu', onContextMenu);
     domElem.addEventListener('wheel', onWheel, { passive: false });
 
     // Resize Handler
@@ -818,20 +927,52 @@ export default function ModelViewer3D({ onSelectModule }) {
     }
   }, [terrainTextureMode]);
 
-  // Update Sun angle
+  // Update Sun Lighting with Azimuth & Elevation
   useEffect(() => {
     const light = objectsRef.current.dirLight;
     if (!light) return;
-    const rad = (sunAngle * Math.PI) / 180;
-    light.position.x = 25 * Math.cos(rad);
-    light.position.z = 25 * Math.sin(rad);
+    const radAz = (sunAzimuth * Math.PI) / 180;
+    const radEl = (sunElevation * Math.PI) / 180;
+    const dist = 45;
+    light.position.x = dist * Math.cos(radAz) * Math.cos(radEl);
+    light.position.y = dist * Math.sin(radEl);
+    light.position.z = dist * Math.sin(radAz) * Math.cos(radEl);
     light.intensity = sunIntensity;
-  }, [sunAngle, sunIntensity]);
+  }, [sunAzimuth, sunElevation, sunIntensity]);
 
-  const resetCamera = () => {
-    if (!cameraRef.current) return;
-    cameraRef.current.position.set(22, 16, 26);
-    cameraRef.current.lookAt(0, 2, 0);
+  // Update Section Box Clipping Planes in real-time
+  useEffect(() => {
+    updateSectionPlanes(sectionLimits, sectionBoxActive);
+  }, [sectionLimits, sectionBoxActive]);
+
+  // Update Water Color dynamically
+  useEffect(() => {
+    if (objectsRef.current.ocean && objectsRef.current.ocean.material) {
+      objectsRef.current.ocean.material.color = new THREE.Color(waterColor);
+    }
+  }, [waterColor]);
+
+  // Restablecer Vista Axonométrica a 35° (proyección paralela)
+  const resetAxonometricView = () => {
+    if (!cameraRef.current || !mountRef.current) return;
+    const container = mountRef.current;
+    const aspect = container.clientWidth / container.clientHeight;
+    const viewSize = 22;
+    const camera = cameraRef.current;
+    if (camera.isOrthographicCamera) {
+      camera.left = -viewSize * aspect;
+      camera.right = viewSize * aspect;
+      camera.top = viewSize;
+      camera.bottom = -viewSize;
+      camera.updateProjectionMatrix();
+    }
+
+    const spherical = { radius: 45, theta: Math.PI / 4, phi: Math.PI * 55 / 180 };
+    const panTarget = { x: 0, y: 1.5, z: 0 };
+    camera.position.x = panTarget.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+    camera.position.y = panTarget.y + spherical.radius * Math.cos(spherical.phi);
+    camera.position.z = panTarget.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+    camera.lookAt(panTarget.x, panTarget.y, panTarget.z);
   };
 
   const toggleLayer = (layerKey) => {
@@ -1180,151 +1321,127 @@ export default function ModelViewer3D({ onSelectModule }) {
       {/* Top Floating Control Bar */}
       <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
         
-        {/* Module Title Card */}
-        <div className="glass-dark px-4 py-3 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-lg text-white">
-          <div className="w-10 h-10 rounded-xl bg-teal-500 text-slate-950 flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
+        {/* Module Title & Axonometric Description Card */}
+        <div className="glass-dark px-4 py-2.5 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-xl text-white shadow-xl">
+          <div className="w-9 h-9 rounded-xl bg-[#24c8bd] text-slate-950 flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
             05
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30">
-                VISOR 3D WEBGL // BIM
-              </span>
-              <span className="text-[10px] font-mono text-amber-300 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                360° ORBIT
+              <h1 className="font-bold text-sm text-white tracking-wide truncate">
+                Corte axonométrico — Tierrabomba
+              </h1>
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#24c8bd]/20 text-[#24c8bd] border border-[#24c8bd]/30 shrink-0">
+                AXONO 35°
               </span>
             </div>
-            <h2 className="font-bold text-sm text-white truncate">
-              {modelDetails[selected3DModel]?.title || "Modelo 3D"}
-            </h2>
+            <p className="text-[11px] text-slate-400 truncate mt-0.5 font-sans">
+              Proyección axonométrica a 35° &bull; arrastra para girar &bull; rueda para zoom &bull; clic derecho para mover la vista
+            </p>
           </div>
         </div>
 
-        {/* 3D Model Switcher Bar */}
-        <div className="glass-dark p-1 rounded-2xl pointer-events-auto flex items-center gap-1 self-start md:self-center text-white flex-wrap">
-          <button
-            onClick={() => {
-              setSelected3DModel('revit');
-              buildModel('revit');
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-              selected3DModel === 'revit'
-                ? 'bg-amber-500 text-slate-950 shadow-sm ring-2 ring-amber-400/50'
-                : 'text-amber-300 hover:text-white bg-amber-500/10'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Modelo Revit (Oficial)</span>
-          </button>
-          <button
-            onClick={() => {
-              setSelected3DModel('colegio');
-              buildModel('colegio');
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-              selected3DModel === 'colegio'
-                ? 'bg-teal-500 text-slate-950 shadow-sm'
-                : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            <GraduationCap className="w-3.5 h-3.5" />
-            <span>Colegio & Aljibe</span>
-          </button>
-          <button
-            onClick={() => {
-              setSelected3DModel('vivienda');
-              buildModel('vivienda');
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-              selected3DModel === 'vivienda'
-                ? 'bg-terracotta-500 text-white shadow-sm'
-                : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            <Home className="w-3.5 h-3.5" />
-            <span>Vivienda +0.60m</span>
-          </button>
-          <button
-            onClick={() => {
-              setSelected3DModel('masterplan');
-              buildModel('masterplan');
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-              selected3DModel === 'masterplan'
-                ? 'bg-emerald-500 text-slate-950 shadow-sm'
-                : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            <Compass className="w-3.5 h-3.5" />
-            <span>Masterplan (+22m)</span>
-          </button>
-
-          {customModel && (
+        {/* 3D Model Switcher Bar & Axonometric Reset */}
+        <div className="flex items-center gap-2 self-start md:self-center pointer-events-auto flex-wrap">
+          <div className="glass-dark p-1 rounded-2xl flex items-center gap-1 text-white flex-wrap shadow-xl">
             <button
               onClick={() => {
-                setSelected3DModel('custom');
-                if (sceneRef.current && customModel.group) {
-                  if (currentModelGroupRef.current) sceneRef.current.remove(currentModelGroupRef.current);
-                  sceneRef.current.add(customModel.group);
-                  currentModelGroupRef.current = customModel.group;
-                }
+                setSelected3DModel('revit');
+                buildModel('revit');
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-                selected3DModel === 'custom'
+                selected3DModel === 'revit'
                   ? 'bg-amber-500 text-slate-950 shadow-sm ring-2 ring-amber-400/50'
                   : 'text-amber-300 hover:text-white bg-amber-500/10'
               }`}
             >
-              <FileCode className="w-3.5 h-3.5" />
-              <span className="truncate max-w-[120px]">{customModel.name}</span>
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Modelo Revit</span>
             </button>
-          )}
+            <button
+              onClick={() => {
+                setSelected3DModel('colegio');
+                buildModel('colegio');
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+                selected3DModel === 'colegio'
+                  ? 'bg-teal-500 text-slate-950 shadow-sm'
+                  : 'text-slate-300 hover:text-white'
+              }`}
+            >
+              <GraduationCap className="w-3.5 h-3.5" />
+              <span>Colegio</span>
+            </button>
+            <button
+              onClick={() => {
+                setSelected3DModel('vivienda');
+                buildModel('vivienda');
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+                selected3DModel === 'vivienda'
+                  ? 'bg-terracotta-500 text-white shadow-sm'
+                  : 'text-slate-300 hover:text-white'
+              }`}
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span>Vivienda</span>
+            </button>
+            <button
+              onClick={() => {
+                setSelected3DModel('masterplan');
+                buildModel('masterplan');
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+                selected3DModel === 'masterplan'
+                  ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                  : 'text-slate-300 hover:text-white'
+              }`}
+            >
+              <Compass className="w-3.5 h-3.5" />
+              <span>Masterplan</span>
+            </button>
 
-          <div className="w-px h-4 bg-white/20 mx-0.5" />
+            {customModel && (
+              <button
+                onClick={() => {
+                  setSelected3DModel('custom');
+                  if (sceneRef.current && customModel.group) {
+                    if (currentModelGroupRef.current) sceneRef.current.remove(currentModelGroupRef.current);
+                    sceneRef.current.add(customModel.group);
+                    currentModelGroupRef.current = customModel.group;
+                  }
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+                  selected3DModel === 'custom'
+                    ? 'bg-amber-500 text-slate-950 shadow-sm ring-2 ring-amber-400/50'
+                    : 'text-amber-300 hover:text-white bg-amber-500/10'
+                }`}
+              >
+                <FileCode className="w-3.5 h-3.5" />
+                <span className="truncate max-w-[120px]">{customModel.name}</span>
+              </button>
+            )}
 
-          {/* Button to Upload Revit / 3D File */}
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 bg-gradient-to-r from-amber-600/30 to-amber-500/30 hover:from-amber-600/50 hover:to-amber-500/50 text-amber-200 border border-amber-400/40 transition-all shadow-sm hover:scale-[1.02]"
-            title="Importar archivo exportado desde Revit (.glb, .gltf, .obj)"
-          >
-            <UploadCloud className="w-3.5 h-3.5 text-amber-300" />
-            <span>Cargar Revit</span>
-          </button>
-        </div>
+            <div className="w-px h-4 bg-white/20 mx-0.5" />
 
-        {/* Quick Actions HUD */}
-        <div className="glass-dark p-1 rounded-2xl pointer-events-auto flex items-center gap-1 text-white">
+            <button
+              onClick={() => setShowUploadModal(true)}
+              className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 bg-gradient-to-r from-amber-600/30 to-amber-500/30 hover:from-amber-600/50 hover:to-amber-500/50 text-amber-200 border border-amber-400/40 transition-all shadow-sm hover:scale-[1.02]"
+              title="Importar archivo exportado desde Revit (.glb, .gltf, .obj)"
+            >
+              <UploadCloud className="w-3.5 h-3.5 text-amber-300" />
+              <span>Cargar</span>
+            </button>
+          </div>
+
+          {/* Botón Principal: Restablecer Vista Axonométrica (a 35°) */}
           <button
-            onClick={resetCamera}
-            className="p-2 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
-            title="Centrar Cámara Isométrica"
+            onClick={resetAxonometricView}
+            className="px-3.5 py-2 rounded-2xl text-xs font-mono font-bold bg-slate-900/90 hover:bg-slate-800 text-slate-100 border border-white/20 transition-all flex items-center space-x-1.5 shadow-xl hover:scale-[1.02] active:scale-95 text-white"
+            title="Restablecer orientación isométrica a 35°"
           >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setWireframe(!wireframe)}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
-              wireframe ? 'bg-teal-500 text-slate-950' : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            Wireframe
-          </button>
-          <button
-            onClick={() => setExplodedView(!explodedView)}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
-              explodedView ? 'bg-terracotta-500 text-white' : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            <Box className="w-3.5 h-3.5 inline mr-1" />
-            Despiece
-          </button>
-          <button
-            onClick={() => setShowInfoModal(true)}
-            className="px-3 py-1.5 rounded-xl bg-teal-500/20 text-teal-300 hover:bg-teal-500/30 text-xs font-mono font-bold border border-teal-500/40 transition-all flex items-center space-x-1"
-          >
-            <Info className="w-3.5 h-3.5" />
-            <span>Ficha Técnica</span>
+            <RotateCcw className="w-3.5 h-3.5 text-[#24c8bd]" />
+            <span>Restablecer vista axonométrica</span>
           </button>
         </div>
 
@@ -1636,43 +1753,158 @@ export default function ModelViewer3D({ onSelectModule }) {
         </div>
       </div>
 
-      {/* Floating Right: Sun & Solar Angle Slider */}
-      <div className="absolute top-24 right-4 z-[400] glass-dark p-3.5 rounded-2xl space-y-2 pointer-events-auto text-white w-56">
-        <div className="flex items-center justify-between text-xs font-mono">
-          <span className="flex items-center space-x-1.5 text-slate-300 font-bold">
-            <Sun className="w-3.5 h-3.5 text-amber-400" />
-            <span>Azimut Solar</span>
-          </span>
-          <span className="text-amber-400 font-bold">{sunAngle}°</span>
+      {/* Floating Right: Axonometric Section Box & Sun Lighting Controls (matching reference) */}
+      <div className="absolute top-20 right-4 z-[400] glass-dark p-4 rounded-2xl space-y-3.5 pointer-events-auto text-white w-72 max-h-[calc(100vh-100px)] overflow-y-auto shadow-2xl border border-white/10 backdrop-blur-xl">
+        
+        {/* Sol — Acimut & Altura */}
+        <div className="space-y-2.5">
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-300 font-bold flex items-center gap-1.5">
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
+                <span>Sol — acimut</span>
+              </span>
+              <span className="text-amber-400 font-bold">{sunAzimuth}°</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="360"
+              value={sunAzimuth}
+              onChange={(e) => setSunAzimuth(Number(e.target.value))}
+              className="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-300 font-bold flex items-center gap-1.5">
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
+                <span>Sol — altura</span>
+              </span>
+              <span className="text-amber-400 font-bold">{sunElevation}°</span>
+            </div>
+            <input
+              type="range"
+              min="5"
+              max="90"
+              value={sunElevation}
+              onChange={(e) => setSunElevation(Number(e.target.value))}
+              className="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+            />
+          </div>
         </div>
-        <input
-          type="range"
-          min="0"
-          max="360"
-          value={sunAngle}
-          onChange={(e) => setSunAngle(Number(e.target.value))}
-          className="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-        />
-        <div className="flex justify-between text-[9px] font-mono text-slate-400">
-          <span>Mañana (0°)</span>
-          <span>Mediodía (90°)</span>
-          <span>Tarde (180°)</span>
+
+        {/* Color del Agua */}
+        <div className="pt-2 border-t border-white/10 space-y-1.5">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="text-slate-300 font-bold flex items-center gap-1.5">
+              <Droplets className="w-3.5 h-3.5 text-[#24c8bd]" />
+              <span>Color del agua</span>
+            </span>
+            <div className="flex items-center gap-1.5">
+              {[
+                { hex: '#b0ced2', name: 'Aguamarina' },
+                { hex: '#0284c7', name: 'Azul Caribe' },
+                { hex: '#85b8cb', name: 'Celeste' },
+                { hex: '#475569', name: 'Gris Grafito' }
+              ].map((c) => (
+                <button
+                  key={c.hex}
+                  onClick={() => setWaterColor(c.hex)}
+                  className={`w-4 h-4 rounded-full border transition-all ${waterColor === c.hex ? 'ring-2 ring-white scale-125' : 'border-white/20'}`}
+                  style={{ backgroundColor: c.hex }}
+                  title={c.name}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Caja de Sección / Corte Axonométrico 3D */}
+        <div className="pt-2.5 border-t border-white/10 space-y-2.5">
+          <button
+            onClick={() => setSectionBoxActive(!sectionBoxActive)}
+            className={`w-full py-2 px-3 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all shadow-md ${
+              sectionBoxActive
+                ? 'bg-[#24c8bd] text-slate-950 ring-2 ring-[#24c8bd]/50 font-black'
+                : 'bg-slate-800/90 text-slate-200 hover:bg-slate-700 border border-white/10'
+            }`}
+          >
+            <Scissors className="w-3.5 h-3.5" />
+            <span>{sectionBoxActive ? '✂️ Desactivar caja de sección' : '✂️ Activar caja de sección'}</span>
+          </button>
+
+          <p className="text-[10.5px] text-slate-400 font-sans leading-relaxed">
+            {sectionBoxActive 
+              ? 'El corte ya está activo — mueve cualquiera de los 6 límites y el modelo se corta al instante.'
+              : 'Activa la caja para generar cortes transversales y longitudinales sobre el modelo.'}
+          </p>
+
+          {/* 6 Sliders de Corte */}
+          <div className={`space-y-2 transition-opacity ${sectionBoxActive ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+            {[
+              { key: 'xMin', label: 'X mínimo', val: sectionLimits.xMin },
+              { key: 'xMax', label: 'X máximo', val: sectionLimits.xMax },
+              { key: 'yMin', label: 'Y mínimo (piso)', val: sectionLimits.yMin },
+              { key: 'yMax', label: 'Y máximo (altura)', val: sectionLimits.yMax },
+              { key: 'zMin', label: 'Z mínimo', val: sectionLimits.zMin },
+              { key: 'zMax', label: 'Z máximo', val: sectionLimits.zMax },
+            ].map(({ key, label, val }) => (
+              <div key={key} className="space-y-0.5">
+                <div className="flex justify-between text-[10.5px] font-mono text-slate-300">
+                  <span>{label}</span>
+                  <span className="text-[#24c8bd] font-bold">{val}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={val}
+                  onChange={(e) => setSectionLimits(prev => ({ ...prev, [key]: Number(e.target.value) }))}
+                  className="w-full accent-[#24c8bd] cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+                />
+              </div>
+            ))}
+
+            <button
+              onClick={() => setSectionLimits({ xMin: 0, xMax: 100, yMin: 0, yMax: 100, zMin: 0, zMax: 100 })}
+              className="w-full py-1 text-[10px] font-mono text-slate-400 hover:text-white bg-slate-800/60 rounded-lg border border-white/5 transition-all mt-1"
+            >
+              Restablecer límites de corte
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Bottom Left: Architectural Legend (matching reference) */}
+      <div className="absolute bottom-6 left-4 z-[400] glass-dark p-3 rounded-2xl pointer-events-auto text-white shadow-xl border border-white/10 space-y-1.5 text-xs font-mono">
+        <div className="flex items-center space-x-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 border border-slate-400 shadow-sm" />
+          <span className="text-slate-200">Vía / Trazado Vial</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-slate-800 shrink-0 border border-slate-600 shadow-sm" />
+          <span className="text-slate-200">Edificio / Caserío</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 shadow-sm" />
+          <span className="text-slate-200">Topografía / Relieve</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#24c8bd] shrink-0 shadow-sm" />
+          <span className="text-slate-200">Cuerpo de agua / Mar</span>
         </div>
       </div>
 
       {/* Floating Bottom Center: Orbit & Zoom Instruction Pill */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[400] pointer-events-none">
-        <div className="glass-dark px-4 py-2 rounded-2xl text-xs font-mono text-slate-300 flex items-center space-x-4">
-          <span className="flex items-center space-x-1.5"><RotateCcw className="w-3.5 h-3.5 text-teal-400" /><span><b>Arrastrar:</b> Rotar 360°</span></span>
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[400] pointer-events-none hidden md:block">
+        <div className="glass-dark px-4 py-2 rounded-2xl text-xs font-mono text-slate-300 flex items-center space-x-4 shadow-xl">
+          <span className="flex items-center space-x-1.5"><RotateCcw className="w-3.5 h-3.5 text-[#24c8bd]" /><span><b>Arrastrar:</b> Girar</span></span>
           <span className="text-slate-600">|</span>
-          <span className="flex items-center space-x-1.5"><Maximize2 className="w-3.5 h-3.5 text-teal-400" /><span><b>Scroll:</b> Zoom</span></span>
+          <span className="flex items-center space-x-1.5"><Maximize2 className="w-3.5 h-3.5 text-[#24c8bd]" /><span><b>Scroll:</b> Zoom</span></span>
           <span className="text-slate-600">|</span>
-          <button 
-            onClick={() => setShowInfoModal(true)}
-            className="pointer-events-auto text-teal-400 font-bold underline hover:text-teal-300"
-          >
-            Ver Especificaciones
-          </button>
+          <span className="flex items-center space-x-1.5"><Sliders className="w-3.5 h-3.5 text-[#24c8bd]" /><span><b>Clic Derecho:</b> Mover</span></span>
         </div>
       </div>
 
