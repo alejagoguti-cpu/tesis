@@ -264,10 +264,10 @@ export const DEFAULT_DELIMITATIONS = {
 };
 
 export const DEFAULT_CALQUE_BOUNDS = {
-  south: 10.3320,
-  west: -75.5935,
-  north: 10.3828,
-  east: -75.5410
+  south: 10.3325,
+  west: -75.5865,
+  north: 10.3838,
+  east: -75.5340
 };
 
 export const ZONE_CONFIG = {
@@ -1465,19 +1465,19 @@ export default function ThesisFramework({ onSelectModule }) {
           </div>
 
           {/* Reference Calque Image Overlay Control (Calcar Plano) */}
-          <div className="p-3 bg-slate-100/90 rounded-2xl border border-slate-200/80 space-y-2">
+          <div className="p-3 bg-slate-100/90 rounded-2xl border border-slate-200/80 space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <ImageIcon className="w-4 h-4 text-amber-600" />
-                <span className="text-xs font-serif font-bold text-slate-800">
+                <span className="text-xs font-serif font-bold text-slate-900">
                   Imagen para Calcar
                 </span>
               </div>
               <button
                 onClick={() => setShowCalque(!showCalque)}
-                className={`px-2.5 py-1 rounded-xl text-[10px] font-mono font-bold transition-all ${
+                className={`px-3 py-1 rounded-xl text-[10px] font-mono font-bold transition-all ${
                   showCalque
-                    ? 'bg-amber-500 text-slate-950 shadow-sm ring-1 ring-amber-400'
+                    ? 'bg-amber-500 text-slate-950 shadow-sm ring-2 ring-amber-400'
                     : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                 }`}
               >
@@ -1486,15 +1486,14 @@ export default function ThesisFramework({ onSelectModule }) {
             </div>
 
             {showCalque && (
-              <div className="space-y-2 pt-1 border-t border-slate-200">
+              <div className="space-y-2.5 pt-1 border-t border-slate-200">
                 <div className="flex items-center justify-between text-[10px] font-mono text-slate-600">
                   <span>Opacidad: {Math.round(calqueOpacity * 100)}%</span>
                   <button
-                    onClick={() => setShowCalqueControls(!showCalqueControls)}
-                    className="text-amber-800 hover:underline flex items-center space-x-1 font-bold"
+                    onClick={() => setCalqueBounds(DEFAULT_CALQUE_BOUNDS)}
+                    className="text-amber-800 hover:text-amber-950 underline font-bold"
                   >
-                    <Sliders className="w-3 h-3" />
-                    <span>{showCalqueControls ? 'Cerrar Ajustes' : 'Calibrar Posición'}</span>
+                    Centrar Original
                   </button>
                 </div>
 
@@ -1505,82 +1504,73 @@ export default function ThesisFramework({ onSelectModule }) {
                   step="0.05"
                   value={calqueOpacity}
                   onChange={(e) => setCalqueOpacity(parseFloat(e.target.value))}
-                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-600"
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-600"
                 />
 
-                {showCalqueControls && (
-                  <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-[11px] font-mono space-y-2 animate-fade-in shadow-xs">
-                    <div className="flex items-center justify-between font-bold text-slate-700 text-[10px] uppercase">
-                      <span>Calibración de la Imagen</span>
-                      <button
-                        onClick={() => setCalqueBounds(DEFAULT_CALQUE_BOUNDS)}
-                        className="text-amber-700 hover:text-amber-900 underline font-bold"
-                      >
-                        Restablecer
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-1.5">
-                      <div className="space-y-1 text-center bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-                        <span className="text-[9px] text-slate-500 font-bold block">Norte / Sur</span>
-                        <div className="flex items-center justify-center space-x-1">
-                          <button
-                            onClick={() => moveCalqueLat(0.0003)}
-                            className="px-2 py-1 rounded bg-slate-200 hover:bg-slate-300 font-bold text-[10px]"
-                            title="Mover al Norte"
-                          >
-                            ▲ N
-                          </button>
-                          <button
-                            onClick={() => moveCalqueLat(-0.0003)}
-                            className="px-2 py-1 rounded bg-slate-200 hover:bg-slate-300 font-bold text-[10px]"
-                            title="Mover al Sur"
-                          >
-                            ▼ S
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1 text-center bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-                        <span className="text-[9px] text-slate-500 font-bold block">Este / Oeste</span>
-                        <div className="flex items-center justify-center space-x-1">
-                          <button
-                            onClick={() => moveCalqueLng(-0.0003)}
-                            className="px-2 py-1 rounded bg-slate-200 hover:bg-slate-300 font-bold text-[10px]"
-                            title="Mover al Oeste"
-                          >
-                            ◀ O
-                          </button>
-                          <button
-                            onClick={() => moveCalqueLng(0.0003)}
-                            className="px-2 py-1 rounded bg-slate-200 hover:bg-slate-300 font-bold text-[10px]"
-                            title="Mover al Este"
-                          >
-                            ▶ E
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1 text-center pt-1 border-t border-slate-100">
-                      <span className="text-[9px] text-slate-500 font-bold block">Escala / Tamaño</span>
-                      <div className="flex items-center justify-center space-x-2">
-                        <button
-                          onClick={() => scaleCalque(1.02)}
-                          className="px-2.5 py-1 rounded bg-slate-200 hover:bg-slate-300 font-bold text-[10px] flex-1"
-                        >
-                          + Agrandar
-                        </button>
-                        <button
-                          onClick={() => scaleCalque(0.98)}
-                          className="px-2.5 py-1 rounded bg-slate-200 hover:bg-slate-300 font-bold text-[10px] flex-1"
-                        >
-                          - Reducir
-                        </button>
-                      </div>
-                    </div>
+                {/* DIRECT VISIBLE DIRECTIONAL PAD */}
+                <div className="p-2 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-2">
+                  <div className="text-[10px] font-mono font-black text-slate-700 uppercase flex items-center justify-between">
+                    <span>Mover Posición:</span>
+                    <span className="text-amber-700 font-bold">Usa ▶ Derecha</span>
                   </div>
-                )}
+
+                  {/* 4-Way Directional Grid */}
+                  <div className="grid grid-cols-3 gap-1.5 text-center font-mono font-bold text-xs">
+                    <div />
+                    <button
+                      onClick={() => moveCalqueLat(0.0006)}
+                      className="py-2 px-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 flex flex-col items-center justify-center transition-all active:scale-90 border border-slate-200 shadow-xs"
+                      title="Subir hacia el Norte"
+                    >
+                      <span className="text-sm">▲</span>
+                      <span className="text-[9px] font-semibold">Arriba</span>
+                    </button>
+                    <div />
+
+                    <button
+                      onClick={() => moveCalqueLng(-0.0006)}
+                      className="py-2 px-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 flex flex-col items-center justify-center transition-all active:scale-90 border border-slate-200 shadow-xs"
+                      title="Correr a la Izquierda"
+                    >
+                      <span className="text-sm">◀</span>
+                      <span className="text-[9px] font-semibold">Izquierda</span>
+                    </button>
+
+                    <button
+                      onClick={() => moveCalqueLat(-0.0006)}
+                      className="py-2 px-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 flex flex-col items-center justify-center transition-all active:scale-90 border border-slate-200 shadow-xs"
+                      title="Bajar hacia el Sur"
+                    >
+                      <span className="text-sm">▼</span>
+                      <span className="text-[9px] font-semibold">Abajo</span>
+                    </button>
+
+                    <button
+                      onClick={() => moveCalqueLng(0.0006)}
+                      className="py-2 px-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black flex flex-col items-center justify-center transition-all active:scale-90 border border-amber-600 shadow-md ring-2 ring-amber-300"
+                      title="Correr a la Derecha"
+                    >
+                      <span className="text-sm">▶</span>
+                      <span className="text-[9px] font-black">Derecha</span>
+                    </button>
+                  </div>
+
+                  {/* Scale Controls */}
+                  <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-100">
+                    <button
+                      onClick={() => scaleCalque(1.02)}
+                      className="py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-mono font-bold flex items-center justify-center space-x-1 border border-slate-200"
+                    >
+                      <span>🔍 + Agrandar</span>
+                    </button>
+                    <button
+                      onClick={() => scaleCalque(0.98)}
+                      className="py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-mono font-bold flex items-center justify-center space-x-1 border border-slate-200"
+                    >
+                      <span>🔍 - Reducir</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -1705,6 +1695,93 @@ export default function ThesisFramework({ onSelectModule }) {
             )}
           </div>
 
+        </div>
+      )}
+
+      {/* Floating On-Screen Quick Nudge Pad (top right below HUD) */}
+      {showCalque && (
+        <div className="absolute top-20 right-4 z-[400] glass-panel p-3 rounded-2xl shadow-2xl space-y-2 pointer-events-auto border border-amber-400/60 animate-fade-in text-slate-900 w-52">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-1">
+            <div className="flex items-center space-x-1.5">
+              <div className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800">
+                Calibrar Plano
+              </span>
+            </div>
+            <button
+              onClick={() => setCalqueBounds(DEFAULT_CALQUE_BOUNDS)}
+              className="text-[10px] font-mono font-bold text-amber-700 hover:underline"
+            >
+              Centrar
+            </button>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[10px] font-mono text-slate-600">
+              <span>Opacidad:</span>
+              <span className="font-bold text-slate-900">{Math.round(calqueOpacity * 100)}%</span>
+            </div>
+            <input
+              type="range"
+              min="0.1"
+              max="1"
+              step="0.05"
+              value={calqueOpacity}
+              onChange={(e) => setCalqueOpacity(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-600"
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-center text-xs font-mono font-bold">
+            <div />
+            <button
+              onClick={() => moveCalqueLat(0.0006)}
+              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
+              title="Subir hacia el Norte"
+            >
+              ▲
+            </button>
+            <div />
+
+            <button
+              onClick={() => moveCalqueLng(-0.0006)}
+              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
+              title="Correr a la Izquierda"
+            >
+              ◀
+            </button>
+
+            <button
+              onClick={() => moveCalqueLat(-0.0006)}
+              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
+              title="Bajar hacia el Sur"
+            >
+              ▼
+            </button>
+
+            <button
+              onClick={() => moveCalqueLng(0.0006)}
+              className="py-1.5 rounded-lg bg-amber-500 text-slate-950 shadow-sm font-black ring-2 ring-amber-400 active:scale-95"
+              title="Correr a la Derecha"
+            >
+              ▶
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1 text-[10px] font-mono font-bold">
+            <button
+              onClick={() => scaleCalque(1.02)}
+              className="py-1 rounded-lg bg-slate-100 hover:bg-slate-200 shadow-xs text-center text-slate-800"
+            >
+              + Agrandar
+            </button>
+            <button
+              onClick={() => scaleCalque(0.98)}
+              className="py-1 rounded-lg bg-slate-100 hover:bg-slate-200 shadow-xs text-center text-slate-800"
+            >
+              - Reducir
+            </button>
+          </div>
         </div>
       )}
 
