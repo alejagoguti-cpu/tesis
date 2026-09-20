@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { 
@@ -42,6 +43,8 @@ export default function ModelViewer3D({ onSelectModule }) {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
+  const [loadProgress, setLoadProgress] = useState(0);
+  const [loadPhase, setLoadPhase] = useState('Descargando geometría BIM...');
   const [loadError, setLoadError] = useState('');
   const [customModel, setCustomModel] = useState(null);
   const [activeLayers, setActiveLayers] = useState({
@@ -101,13 +104,30 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     if (modelType === 'revit') {
       setIsLoadingFile(true);
+      setLoadProgress(15);
+      setLoadPhase('Conectando con modelo BIM ultra-optimizado...');
+
       const gltfLoader = new GLTFLoader();
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+      gltfLoader.setDRACOLoader(dracoLoader);
+
       const basePath = import.meta.env.BASE_URL || '/';
       const modelUrl = `${basePath.endsWith('/') ? basePath : basePath + '/'}models/tierrabomba_revit.glb`;
+
+      // Cargar textura de concreto gris para vías y muros
+      const textureLoader = new THREE.TextureLoader();
+      const concreteTex = textureLoader.load(`${basePath.endsWith('/') ? basePath : basePath + '/'}textures/concrete_grey.png`);
+      concreteTex.wrapS = THREE.RepeatWrapping;
+      concreteTex.wrapT = THREE.RepeatWrapping;
+      concreteTex.repeat.set(12, 12);
 
       gltfLoader.load(
         modelUrl,
         (gltf) => {
+          setLoadProgress(100);
+          setLoadPhase('¡Modelo cargado a 60 FPS!');
+
           if (currentModelGroupRef.current) {
             scene.remove(currentModelGroupRef.current);
             currentModelGroupRef.current = null;
@@ -160,25 +180,26 @@ export default function ModelViewer3D({ onSelectModule }) {
               child.castShadow = true;
               child.receiveShadow = true;
 
-              const name = child.name || '';
+              const name = (child.name || '') + (child.parent?.name || '');
               const matName = child.material ? child.material.name : '';
 
-              if (name.includes('Toposolid') || name.toLowerCase().includes('terrain') || matName.includes('Toposolid')) {
-                // Topografía / Terreno verde natural de Tierrabomba
+              if (name.includes('Terrain') || matName.includes('Terrain') || name.includes('Toposolid')) {
+                // Topografía / Terreno: Verde natural vivo y definido (no tenue)
                 child.material = new THREE.MeshStandardMaterial({
-                  color: 0x3d8b57, // Verde vegetación insular
-                  roughness: 0.85,
+                  color: 0x388e3c, // Verde natural vibrante
+                  roughness: 0.82,
                   metalness: 0.05,
                   side: THREE.DoubleSide
                 });
                 child.userData.layer = 'terrain';
                 objectsRef.current.revitTerrain.push(child);
                 child.visible = activeLayers.terrain;
-              } else if (name.includes('Partición') || name.includes('Interior') || name.toLowerCase().includes('muro') || matName.includes('muro') || matName.includes('yeso')) {
-                // Muros y Particiones Interiores (BTC / Terracota)
+              } else if (name.includes('Walls') || name.includes('Partición') || name.includes('Interior') || name.includes('muro') || matName.includes('Walls')) {
+                // Vías, Muros y Trazados: Gris Concreto con Textura
                 child.material = new THREE.MeshStandardMaterial({
-                  color: 0xc26d4a, // Terracota BTC
-                  roughness: 0.7,
+                  color: 0x94a3b8, // Gris concreto claro
+                  map: concreteTex,
+                  roughness: 0.85,
                   metalness: 0.1,
                   side: THREE.DoubleSide
                 });
@@ -186,10 +207,10 @@ export default function ModelViewer3D({ onSelectModule }) {
                 objectsRef.current.revitWalls.push(child);
                 child.visible = activeLayers.walls;
               } else {
-                // Edificaciones, Volúmenes y Masas Urbanas
+                // Edificaciones y Masas Urbanas: Gris Arquitectónico / Caserío
                 child.material = new THREE.MeshStandardMaterial({
-                  color: 0xf8fafc, // Blanco arquitectónico nítido
-                  roughness: 0.35,
+                  color: 0x64748b, // Gris arquitectónico medio que resalta las casitas
+                  roughness: 0.45,
                   metalness: 0.15,
                   side: THREE.DoubleSide
                 });
@@ -204,7 +225,17 @@ export default function ModelViewer3D({ onSelectModule }) {
           currentModelGroupRef.current = rootContainer;
           setIsLoadingFile(false);
         },
-        undefined,
+        (xhr) => {
+          if (xhr.lengthComputable && xhr.total > 0) {
+            const percent = Math.round((xhr.loaded / xhr.total) * 100);
+            setLoadProgress(percent);
+            const loadedMB = (xhr.loaded / (1024 * 1024)).toFixed(1);
+            const totalMB = (xhr.total / (1024 * 1024)).toFixed(1);
+            setLoadPhase(`Descargando geometría (${loadedMB} MB / ${totalMB} MB)`);
+          } else {
+            setLoadProgress(prev => Math.min(95, prev + 25));
+          }
+        },
         (err) => {
           console.error("Error loading tierrabomba_revit.glb:", err);
           setIsLoadingFile(false);
@@ -958,10 +989,32 @@ export default function ModelViewer3D({ onSelectModule }) {
 
       {/* Loading Model Overlay */}
       {isLoadingFile && (
-        <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md z-[500] flex flex-col items-center justify-center p-6 text-white pointer-events-none animate-fade-in">
-          <div className="w-12 h-12 rounded-full border-4 border-teal-500 border-t-transparent animate-spin mb-4" />
-          <h3 className="font-bold text-lg text-white">Cargando Modelo 3D de Revit...</h3>
-          <p className="text-xs text-slate-400 font-mono mt-1">Renderizando geometría BIM, sombras e iluminación en tiempo real</p>
+        <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-lg z-[500] flex flex-col items-center justify-center p-6 text-white pointer-events-none animate-fade-in">
+          <div className="relative w-16 h-16 mb-4 flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full border-4 border-teal-500/20 border-t-teal-400 animate-spin" />
+            <Sparkles className="w-6 h-6 text-teal-300 animate-pulse" />
+          </div>
+
+          <h3 className="font-bold text-xl text-white tracking-tight">
+            Cargando Modelo 3D de Revit
+          </h3>
+          <p className="text-xs text-teal-200/80 font-mono mt-1 text-center">
+            {loadPhase || 'Optimizando geometría BIM a 60 FPS...'}
+          </p>
+
+          {/* Real-time Progress Bar */}
+          <div className="w-72 mt-5 space-y-2">
+            <div className="w-full bg-slate-800/90 h-2.5 rounded-full overflow-hidden p-0.5 border border-white/10 shadow-inner">
+              <div 
+                className="bg-gradient-to-r from-teal-500 via-emerald-400 to-amber-400 h-full rounded-full transition-all duration-300 shadow-sm"
+                style={{ width: `${Math.max(8, loadProgress)}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 px-1">
+              <span>{loadProgress > 0 ? `${loadProgress}%` : 'Conectando...'}</span>
+              <span className="text-teal-300 font-bold">1.95 MB Ultraligero</span>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1093,7 +1146,7 @@ export default function ModelViewer3D({ onSelectModule }) {
           <button
             onClick={resetCamera}
             className="p-2 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
-            title="Centrar Cámara"
+            title="Centrar Cámara Isométrica"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -1172,29 +1225,29 @@ export default function ModelViewer3D({ onSelectModule }) {
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 shadow-sm" />
                   <div>
                     <span className="block font-bold">Topografía Insular</span>
-                    <span className="text-[9px] text-slate-400 font-normal">Toposolid / Terreno Verde</span>
+                    <span className="text-[9px] text-slate-400 font-normal">Terreno Verde Natural</span>
                   </div>
                 </div>
                 {activeLayers.terrain ? <Eye className="w-3.5 h-3.5 text-emerald-400" /> : <EyeOff className="w-3.5 h-3.5" />}
               </button>
 
-              {/* Capa 2: Muros y Particiones */}
+              {/* Capa 2: Vías & Muros */}
               <button
                 onClick={() => toggleLayer('walls')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
                   activeLayers.walls 
-                    ? 'bg-orange-950/50 text-orange-300 border border-orange-500/50 shadow-sm' 
+                    ? 'bg-slate-800/80 text-slate-200 border border-slate-500/50 shadow-sm' 
                     : 'bg-slate-900/50 text-slate-500 border border-slate-800 line-through'
                 }`}
               >
                 <div className="flex items-center space-x-2 text-left">
-                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0 shadow-sm" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0 shadow-sm" />
                   <div>
-                    <span className="block font-bold">Muros y Particiones</span>
-                    <span className="text-[9px] text-slate-400 font-normal">Partición 138mm (3.452)</span>
+                    <span className="block font-bold">Vías, Muros & Trazados</span>
+                    <span className="text-[9px] text-slate-400 font-normal">Gris Concreto Arquitectónico</span>
                   </div>
                 </div>
-                {activeLayers.walls ? <Eye className="w-3.5 h-3.5 text-orange-400" /> : <EyeOff className="w-3.5 h-3.5" />}
+                {activeLayers.walls ? <Eye className="w-3.5 h-3.5 text-slate-300" /> : <EyeOff className="w-3.5 h-3.5" />}
               </button>
 
               {/* Capa 3: Edificaciones y Masas */}
@@ -1202,15 +1255,15 @@ export default function ModelViewer3D({ onSelectModule }) {
                 onClick={() => toggleLayer('buildings')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono transition-all ${
                   activeLayers.buildings 
-                    ? 'bg-teal-950/50 text-teal-300 border border-teal-500/50 shadow-sm' 
+                    ? 'bg-slate-800/80 text-teal-300 border border-teal-500/50 shadow-sm' 
                     : 'bg-slate-900/50 text-slate-500 border border-slate-800 line-through'
                 }`}
               >
                 <div className="flex items-center space-x-2 text-left">
-                  <span className="w-2.5 h-2.5 rounded-full bg-teal-400 shrink-0 shadow-sm" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-500 shrink-0 shadow-sm" />
                   <div>
-                    <span className="block font-bold">Edificaciones & Masas</span>
-                    <span className="text-[9px] text-slate-400 font-normal">Categoría Building (1.019)</span>
+                    <span className="block font-bold">Edificaciones & Caserío</span>
+                    <span className="text-[9px] text-slate-400 font-normal">Gris Urbano Arquitectónico</span>
                   </div>
                 </div>
                 {activeLayers.buildings ? <Eye className="w-3.5 h-3.5 text-teal-400" /> : <EyeOff className="w-3.5 h-3.5" />}
