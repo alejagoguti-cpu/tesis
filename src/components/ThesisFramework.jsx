@@ -239,7 +239,10 @@ export const DEFAULT_DELIMITATIONS = {
     [10.34204, -75.59229]
   ],
   school: [
-    [10.362, -75.581]
+    [10.3630, -75.5818],
+    [10.3630, -75.5802],
+    [10.3615, -75.5802],
+    [10.3615, -75.5818]
   ],
   plateau: [
     [10.37487, -75.57396],
@@ -280,11 +283,11 @@ export const ZONE_CONFIG = {
   school: {
     id: "school",
     name: "3. Colegio Actual en Riesgo",
-    type: "point",
+    type: "polygon",
     color: "#ef4444",
     fillColor: "#ef4444",
     badge: "Cota +1.5m Vulnerable",
-    desc: "Ubicación del equipamiento educativo actual en riesgo de inundación."
+    desc: "Polígono de implantación del colegio actual en riesgo de inundación."
   },
   plateau: {
     id: "plateau",
@@ -667,7 +670,16 @@ export default function ThesisFramework({ onSelectModule }) {
       interactive: false
     }).addTo(map);
 
-    // 3. Current School Vulnerable Marker
+    // 3. Current School Vulnerable Polygon & Pin
+    const schoolLayer = L.polygon(delimitations.school || [], {
+      color: '#ef4444',
+      weight: 3.5,
+      dashArray: '6, 6',
+      fillColor: '#ef4444',
+      fillOpacity: 0.2,
+      interactive: false
+    }).addTo(map);
+
     const schoolIcon = L.divIcon({
       className: 'custom-school-pin pointer-events-none',
       html: `
@@ -728,6 +740,7 @@ export default function ThesisFramework({ onSelectModule }) {
     layersRef.current = {
       islandLayer,
       erosionLayer,
+      schoolLayer,
       schoolMarker,
       masterplanLayer,
       plateauMarker,
@@ -770,12 +783,6 @@ export default function ThesisFramework({ onSelectModule }) {
       
       setDelimitations(prev => {
         const currentZone = prev[activeZoneKey] || [];
-        if (ZONE_CONFIG[activeZoneKey]?.type === 'point') {
-          return {
-            ...prev,
-            [activeZoneKey]: [newCoord]
-          };
-        }
         return {
           ...prev,
           [activeZoneKey]: [...currentZone, newCoord]
@@ -793,14 +800,17 @@ export default function ThesisFramework({ onSelectModule }) {
   // 2. SYNCHRONIZE LEAFLET GEOMETRY WITH DELIMITATION STATE
   // =========================================================================
   useEffect(() => {
-    const { islandLayer, erosionLayer, schoolMarker, masterplanLayer, customLayer } = layersRef.current;
+    const { islandLayer, erosionLayer, schoolLayer, schoolMarker, masterplanLayer, customLayer } = layersRef.current;
     if (islandLayer && delimitations.island) {
       islandLayer.setLatLngs(delimitations.island);
     }
     if (erosionLayer && delimitations.erosion) {
       erosionLayer.setLatLngs(delimitations.erosion);
     }
-    if (schoolMarker && delimitations.school && delimitations.school[0]) {
+    if (schoolLayer && delimitations.school) {
+      schoolLayer.setLatLngs(delimitations.school);
+    }
+    if (schoolMarker && delimitations.school && delimitations.school.length > 0) {
       schoolMarker.setLatLng(delimitations.school[0]);
     }
     if (masterplanLayer && delimitations.plateau) {
