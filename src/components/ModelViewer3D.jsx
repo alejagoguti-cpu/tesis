@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { 
   Layers, 
   RotateCcw, 
@@ -609,6 +610,20 @@ export default function ModelViewer3D({ onSelectModule }) {
       objLoader.load(
         fileUrl,
         (obj) => {
+          obj.traverse((child) => {
+            if (child.isMesh) {
+              if (!child.material || child.material.name === '' || !child.material.color) {
+                child.material = new THREE.MeshStandardMaterial({
+                  color: 0xc2785c,
+                  roughness: 0.7,
+                  metalness: 0.1,
+                  side: THREE.DoubleSide
+                });
+              } else {
+                child.material.side = THREE.DoubleSide;
+              }
+            }
+          });
           onModelLoaded(obj);
         },
         undefined,
