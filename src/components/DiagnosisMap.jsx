@@ -374,46 +374,46 @@ export default function DiagnosisMap({ onNavigateModule }) {
     }).addTo(map);
 
     // -------------------------------------------------------------
-    // CAPA GEOMORFOLÓGICA VECTORIAL DE TIERRABOMBA
+    // CAPA GEOMORFOLÓGICA VECTORIAL DE TIERRABOMBA (ZONIFICACIÓN OFICIAL)
     // -------------------------------------------------------------
-    // 1. Base General: Terraza Marina Alta (+22m) - Meseta Central
+    // Base Insular (Lomas y Colinas / Meseta Base Crema)
     const geomorphologyLayer = L.polygon(islandContourCoords, {
-      color: '#222222',
+      color: '#1e293b',
       weight: 1.5,
-      fillColor: '#f7f1d3', // Lomas y colinas / Meseta base crema
+      fillColor: '#f7f1d3', // Crema oficial
       fillOpacity: 0.9,
       interactive: true
     }).addTo(map);
 
-    // 2. Sub-unidades Geomorfológicas Oficiales
+    // Sub-unidades Geomorfológicas internas
     const geomorphologySubZones = L.layerGroup([
-      // A. Terraza Marina Alta (+22m) - Zona Norte/Centro (Morado claro)
+      // 1. Terraza Marina Alta (+22m Morado `#c49beb` - Norte y Meseta Central)
       L.polygon([
-        [10.3804, -75.57697], [10.37583, -75.5786], [10.3665, -75.58302],
+        [10.37854, -75.57804], [10.37381, -75.57821], [10.3665, -75.58302],
         [10.36071, -75.5889], [10.35404, -75.59053], [10.34694, -75.59298],
-        [10.34204, -75.59229], [10.34407, -75.56658], [10.34556, -75.55824],
-        [10.3503, -75.54017]
-      ], { color: '#333', weight: 1, fillColor: '#c49beb', fillOpacity: 0.85 }),
+        [10.34204, -75.59229], [10.34407, -75.56658], [10.34179, -75.56869],
+        [10.34842, -75.53875], [10.36071, -75.56021], [10.37419, -75.57408]
+      ], { color: '#333', weight: 0.8, fillColor: '#c49beb', fillOpacity: 0.85 }),
 
-      // B. Terraza Coralina (Rosa - Borde Suroeste / Bocachica)
+      // 2. Terraza Coralina (Rosa `#e66597` - Flanco Suroeste / Bocachica)
       L.polygon([
-        [10.34204, -75.59229], [10.33968, -75.59109], [10.33368, -75.59302],
-        [10.32717, -75.59173], [10.32236, -75.5895], [10.31801, -75.58135],
-        [10.32519, -75.57641], [10.33304, -75.57899], [10.33837, -75.57439],
+        [10.34204, -75.59229], [10.33735, -75.5916], [10.33161, -75.59302],
+        [10.32561, -75.59074], [10.31801, -75.58135], [10.3227, -75.57899],
+        [10.3281, -75.57452], [10.33304, -75.57899], [10.33837, -75.57439],
         [10.34179, -75.56869]
-      ], { color: '#333', weight: 1, fillColor: '#e66597', fillOpacity: 0.85 }),
+      ], { color: '#333', weight: 0.8, fillColor: '#e66597', fillOpacity: 0.85 }),
 
-      // C. Pantanos de Manglar (Verde - Costa Este / Caño del Oro / Punta Arenas)
+      // 3. Pantanos de Manglar (Verde `#7bc75b` - Bahía Este y Ciénagas)
       L.polygon([
-        [10.34842, -75.53875], [10.3503, -75.54017], [10.34556, -75.55824],
-        [10.34062, -75.56021], [10.34345, -75.56094], [10.34538, -75.54201]
-      ], { color: '#333', weight: 1, fillColor: '#7bc75b', fillOpacity: 0.85 }),
+        [10.34696, -75.53952], [10.34842, -75.53875], [10.3503, -75.54017],
+        [10.34556, -75.55824], [10.34345, -75.56094], [10.34538, -75.54201]
+      ], { color: '#333', weight: 0.8, fillColor: '#7bc75b', fillOpacity: 0.85 }),
 
-      // D. Espigas & Playas (Amarillo - Extremo Norte Punta Arenas)
+      // 4. Playas & Espigas (Amarillo `#dbe048` - Punta Arenas Norte)
       L.polygon([
         [10.3804, -75.57697], [10.37854, -75.57804], [10.37583, -75.5786],
         [10.37419, -75.57408]
-      ], { color: '#333', weight: 1, fillColor: '#dbe048', fillOpacity: 0.9 })
+      ], { color: '#333', weight: 0.8, fillColor: '#dbe048', fillOpacity: 0.9 })
     ]).addTo(map);
 
     mapInstanceRef.current = {
