@@ -55,7 +55,7 @@ export default function ModelViewer3D({ onSelectModule }) {
   const cartagenaTerritoryRef = useRef(null);
 
   // Paleta de Colores Arquitectónicos y Ambientales (Inspirado en modulo-08-3d.html)
-  const [waterColor, setWaterColor] = useState('#0f172a');
+  const [waterColor, setWaterColor] = useState('#0b0c0f');
   const [roadsColor, setRoadsColor] = useState('#b7babd');
   const [greenColor, setGreenColor] = useState('#4a7856');
   const [showNoiseMap, setShowNoiseMap] = useState(false);
@@ -191,7 +191,7 @@ export default function ModelViewer3D({ onSelectModule }) {
       setLoadProgress(15);
       setLoadPhase('Cargando Catastro Oficial AMB Cartagena (MAGNA-SIRGAS)...');
 
-      const bgColor = 0x0f172a;
+      const bgColor = 0x0b0c0f;
       scene.background = new THREE.Color(bgColor);
       scene.fog = null;
 
