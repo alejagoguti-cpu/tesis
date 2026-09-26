@@ -119,10 +119,10 @@ export const SCHOOL_PLAN_SPACES = [
     coords: { x: 10, y: 15, w: 35, h: 40 },
     color: "#0d9488",
     tag: "Pedagógico",
-    summary: "Aulas orientadas norte-sur con celosías de BTC y aleros de 2.20m que aseguran iluminación natural sin deslumbramiento.",
+    summary: "6 salas diseñadas a partir del Censo 1:1 para cubrir el 100% de la población infantil de los 120 hogares (204 niños) con cupo de crecimiento.",
     metrics: [
-      { label: "Capacidad", value: "350 Alumnos" },
-      { label: "Ventilación", value: "100% Cruzada" },
+      { label: "Demanda Censo 1:1", value: "204 Niños (120 Familias)" },
+      { label: "Capacidad Aulas", value: "350 Alumnos (Crecimiento)" },
       { label: "Confort Térmico", value: "27 °C Constante" },
       { label: "BTC Local", value: "8.500 Bloques" }
     ],
@@ -346,7 +346,7 @@ export default function HousingRelocation({ onSelectModule }) {
         <div className="absolute inset-0 w-full h-full pt-20 pb-6 px-4 sm:px-8 overflow-y-auto z-10 space-y-4">
           
           {/* Summary KPIs Banner */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-6xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 max-w-6xl mx-auto">
             <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm text-center">
               <span className="text-[10px] font-mono text-slate-500 block uppercase">Total Viviendas</span>
               <span className="font-bold text-2xl text-slate-900 font-mono mt-0.5">120 Hogares</span>
@@ -355,7 +355,12 @@ export default function HousingRelocation({ onSelectModule }) {
             <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm text-center">
               <span className="text-[10px] font-mono text-slate-500 block uppercase">Población Total</span>
               <span className="font-bold text-2xl text-slate-900 font-mono mt-0.5">{HOUSING_CENSUS_SUMMARY.totalResidents} Habitantes</span>
-              <span className="text-[10px] text-slate-500 font-mono block mt-0.5">~4.0 hab/hogar</span>
+              <span className="text-[10px] text-slate-500 font-mono block mt-0.5">~{HOUSING_CENSUS_SUMMARY.averageResidentsPerHome} hab/hogar</span>
+            </div>
+            <div className="p-4 rounded-2xl bg-white border border-amber-200 bg-amber-50/40 shadow-sm text-center">
+              <span className="text-[10px] font-mono text-amber-800 block font-bold uppercase">Población Infantil</span>
+              <span className="font-bold text-2xl text-amber-700 font-mono mt-0.5">{HOUSING_CENSUS_SUMMARY.totalChildren} Niños</span>
+              <span className="text-[10px] text-amber-600 font-mono block font-bold mt-0.5">Demanda Colegio 100%</span>
             </div>
             <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm text-center">
               <span className="text-[10px] font-mono text-slate-500 block uppercase">Tipología A (54 m²)</span>

@@ -91,12 +91,14 @@ export const HOUSING_CENSUS_120 = Array.from({ length: 120 }, (_, index) => {
 export const HOUSING_CENSUS_SUMMARY = {
   totalDwellings: 120,
   totalResidents: HOUSING_CENSUS_120.reduce((acc, h) => acc + h.residents, 0),
+  totalChildren: HOUSING_CENSUS_120.reduce((acc, h) => acc + h.children, 0),
   typologyACount: HOUSING_CENSUS_120.filter(h => h.typologyCode === 'TIPO-A').length,
   typologyBCount: HOUSING_CENSUS_120.filter(h => h.typologyCode === 'TIPO-B').length,
   phase1Count: HOUSING_CENSUS_120.filter(h => h.phaseNumber === 1).length,
   phase2Count: HOUSING_CENSUS_120.filter(h => h.phaseNumber === 2).length,
   phase3Count: HOUSING_CENSUS_120.filter(h => h.phaseNumber === 3).length,
   averageResidentsPerHome: (HOUSING_CENSUS_120.reduce((acc, h) => acc + h.residents, 0) / 120).toFixed(1),
+  averageChildrenPerHome: (HOUSING_CENSUS_120.reduce((acc, h) => acc + h.children, 0) / 120).toFixed(1),
   totalAreaBuiltM2: HOUSING_CENSUS_120.reduce((acc, h) => acc + h.areaM2, 0),
   waterDeficitCurrent: "100% de los hogares sin acueducto",
   waterCoverageProposed: "100% abastecimiento continuo por aljibe central"
