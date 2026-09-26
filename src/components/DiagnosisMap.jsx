@@ -384,31 +384,32 @@ export default function DiagnosisMap({ onNavigateModule }) {
       interactive: true
     }).addTo(map);
 
-    // Sub-unidades Geomorfológicas (Manglares, Coralinas, Playas, Lomas)
+    // Sub-unidades Geomorfológicas (Refinadas al contorno insular)
     const geomorphologySubZones = L.layerGroup([
-      // 1. Terraza Coralina (Rosa coral - Bocachica y Flanco Sur)
+      // 1. Terraza Coralina (Rosa coral - Flanco Sur / Bocachica)
       L.polygon([
-        [10.33745, -75.56009], [10.33368, -75.59302], [10.32236, -75.5895], 
-        [10.31801, -75.58135], [10.32519, -75.57641], [10.33304, -75.57899]
-      ], { color: '#333', weight: 1, fillColor: '#e66597', fillOpacity: 0.9 }),
+        [10.33735, -75.5916], [10.33368, -75.59302], [10.32929, -75.59242],
+        [10.32236, -75.5895], [10.31801, -75.58135], [10.32519, -75.57641],
+        [10.33127, -75.57718], [10.33579, -75.57843]
+      ], { color: '#333', weight: 1, fillColor: '#e66597', fillOpacity: 0.85 }),
 
-      // 2. Pantanos de Manglar (Verde - Flanco Este y Ciénagas)
+      // 2. Pantanos de Manglar & Laguna (Verde / Azul claro - Flanco Este Caño del Oro y Punta Arenas)
       L.polygon([
-        [10.3665, -75.58302], [10.36071, -75.5889], [10.35167, -75.59053], 
-        [10.34694, -75.59298], [10.34373, -75.56452], [10.34177, -75.54585]
-      ], { color: '#333', weight: 1, fillColor: '#7bc75b', fillOpacity: 0.9 }),
+        [10.34538, -75.54201], [10.34696, -75.53952], [10.34842, -75.53875],
+        [10.3503, -75.54017], [10.34556, -75.55824], [10.34129, -75.55669]
+      ], { color: '#333', weight: 1, fillColor: '#7bc75b', fillOpacity: 0.85 }),
 
-      // 3. Lomas y Colinas (Crema claro - Zona Centro-Norte)
+      // 3. Lomas y Colinas (Crema claro - Zona Norte / Centro)
       L.polygon([
-        [10.37583, -75.5786], [10.36857, -75.58044], [10.36401, -75.58632], 
-        [10.35598, -75.59177], [10.34918, -75.59199], [10.35819, -75.59147]
-      ], { color: '#333', weight: 1, fillColor: '#f7f1d3', fillOpacity: 0.9 }),
+        [10.37583, -75.5786], [10.37127, -75.57894], [10.3665, -75.58302],
+        [10.36071, -75.5889], [10.36401, -75.58632], [10.37381, -75.57821]
+      ], { color: '#333', weight: 1, fillColor: '#f7f1d3', fillOpacity: 0.85 }),
 
-      // 4. Playas & Espigas (Amarillo / Crema - Punta Arenas y Norte)
+      // 4. Playas & Espigas (Amarillo / Crema - Punta Arenas extremo norte)
       L.polygon([
-        [10.3804, -75.57697], [10.37854, -75.57804], [10.37583, -75.5786], 
-        [10.37419, -75.57408], [10.3804, -75.57697]
-      ], { color: '#333', weight: 1, fillColor: '#dbe048', fillOpacity: 0.9 })
+        [10.3804, -75.57697], [10.37854, -75.57804], [10.37583, -75.5786],
+        [10.37419, -75.57408]
+      ], { color: '#333', weight: 1, fillColor: '#dbe048', fillOpacity: 0.85 })
     ]).addTo(map);
 
     mapInstanceRef.current = {
