@@ -697,9 +697,10 @@ export default function ModelViewer3D({ onSelectModule }) {
       const deltaY = e.clientY - prevMousePos.y;
 
       if (dragButton === 0) {
-        // Rotación alrededor de la escena (Orbit)
-        spherical.theta -= deltaX * 0.007;
-        spherical.phi = Math.max(0.15, Math.min(Math.PI * 0.45, spherical.phi - deltaY * 0.007));
+        // Pivotaje suave en eje Y conservando estricta vista axonométrica a ~45°
+        spherical.theta -= deltaX * 0.003;
+        // Bloqueo estricto del ángulo de elevación (phi) entre 42° y 48° para evitar volcamientos
+        spherical.phi = Math.max(Math.PI * 0.233, Math.min(Math.PI * 0.267, spherical.phi - deltaY * 0.0005));
       } else if (dragButton === 2 || dragButton === 1 || e.shiftKey) {
         // Desplazamiento de plano (Pan con clic derecho)
         const panFactor = (viewSize * 2) / container.clientHeight;
