@@ -667,12 +667,12 @@ export default function ModelViewer3D({ onSelectModule }) {
     let isDragging = false;
     let dragButton = 0;
     let prevMousePos = { x: 0, y: 0 };
-    // Ángulo axonométrico panorámico de Cartagena mirando hacia el noreste
+    // Ángulo axonométrico panorámico a 45°
     let spherical = selected3DModel === 'revit'
-      ? { radius: 220, theta: -Math.PI * 0.40, phi: Math.PI * 45 / 180 }
-      : { radius: 45, theta: Math.PI / 4, phi: Math.PI * 55 / 180 };
+      ? { radius: 180, theta: -Math.PI * 0.25, phi: Math.PI * 45 / 180 }
+      : { radius: 45, theta: Math.PI / 4, phi: Math.PI * 45 / 180 };
     let panTarget = selected3DModel === 'revit'
-      ? { x: 5, y: 0, z: -10 }
+      ? { x: 0, y: 0, z: 0 }
       : { x: 0, y: 1.5, z: 0 };
 
     const updateCameraPosition = () => {
@@ -934,7 +934,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     updateSectionPlanes(sectionLimits, sectionBoxActive);
   }, [sectionLimits, sectionBoxActive]);
 
-  // Restablecer Vista Axonométrica a 35° (proyección paralela)
+  // Restablecer Vista Axonométrica a 45° (proyección paralela)
   const resetAxonometricView = () => {
     if (!cameraRef.current || !mountRef.current) return;
     const container = mountRef.current;
@@ -949,7 +949,7 @@ export default function ModelViewer3D({ onSelectModule }) {
       camera.updateProjectionMatrix();
     }
 
-    const spherical = { radius: 45, theta: Math.PI / 4, phi: Math.PI * 55 / 180 };
+    const spherical = { radius: 45, theta: Math.PI / 4, phi: Math.PI * 45 / 180 };
     const panTarget = { x: 0, y: 1.5, z: 0 };
     camera.position.x = panTarget.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
     camera.position.y = panTarget.y + spherical.radius * Math.cos(spherical.phi);
@@ -957,12 +957,12 @@ export default function ModelViewer3D({ onSelectModule }) {
     camera.lookAt(panTarget.x, panTarget.y, panTarget.z);
   };
 
-  // Vista Panorámica Aérea de toda la Bahía y Cartagena (Encuadre Urbano Completo)
+  // Vista Panorámica Aérea Axonométrica a 45° de Cartagena y Tierra Bomba
   const setBirdEyeView = () => {
     if (!cameraRef.current || !mountRef.current) return;
     const container = mountRef.current;
     const aspect = container.clientWidth / container.clientHeight;
-    const viewSize = 130;
+    const viewSize = 110;
     const camera = cameraRef.current;
     if (camera.isOrthographicCamera) {
       camera.left = -viewSize * aspect;
@@ -972,8 +972,8 @@ export default function ModelViewer3D({ onSelectModule }) {
       camera.updateProjectionMatrix();
     }
 
-    const spherical = { radius: 220, theta: -Math.PI * 0.40, phi: Math.PI * 45 / 180 };
-    const panTarget = { x: 5, y: 0, z: -10 };
+    const spherical = { radius: 180, theta: -Math.PI * 0.25, phi: Math.PI * 45 / 180 };
+    const panTarget = { x: 0, y: 0, z: 0 };
     camera.position.x = panTarget.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
     camera.position.y = panTarget.y + spherical.radius * Math.cos(spherical.phi);
     camera.position.z = panTarget.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
@@ -2091,73 +2091,8 @@ export default function ModelViewer3D({ onSelectModule }) {
         </div>
       )}
 
-      {/* Floating Bottom Left: Architectural Legend (matching reference) */}
-      <div className="absolute bottom-6 left-4 z-[400] glass-dark p-3.5 rounded-2xl pointer-events-auto text-white shadow-xl border border-white/10 space-y-1.5 text-xs font-mono max-h-[38vh] overflow-y-auto">
-        <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">
-          {selected3DModel === 'revit' ? 'Leyenda Territorial // AMB' : 'Leyenda Arquitectónica'}
-        </div>
-        {selected3DModel === 'revit' ? (
-          <>
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#e2635a] shrink-0 shadow-sm" />
-              <span className="text-slate-200">Vehículo</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#24c8bd] shrink-0 shadow-sm animate-pulse" />
-              <span className="text-slate-200">Lancha en ruta</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full shrink-0 border border-slate-400 shadow-sm" style={{ backgroundColor: roadsColor }} />
-              <span className="text-slate-200">Vía (Nomenclaturavial.shp)</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 border border-slate-600 shadow-sm" />
-              <span className="text-slate-200">Edificio (Construccion.shp — 6.719)</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#5c8f52] shrink-0 shadow-sm" />
-              <span className="text-slate-200">Árbol / Manglar</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: waterColor }} />
-              <span className="text-slate-200">Cuerpo de agua (Bahía & Mar)</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#8a8f96] shrink-0 shadow-sm border border-slate-500" />
-              <span className="text-slate-200">Manzana (Manzana.shp — 2.419)</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: greenColor }} />
-              <span className="text-slate-200">Parque / Zona verde (+22m)</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#b5714a] shrink-0 shadow-sm" />
-              <span className="text-slate-200">Techo a dos aguas / Colonial</span>
-            </div>
-            {showNoiseMap && (
-              <div className="flex items-center space-x-2 pt-1 border-t border-white/10">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444] shrink-0 shadow-sm animate-pulse" />
-                <span className="text-red-300 font-bold">Isófonas de Ruido (&gt; 65 dB)</span>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 border border-slate-400 shadow-sm" />
-              <span className="text-slate-200">Vías & Muros</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shrink-0 border border-slate-600 shadow-sm" />
-              <span className="text-slate-200">Edificaciones & Caserío</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#477857] shrink-0 shadow-sm" />
-              <span className="text-slate-200">Topografía / Relieve</span>
-            </div>
-          </>
-        )}
-      </div>
+
+
 
       {/* Floating Bottom Center: Orbit & Zoom Instruction Pill */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[400] pointer-events-none hidden md:block">
