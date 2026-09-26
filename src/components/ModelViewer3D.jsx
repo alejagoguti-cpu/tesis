@@ -231,8 +231,10 @@ export default function ModelViewer3D({ onSelectModule }) {
       if (territory.setNoiseMapVisible) territory.setNoiseMapVisible(showNoiseMap);
       if (territory.setClimateMonth) territory.setClimateMonth(climateMonth);
 
-      // Centrar y encuadrar todo el sistema de la bahía (Cartagena - Tierrabomba)
-      rootContainer.position.set(0, 0, 0);
+      // Centrar automáticamente la caja delimitadora de Cartagena + Tierrabomba en (0,0,0)
+      const box = new THREE.Box3().setFromObject(rootContainer);
+      const center = box.getCenter(new THREE.Vector3());
+      rootContainer.position.set(-center.x, -box.min.y, -center.z);
 
       scene.add(rootContainer);
       currentModelGroupRef.current = rootContainer;
