@@ -31,6 +31,7 @@ export const HOUSING_CENSUS_120 = Array.from({ length: 120 }, (_, index) => {
   const typologyCode = isTypologyB ? "TIPO-B" : "TIPO-A";
   const areaM2 = isTypologyB ? 72 : 54;
   const residents = isTypologyB ? 5 + (num % 3) : 3 + (num % 3); // 3 to 7 people
+  const children = num % 4 === 0 ? 1 : num % 3 === 0 ? 2 : num % 5 === 0 ? 3 : Math.min(residents - 1, (num % 2) + 1); // 1 to 3 children per household
 
   // Surnames generator for authentic Caribbean households
   const familySurnames = [
@@ -67,6 +68,7 @@ export const HOUSING_CENSUS_120 = Array.from({ length: 120 }, (_, index) => {
     typologyCode,
     areaM2,
     residents,
+    children,
     livelihood,
     coastalCoords: [coastalLat, coastalLng],
     plateauCoords: [plateauLat, plateauLng],

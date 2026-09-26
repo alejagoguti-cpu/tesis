@@ -438,7 +438,9 @@ export default function HousingRelocation({ onSelectModule }) {
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono">
-                  <span className="text-slate-600 font-semibold">{house.residents} Hab. &bull; {house.areaM2}m²</span>
+                  <span className="text-slate-600 font-semibold">
+                    {house.residents} Hab. &bull; <span className="text-amber-700 font-bold">{house.children} Niños</span> &bull; {house.areaM2}m²
+                  </span>
                   <span className="text-terracotta-600 font-bold hover:underline">Ver Ficha &rarr;</span>
                 </div>
               </div>
@@ -578,7 +580,7 @@ export default function HousingRelocation({ onSelectModule }) {
                   {selectedHouseModal.familyName}
                 </h3>
                 <p className="text-xs text-slate-500 font-mono">
-                  {selectedHouseModal.sector} &bull; {selectedHouseModal.residents} Habitantes &bull; Actividad: {selectedHouseModal.livelihood}
+                  {selectedHouseModal.sector} &bull; {selectedHouseModal.residents} Habitantes ({selectedHouseModal.children} Menores / Niños) &bull; Actividad: {selectedHouseModal.livelihood}
                 </p>
               </div>
 
