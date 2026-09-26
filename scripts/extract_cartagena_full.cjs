@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const shpDir = 'C:/Users/aleja/Downloads/Cartografia_Catastro_AMB_Cartagena/SHP_Catastro_AMB_Cartagena';
+const downloadsDir = 'C:/Users/aleja/Downloads';
 const outPath = path.join(__dirname, '../public/data/cartagena_catastro_real.json');
 
 // Exact Bounding Box for Cartagena Bay + Isla de Tierra Bomba (EPSG:9377 MAGNA-SIRGAS)
@@ -22,6 +23,50 @@ function to3D(x, y) {
     parseFloat(((x - originX) * scale).toFixed(3)),
     parseFloat(((y - originY) * scale).toFixed(3))
   ];
+}
+
+// Transverse Mercator projection from WGS84 (lon, lat) to EPSG:9377 MAGNA-SIRGAS
+function to9377(lon, lat) {
+  const a = 6378137.0;
+  const f = 1 / 298.257222101;
+  const b = a * (1 - f);
+  const e2 = (a*a - b*b) / (a*a);
+  const ep2 = (a*a - b*b) / (b*b);
+  const k0 = 0.9992;
+  const lon0 = -73.0 * Math.PI / 180;
+  const lat0 = 4.0 * Math.PI / 180;
+  const FE = 5000000.0;
+  const FN = 2000000.0;
+
+  const phi = lat * Math.PI / 180;
+  const lambda = lon * Math.PI / 180;
+
+  const N = a / Math.sqrt(1 - e2 * Math.sin(phi) * Math.sin(phi));
+  const T = Math.tan(phi) * Math.tan(phi);
+  const C = ep2 * Math.cos(phi) * Math.cos(phi);
+  const A = (lambda - lon0) * Math.cos(phi);
+
+  function M(p) {
+    return a * (
+      (1 - e2/4 - 3*e2*e2/64 - 5*e2*e2*e2/256) * p
+      - (3*e2/8 + 3*e2*e2/32 + 45*e2*e2*e2/1024) * Math.sin(2*p)
+      + (15*e2*e2/256 + 45*e2*e2*e2/1024) * Math.sin(4*p)
+      - (3*e2*e2*e2/3072) * Math.sin(6*p)
+    );
+  }
+
+  const M_phi = M(phi);
+  const M_phi0 = M(lat0);
+
+  const x = FE + k0 * N * (A + (1 - T + C) * Math.pow(A, 3) / 6 + (5 - 18 * T + T * T + 72 * C - 58 * ep2) * Math.pow(A, 5) / 120);
+  const y = FN + k0 * (M_phi - M_phi0 + N * Math.tan(phi) * (A*A/2 + (5 - T + 9*C + 4*C*C) * Math.pow(A, 4) / 24 + (61 - 58*T + T*T + 600*C - 330*ep2) * Math.pow(A, 6) / 720));
+
+  return [x, y];
+}
+
+function lonLatTo3D(lon, lat) {
+  const [x, y] = to9377(lon, lat);
+  return to3D(x, y);
 }
 
 function parseDbf(dbfPath) {
@@ -58,7 +103,7 @@ function parseDbf(dbfPath) {
   return records;
 }
 
-// Parses ALL parts of multi-part polygons (ensures 100% of islands, mainland, and parcels are extracted)
+// Parses ALL parts of multi-part polygons
 function parseShpPolygonsAllParts(shpPath, filterFn = null) {
   if (!fs.existsSync(shpPath)) return [];
   const buf = fs.readFileSync(shpPath);
@@ -168,45 +213,67 @@ function parseShpLinesAllParts(shpPath) {
   return items;
 }
 
-console.log('=== EXTRACTING 100% REAL CARTAGENA & TIERRA BOMBA GIS DATASET ===');
+console.log('=== EXTRACTING REAL ARCHITECTURAL CARTAGENA & TIERRA BOMBA GIS DATASET ===');
 
-// 1. Landmasses (Extract all parts of Corregimiento.shp and Barrio.shp)
-console.log('1. Extracting landmasses (100% complete Tierra Bomba island + continental coast)...');
-const corregDbf = parseDbf(path.join(shpDir, 'Corregimiento.dbf'));
-const landCorreg = parseShpPolygonsAllParts(path.join(shpDir, 'Corregimiento.shp'), (idx) => {
-  const nom = (corregDbf[idx]?.nombre || '').toUpperCase();
-  return nom.includes('TIERRA BOMBA') || nom.includes('CAÑO DEL ORO') || nom.includes('BOCACHICA') || nom.includes('BOQUILLA');
-}).map(i => i.ring);
+// 1. Landmasses (Unified Tierra Bomba Island + Continental Coast)
+console.log('1. Extracting landmasses...');
+const landmasses = [];
 
+// A. Master Delimitation of Isla Tierra Bomba
+const islandGeojsonPath = path.join(downloadsDir, 'delimitacion_island_tierrabomba.geojson');
+if (fs.existsSync(islandGeojsonPath)) {
+  const islandGeojson = JSON.parse(fs.readFileSync(islandGeojsonPath));
+  const rawCoords = islandGeojson.features[0].geometry.coordinates[0];
+  const islandRing = rawCoords.map(pt => lonLatTo3D(pt[0], pt[1]));
+  landmasses.push(islandRing);
+  console.log(`Loaded master Isla Tierra Bomba contour: ${islandRing.length} points`);
+} else {
+  // Fallback to Corregimiento polygons
+  const corregDbf = parseDbf(path.join(shpDir, 'Corregimiento.dbf'));
+  const landCorreg = parseShpPolygonsAllParts(path.join(shpDir, 'Corregimiento.shp'), (idx) => {
+    const nom = (corregDbf[idx]?.nombre || '').toUpperCase();
+    return nom.includes('TIERRA BOMBA') || nom.includes('CAÑO DEL ORO') || nom.includes('BOCACHICA');
+  }).map(i => i.ring);
+  landmasses.push(...landCorreg);
+}
+
+// B. Continental Coast from Barrio.shp
 const barrioDbf = parseDbf(path.join(shpDir, 'Barrio.dbf'));
 const landBarrios = parseShpPolygonsAllParts(path.join(shpDir, 'Barrio.shp'), (idx) => {
   const nom = (barrioDbf[idx]?.nombre || '').toUpperCase();
-  // Keep continental coastal barrios and islands, skip redundant inner barrios of Tierra Bomba to prevent z-fighting
   return !nom.includes('TIERRA BOMBA') && !nom.includes('CAÑO DEL ORO') && !nom.includes('BOCACHICA') && !nom.includes('PUNTA ARENAS');
 }).map(i => i.ring);
 
-const landmasses = [...landCorreg, ...landBarrios];
-console.log(`Landmasses: ${landmasses.length} clean polygons extracted`);
+landmasses.push(...landBarrios);
+console.log(`Total Landmasses: ${landmasses.length} polygons`);
 
-// 2. Manzanas (Manzana.shp)
-console.log('2. Extracting cadastral blocks (Manzanas)...');
+// 2. Topography / Meseta Segura (+22.00m) of Tierra Bomba
+console.log('2. Extracting Tierra Bomba Topography and Plateau...');
+let plateauRing = null;
+const plateauGeojsonPath = path.join(downloadsDir, 'delimitacion_plateau_tierrabomba.geojson');
+if (fs.existsSync(plateauGeojsonPath)) {
+  const plateauGeojson = JSON.parse(fs.readFileSync(plateauGeojsonPath));
+  const rawCoords = plateauGeojson.features[0].geometry.coordinates[0];
+  plateauRing = rawCoords.map(pt => lonLatTo3D(pt[0], pt[1]));
+  console.log(`Loaded Tierra Bomba Masterplan Plateau (+22m): ${plateauRing.length} points`);
+}
+
+// 3. Manzanas (Manzana.shp)
+console.log('3. Extracting cadastral blocks (Manzanas)...');
 const manzanas = parseShpPolygonsAllParts(path.join(shpDir, 'Manzana.shp')).map(i => i.ring);
 console.log(`Manzanas: ${manzanas.length} cadastral blocks`);
 
-// 3. Roads (Nomenclaturavial.shp)
-console.log('3. Extracting road network...');
+// 4. Roads (Nomenclaturavial.shp)
+console.log('4. Extracting road network...');
 const roads = parseShpLinesAllParts(path.join(shpDir, 'Nomenclaturavial.shp'));
 console.log(`Roads: ${roads.length} road axes`);
 
-// 4. Buildings (Construccion.shp + Construccion.dbf)
-console.log('4. Extracting ALL buildings and calculating proportional real-world heights...');
+// 5. Buildings (Construccion.shp + Construccion.dbf)
+console.log('5. Extracting ALL buildings and calculating proportional real-world heights...');
 const construccionDbf = parseDbf(path.join(shpDir, 'Construccion.dbf'));
-console.log(`Construccion.dbf: ${construccionDbf.length} records`);
-
 const rawBuildings = parseShpPolygonsAllParts(path.join(shpDir, 'Construccion.shp'));
 console.log(`Buildings found in territory BBox: ${rawBuildings.length}`);
 
-// Transform and classify each building with real-world proportional metric heights
 // Scale: 1 unit = 50m. Real floor = 3.0m => 3/50 = 0.06 units per floor.
 const buildings = rawBuildings.map(({ ring, index }) => {
   let sumX = 0, sumY = 0;
@@ -231,7 +298,7 @@ const buildings = rawBuildings.map(({ ring, index }) => {
   // B. Bocagrande, Castillogrande, El Laguito (X: -18 to 20, Y: 35 to 105)
   else if (cx >= -18 && cx <= 20 && cy >= 35 && cy <= 105) {
     type = 'skyscraper';
-    if (totalPiso < 6) totalPiso = 12 + Math.floor(Math.random() * 28); // Real highrise skyline
+    if (totalPiso < 6) totalPiso = 12 + Math.floor(Math.random() * 28);
     height = parseFloat((totalPiso * 0.06 + 0.05).toFixed(3)); // 0.77 to 2.50 units (38m to 125m real)
   }
   // C. Centro Histórico, San Diego, Getsemaní (X: -5 to 25, Y: 98 to 132)
@@ -262,13 +329,9 @@ const buildings = rawBuildings.map(({ ring, index }) => {
 
 console.log(`Buildings classified: ${buildings.length} 3D structures`);
 
-const typeCounts = {};
-buildings.forEach(b => { typeCounts[b.t] = (typeCounts[b.t] || 0) + 1; });
-console.log('Building types breakdown:', typeCounts);
-
 const dataset = {
   meta: {
-    source: "Catastro Multipropósito AMB Cartagena 2026",
+    source: "Catastro Multipropósito AMB Cartagena 2026 & Delimitación Tierra Bomba",
     projection: "MAGNA-SIRGAS Origen Nacional (EPSG:9377)",
     origin: { x0: originX, y0: originY },
     scale: scale,
@@ -281,6 +344,7 @@ const dataset = {
     }
   },
   landmasses,
+  plateau: plateauRing,
   manzanas,
   roads,
   buildings,
