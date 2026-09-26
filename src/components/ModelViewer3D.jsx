@@ -750,16 +750,10 @@ export default function ModelViewer3D({ onSelectModule }) {
     };
     window.addEventListener('resize', handleResize);
 
-    // Animation Loop
+    // Render Loop (100% Estático — sin rotación ni movimiento automático)
     let reqId;
     const animate = () => {
       reqId = requestAnimationFrame(animate);
-      if (cartagenaTerritoryRef.current) {
-        cartagenaTerritoryRef.current.update(isPlayingSimulationRef.current ? simulationSpeedRef.current : 1.0);
-      }
-      if (currentModelGroupRef.current && !isDragging && selected3DModel !== 'revit') {
-        currentModelGroupRef.current.rotation.y += 0.0005; // subtle idle rotation for modules
-      }
       renderer.render(scene, camera);
     };
     animate();
@@ -2041,55 +2035,7 @@ export default function ModelViewer3D({ onSelectModule }) {
         </div>
       </div>
 
-      {/* Floating Bottom Center: Live Transit Simulation Controls Bar (When in Territorial Revit mode) */}
-      {selected3DModel === 'revit' && (
-        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-[400] glass-dark px-4 py-2.5 rounded-2xl flex items-center space-x-3 text-xs font-mono shadow-2xl border border-white/10 backdrop-blur-xl pointer-events-auto">
-          <div className="flex items-center space-x-2 border-r border-white/10 pr-3">
-            <button
-              onClick={() => setIsPlayingSimulation(!isPlayingSimulation)}
-              className={`p-2 rounded-xl flex items-center justify-center transition-all ${
-                isPlayingSimulation 
-                  ? 'bg-[#24c8bd] text-slate-950 font-bold shadow-lg shadow-[#24c8bd]/30 hover:scale-105' 
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
-              }`}
-              title={isPlayingSimulation ? 'Pausar Simulación Marítima y Urbana' : 'Reanudar Simulación'}
-            >
-              {isPlayingSimulation ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-            </button>
-            <span className="text-slate-200 text-[11px] font-bold hidden sm:inline">
-              {isPlayingSimulation ? 'Simulación en Vivo' : 'Pausada'}
-            </span>
-          </div>
 
-          <div className="flex items-center space-x-1 border-r border-white/10 pr-3">
-            {[
-              { speed: 0.5, label: '0.5x' },
-              { speed: 1.5, label: '1x' },
-              { speed: 3.0, label: '2x' },
-              { speed: 5.0, label: '4x' },
-            ].map(({ speed, label }) => (
-              <button
-                key={speed}
-                onClick={() => setSimulationSpeed(speed)}
-                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                  simulationSpeed === speed
-                    ? 'bg-[#24c8bd] text-slate-950 shadow-sm'
-                    : 'bg-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-700'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center space-x-2 text-[10.5px] text-[#24c8bd]">
-            <Ship className="w-3.5 h-3.5 animate-pulse text-[#24c8bd] shrink-0" />
-            <span className="hidden md:inline font-sans text-slate-300">
-              3 Rutas Marítimas Activas (Bodeguita – Punta Arenas – Bocachica)
-            </span>
-          </div>
-        </div>
-      )}
 
 
 
