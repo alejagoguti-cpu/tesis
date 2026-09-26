@@ -142,9 +142,9 @@ export async function buildCartagenaTerritoryScene({
   };
 
   // -------------------------------------------------------------
-  // 1. CUERPO DE AGUA REAL ANIMADO (Bahía de Cartagena & Mar Caribe)
+  // 1. CUERPO DE AGUA ESTATICO INFINITO (Bahía de Cartagena & Mar Caribe)
   // -------------------------------------------------------------
-  const waterGeo = new THREE.PlaneGeometry(650, 650, 160, 160);
+  const waterGeo = new THREE.PlaneGeometry(4000, 4000, 2, 2);
   const waterMesh = new THREE.Mesh(waterGeo, mats.water);
   waterMesh.name = "Water";
   waterMesh.rotation.x = -Math.PI / 2;

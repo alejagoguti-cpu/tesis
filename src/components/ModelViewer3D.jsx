@@ -55,7 +55,7 @@ export default function ModelViewer3D({ onSelectModule }) {
   const cartagenaTerritoryRef = useRef(null);
 
   // Paleta de Colores Arquitectónicos y Ambientales (Inspirado en modulo-08-3d.html)
-  const [waterColor, setWaterColor] = useState('#88a2b5');
+  const [waterColor, setWaterColor] = useState('#0f172a');
   const [roadsColor, setRoadsColor] = useState('#b7babd');
   const [greenColor, setGreenColor] = useState('#4a7856');
   const [showNoiseMap, setShowNoiseMap] = useState(false);
