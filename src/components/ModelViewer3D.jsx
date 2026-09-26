@@ -1272,36 +1272,7 @@ export default function ModelViewer3D({ onSelectModule }) {
         </div>
       )}
 
-      {/* Loading Model Overlay */}
-      {isLoadingFile && (
-        <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-lg z-[500] flex flex-col items-center justify-center p-6 text-white pointer-events-none animate-fade-in">
-          <div className="relative w-16 h-16 mb-4 flex items-center justify-center">
-            <div className="absolute inset-0 rounded-full border-4 border-teal-500/20 border-t-teal-400 animate-spin" />
-            <Sparkles className="w-6 h-6 text-teal-300 animate-pulse" />
-          </div>
 
-          <h3 className="font-bold text-xl text-white tracking-tight">
-            {selected3DModel === 'revit' ? 'Cargando Territorio Cartagena & Tierrabomba' : 'Cargando Modelo 3D BIM'}
-          </h3>
-          <p className="text-xs text-teal-200/80 font-mono mt-1 text-center">
-            {loadPhase || 'Optimizando geometría 3D a 60 FPS...'}
-          </p>
-
-          {/* Real-time Progress Bar */}
-          <div className="w-72 mt-5 space-y-2">
-            <div className="w-full bg-slate-800/90 h-2.5 rounded-full overflow-hidden p-0.5 border border-white/10 shadow-inner">
-              <div 
-                className="bg-gradient-to-r from-teal-500 via-emerald-400 to-amber-400 h-full rounded-full transition-all duration-300 shadow-sm"
-                style={{ width: `${Math.max(8, loadProgress)}%` }}
-              />
-            </div>
-            <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 px-1">
-              <span>{loadProgress > 0 ? `${loadProgress}%` : 'Conectando...'}</span>
-              <span className="text-teal-300 font-bold">60 FPS WebGL</span>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 1. FULLSCREEN 3D WEBGL CANVAS */}
       <div ref={mountRef} className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing z-0" />
