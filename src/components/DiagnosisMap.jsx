@@ -240,8 +240,8 @@ export default function DiagnosisMap({ onNavigateModule }) {
       map.invalidateSize();
     }, 100);
 
-    // Island Perimeter Contour Line
-    const islandContour = L.polygon([
+    // Island Perimeter Contour Line Coordinates
+    const islandContourCoords = [
       [10.3804, -75.57697],
       [10.37854, -75.57804],
       [10.37583, -75.5786],
@@ -338,8 +338,9 @@ export default function DiagnosisMap({ onNavigateModule }) {
       [10.34842, -75.53875],
       [10.34967, -75.53895],
       [10.3503, -75.54017],
-      [10.34986, -75.54234]
-    ], {
+    ];
+
+    const islandContour = L.polygon(islandContourCoords, {
       color: '#ea580c',
       weight: 2,
       dashArray: '6, 6',
@@ -372,10 +373,50 @@ export default function DiagnosisMap({ onNavigateModule }) {
       interactive: false
     }).addTo(map);
 
+    // -------------------------------------------------------------
+    // CAPA GEOMORFOLÓGICA VECTORIAL DE TIERRABOMBA
+    // -------------------------------------------------------------
+    const geomorphologyLayer = L.polygon(islandContourCoords, {
+      color: '#222222',
+      weight: 1.5,
+      fillColor: '#c49beb', // Terraza Marina Alta por defecto
+      fillOpacity: 0.85,
+      interactive: true
+    }).addTo(map);
+
+    // Sub-unidades Geomorfológicas (Manglares, Coralinas, Playas, Lomas)
+    const geomorphologySubZones = L.layerGroup([
+      // 1. Terraza Coralina (Rosa coral - Bocachica y Flanco Sur)
+      L.polygon([
+        [10.33745, -75.56009], [10.33368, -75.59302], [10.32236, -75.5895], 
+        [10.31801, -75.58135], [10.32519, -75.57641], [10.33304, -75.57899]
+      ], { color: '#333', weight: 1, fillColor: '#e66597', fillOpacity: 0.9 }),
+
+      // 2. Pantanos de Manglar (Verde - Flanco Este y Ciénagas)
+      L.polygon([
+        [10.3665, -75.58302], [10.36071, -75.5889], [10.35167, -75.59053], 
+        [10.34694, -75.59298], [10.34373, -75.56452], [10.34177, -75.54585]
+      ], { color: '#333', weight: 1, fillColor: '#7bc75b', fillOpacity: 0.9 }),
+
+      // 3. Lomas y Colinas (Crema claro - Zona Centro-Norte)
+      L.polygon([
+        [10.37583, -75.5786], [10.36857, -75.58044], [10.36401, -75.58632], 
+        [10.35598, -75.59177], [10.34918, -75.59199], [10.35819, -75.59147]
+      ], { color: '#333', weight: 1, fillColor: '#f7f1d3', fillOpacity: 0.9 }),
+
+      // 4. Playas & Espigas (Amarillo / Crema - Punta Arenas y Norte)
+      L.polygon([
+        [10.3804, -75.57697], [10.37854, -75.57804], [10.37583, -75.5786], 
+        [10.37419, -75.57408], [10.3804, -75.57697]
+      ], { color: '#333', weight: 1, fillColor: '#dbe048', fillOpacity: 0.9 })
+    ]).addTo(map);
+
     mapInstanceRef.current = {
       map,
       islandContour,
-      safePlateau
+      safePlateau,
+      geomorphologyLayer,
+      geomorphologySubZones
     };
 
     return () => {
@@ -397,6 +438,23 @@ export default function DiagnosisMap({ onNavigateModule }) {
 
     return () => clearInterval(interval);
   }, [spectralDisplayMode]);
+
+  // Switch Geomorphology vector layers visibility when band changes
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const { geomorphologyLayer, geomorphologySubZones } = mapInstanceRef.current;
+    if (selectedBandId === 'geomorfologia') {
+      if (geomorphologyLayer) geomorphologyLayer.setStyle({ fillOpacity: 0.85, opacity: 1 });
+      if (geomorphologySubZones && mapInstanceRef.current.map) {
+        mapInstanceRef.current.map.addLayer(geomorphologySubZones);
+      }
+    } else {
+      if (geomorphologyLayer) geomorphologyLayer.setStyle({ fillOpacity: 0, opacity: 0 });
+      if (geomorphologySubZones && mapInstanceRef.current.map) {
+        mapInstanceRef.current.map.removeLayer(geomorphologySubZones);
+      }
+    }
+  }, [selectedBandId]);
 
   // Layer type switcher
   useEffect(() => {
@@ -447,8 +505,8 @@ export default function DiagnosisMap({ onNavigateModule }) {
       <div 
         className="absolute inset-0 w-full h-full z-[100] pointer-events-none transition-none"
         style={{
-          backdropFilter: activeBand.cssFilter,
-          WebkitBackdropFilter: activeBand.cssFilter,
+          backdropFilter: selectedBandId === 'geomorfologia' ? 'none' : activeBand.cssFilter,
+          WebkitBackdropFilter: selectedBandId === 'geomorfologia' ? 'none' : activeBand.cssFilter,
           opacity: filterIntensity / 100,
           clipPath: spectralDisplayMode === 'swipe'
             ? `polygon(${swipePosition}% 0%, 100% 0%, 100% 100%, ${swipePosition}% 100%)`
