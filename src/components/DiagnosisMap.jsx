@@ -163,6 +163,34 @@ export const SPECTRAL_LAYERS = [
       { label: 'Delta Térmico', value: '-3.8 °C vs Centro' },
       { label: 'Viento Alisio', value: '18 - 25 km/h' }
     ]
+  },
+  {
+    id: 'geomorfologia',
+    name: '🗺️ Geomorfología • Unidades de Suelo',
+    shortName: '🗺️ Geomorfología',
+    badge: 'Unidades Geomorfológicas',
+    sensor: 'Mapa Geomorfológico Oficial de Tierrabomba',
+    utility: 'Zonificación de terrazas marinas, espigas, manglares y playas para la reubicación segura.',
+    color: '#c49beb',
+    accentBg: 'bg-purple-500/10 border-purple-500/30 text-purple-900',
+    cssFilter: 'hue-rotate(280deg) saturate(3.5) contrast(1.6) brightness(1.05)',
+    unit: 'Unidades Geomorfológicas Insulares',
+    legend: [
+      { color: '#f3e8b4', label: 'Espiga' },
+      { color: '#a6e3e9', label: 'Laguna costera' },
+      { color: '#f7f1d3', label: 'Lomas y colinas' },
+      { color: '#7bc75b', label: 'Pantanos de manglar' },
+      { color: '#dbe048', label: 'Playas' },
+      { color: '#e66597', label: 'Terraza coralina' },
+      { color: '#c49beb', label: 'Terraza marina alta (+22m)' },
+      { color: '#97b848', label: 'Terraza marina baja' }
+    ],
+    metrics: [
+      { label: 'Terraza Marina Alta', value: 'Cota +22m (Inmune)' },
+      { label: 'Pantano Manglar', value: 'Protección Este' },
+      { label: 'Terraza Coralina', value: 'Borde Sur / Bocachica' },
+      { label: 'Espigas & Playas', value: 'Erosión Activa' }
+    ]
   }
 ];
 
@@ -172,7 +200,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
   const tileLayerRef = useRef(null);
 
   // Active state
-  const [selectedBandId, setSelectedBandId] = useState('ndvi');
+  const [selectedBandId, setSelectedBandId] = useState('geomorfologia');
   const [spectralDisplayMode, setSpectralDisplayMode] = useState('overlay'); // 'overlay' | 'swipe' | 'scanner'
   const [swipePosition, setSwipePosition] = useState(50); // 0 to 100%
   const [isDraggingSwipe, setIsDraggingSwipe] = useState(false);
