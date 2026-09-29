@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 import { HOUSING_CENSUS_120, HOUSING_CENSUS_SUMMARY } from '../data/housingCensus';
+import bocetoViviendaCorte from '../assets/boceto_vivienda_corte.png';
 
 export const HOUSING_PLAN_SPACES = [
   {
@@ -340,6 +341,52 @@ export default function HousingRelocation({ onSelectModule }) {
       )}
 
       {/* ========================================================================= */}
+      {/* 1.5. VIEW 1.5: HAND SKETCH & SECTION CONCEPT DRAWING                      */}
+      {/* ========================================================================= */}
+      {activeMainView === 'sketch' && (
+        <div className="absolute inset-0 w-full h-full pt-20 pb-6 px-4 sm:px-8 overflow-y-auto z-10 flex flex-col items-center justify-center">
+          <div className="max-w-4xl w-full bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                  CONCEPTO & ANÁLISIS EN SECCIÓN
+                </span>
+                <h3 className="font-serif font-bold text-xl text-slate-900 mt-1">
+                  Boceto de Cuelgue, Plintos & Nivelación de Vivienda Insular
+                </h3>
+              </div>
+              <span className="text-xs font-mono text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                Análisis Conceptual
+              </span>
+            </div>
+
+            <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 flex items-center justify-center min-h-[350px]">
+              <img 
+                src={bocetoViviendaCorte} 
+                alt="Boceto de Sección Vivienda & Plintos" 
+                className="max-h-[60vh] w-auto object-contain shadow-2xl"
+              />
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                <span className="font-mono font-bold text-slate-900 block">1st Plinth: Warm City</span>
+                <p className="text-slate-600 text-[11px]">Relación directa de planta baja con la topografía y el microclima cálido urbano.</p>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                <span className="font-mono font-bold text-slate-900 block">2nd & 3rd Plinth / Sombra</span>
+                <p className="text-slate-600 text-[11px]">Plataformas elevadas para zonas semiprivadas de reflexión y permanencia exterior.</p>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                <span className="font-mono font-bold text-slate-900 block">Softening Elements</span>
+                <p className="text-slate-600 text-[11px]">Integración de vegetación nativa y filtros tectónicos de amortiguación térmica.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
       {/* 2. VIEW 2: 1:1 HOUSING CENSUS MATRIX (120 DWELLINGS REGISTRATION)         */}
       {/* ========================================================================= */}
       {activeMainView === 'census120' && (
@@ -475,7 +522,7 @@ export default function HousingRelocation({ onSelectModule }) {
               </span>
             </div>
             <h2 className="font-bold text-xs sm:text-sm text-slate-900 truncate">
-              {activeMainView === 'census120' ? 'Censo & Cuantificación 1:1 (120 Familias)' : selectedPlanType === 'vivienda' ? 'Prototipo de Vivienda Resiliente (+0.60m)' : 'Equipamiento Educativo & Ágora Hídrica'}
+              {activeMainView === 'census120' ? 'Censo & Cuantificación 1:1 (120 Familias)' : activeMainView === 'sketch' ? 'Boceto de Sección & Relación con el Suelo' : selectedPlanType === 'vivienda' ? 'Prototipo de Vivienda Resiliente (+0.60m)' : 'Equipamiento Educativo & Ágora Hídrica'}
             </h2>
           </div>
         </div>
@@ -494,6 +541,18 @@ export default function HousingRelocation({ onSelectModule }) {
           >
             <Compass className="w-3.5 h-3.5" />
             <span>Plano Arquitectónico</span>
+          </button>
+
+          <button
+            onClick={() => setActiveMainView('sketch')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              activeMainView === 'sketch'
+                ? 'bg-amber-600 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-950'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Boceto & Corte Técnico</span>
           </button>
 
           <button
