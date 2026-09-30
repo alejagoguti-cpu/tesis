@@ -374,54 +374,28 @@ export default function DiagnosisMap({ onNavigateModule }) {
     }).addTo(map);
 
     // -------------------------------------------------------------
-    // CAPA GEOMORFOLÓGICA VECTORIAL DE TIERRABOMBA (ZONIFICACIÓN OFICIAL)
+    // CAPA GEOMORFOLÓGICA OFICIAL RASTER // RENDERIZADO 100% FIEL A LA IMAGEN
     // -------------------------------------------------------------
-    // Base Insular (Lomas y Colinas / Meseta Base Crema)
-    const geomorphologyLayer = L.polygon(islandContourCoords, {
-      color: '#1e293b',
-      weight: 1.5,
-      fillColor: '#f7f1d3', // Crema oficial
-      fillOpacity: 0.9,
-      interactive: true
+    const basePath = import.meta.env.BASE_URL || '/';
+    const geomorphologyImgUrl = `${basePath.endsWith('/') ? basePath : basePath + '/'}geomorfologia_reference.png`;
+    
+    // Bounds georreferenciados para la isla de Tierrabomba [SouthWest, NorthEast]
+    const imageBounds = [
+      [10.3150, -75.5960], // Esquina Suroeste (Bocachica)
+      [10.3840, -75.5340]  // Esquina Noreste (Punta Arenas / Bahía)
+    ];
+
+    const geomorphologyOverlay = L.imageOverlay(geomorphologyImgUrl, imageBounds, {
+      opacity: 0.95,
+      interactive: true,
+      zIndex: 50
     }).addTo(map);
-
-    // Sub-unidades Geomorfológicas internas
-    const geomorphologySubZones = L.layerGroup([
-      // 1. Terraza Marina Alta (+22m Morado `#c49beb` - Norte y Meseta Central)
-      L.polygon([
-        [10.37854, -75.57804], [10.37381, -75.57821], [10.3665, -75.58302],
-        [10.36071, -75.5889], [10.35404, -75.59053], [10.34694, -75.59298],
-        [10.34204, -75.59229], [10.34407, -75.56658], [10.34179, -75.56869],
-        [10.34842, -75.53875], [10.36071, -75.56021], [10.37419, -75.57408]
-      ], { color: '#333', weight: 0.8, fillColor: '#c49beb', fillOpacity: 0.85 }),
-
-      // 2. Terraza Coralina (Rosa `#e66597` - Flanco Suroeste / Bocachica)
-      L.polygon([
-        [10.34204, -75.59229], [10.33735, -75.5916], [10.33161, -75.59302],
-        [10.32561, -75.59074], [10.31801, -75.58135], [10.3227, -75.57899],
-        [10.3281, -75.57452], [10.33304, -75.57899], [10.33837, -75.57439],
-        [10.34179, -75.56869]
-      ], { color: '#333', weight: 0.8, fillColor: '#e66597', fillOpacity: 0.85 }),
-
-      // 3. Pantanos de Manglar (Verde `#7bc75b` - Bahía Este y Ciénagas)
-      L.polygon([
-        [10.34696, -75.53952], [10.34842, -75.53875], [10.3503, -75.54017],
-        [10.34556, -75.55824], [10.34345, -75.56094], [10.34538, -75.54201]
-      ], { color: '#333', weight: 0.8, fillColor: '#7bc75b', fillOpacity: 0.85 }),
-
-      // 4. Playas & Espigas (Amarillo `#dbe048` - Punta Arenas Norte)
-      L.polygon([
-        [10.3804, -75.57697], [10.37854, -75.57804], [10.37583, -75.5786],
-        [10.37419, -75.57408]
-      ], { color: '#333', weight: 0.8, fillColor: '#dbe048', fillOpacity: 0.9 })
-    ]).addTo(map);
 
     mapInstanceRef.current = {
       map,
       islandContour,
       safePlateau,
-      geomorphologyLayer,
-      geomorphologySubZones
+      geomorphologyOverlay
     };
 
     return () => {
@@ -444,20 +418,17 @@ export default function DiagnosisMap({ onNavigateModule }) {
     return () => clearInterval(interval);
   }, [spectralDisplayMode]);
 
-  // Switch Geomorphology vector layers visibility when band changes
+  // Switch Geomorphology image layer visibility when band changes
   useEffect(() => {
     if (!mapInstanceRef.current) return;
-    const { geomorphologyLayer, geomorphologySubZones } = mapInstanceRef.current;
+    const { geomorphologyOverlay, map } = mapInstanceRef.current;
+    if (!geomorphologyOverlay || !map) return;
+
     if (selectedBandId === 'geomorfologia') {
-      if (geomorphologyLayer) geomorphologyLayer.setStyle({ fillOpacity: 0.85, opacity: 1 });
-      if (geomorphologySubZones && mapInstanceRef.current.map) {
-        mapInstanceRef.current.map.addLayer(geomorphologySubZones);
-      }
+      if (!map.hasLayer(geomorphologyOverlay)) map.addLayer(geomorphologyOverlay);
+      geomorphologyOverlay.setOpacity(0.95);
     } else {
-      if (geomorphologyLayer) geomorphologyLayer.setStyle({ fillOpacity: 0, opacity: 0 });
-      if (geomorphologySubZones && mapInstanceRef.current.map) {
-        mapInstanceRef.current.map.removeLayer(geomorphologySubZones);
-      }
+      if (map.hasLayer(geomorphologyOverlay)) map.removeLayer(geomorphologyOverlay);
     }
   }, [selectedBandId]);
 
