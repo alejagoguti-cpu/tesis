@@ -200,7 +200,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
   const tileLayerRef = useRef(null);
 
   // Active state
-  const [selectedBandId, setSelectedBandId] = useState('geomorfologia');
+  const [selectedBandId, setSelectedBandId] = useState('ndvi'); // 'ndvi' (Biomasa & Vegetación por defecto)
   const [spectralDisplayMode, setSpectralDisplayMode] = useState('overlay'); // 'overlay' | 'swipe' | 'scanner'
   const [swipePosition, setSwipePosition] = useState(50); // 0 to 100%
   const [isDraggingSwipe, setIsDraggingSwipe] = useState(false);
