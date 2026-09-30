@@ -43,7 +43,7 @@ import {
 export default function ModelViewer3D({ onSelectModule }) {
   const mountRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [selected3DModel, setSelected3DModel] = useState('colegio'); // 'colegio' (Carga ultra-rápida por defecto) | 'masterplan' | 'vivienda' | 'revit' (Catastro AMB 63.000+ edificios) | 'custom'
+  const [selected3DModel, setSelected3DModel] = useState('revit'); // 'revit' (Cartagena + Tierra Bomba por defecto) | 'colegio' | 'masterplan' | 'vivienda' | 'custom'
   const [wireframe, setWireframe] = useState(false);
   const [explodedView, setExplodedView] = useState(false);
 
