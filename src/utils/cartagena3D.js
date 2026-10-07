@@ -59,27 +59,45 @@ export async function buildCartagenaTerritoryScene({
     catastroData = generateSyntheticFallback();
   }
 
-  // Load real textures (Humedal El Burro / Kennedy architectural textures)
+  // Load real textures (Seamless high-res architectural materials)
   const texLoader = new THREE.TextureLoader();
   const normalizedBase = basePath.endsWith('/') ? basePath : basePath + '/';
 
-  const pastoTex = texLoader.load(`${normalizedBase}assets/textura_pasto.jpg`);
-  pastoTex.wrapS = THREE.RepeatWrapping;
-  pastoTex.wrapT = THREE.RepeatWrapping;
+  // 1. Pasto / Grass (Seamless Mottled Green)
+  const pastoTex = texLoader.load(`${normalizedBase}assets/textura_pasto_m5.png`);
+  pastoTex.wrapS = THREE.MirroredRepeatWrapping;
+  pastoTex.wrapT = THREE.MirroredRepeatWrapping;
   pastoTex.anisotropy = 16;
+  pastoTex.generateMipmaps = true;
   pastoTex.minFilter = THREE.LinearMipmapLinearFilter;
   pastoTex.magFilter = THREE.LinearFilter;
 
-  const waterTex = texLoader.load(`${normalizedBase}assets/textura_agua2.jpg`);
-  waterTex.wrapS = THREE.RepeatWrapping;
-  waterTex.wrapT = THREE.RepeatWrapping;
-  waterTex.repeat.set(80, 80);
+  // 2. Agua / Water (Seamless Light Aqua Surface)
+  const waterTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
+  waterTex.wrapS = THREE.MirroredRepeatWrapping;
+  waterTex.wrapT = THREE.MirroredRepeatWrapping;
+  waterTex.repeat.set(16, 16);
+  waterTex.anisotropy = 16;
+  waterTex.generateMipmaps = true;
+  waterTex.minFilter = THREE.LinearMipmapLinearFilter;
+  waterTex.magFilter = THREE.LinearFilter;
 
-  const bumpTex = texLoader.load(`${normalizedBase}assets/textura_agua2.jpg`);
-  bumpTex.wrapS = THREE.RepeatWrapping;
-  bumpTex.wrapT = THREE.RepeatWrapping;
-  bumpTex.repeat.set(100, 100);
+  const bumpTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
+  bumpTex.wrapS = THREE.MirroredRepeatWrapping;
+  bumpTex.wrapT = THREE.MirroredRepeatWrapping;
+  bumpTex.repeat.set(24, 24);
+  bumpTex.anisotropy = 16;
 
+  // 3. Piso / Manzanas / Urban Ground (Light Limestone Pavement from user upload)
+  const pisoTex = texLoader.load(`${normalizedBase}assets/textura_piso_m5.png`);
+  pisoTex.wrapS = THREE.MirroredRepeatWrapping;
+  pisoTex.wrapT = THREE.MirroredRepeatWrapping;
+  pisoTex.anisotropy = 16;
+  pisoTex.generateMipmaps = true;
+  pisoTex.minFilter = THREE.LinearMipmapLinearFilter;
+  pisoTex.magFilter = THREE.LinearFilter;
+
+  // 4. Vías / Roads (Gray asphalt texture)
   const viaTex = texLoader.load(`${normalizedBase}assets/textura_via.jpg`);
   viaTex.wrapS = THREE.RepeatWrapping;
   viaTex.wrapT = THREE.RepeatWrapping;
@@ -92,12 +110,12 @@ export async function buildCartagenaTerritoryScene({
   const waterMat = new THREE.MeshStandardMaterial({
     map: waterTex,
     bumpMap: bumpTex,
-    bumpScale: 0.16,
-    color: new THREE.Color(colors.water || '#2c7a9c'),
-    roughness: 0.16,
-    metalness: 0.20,
+    bumpScale: 0.08,
+    color: new THREE.Color('#9cd3db'),
+    roughness: 0.20,
+    metalness: 0.10,
     transparent: true,
-    opacity: 0.90,
+    opacity: 0.92,
     side: THREE.DoubleSide,
     clippingPlanes,
   });
@@ -107,16 +125,17 @@ export async function buildCartagenaTerritoryScene({
     water: waterMat,
     terrain: new THREE.MeshStandardMaterial({
       map: pastoTex,
-      color: new THREE.Color(colors.terrain || '#7fa672'),
-      roughness: 0.90,
-      metalness: 0.02,
+      color: new THREE.Color('#ffffff'),
+      roughness: 0.92,
+      metalness: 0.0,
       side: THREE.DoubleSide,
       clippingPlanes,
     }),
     manzanas: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.manzanas || '#9aa3af'),
-      roughness: 0.70,
-      metalness: 0.05,
+      map: pisoTex,
+      color: new THREE.Color('#ffffff'),
+      roughness: 0.88,
+      metalness: 0.02,
       polygonOffset: true,
       polygonOffsetFactor: -1.0,
       polygonOffsetUnits: -2.0,
@@ -125,8 +144,8 @@ export async function buildCartagenaTerritoryScene({
     }),
     roads: new THREE.MeshStandardMaterial({
       map: viaTex,
-      color: new THREE.Color(colors.roads || '#b7babd'),
-      roughness: 0.75,
+      color: new THREE.Color('#64748b'),
+      roughness: 0.70,
       metalness: 0.08,
       polygonOffset: true,
       polygonOffsetFactor: -2.0,
@@ -211,10 +230,10 @@ export async function buildCartagenaTerritoryScene({
   if (landGeometries.length > 0) {
     const mergedLand = BufferGeometryUtils.mergeGeometries(landGeometries, false);
     
-    // Assign Planar UVs based on world X/Z so textura_pasto tiles smoothly
+    // Assign Planar UVs based on world X/Z so pasto tiles seamlessly without visible grids
     const posAttr = mergedLand.getAttribute('position');
     const uvs = new Float32Array(posAttr.count * 2);
-    const GRASS_UV_SCALE = 0.06;
+    const GRASS_UV_SCALE = 0.02;
     for (let i = 0; i < posAttr.count; i++) {
       uvs[i * 2] = posAttr.getX(i) * GRASS_UV_SCALE;
       uvs[i * 2 + 1] = posAttr.getZ(i) * GRASS_UV_SCALE;
@@ -253,6 +272,18 @@ export async function buildCartagenaTerritoryScene({
 
   if (manzanaGeometries.length > 0) {
     const mergedManzanas = BufferGeometryUtils.mergeGeometries(manzanaGeometries, false);
+    
+    // Assign Planar UVs based on world X/Z for seamless limestone paving floor
+    const posManzanas = mergedManzanas.getAttribute('position');
+    const pisoUvs = new Float32Array(posManzanas.count * 2);
+    const PISO_UV_SCALE = 0.035;
+    for (let i = 0; i < posManzanas.count; i++) {
+      pisoUvs[i * 2] = posManzanas.getX(i) * PISO_UV_SCALE;
+      pisoUvs[i * 2 + 1] = posManzanas.getZ(i) * PISO_UV_SCALE;
+    }
+    mergedManzanas.setAttribute('uv', new THREE.BufferAttribute(pisoUvs, 2));
+    mergedManzanas.computeVertexNormals();
+
     const manzanasMesh = new THREE.Mesh(mergedManzanas, mats.manzanas);
     manzanasMesh.name = "Manzanas";
     manzanasMesh.receiveShadow = true;

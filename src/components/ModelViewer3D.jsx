@@ -47,38 +47,18 @@ export default function ModelViewer3D({ onSelectModule }) {
   const [wireframe, setWireframe] = useState(false);
   const [explodedView, setExplodedView] = useState(false);
 
-  // Simulación de Tránsito Marítimo y Urbano en Vivo (modulo-08-3d.html)
+  // Simulación de Tránsito Marítimo y Urbano en Vivo
   const [isPlayingSimulation, setIsPlayingSimulation] = useState(true);
   const isPlayingSimulationRef = useRef(true);
   const [simulationSpeed, setSimulationSpeed] = useState(1.5);
   const simulationSpeedRef = useRef(1.5);
   const cartagenaTerritoryRef = useRef(null);
 
-  // Paleta de Colores Arquitectónicos y Ambientales (Inspirado en modulo-08-3d.html)
-  const [waterColor, setWaterColor] = useState('#2c7a9c');
-  const [roadsColor, setRoadsColor] = useState('#b7babd');
-  const [greenColor, setGreenColor] = useState('#7fa672');
-  const [showNoiseMap, setShowNoiseMap] = useState(false);
-  const [climateMonth, setClimateMonth] = useState(0); // 0 = Ene, 11 = Dic
-  const [isPlayingClimate, setIsPlayingClimate] = useState(false);
-  
-  // Parámetros Solares & Vista Axonométrica a 35°
+  // Parámetros Solares (Estudio de Sombras & Heliodón)
   const [sunAzimuth, setSunAzimuth] = useState(130);
   const [sunElevation, setSunElevation] = useState(45);
   const [sunIntensity, setSunIntensity] = useState(1.2);
-  const [cameraMode, setCameraMode] = useState('orthographic'); // 'orthographic' (Axonométrica a 35°) | 'perspective'
-
-  // Caja de Sección (Corte Axonométrico 3D)
-  const [sectionBoxActive, setSectionBoxActive] = useState(false);
-  const [sectionLimits, setSectionLimits] = useState({
-    xMin: 0,
-    xMax: 100,
-    yMin: 0,
-    yMax: 100,
-    zMin: 0,
-    zMax: 100,
-  });
-  const [showRightControls, setShowRightControls] = useState(true);
+  const [cameraMode, setCameraMode] = useState('orthographic');
 
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -96,7 +76,6 @@ export default function ModelViewer3D({ onSelectModule }) {
     boats: true,
     vehicles: true,
     trees: true,
-    noise: false,
     grid: false,
     roof: true,
     structure: true,
@@ -106,7 +85,7 @@ export default function ModelViewer3D({ onSelectModule }) {
 
   // Custom Revit / Speckle Stream link integration
   const [speckleUrl, setSpeckleUrl] = useState('');
-  const [activeTab, setActiveTab] = useState('interactive'); // 'interactive' | 'speckle'
+  const [activeTab, setActiveTab] = useState('interactive');
 
   // Three.js instances refs
   const sceneRef = useRef(null);
@@ -125,46 +104,6 @@ export default function ModelViewer3D({ onSelectModule }) {
     revitWalls: [],
     revitBuildings: [],
   });
-
-  // 6 Planos de recorte para la Caja de Sección (Corte Axonométrico 3D)
-  const secPlanesRef = useRef({
-    xMin: new THREE.Plane(new THREE.Vector3(1, 0, 0), 1e6),
-    xMax: new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1e6),
-    yMin: new THREE.Plane(new THREE.Vector3(0, 1, 0), 1e6),
-    yMax: new THREE.Plane(new THREE.Vector3(0, -1, 0), 1e6),
-    zMin: new THREE.Plane(new THREE.Vector3(0, 0, 1), 1e6),
-    zMax: new THREE.Plane(new THREE.Vector3(0, 0, -1), 1e6),
-  });
-
-  const updateSectionPlanes = (limits, active) => {
-    const planes = secPlanesRef.current;
-    if (!active) {
-      planes.xMin.constant = 1e6;
-      planes.xMax.constant = 1e6;
-      planes.yMin.constant = 1e6;
-      planes.yMax.constant = 1e6;
-      planes.zMin.constant = 1e6;
-      planes.zMax.constant = 1e6;
-      return;
-    }
-    const minX = -19, maxX = 19;
-    const minY = -2, maxY = 8;
-    const minZ = -19, maxZ = 19;
-
-    const cutXMin = minX + (limits.xMin / 100) * (maxX - minX);
-    const cutXMax = minX + (limits.xMax / 100) * (maxX - minX);
-    const cutYMin = minY + (limits.yMin / 100) * (maxY - minY);
-    const cutYMax = minY + (limits.yMax / 100) * (maxY - minY);
-    const cutZMin = minZ + (limits.zMin / 100) * (maxZ - minZ);
-    const cutZMax = minZ + (limits.zMax / 100) * (maxZ - minZ);
-
-    planes.xMin.constant = -cutXMin;
-    planes.xMax.constant = cutXMax;
-    planes.yMin.constant = -cutYMin;
-    planes.yMax.constant = cutYMax;
-    planes.zMin.constant = -cutZMin;
-    planes.zMax.constant = cutZMax;
-  };
 
   // Re-build 3D Model whenever selected3DModel changes
   const buildModel = async (modelType) => {
@@ -195,32 +134,19 @@ export default function ModelViewer3D({ onSelectModule }) {
       scene.background = new THREE.Color(bgColor);
       scene.fog = new THREE.Fog(bgColor, 300, 1200);
 
-      const clipPlanesArray = [
-        secPlanesRef.current.xMin,
-        secPlanesRef.current.xMax,
-        secPlanesRef.current.yMin,
-        secPlanesRef.current.yMax,
-        secPlanesRef.current.zMin,
-        secPlanesRef.current.zMax,
-      ];
-
       const rootContainer = new THREE.Group();
       
       const territory = await buildCartagenaTerritoryScene({
         sceneRoot: rootContainer,
         activeLayers,
         colors: {
-          water: waterColor,
-          roads: roadsColor,
-          terrain: greenColor,
           buildings: '#ffffff',
           roofs: '#b5714a',
           trees: '#5c8f52',
-          manzanas: '#8a8f96',
+          manzanas: '#eae6df',
           vehicles: '#e2635a',
           boats: '#24c8bd',
         },
-        clippingPlanes: clipPlanesArray,
         onProgress: (p, msg) => {
           setLoadProgress(p);
           setLoadPhase(msg);
@@ -228,8 +154,6 @@ export default function ModelViewer3D({ onSelectModule }) {
       });
 
       cartagenaTerritoryRef.current = territory;
-      if (territory.setNoiseMapVisible) territory.setNoiseMapVisible(showNoiseMap);
-      if (territory.setClimateMonth) territory.setClimateMonth(climateMonth);
 
       // Centrar automáticamente la caja delimitadora de Cartagena + Tierrabomba en (0,0,0)
       const box = new THREE.Box3().setFromObject(rootContainer);
@@ -454,15 +378,6 @@ export default function ModelViewer3D({ onSelectModule }) {
       const basePath = import.meta.env.BASE_URL || '/';
       const modelUrl = `${basePath.endsWith('/') ? basePath : basePath + '/'}models/tierrabomba_revit.glb`;
 
-      const clipPlanesArray = [
-        secPlanesRef.current.xMin,
-        secPlanesRef.current.xMax,
-        secPlanesRef.current.yMin,
-        secPlanesRef.current.yMax,
-        secPlanesRef.current.zMin,
-        secPlanesRef.current.zMax,
-      ];
-
       gltfLoader.load(
         modelUrl,
         (gltf) => {
@@ -497,10 +412,17 @@ export default function ModelViewer3D({ onSelectModule }) {
           objectsRef.current.revitWalls = [];
           objectsRef.current.revitBuildings = [];
 
-          const pastoTex = new THREE.TextureLoader().load(`${basePath.endsWith('/') ? basePath : basePath + '/'}assets/textura_pasto.jpg`);
-          pastoTex.wrapS = THREE.RepeatWrapping;
-          pastoTex.wrapT = THREE.RepeatWrapping;
-          pastoTex.repeat.set(16, 16);
+          const pastoTex = new THREE.TextureLoader().load(`${basePath.endsWith('/') ? basePath : basePath + '/'}assets/textura_pasto_m5.png`);
+          pastoTex.wrapS = THREE.MirroredRepeatWrapping;
+          pastoTex.wrapT = THREE.MirroredRepeatWrapping;
+          pastoTex.anisotropy = 16;
+          pastoTex.repeat.set(12, 12);
+
+          const pisoTex = new THREE.TextureLoader().load(`${basePath.endsWith('/') ? basePath : basePath + '/'}assets/textura_piso_m5.png`);
+          pisoTex.wrapS = THREE.MirroredRepeatWrapping;
+          pisoTex.wrapT = THREE.MirroredRepeatWrapping;
+          pisoTex.anisotropy = 16;
+          pisoTex.repeat.set(16, 16);
 
           model.traverse((child) => {
             if (child.isMesh) {
@@ -517,15 +439,25 @@ export default function ModelViewer3D({ onSelectModule }) {
               if (name.includes('Terrain') || matName.includes('Terrain') || name.includes('Toposolid')) {
                 child.material = new THREE.MeshStandardMaterial({
                   map: pastoTex,
-                  color: 0x7fa672,
+                  color: 0xffffff,
                   roughness: 0.90,
-                  metalness: 0.02,
+                  metalness: 0.0,
                   side: THREE.DoubleSide,
-                  clippingPlanes: clipPlanesArray,
                 });
                 child.renderOrder = 1;
                 child.userData.layer = 'terrain';
                 objectsRef.current.revitTerrain.push(child);
+                child.visible = activeLayers.terrain;
+              } else if (name.includes('Floor') || matName.includes('Floor') || name.includes('Slab') || name.includes('Suelo') || name.includes('Plaza') || name.includes('Pavimento')) {
+                child.material = new THREE.MeshStandardMaterial({
+                  map: pisoTex,
+                  color: 0xffffff,
+                  roughness: 0.88,
+                  metalness: 0.02,
+                  side: THREE.DoubleSide,
+                });
+                child.renderOrder = 2;
+                child.userData.layer = 'terrain';
                 child.visible = activeLayers.terrain;
               } else if (name.includes('Walls') || name.includes('Partición') || name.includes('Interior') || name.includes('muro') || matName.includes('Walls')) {
                 child.material = new THREE.MeshStandardMaterial({
@@ -536,7 +468,6 @@ export default function ModelViewer3D({ onSelectModule }) {
                   polygonOffset: true,
                   polygonOffsetFactor: -2.0,
                   polygonOffsetUnits: -4.0,
-                  clippingPlanes: clipPlanesArray,
                 });
                 child.renderOrder = 3;
                 child.userData.layer = 'walls';
@@ -544,14 +475,13 @@ export default function ModelViewer3D({ onSelectModule }) {
                 child.visible = activeLayers.walls;
               } else {
                 child.material = new THREE.MeshStandardMaterial({
-                  color: 0x1e293b,
-                  roughness: 0.45,
-                  metalness: 0.15,
+                  color: 0x334155,
+                  roughness: 0.50,
+                  metalness: 0.10,
                   side: THREE.DoubleSide,
                   polygonOffset: true,
                   polygonOffsetFactor: -3.0,
                   polygonOffsetUnits: -6.0,
-                  clippingPlanes: clipPlanesArray,
                 });
                 child.renderOrder = 4;
                 child.userData.layer = 'buildings';
@@ -609,7 +539,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     );
     cameraRef.current = camera;
 
-    // Renderer con soporte para Caja de Sección (Local Clipping) y sRGB
+    // Renderer con soporte para sombras suaves y sRGB
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -618,17 +548,6 @@ export default function ModelViewer3D({ onSelectModule }) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
-    renderer.localClippingEnabled = true;
-
-    const clipPlanesArray = [
-      secPlanesRef.current.xMin,
-      secPlanesRef.current.xMax,
-      secPlanesRef.current.yMin,
-      secPlanesRef.current.yMax,
-      secPlanesRef.current.zMin,
-      secPlanesRef.current.zMax,
-    ];
-    renderer.clippingPlanes = clipPlanesArray;
     rendererRef.current = renderer;
 
     while (container.firstChild) {
@@ -800,45 +719,20 @@ export default function ModelViewer3D({ onSelectModule }) {
     }
   }, [selected3DModel]);
 
-  // Sync colors with 3D model
+  // Update Sun Direction & Intensity in Real-time
   useEffect(() => {
-    if (cartagenaTerritoryRef.current?.setWaterColor) {
-      cartagenaTerritoryRef.current.setWaterColor(waterColor);
-    }
-  }, [waterColor]);
-
-  useEffect(() => {
-    if (cartagenaTerritoryRef.current?.setRoadsColor) {
-      cartagenaTerritoryRef.current.setRoadsColor(roadsColor);
-    }
-  }, [roadsColor]);
-
-  useEffect(() => {
-    if (cartagenaTerritoryRef.current?.setGreenColor) {
-      cartagenaTerritoryRef.current.setGreenColor(greenColor);
-    }
-  }, [greenColor]);
-
-  useEffect(() => {
-    if (cartagenaTerritoryRef.current?.setNoiseMapVisible) {
-      cartagenaTerritoryRef.current.setNoiseMapVisible(showNoiseMap);
-    }
-  }, [showNoiseMap]);
-
-  useEffect(() => {
-    if (cartagenaTerritoryRef.current?.setClimateMonth) {
-      cartagenaTerritoryRef.current.setClimateMonth(climateMonth);
-    }
-  }, [climateMonth]);
-
-  // Climate animation timer (cycles through 12 months)
-  useEffect(() => {
-    if (!isPlayingClimate) return;
-    const interval = setInterval(() => {
-      setClimateMonth((prev) => (prev + 1) % 12);
-    }, 1200);
-    return () => clearInterval(interval);
-  }, [isPlayingClimate]);
+    const dirLight = objectsRef.current.dirLight;
+    if (!dirLight) return;
+    const radAz = (sunAzimuth * Math.PI) / 180;
+    const radEl = (sunElevation * Math.PI) / 180;
+    const dist = selected3DModel === 'revit' ? 220 : 90;
+    dirLight.position.set(
+      dist * Math.cos(radAz) * Math.cos(radEl),
+      dist * Math.sin(radEl),
+      dist * Math.sin(radAz) * Math.cos(radEl)
+    );
+    dirLight.intensity = sunIntensity;
+  }, [sunAzimuth, sunElevation, sunIntensity, selected3DModel]);
 
   // Update Wireframe mode
   useEffect(() => {
@@ -1503,150 +1397,23 @@ export default function ModelViewer3D({ onSelectModule }) {
               className="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
             />
           </div>
-        </div>
-
-        {/* Paleta de Colores del Territorio (modulo-08-3d.html) */}
-        {selected3DModel === 'revit' && (
-          <div className="pt-2.5 border-t border-white/10 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-teal-300 flex items-center gap-1.5">
-                <Palette className="w-3.5 h-3.5 text-teal-400" />
-                Color del Territorio
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-300 font-bold flex items-center gap-1.5">
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
+                <span>Intensidad solar</span>
               </span>
+              <span className="text-amber-400 font-bold">{sunIntensity.toFixed(1)}x</span>
             </div>
-
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300">Color del agua</span>
-              <input
-                type="color"
-                value={waterColor}
-                onChange={(e) => setWaterColor(e.target.value)}
-                className="w-8 h-6 rounded cursor-pointer border border-white/20 bg-transparent p-0"
-              />
-            </div>
-
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300">Color de las vías</span>
-              <input
-                type="color"
-                value={roadsColor}
-                onChange={(e) => setRoadsColor(e.target.value)}
-                className="w-8 h-6 rounded cursor-pointer border border-white/20 bg-transparent p-0"
-              />
-            </div>
-
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300">Color de lo verde</span>
-              <input
-                type="color"
-                value={greenColor}
-                onChange={(e) => setGreenColor(e.target.value)}
-                className="w-8 h-6 rounded cursor-pointer border border-white/20 bg-transparent p-0"
-              />
-            </div>
-
-            {/* Botón Mapa de Ruido */}
-            <div className="pt-1.5">
-              <button
-                onClick={() => setShowNoiseMap(!showNoiseMap)}
-                className={`w-full py-2 px-3 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all shadow-md ${
-                  showNoiseMap
-                    ? 'bg-rose-500 text-white shadow-rose-500/30'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-white/10'
-                }`}
-              >
-                <Activity className="w-3.5 h-3.5" />
-                <span>{showNoiseMap ? '🔊 Ocultar mapa de ruido' : '🔊 Mostrar mapa de ruido'}</span>
-              </button>
-            </div>
-
-            {/* Reloj Climático Anual (Marea de Leva / Bahía) */}
-            <div className="pt-2 border-t border-white/10 space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-300 flex items-center gap-1">
-                  <Droplets className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Reloj climático</span>
-                </span>
-                <span className="text-[#24c8bd] font-bold">
-                  {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'][climateMonth]}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="11"
-                step="1"
-                value={climateMonth}
-                onChange={(e) => setClimateMonth(Number(e.target.value))}
-                className="w-full accent-[#24c8bd] cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-              />
-              <button
-                onClick={() => setIsPlayingClimate(!isPlayingClimate)}
-                className={`w-full py-1.5 rounded-lg text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 transition-all ${
-                  isPlayingClimate
-                    ? 'bg-[#24c8bd] text-slate-950 font-bold'
-                    : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700'
-                }`}
-              >
-                {isPlayingClimate ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current" />}
-                <span>{isPlayingClimate ? '⏸ Pausar ciclo' : '▶ Reproducir año completo'}</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Caja de Sección / Corte Axonométrico 3D */}
-        <div className="pt-2.5 border-t border-white/10 space-y-2.5">
-          <button
-            onClick={() => setSectionBoxActive(!sectionBoxActive)}
-            className={`w-full py-2 px-3 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all shadow-md ${
-              sectionBoxActive
-                ? 'bg-[#24c8bd] text-slate-950 ring-2 ring-[#24c8bd]/50 font-black'
-                : 'bg-slate-800/90 text-slate-200 hover:bg-slate-700 border border-white/10'
-            }`}
-          >
-            <Scissors className="w-3.5 h-3.5" />
-            <span>{sectionBoxActive ? '✂️ Desactivar caja de sección' : '✂️ Activar caja de sección'}</span>
-          </button>
-
-          <p className="text-[10.5px] text-slate-400 font-sans leading-relaxed">
-            {sectionBoxActive 
-              ? 'El corte ya está activo — mueve cualquiera de los 6 límites y el modelo se corta al instante.'
-              : 'Activa la caja para generar cortes transversales y longitudinales sobre el modelo.'}
-          </p>
-
-          {/* 6 Sliders de Corte */}
-          <div className={`space-y-2 transition-opacity ${sectionBoxActive ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
-            {[
-              { key: 'xMin', label: 'X mínimo', val: sectionLimits.xMin },
-              { key: 'xMax', label: 'X máximo', val: sectionLimits.xMax },
-              { key: 'yMin', label: 'Y mínimo (piso)', val: sectionLimits.yMin },
-              { key: 'yMax', label: 'Y máximo (altura)', val: sectionLimits.yMax },
-              { key: 'zMin', label: 'Z mínimo', val: sectionLimits.zMin },
-              { key: 'zMax', label: 'Z máximo', val: sectionLimits.zMax },
-            ].map(({ key, label, val }) => (
-              <div key={key} className="space-y-0.5">
-                <div className="flex justify-between text-[10.5px] font-mono text-slate-300">
-                  <span>{label}</span>
-                  <span className="text-[#24c8bd] font-bold">{val}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={val}
-                  onChange={(e) => setSectionLimits(prev => ({ ...prev, [key]: Number(e.target.value) }))}
-                  className="w-full accent-[#24c8bd] cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-                />
-              </div>
-            ))}
-
-            <button
-              onClick={() => setSectionLimits({ xMin: 0, xMax: 100, yMin: 0, yMax: 100, zMin: 0, zMax: 100 })}
-              className="w-full py-1 text-[10px] font-mono text-slate-400 hover:text-white bg-slate-800/60 rounded-lg border border-white/5 transition-all mt-1"
-            >
-              Restablecer límites de corte
-            </button>
+            <input
+              type="range"
+              min="0.5"
+              max="2.5"
+              step="0.1"
+              value={sunIntensity}
+              onChange={(e) => setSunIntensity(Number(e.target.value))}
+              className="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+            />
           </div>
         </div>
       </div>
