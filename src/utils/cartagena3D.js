@@ -234,7 +234,7 @@ export async function buildCartagenaTerritoryScene({
     // Assign Planar UVs based on world X/Z so pasto tiles seamlessly with crisp texture definition
     const posAttr = mergedLand.getAttribute('position');
     const uvs = new Float32Array(posAttr.count * 2);
-    const GRASS_UV_SCALE = 0.05;
+    const GRASS_UV_SCALE = 0.20;
     for (let i = 0; i < posAttr.count; i++) {
       uvs[i * 2] = posAttr.getX(i) * GRASS_UV_SCALE;
       uvs[i * 2 + 1] = posAttr.getZ(i) * GRASS_UV_SCALE;
@@ -277,7 +277,7 @@ export async function buildCartagenaTerritoryScene({
     // Assign Planar UVs based on world X/Z for seamless limestone paving floor with crisp seams
     const posManzanas = mergedManzanas.getAttribute('position');
     const pisoUvs = new Float32Array(posManzanas.count * 2);
-    const PISO_UV_SCALE = 0.08;
+    const PISO_UV_SCALE = 0.20;
     for (let i = 0; i < posManzanas.count; i++) {
       pisoUvs[i * 2] = posManzanas.getX(i) * PISO_UV_SCALE;
       pisoUvs[i * 2 + 1] = posManzanas.getZ(i) * PISO_UV_SCALE;
@@ -460,18 +460,25 @@ export async function buildCartagenaTerritoryScene({
   const masterplanGroup = new THREE.Group();
   masterplanGroup.name = "MasterplanTerritorialGroup";
 
-  // A. Polígono de Meseta Segura (+22m Cota Resiliente)
+  // A. Polígono de Meseta Segura (+22m Cota Resiliente Oficial)
   const mesetaCoords = [
-    [-75.5780, 10.3785],
-    [-75.5710, 10.3792],
-    [-75.5680, 10.3725],
-    [-75.5740, 10.3680],
-    [-75.5810, 10.3710],
+    [-75.57396, 10.37487],
+    [-75.57534, 10.37523],
+    [-75.57662, 10.37447],
+    [-75.57731, 10.37320],
+    [-75.57758, 10.37194],
+    [-75.57727, 10.37113],
+    [-75.57691, 10.37054],
+    [-75.57638, 10.37134],
+    [-75.57595, 10.37221],
+    [-75.57516, 10.37264],
+    [-75.57450, 10.37348],
+    [-75.57408, 10.37419]
   ];
 
-  const meseta3DPoints = mesetaCoords.map(([lon, lat]) => lonLatToVector3(lon, lat, 0.35));
+  const meseta3DPoints = mesetaCoords.map(([lon, lat]) => lonLatToVector3(lon, lat, 0.45));
   
-  // Fill shape for safe plateau
+  // Fill shape for safe plateau (+22m)
   const mesetaShape = new THREE.Shape();
   const [m0x, m0y] = to9377(mesetaCoords[0][0], mesetaCoords[0][1]);
   mesetaShape.moveTo((m0x - ORIGIN_X) * SCALE_3D, (m0y - ORIGIN_Y) * SCALE_3D);
@@ -482,12 +489,12 @@ export async function buildCartagenaTerritoryScene({
 
   const mesetaFillGeo = new THREE.ShapeGeometry(mesetaShape);
   mesetaFillGeo.rotateX(-Math.PI / 2);
-  mesetaFillGeo.translate(0, 0.22, 0);
+  mesetaFillGeo.translate(0, 0.35, 0);
 
   const mesetaFillMat = new THREE.MeshBasicMaterial({
     color: 0x0d9488,
     transparent: true,
-    opacity: 0.32,
+    opacity: 0.38,
     side: THREE.DoubleSide,
     depthWrite: false,
   });
@@ -508,7 +515,7 @@ export async function buildCartagenaTerritoryScene({
     const cylMat = new THREE.MeshStandardMaterial({
       color: 0x14b8a6,
       emissive: 0x0d9488,
-      emissiveIntensity: 0.8,
+      emissiveIntensity: 0.9,
       roughness: 0.2,
       metalness: 0.1,
     });
@@ -518,19 +525,19 @@ export async function buildCartagenaTerritoryScene({
     masterplanGroup.add(cylMesh);
   }
 
-  // B. Línea Divisoria Horizontal del Horizonte (Lat 10.3725)
-  const lineStart = lonLatToVector3(-75.5860, 10.3725, 0.38);
-  const lineEnd = lonLatToVector3(-75.5620, 10.3725, 0.38);
+  // B. Línea Divisoria Horizontal del Horizonte Norte de Tierrabomba (Lat 10.3725)
+  const lineStart = lonLatToVector3(-75.5860, 10.3725, 0.45);
+  const lineEnd = lonLatToVector3(-75.5620, 10.3725, 0.45);
   const lineDist = lineStart.distanceTo(lineEnd);
   
-  const divLineGeo = new THREE.CylinderGeometry(0.14, 0.14, lineDist, 8);
+  const divLineGeo = new THREE.CylinderGeometry(0.16, 0.16, lineDist, 8);
   divLineGeo.translate(0, lineDist / 2, 0);
   divLineGeo.rotateX(Math.PI / 2);
 
   const divLineMat = new THREE.MeshStandardMaterial({
     color: 0x38bdf8,
     emissive: 0x0284c7,
-    emissiveIntensity: 0.9,
+    emissiveIntensity: 0.95,
     roughness: 0.3,
   });
   const divLineMesh = new THREE.Mesh(divLineGeo, divLineMat);
@@ -538,16 +545,27 @@ export async function buildCartagenaTerritoryScene({
   divLineMesh.lookAt(lineEnd);
   masterplanGroup.add(divLineMesh);
 
-  // C. Franja de 500m de Erosión Costera (Sector Norte en Riesgo)
+  // C. Franja de 500m de Erosión Costera (Sector Norte en Riesgo - 800 Viviendas MIDAS)
   const erosionCoords = [
-    [-75.5800, 10.3725],
-    [-75.5835, 10.3760],
-    [-75.5810, 10.3805],
-    [-75.5750, 10.3828],
-    [-75.5705, 10.3805],
-    [-75.5735, 10.3780],
-    [-75.5770, 10.3750],
-    [-75.5775, 10.3725],
+    [-75.57545, 10.38158],
+    [-75.57640, 10.38090],
+    [-75.57697, 10.38040],
+    [-75.57740, 10.37950],
+    [-75.57763, 10.37884],
+    [-75.57815, 10.37780],
+    [-75.57860, 10.37680],
+    [-75.57910, 10.37550],
+    [-75.57950, 10.37450],
+    [-75.57990, 10.37320],
+    [-75.58050, 10.37250],
+    [-75.57680, 10.37250],
+    [-75.57620, 10.37350],
+    [-75.57580, 10.37480],
+    [-75.57520, 10.37650],
+    [-75.57480, 10.37800],
+    [-75.57440, 10.37950],
+    [-75.57480, 10.38080],
+    [-75.57545, 10.38158]
   ];
   const erosionShape = new THREE.Shape();
   const [e0x, e0y] = to9377(erosionCoords[0][0], erosionCoords[0][1]);
@@ -559,18 +577,41 @@ export async function buildCartagenaTerritoryScene({
 
   const erosionGeo = new THREE.ShapeGeometry(erosionShape);
   erosionGeo.rotateX(-Math.PI / 2);
-  erosionGeo.translate(0, 0.18, 0);
+  erosionGeo.translate(0, 0.28, 0);
   const erosionMat = new THREE.MeshBasicMaterial({
     color: 0xef4444,
     transparent: true,
-    opacity: 0.28,
+    opacity: 0.32,
     side: THREE.DoubleSide,
     depthWrite: false,
   });
   const erosionMesh = new THREE.Mesh(erosionGeo, erosionMat);
   masterplanGroup.add(erosionMesh);
 
-  // D. Corredores Ecológicos (Flechas 3D Verdes de Conexión)
+  // C2. Puntos Rojos de Viviendas en Riesgo en el Sector Norte (Franja 500m)
+  const redHousePositions = [
+    [-75.5768, 10.3798], [-75.5772, 10.3790], [-75.5775, 10.3782],
+    [-75.5780, 10.3775], [-75.5783, 10.3768], [-75.5788, 10.3758],
+    [-75.5792, 10.3748], [-75.5795, 10.3738], [-75.5800, 10.3730],
+    [-75.5760, 10.3805], [-75.5763, 10.3795], [-75.5766, 10.3785],
+    [-75.5770, 10.3770], [-75.5773, 10.3755], [-75.5778, 10.3742],
+    [-75.5755, 10.3810], [-75.5758, 10.3800], [-75.5761, 10.3790]
+  ];
+  const redPointMat = new THREE.MeshStandardMaterial({
+    color: 0xff2222,
+    emissive: 0xdd1111,
+    emissiveIntensity: 0.9,
+    roughness: 0.3
+  });
+  const redPointGeo = new THREE.SphereGeometry(0.22, 10, 10);
+  redHousePositions.forEach(([lon, lat]) => {
+    const dot = new THREE.Mesh(redPointGeo, redPointMat);
+    const p = lonLatToVector3(lon, lat, 0.48);
+    dot.position.copy(p);
+    masterplanGroup.add(dot);
+  });
+
+  // D. Corredores Ecológicos (Flechas 3D Verdes de Conexión Meseta -> Mar)
   function create3DArrow(fromLonLat, toLonLat, colorHex = 0x10b981) {
     const p1 = lonLatToVector3(fromLonLat[0], fromLonLat[1], 0.5);
     const p2 = lonLatToVector3(toLonLat[0], toLonLat[1], 0.5);

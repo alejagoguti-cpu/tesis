@@ -1519,12 +1519,12 @@ export default function ModelViewer3D({ onSelectModule }) {
           {/* Botón Principal: Ver Futuro de Tierrabomba (Láminas Estratégicas 1 a 8) */}
           <button
             onClick={() => setShowFutureModal(true)}
-            className="px-4 py-2 rounded-2xl text-xs font-mono font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white border-2 border-emerald-300/60 transition-all flex items-center space-x-2 shadow-2xl hover:scale-[1.04] active:scale-95 ring-2 ring-emerald-400/30 cursor-pointer"
+            className="px-4 py-2 rounded-2xl text-xs font-mono font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white border-2 border-emerald-300 transition-all flex items-center space-x-2 shadow-2xl hover:scale-[1.04] active:scale-95 ring-2 ring-emerald-400/50 cursor-pointer animate-pulse hover:animate-none"
             title="Abrir las 8 Láminas del Futuro y Plan Maestro de Tierrabomba"
           >
-            <Sparkles className="w-4 h-4 text-amber-300 animate-spin" style={{ animationDuration: '6s' }} />
+            <Sparkles className="w-4 h-4 text-amber-300" />
             <span>Ver Futuro de Tierrabomba</span>
-            <span className="px-1.5 py-0.5 rounded bg-emerald-950/70 text-emerald-300 text-[10px] font-bold">8 LÁMINAS</span>
+            <span className="px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-300 text-[10px] font-bold">8 LÁMINAS</span>
           </button>
 
           {/* Botón Editor de Materiales */}
@@ -1575,6 +1575,51 @@ export default function ModelViewer3D({ onSelectModule }) {
         </div>
 
       </div>
+
+      {/* Botón Flotante Central Permanente: VER FUTURO DE TIERRABOMBA */}
+      <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[350] pointer-events-auto">
+        <button
+          onClick={() => setShowFutureModal(true)}
+          className="group px-6 py-2.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-mono font-black text-xs shadow-2xl hover:shadow-teal-500/50 border-2 border-emerald-300 transition-all transform hover:scale-105 active:scale-95 flex items-center space-x-2.5 ring-4 ring-emerald-500/20 backdrop-blur-md cursor-pointer animate-pulse hover:animate-none"
+        >
+          <Sparkles className="w-4 h-4 text-amber-300" />
+          <span>Ver Futuro de Tierrabomba</span>
+          <span className="px-2 py-0.5 rounded-full bg-black/40 text-emerald-300 text-[10px] font-bold border border-emerald-400/40">
+            8 LÁMINAS
+          </span>
+        </button>
+      </div>
+
+      {/* Leyenda Territorial Flotante cuando Masterplan está Activo */}
+      {selected3DModel === 'masterplan' && (
+        <div className="absolute bottom-12 left-4 z-[350] glass-dark p-3.5 rounded-2xl text-white font-mono text-xs max-w-sm space-y-2 border border-white/10 shadow-2xl pointer-events-auto backdrop-blur-xl animate-fade-in">
+          <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
+            <span className="font-bold text-[#24c8bd] flex items-center gap-1.5">
+              <Compass className="w-4 h-4" />
+              Masterplan Territorial (+22m)
+            </span>
+            <span className="text-[10px] text-amber-300 font-bold">Censo MIDAS</span>
+          </div>
+          <div className="space-y-1.5 text-[11px] text-slate-300">
+            <div className="flex items-center gap-2">
+              <div className="w-3.5 h-3.5 rounded bg-teal-500/40 border border-teal-400 shrink-0" />
+              <span><strong>Meseta Segura (+22m):</strong> Área de implantación de Colegio y Viviendas</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3.5 h-1 bg-sky-400 shrink-0" />
+              <span><strong>Línea Divisoria (Lat 10.3725):</strong> Límite de intervención (Sector Norte)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3.5 h-3.5 rounded bg-red-500/40 border border-red-400 shrink-0" />
+              <span><strong>Franja 500m Erosión:</strong> 800 familias en riesgo con puntos rojos</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3.5 h-1 bg-emerald-400 shrink-0" />
+              <span><strong>Corredores Ecológicos:</strong> Ejes biológicos hacia el mar Caribe</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* 2B. RED BIÓTICA: BOLITAS DISCRETAS CON FOTO DE ÁRBOLES EN EL TERRITORIO   */}
