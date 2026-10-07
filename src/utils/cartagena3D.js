@@ -498,6 +498,19 @@ export async function buildCartagenaTerritoryScene({
         mats.manzanas.needsUpdate = true;
       }
     },
+    setBuildingsColor: (hex) => {
+      const col = new THREE.Color(hex);
+      if (mats.buildingsModern) { mats.buildingsModern.color.set(col); mats.buildingsModern.needsUpdate = true; }
+      if (mats.buildingsResidential) { mats.buildingsResidential.color.set(col); mats.buildingsResidential.needsUpdate = true; }
+      if (mats.buildingsUrban) { mats.buildingsUrban.color.set(col); mats.buildingsUrban.needsUpdate = true; }
+      if (mats.buildingsVernacular) { mats.buildingsVernacular.color.set(col); mats.buildingsVernacular.needsUpdate = true; }
+    },
+    setRoofsColor: (hex) => {
+      if (mats.colonialRoof) {
+        mats.colonialRoof.color.set(hex);
+        mats.colonialRoof.needsUpdate = true;
+      }
+    },
     setNoiseMapVisible: (visible) => {
       if (animatedObjects.noiseMesh) {
         animatedObjects.noiseMesh.visible = visible;

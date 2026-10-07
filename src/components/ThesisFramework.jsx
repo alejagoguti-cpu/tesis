@@ -252,6 +252,36 @@ export const DEFAULT_DELIMITATIONS = {
     [10.38049, -75.57590],
     [10.38059, -75.57592]
   ],
+  vulnerableHouses: [
+    [10.36857, -75.58044],
+    [10.36650, -75.58302],
+    [10.36599, -75.58559],
+    [10.36401, -75.58632],
+    [10.36223, -75.58667],
+    [10.36071, -75.58890],
+    [10.35907, -75.58959],
+    [10.35819, -75.59147],
+    [10.35598, -75.59177],
+    [10.35404, -75.59053],
+    [10.35167, -75.59053],
+    [10.34918, -75.59199],
+    [10.34694, -75.59298],
+    [10.34373, -75.59246],
+    [10.34204, -75.59229],
+    [10.33968, -75.59109],
+    [10.33735, -75.59160],
+    [10.33368, -75.59302],
+    [10.33161, -75.59302],
+    [10.32929, -75.59242],
+    [10.32717, -75.59173],
+    [10.32561, -75.59074],
+    [10.32717, -75.59173],
+    [10.33368, -75.59302],
+    [10.34373, -75.59246],
+    [10.35598, -75.59177],
+    [10.36401, -75.58632],
+    [10.36857, -75.58044]
+  ],
   plateau: [
     [10.37487, -75.57396],
     [10.37523, -75.57534],
@@ -467,17 +497,17 @@ export const FRAMEWORK_STEPS = [
   },
   {
     step: 3,
-    id: "colegio",
-    title: "3. Colegio Actual en Riesgo",
+    id: "vulnerabilidad",
+    title: "3. Colegio & Viviendas en Riesgo",
     badge: "Paso 03 // Vulnerabilidad",
-    targetName: "I.E. Tierrabomba en Cota +1.5m",
+    targetName: "Colegio Actual & 120 Viviendas en Borde de Socavación",
     center: [10.3805, -75.5761],
-    zoom: 18.5,
+    zoom: 17.5,
     highlight: "currentSchool",
     modalType: "objectives",
     btnLabel: "Objetivos de la Investigación",
-    description: "Equipamiento educativo precario en zona inundable sin saneamiento ni reserva de agua.",
-    hint: "Haz clic sobre el marcador del colegio actual para abrir los Objetivos (OE-01 a OE-04)"
+    description: "Equipamiento educativo precario en cota +1.5m y 120 viviendas atrapadas en la franja crítica de socavación marina.",
+    hint: "Alterna entre Colegio en Riesgo o 120 Viviendas en Riesgo"
   },
   {
     step: 4,
@@ -555,7 +585,7 @@ export function countRoadPoints(roadsData) {
 }
 
 // Helper: Synchronize Multi-line roads on Leaflet LayerGroup
-export function syncRoadsLayer(roadsGroup, roadsData, style = { opacity: 1, weight: 5, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' }) {
+export function syncRoadsLayer(roadsGroup, roadsData, style = { opacity: 1, weight: 2.8, color: '#f59e0b', dashArray: '6, 5', lineCap: 'round', lineJoin: 'round' }) {
   if (!roadsGroup) return;
   roadsGroup.clearLayers();
   const lines = normalizeRoadLines(roadsData);
@@ -627,6 +657,7 @@ export default function ThesisFramework({ onSelectModule }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
   const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
+  const [vulnerabilitySubTab, setVulnerabilitySubTab] = useState('school'); // 'school' | 'houses'
 
   // =========================================================================
   // NODE-BASED DELIMITATION & POLYGON EDITOR STATE
@@ -1149,6 +1180,19 @@ export default function ThesisFramework({ onSelectModule }) {
       interactive: false
     }).addTo(map);
 
+    // 3B. Vulnerable Coastal Houses Strip (Between Erosion Line & Island Coast)
+    const vulnerableHousesLayer = L.polygon(delimitations.vulnerableHouses || DEFAULT_DELIMITATIONS.vulnerableHouses || [], {
+      color: '#dc2626',
+      weight: 3.5,
+      dashArray: '6, 6',
+      fillColor: '#dc2626',
+      fillOpacity: 0,
+      opacity: 0,
+      interactive: false
+    }).addTo(map);
+
+    const vulnerableHousesMarkersGroup = L.layerGroup().addTo(map);
+
     // 4. Safe Plateau Polygon (+22m) (Initially hidden, revealed on Card 04 click! - NO FILL, BORDER ONLY)
     const masterplanLayer = L.polygon(delimitations.plateau || [], {
       color: '#0d9488',
@@ -1298,6 +1342,8 @@ export default function ThesisFramework({ onSelectModule }) {
       islandLayer,
       erosionLayer,
       schoolLayer,
+      vulnerableHousesLayer,
+      vulnerableHousesMarkersGroup,
       masterplanLayer,
       roadsLayer,
       customLayer,
@@ -1565,7 +1611,7 @@ export default function ThesisFramework({ onSelectModule }) {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    const { islandLayer, erosionLayer, schoolLayer, masterplanLayer, roadsLayer, customLayer } = layersRef.current;
+    const { islandLayer, erosionLayer, schoolLayer, vulnerableHousesLayer, vulnerableHousesMarkersGroup, masterplanLayer, roadsLayer, customLayer } = layersRef.current;
 
     if (isEditMode) {
       // Cancel animation if running
@@ -1590,8 +1636,10 @@ export default function ThesisFramework({ onSelectModule }) {
       if (islandLayer) islandLayer.setStyle({ opacity: activeZoneKey === 'island' ? 1 : 0.2, fillOpacity: 0, weight: 4 });
       if (erosionLayer) erosionLayer.setStyle({ opacity: activeZoneKey === 'erosion' ? 1 : 0.2, weight: 6, color: '#dc2626' });
       if (schoolLayer) schoolLayer.setStyle({ opacity: activeZoneKey === 'school' ? 1 : 0.2, fillOpacity: activeZoneKey === 'school' ? 0.3 : 0, weight: 4.5 });
+      if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: activeZoneKey === 'plateau' ? 1 : 0.2, fillOpacity: 0, weight: 4.5 });
-      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: activeZoneKey === 'roads' ? 1 : 0.2, weight: activeZoneKey === 'roads' ? 5 : 2, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: activeZoneKey === 'roads' ? 1 : 0.2, weight: activeZoneKey === 'roads' ? 3.5 : 2, color: '#f59e0b', dashArray: '6, 5', lineCap: 'round', lineJoin: 'round' });
       if (customLayer) customLayer.setStyle({ opacity: activeZoneKey === 'custom' ? 1 : 0.2, fillOpacity: activeZoneKey === 'custom' ? 0.2 : 0, weight: 3.5 });
       return;
     }
@@ -1606,8 +1654,10 @@ export default function ThesisFramework({ onSelectModule }) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 5, color: '#f59e0b' });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 2.8, color: '#f59e0b' });
       if (customLayer) customLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       return;
     }
@@ -1617,34 +1667,83 @@ export default function ThesisFramework({ onSelectModule }) {
       if (islandLayer) islandLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#ea580c', dashArray: '6, 6' });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 5, color: '#f59e0b' });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 2.8, color: '#f59e0b' });
     } else if (currentStepIndex === 1) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 1, weight: 6, color: '#dc2626', dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 5, color: '#f59e0b' });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 2.8, color: '#f59e0b' });
     } else if (currentStepIndex === 2) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
-      if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
-      if (schoolLayer) schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.25, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
+      if (erosionLayer) erosionLayer.setStyle({ opacity: 0.65, weight: 4, color: '#dc2626', dashArray: '8, 8' });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 5, color: '#f59e0b' });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 2.8, color: '#f59e0b' });
+
+      if (vulnerabilitySubTab === 'school') {
+        if (schoolLayer) schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.35, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
+        if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+        if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
+      } else {
+        if (schoolLayer) schoolLayer.setStyle({ opacity: 0.15, fillOpacity: 0 });
+        if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 1, fillOpacity: 0.40, weight: 3.5, color: '#dc2626', dashArray: '6, 6' });
+        
+        if (vulnerableHousesMarkersGroup) {
+          vulnerableHousesMarkersGroup.clearLayers();
+          const houseIcon = L.divIcon({
+            className: 'custom-vuln-house-pin',
+            html: `
+              <div class="relative flex items-center justify-center group" title="Vivienda en Riesgo Crítico de Socavación">
+                <div class="absolute -inset-1.5 rounded-full bg-red-600/40 animate-ping"></div>
+                <div class="w-4 h-4 rounded-md bg-red-600 border border-white shadow-md flex items-center justify-center text-white text-[9px] font-bold">
+                  ⌂
+                </div>
+              </div>
+            `,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+          });
+
+          const VULNERABLE_HOUSES_COORDS = [
+            [10.3682, -75.5807], [10.3675, -75.5818], [10.3668, -75.5828], [10.3662, -75.5842],
+            [10.3655, -75.5852], [10.3648, -75.5858], [10.3641, -75.5862], [10.3632, -75.5864],
+            [10.3624, -75.5866], [10.3615, -75.5878], [10.3608, -75.5888], [10.3598, -75.5893],
+            [10.3590, -75.5898], [10.3582, -75.5912], [10.3571, -75.5915], [10.3560, -75.5916],
+            [10.3551, -75.5912], [10.3541, -75.5906], [10.3530, -75.5904], [10.3518, -75.5905],
+            [10.3505, -75.5911], [10.3493, -75.5918], [10.3481, -75.5925], [10.3470, -75.5928],
+            [10.3455, -75.5927], [10.3440, -75.5925], [10.3425, -75.5922], [10.3408, -75.5915],
+            [10.3385, -75.5913], [10.3360, -75.5918], [10.3342, -75.5927], [10.3325, -75.5929],
+            [10.3305, -75.5922], [10.3285, -75.5918], [10.3265, -75.5910]
+          ];
+
+          VULNERABLE_HOUSES_COORDS.forEach(pt => {
+            vulnerableHousesMarkersGroup.addLayer(L.marker(pt, { icon: houseIcon, interactive: false }));
+          });
+        }
+      }
     } else if (currentStepIndex === 3) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '6, 6' });
-      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 5, color: '#f59e0b' });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 2.8, color: '#f59e0b' });
     } else if (currentStepIndex === 4) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0.35, fillOpacity: 0, weight: 2, color: '#0d9488', dashArray: '6, 6' });
-      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 1, weight: 5, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 1, weight: 2.8, color: '#f59e0b', dashArray: '6, 5', lineCap: 'round', lineJoin: 'round' });
     }
-  }, [currentStepIndex, isEditMode, isIntroAnimating, activeZoneKey, delimitations.roads]);
+  }, [currentStepIndex, isEditMode, isIntroAnimating, activeZoneKey, delimitations.roads, vulnerabilitySubTab]);
 
   // Autoplay sequence timer
   useEffect(() => {
@@ -2103,11 +2202,47 @@ export default function ThesisFramework({ onSelectModule }) {
         </div>
       )}
 
+      {/* Interactive Sub-Selector for Step 3: Colegio Actual vs Viviendas en Riesgo */}
+      {currentStepIndex === 2 && !isEditMode && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[450] flex flex-wrap items-center justify-center gap-2 p-1.5 glass-hud rounded-2xl shadow-2xl border border-rose-500/50 animate-scale-up text-slate-900 pointer-events-auto">
+          <button
+            onClick={() => {
+              setVulnerabilitySubTab('school');
+              const map = mapInstanceRef.current;
+              if (map) map.setView([10.3805, -75.5761], 18.2);
+            }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              vulnerabilitySubTab === 'school'
+                ? 'bg-rose-600 text-white shadow-md ring-2 ring-rose-400'
+                : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100'
+            }`}
+          >
+            <GraduationCap className="w-3.5 h-3.5" />
+            <span>1. Colegio Actual en Riesgo (Cota +1.5m)</span>
+          </button>
+          <button
+            onClick={() => {
+              setVulnerabilitySubTab('houses');
+              const map = mapInstanceRef.current;
+              if (map) map.setView([10.3540, -75.5880], 14.8);
+            }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+              vulnerabilitySubTab === 'houses'
+                ? 'bg-red-600 text-white shadow-md ring-2 ring-red-400 animate-pulse'
+                : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100'
+            }`}
+          >
+            <Home className="w-3.5 h-3.5" />
+            <span>2. Viviendas Actuales en Riesgo (120 familias en franja roja)</span>
+          </button>
+        </div>
+      )}
+
       {/* ========================================================================= */}
       {/* 3. NODE DELIMITATION EDITOR TOOLBAR (FLOATING LEFT PANEL IN EDIT MODE)    */}
       {/* ========================================================================= */}
       {isEditMode && (
-        <div className="absolute top-24 left-4 z-[400] glass-panel p-4 rounded-3xl space-y-4 pointer-events-auto text-slate-900 w-84 shadow-2xl animate-scale-up max-h-[calc(100vh-8rem)] overflow-y-auto">
+        <div className="absolute top-24 left-4 z-[400] glass-panel p-4 rounded-3xl space-y-4 pointer-events-auto text-slate-900 w-72 shadow-2xl animate-scale-up max-h-[calc(100vh-8rem)] overflow-y-auto">
           
           <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
             <div className="flex items-center space-x-2">
@@ -2315,65 +2450,6 @@ export default function ThesisFramework({ onSelectModule }) {
               })}
             </div>
           </div>
-
-          {/* Dedicated Multi-line Roads Branch Switcher (when editing roads) */}
-          {activeZoneKey === 'roads' && (
-            <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-1.5 text-amber-950 font-mono font-bold text-[11px]">
-                  <Route className="w-3.5 h-3.5 text-amber-700" />
-                  <span>Tramos de Vías ({normalizeRoadLines(delimitations.roads).length})</span>
-                </div>
-                <button
-                  onClick={handleAddNewRoadLine}
-                  className="px-2.5 py-1 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-mono font-bold flex items-center space-x-1 shadow-xs transition-all hover:scale-105"
-                  title="Comenzar una nueva línea de vía sin unirla a la anterior"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>+ Nueva Línea</span>
-                </button>
-              </div>
-
-              {/* Branch Selector Tabs */}
-              <div className="flex flex-wrap gap-1.5">
-                {normalizeRoadLines(delimitations.roads).map((line, lIdx) => {
-                  const isCurLine = lIdx === activeRoadLineIndex;
-                  return (
-                    <button
-                      key={lIdx}
-                      onClick={() => {
-                        setActiveRoadLineIndex(lIdx);
-                        setSelectedNodeIndex(null);
-                      }}
-                      className={`px-2.5 py-1 rounded-xl text-[10px] font-mono font-bold transition-all flex items-center space-x-1 ${
-                        isCurLine
-                          ? 'bg-slate-900 text-amber-300 ring-2 ring-amber-400 shadow-xs'
-                          : 'bg-white hover:bg-slate-200 text-slate-700 border border-slate-200'
-                      }`}
-                    >
-                      <span>Tramo {lIdx + 1}</span>
-                      <span className="text-[9px] opacity-75">({line.length}p)</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="flex items-center justify-between pt-1 border-t border-amber-200/60 text-[10px] font-mono">
-                <span className="text-amber-900">
-                  Editando: <b className="text-slate-900">Tramo {activeRoadLineIndex + 1}</b> ({activeNodes.length} pts)
-                </span>
-                {normalizeRoadLines(delimitations.roads).length > 1 && (
-                  <button
-                    onClick={() => handleDeleteRoadLine(activeRoadLineIndex)}
-                    className="text-red-700 hover:text-red-900 font-bold underline"
-                    title="Eliminar este tramo específico de vía"
-                  >
-                    Eliminar Tramo {activeRoadLineIndex + 1}
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Quick Clear Actions (NO BLOCKS) */}
           <div className="space-y-2 pt-1 border-t border-slate-200">
@@ -2727,52 +2803,6 @@ export default function ThesisFramework({ onSelectModule }) {
               - Reducir
             </button>
           </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 3.5 FLOATING TOP HUD: MASTER PLAN VÍAS MULTI-LINE CONTROLS (EDIT MODE)    */}
-      {/* ========================================================================= */}
-      {isEditMode && activeZoneKey === 'roads' && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[450] flex flex-wrap items-center justify-center gap-2 px-3 py-2 bg-slate-950/90 backdrop-blur-md rounded-2xl shadow-2xl border border-amber-500/50 animate-fade-in text-white pointer-events-auto">
-          <button
-            onClick={handleAddNewRoadLine}
-            className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-black text-xs flex items-center space-x-1.5 shadow-lg transition-all active:scale-95 ring-2 ring-amber-300"
-            title="Crear un nuevo tramo de vía independiente sin unirlo a la anterior"
-          >
-            <Plus className="w-4 h-4 text-slate-950 stroke-[3]" />
-            <span>➕ INICIAR NUEVO TRAMO</span>
-          </button>
-
-          <div className="h-4 w-px bg-white/20 hidden sm:block" />
-
-          <div className="flex items-center space-x-1 max-w-[320px] overflow-x-auto py-0.5">
-            {normalizeRoadLines(delimitations.roads).map((line, lIdx) => (
-              <button
-                key={lIdx}
-                onClick={() => {
-                  setActiveRoadLineIndex(lIdx);
-                  setSelectedNodeIndex(null);
-                }}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all whitespace-nowrap ${
-                  lIdx === activeRoadLineIndex
-                    ? 'bg-amber-400 text-slate-950 ring-1 ring-white shadow-xs'
-                    : 'bg-white/10 hover:bg-white/20 text-white'
-                }`}
-              >
-                Tramo {lIdx + 1} ({line.length}p)
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={() => handleClearCurrentRoadLine(activeRoadLineIndex)}
-            disabled={activeNodes.length === 0}
-            className="px-2.5 py-1 rounded-xl bg-red-600/80 hover:bg-red-600 disabled:opacity-30 text-white text-[10px] font-mono font-bold transition-colors"
-            title="Vaciar únicamente los puntos del tramo seleccionado"
-          >
-            Vaciar Tramo {activeRoadLineIndex + 1}
-          </button>
         </div>
       )}
 

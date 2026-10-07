@@ -47,9 +47,13 @@ export default function ModelViewer3D({ onSelectModule }) {
   const [wireframe, setWireframe] = useState(false);
   const [explodedView, setExplodedView] = useState(false);
 
-  // Tonos de Materialidad Personalizables (Pasto verde amarillento café & Pavimento travertino)
-  const [grassColor, setGrassColor] = useState('#7d8c4e'); // Verde amarillento café suave
+  // Tonos de Materialidad Personalizables (Mar, Pasto, Piso, Edificios, Techos, Vías)
+  const [waterColor, setWaterColor] = useState('#8dc8d2'); // Mar / Agua turquesa suave
+  const [grassColor, setGrassColor] = useState('#65763e'); // Verde amarillento café atenuado
   const [pavementColor, setPavementColor] = useState('#d4c5b3'); // Travertino / arena cálido
+  const [buildingColor, setBuildingColor] = useState('#ffffff'); // Edificaciones / Muros
+  const [roofColor, setRoofColor] = useState('#b5714a'); // Cubiertas / Arcilla
+  const [roadColor, setRoadColor] = useState('#64748b'); // Asfalto / Vías
 
   // Simulación de Tránsito Marítimo y Urbano en Vivo
   const [isPlayingSimulation, setIsPlayingSimulation] = useState(true);
@@ -969,6 +973,10 @@ export default function ModelViewer3D({ onSelectModule }) {
     if (!sceneRef.current) return;
     const gCol = new THREE.Color(grassColor);
     const pCol = new THREE.Color(pavementColor);
+    const wCol = new THREE.Color(waterColor);
+    const bCol = new THREE.Color(buildingColor);
+    const rCol = new THREE.Color(roofColor);
+    const rdCol = new THREE.Color(roadColor);
 
     sceneRef.current.traverse((child) => {
       if (child.isMesh && child.material) {
@@ -980,6 +988,18 @@ export default function ModelViewer3D({ onSelectModule }) {
         } else if (child.userData.layer === 'terrain_pavement' || name.includes('Floor') || matName.includes('Floor') || name.includes('Slab') || name.includes('Suelo') || name.includes('Pavimento') || name.includes('Plaza') || name.includes('Manzana')) {
           child.material.color = pCol;
           child.material.needsUpdate = true;
+        } else if (child.userData.layer === 'water' || name.includes('Water') || matName.includes('Water') || name.includes('Agua')) {
+          child.material.color = wCol;
+          child.material.needsUpdate = true;
+        } else if (child.userData.layer === 'buildings' || name.includes('Building') || name.includes('Wall') || matName.includes('Building') || matName.includes('Wall')) {
+          child.material.color = bCol;
+          child.material.needsUpdate = true;
+        } else if (child.userData.layer === 'roof' || name.includes('Roof') || matName.includes('Roof') || name.includes('Techo') || name.includes('Cubierta')) {
+          child.material.color = rCol;
+          child.material.needsUpdate = true;
+        } else if (child.userData.layer === 'roads' || name.includes('Road') || matName.includes('Road') || name.includes('Via') || name.includes('Vía')) {
+          child.material.color = rdCol;
+          child.material.needsUpdate = true;
         }
       }
     });
@@ -990,7 +1010,19 @@ export default function ModelViewer3D({ onSelectModule }) {
     if (cartagenaTerritoryRef.current?.setPavementColor) {
       cartagenaTerritoryRef.current.setPavementColor(pavementColor);
     }
-  }, [grassColor, pavementColor]);
+    if (cartagenaTerritoryRef.current?.setWaterColor) {
+      cartagenaTerritoryRef.current.setWaterColor(waterColor);
+    }
+    if (cartagenaTerritoryRef.current?.setRoadsColor) {
+      cartagenaTerritoryRef.current.setRoadsColor(roadColor);
+    }
+    if (cartagenaTerritoryRef.current?.setBuildingsColor) {
+      cartagenaTerritoryRef.current.setBuildingsColor(buildingColor);
+    }
+    if (cartagenaTerritoryRef.current?.setRoofsColor) {
+      cartagenaTerritoryRef.current.setRoofsColor(roofColor);
+    }
+  }, [grassColor, pavementColor, waterColor, buildingColor, roofColor, roadColor]);
 
   // Restablecer Vista Axonométrica a 45° (proyección paralela)
   const resetAxonometricView = () => {
@@ -1571,18 +1603,21 @@ export default function ModelViewer3D({ onSelectModule }) {
           </div>
         </div>
 
-        {/* Tonos de Color Personalizables (Pasto & Pavimento) */}
+        {/* Tonos de Color Personalizables (Mar, Pasto, Pavimento, Edificios, Cubiertas, Vías) */}
         <div className="pt-2.5 border-t border-white/10 space-y-3">
-          <span className="text-[11px] font-mono font-bold text-[#24c8bd] uppercase tracking-wider block">
-            Materialidad & Texturas
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-mono font-bold text-[#24c8bd] uppercase tracking-wider block">
+              Editor de Materiales
+            </span>
+            <span className="text-[9px] font-mono text-slate-400">Tiempo Real</span>
+          </div>
 
-          {/* Color del Pasto */}
-          <div className="space-y-1.5">
+          {/* 1. Color del Pasto (Verde amarillento café atenuado) */}
+          <div className="space-y-1.5 p-2 rounded-xl bg-white/5 border border-white/5">
             <div className="flex items-center justify-between text-xs font-mono">
               <span className="text-slate-300 flex items-center gap-1.5">
                 <Palette className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Tono del pasto:</span>
+                <span>Pasto / Vegetación:</span>
               </span>
               <div className="flex items-center space-x-1.5">
                 <input
@@ -1595,13 +1630,13 @@ export default function ModelViewer3D({ onSelectModule }) {
                 <span className="text-emerald-400 font-bold text-[10px]">{grassColor}</span>
               </div>
             </div>
-            {/* Presets verde amarillento café */}
+            {/* Presets verde amarillento café equilibrados */}
             <div className="grid grid-cols-2 gap-1">
               {[
-                { name: 'Oliva Cálido', hex: '#7d8c4e' },
-                { name: 'Verde Café', hex: '#6b7d42' },
-                { name: 'Amarillento', hex: '#8a9a5b' },
-                { name: 'Sabana Seca', hex: '#949c66' }
+                { name: 'Oliva Suave', hex: '#65763e' },
+                { name: 'Verde Mate', hex: '#5b6c37' },
+                { name: 'Verde Amarillento', hex: '#778847' },
+                { name: 'Sabana Insular', hex: '#838e55' }
               ].map(preset => (
                 <button
                   key={preset.hex}
@@ -1619,12 +1654,53 @@ export default function ModelViewer3D({ onSelectModule }) {
             </div>
           </div>
 
-          {/* Color del Pavimento / Piso */}
-          <div className="space-y-1.5">
+          {/* 2. Color del Mar / Agua */}
+          <div className="space-y-1.5 p-2 rounded-xl bg-white/5 border border-white/5">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-300 flex items-center gap-1.5">
+                <Droplets className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Mar / Agua Marina:</span>
+              </span>
+              <div className="flex items-center space-x-1.5">
+                <input
+                  type="color"
+                  value={waterColor}
+                  onChange={(e) => setWaterColor(e.target.value)}
+                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
+                  title="Seleccionar color del agua"
+                />
+                <span className="text-cyan-400 font-bold text-[10px]">{waterColor}</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-1">
+              {[
+                { name: 'Turquesa Caribe', hex: '#8dc8d2' },
+                { name: 'Azul Bahía', hex: '#7ba9c2' },
+                { name: 'Azul Claro', hex: '#9ed4dc' },
+                { name: 'Marino Profundo', hex: '#58839d' }
+              ].map(preset => (
+                <button
+                  key={preset.hex}
+                  onClick={() => setWaterColor(preset.hex)}
+                  className={`py-1 px-1 rounded-lg text-[10px] font-mono border transition-all ${
+                    waterColor.toLowerCase() === preset.hex.toLowerCase()
+                      ? 'border-white ring-1 ring-cyan-400 font-bold text-white bg-white/20'
+                      : 'border-white/10 text-slate-300 hover:bg-white/10'
+                  }`}
+                  style={{ backgroundColor: `${preset.hex}33` }}
+                >
+                  {preset.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Color del Pavimento / Piso */}
+          <div className="space-y-1.5 p-2 rounded-xl bg-white/5 border border-white/5">
             <div className="flex items-center justify-between text-xs font-mono">
               <span className="text-slate-300 flex items-center gap-1.5">
                 <Palette className="w-3.5 h-3.5 text-amber-300" />
-                <span>Tono del piso:</span>
+                <span>Piso / Pavimento:</span>
               </span>
               <div className="flex items-center space-x-1.5">
                 <input
@@ -1632,12 +1708,11 @@ export default function ModelViewer3D({ onSelectModule }) {
                   value={pavementColor}
                   onChange={(e) => setPavementColor(e.target.value)}
                   className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
-                  title="Seleccionar color personalizado"
+                  title="Seleccionar color del pavimento"
                 />
                 <span className="text-amber-300 font-bold text-[10px]">{pavementColor}</span>
               </div>
             </div>
-            {/* Presets travertino / arena */}
             <div className="grid grid-cols-2 gap-1">
               {[
                 { name: 'Travertino', hex: '#d4c5b3' },
@@ -1658,6 +1733,35 @@ export default function ModelViewer3D({ onSelectModule }) {
                   {preset.name}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* 4. Color de Edificaciones & Cubiertas */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="p-2 rounded-xl bg-white/5 border border-white/5 space-y-1">
+              <span className="text-[10px] font-mono text-slate-300 block">Edificaciones</span>
+              <div className="flex items-center justify-between">
+                <input
+                  type="color"
+                  value={buildingColor}
+                  onChange={(e) => setBuildingColor(e.target.value)}
+                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
+                />
+                <span className="text-[10px] font-mono text-white font-bold">{buildingColor}</span>
+              </div>
+            </div>
+
+            <div className="p-2 rounded-xl bg-white/5 border border-white/5 space-y-1">
+              <span className="text-[10px] font-mono text-slate-300 block">Cubiertas</span>
+              <div className="flex items-center justify-between">
+                <input
+                  type="color"
+                  value={roofColor}
+                  onChange={(e) => setRoofColor(e.target.value)}
+                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
+                />
+                <span className="text-[10px] font-mono text-terracotta-300 font-bold">{roofColor}</span>
+              </div>
             </div>
           </div>
         </div>
