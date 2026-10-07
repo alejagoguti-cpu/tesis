@@ -229,10 +229,10 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     const texLoader = new THREE.TextureLoader();
 
-    if (modelType === 'revit') {
+    if (modelType === 'revit' || modelType === 'masterplan') {
       setIsLoadingFile(true);
       setLoadProgress(15);
-      setLoadPhase('Cargando Catastro Oficial AMB Cartagena (MAGNA-SIRGAS)...');
+      setLoadPhase(modelType === 'masterplan' ? 'Cargando Masterplan Territorial Tierrabomba (+22m)...' : 'Cargando Catastro Oficial AMB Cartagena (MAGNA-SIRGAS)...');
 
       const bgColor = 0xdbe8d4;
       scene.background = new THREE.Color(bgColor);
@@ -243,7 +243,10 @@ export default function ModelViewer3D({ onSelectModule }) {
       try {
         const territory = await buildCartagenaTerritoryScene({
           sceneRoot: rootContainer,
-          activeLayers,
+          activeLayers: {
+            ...activeLayers,
+            masterplan: modelType === 'masterplan',
+          },
           colors: {
             terrain: grassColor,
             manzanas: pavementColor,
@@ -582,183 +585,6 @@ export default function ModelViewer3D({ onSelectModule }) {
 
       modelGroup.add(roofGroup);
       objectsRef.current.roof = roofGroup;
-    }
-    else if (modelType === 'masterplan') {
-      setIsLoadingFile(true);
-      setLoadProgress(15);
-      setLoadPhase('Cargando Masterplan BIM Revit (Tierrabomba)...');
-
-      const bgColor = 0xdbe8d4;
-      scene.background = new THREE.Color(bgColor);
-      scene.fog = new THREE.Fog(bgColor, 250, 800);
-
-      const gltfLoader = new GLTFLoader();
-      const dracoLoader = new DRACOLoader();
-      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
-      gltfLoader.setDRACOLoader(dracoLoader);
-
-      const basePath = import.meta.env.BASE_URL || '/';
-      const modelUrl = `${basePath.endsWith('/') ? basePath : basePath + '/'}models/tierrabomba_revit.glb`;
-
-      gltfLoader.load(
-        modelUrl,
-        (gltf) => {
-          setLoadProgress(100);
-          setLoadPhase('¡Masterplan BIM cargado!');
-
-          if (currentModelGroupRef.current) {
-            scene.remove(currentModelGroupRef.current);
-            currentModelGroupRef.current = null;
-          }
-          const model = gltf.scene;
-
-          model.rotation.x = -Math.PI / 2;
-          model.updateMatrixWorld(true);
-
-          const box = new THREE.Box3().setFromObject(model);
-          const size = box.getSize(new THREE.Vector3());
-          const center = box.getCenter(new THREE.Vector3());
-          const maxDim = Math.max(size.x, size.z);
-          const targetSize = 36;
-          const scale = targetSize / (maxDim || 1);
-
-          model.scale.set(scale, scale, scale);
-          model.position.x = -center.x * scale;
-          model.position.y = -box.min.y * scale + 0.05;
-          model.position.z = -center.z * scale;
-
-          const rootContainer = new THREE.Group();
-          rootContainer.add(model);
-
-          // Espejo de Agua Marino Insular alrededor de Tierrabomba
-          const waterTex = texLoader.load(waterTextureImg);
-          waterTex.wrapS = THREE.RepeatWrapping;
-          waterTex.wrapT = THREE.RepeatWrapping;
-          waterTex.anisotropy = 16;
-          waterTex.repeat.set(120, 120);
-
-          const waterMesh = new THREE.Mesh(
-            new THREE.PlaneGeometry(350, 350),
-            new THREE.MeshStandardMaterial({
-              map: waterTex,
-              bumpMap: waterTex,
-              bumpScale: 0.04,
-              color: new THREE.Color(waterColor || '#ffffff'),
-              roughness: 0.16,
-              metalness: 0.08,
-              transparent: true,
-              opacity: 0.94,
-              side: THREE.DoubleSide
-            })
-          );
-          waterMesh.rotation.x = -Math.PI / 2;
-          waterMesh.position.y = -0.15;
-          waterMesh.receiveShadow = true;
-          rootContainer.add(waterMesh);
-
-          objectsRef.current.revitTerrain = [];
-          objectsRef.current.revitWalls = [];
-          objectsRef.current.revitBuildings = [];
-
-          const pastoTex = texLoader.load(pastoTextureImg);
-          pastoTex.wrapS = THREE.RepeatWrapping;
-          pastoTex.wrapT = THREE.RepeatWrapping;
-          pastoTex.anisotropy = 16;
-          pastoTex.repeat.set(16, 16);
-
-          const pisoTex = texLoader.load(pisoTextureImg);
-          pisoTex.wrapS = THREE.RepeatWrapping;
-          pisoTex.wrapT = THREE.RepeatWrapping;
-          pisoTex.anisotropy = 16;
-          pisoTex.repeat.set(24, 24);
-
-          model.traverse((child) => {
-            if (child.isMesh) {
-              child.castShadow = true;
-              child.receiveShadow = true;
-
-              if (child.geometry) {
-                child.geometry.computeVertexNormals();
-              }
-
-              const name = (child.name || '') + (child.parent?.name || '');
-              const matName = child.material ? child.material.name : '';
-
-              if (name.includes('Terrain') || matName.includes('Terrain') || name.includes('Toposolid')) {
-                child.material = new THREE.MeshStandardMaterial({
-                  map: pastoTex,
-                  color: new THREE.Color(grassColor || '#ffffff'),
-                  roughness: 0.88,
-                  metalness: 0.0,
-                  side: THREE.DoubleSide,
-                });
-                child.renderOrder = 1;
-                child.userData.layer = 'terrain_grass';
-                objectsRef.current.revitTerrain.push(child);
-                child.visible = activeLayers.terrain;
-              } else if (name.includes('Floor') || matName.includes('Floor') || name.includes('Slab') || name.includes('Suelo') || name.includes('Plaza') || name.includes('Pavimento')) {
-                child.material = new THREE.MeshStandardMaterial({
-                  map: pisoTex,
-                  color: new THREE.Color(pavementColor || '#ffffff'),
-                  roughness: 0.85,
-                  metalness: 0.02,
-                  side: THREE.DoubleSide,
-                });
-                child.renderOrder = 2;
-                child.userData.layer = 'terrain_pavement';
-                objectsRef.current.revitTerrain.push(child);
-                child.visible = activeLayers.terrain;
-              } else if (name.includes('Walls') || name.includes('Partición') || name.includes('Interior') || name.includes('muro') || matName.includes('Walls')) {
-                child.material = new THREE.MeshStandardMaterial({
-                  color: 0xffffff,
-                  roughness: 0.35,
-                  metalness: 0.05,
-                  side: THREE.DoubleSide,
-                  polygonOffset: true,
-                  polygonOffsetFactor: -2.0,
-                  polygonOffsetUnits: -4.0,
-                });
-                child.renderOrder = 3;
-                child.userData.layer = 'walls';
-                objectsRef.current.revitWalls.push(child);
-                child.visible = activeLayers.walls;
-              } else {
-                child.material = new THREE.MeshStandardMaterial({
-                  color: 0x334155,
-                  roughness: 0.50,
-                  metalness: 0.10,
-                  side: THREE.DoubleSide,
-                  polygonOffset: true,
-                  polygonOffsetFactor: -3.0,
-                  polygonOffsetUnits: -6.0,
-                });
-                child.renderOrder = 4;
-                child.userData.layer = 'buildings';
-                objectsRef.current.revitBuildings.push(child);
-                child.visible = activeLayers.buildings;
-              }
-            }
-          });
-
-          scene.add(rootContainer);
-          currentModelGroupRef.current = rootContainer;
-          setIsLoadingFile(false);
-        },
-        (xhr) => {
-          if (xhr.lengthComputable && xhr.total > 0) {
-            const percent = Math.round((xhr.loaded / xhr.total) * 100);
-            setLoadProgress(percent);
-            const loadedMB = (xhr.loaded / (1024 * 1024)).toFixed(1);
-            const totalMB = (xhr.total / (1024 * 1024)).toFixed(1);
-            setLoadPhase(`Descargando Masterplan BIM (${loadedMB} MB / ${totalMB} MB)`);
-          }
-        },
-        (err) => {
-          console.error("Error loading masterplan BIM model:", err);
-          setIsLoadingFile(false);
-        }
-      );
-      return;
     }
 
     scene.add(modelGroup);
@@ -1194,7 +1020,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     if (!cameraRef.current || !mountRef.current) return;
     const container = mountRef.current;
     const aspect = container.clientWidth / container.clientHeight;
-    const viewSize = selected3DModel === 'masterplan' ? 26 : selected3DModel === 'revit' ? 110 : 22;
+    const viewSize = selected3DModel === 'masterplan' ? 34 : selected3DModel === 'revit' ? 110 : 22;
     const camera = cameraRef.current;
     if (camera.isOrthographicCamera) {
       camera.left = -viewSize * aspect;
@@ -1205,13 +1031,13 @@ export default function ModelViewer3D({ onSelectModule }) {
     }
 
     const spherical = selected3DModel === 'masterplan'
-      ? { radius: 55, theta: Math.PI / 4, phi: Math.PI * 45 / 180 }
+      ? { radius: 75, theta: -Math.PI * 0.22, phi: Math.PI * 45 / 180 }
       : selected3DModel === 'revit'
       ? { radius: 180, theta: -Math.PI * 0.25, phi: Math.PI * 45 / 180 }
       : { radius: 45, theta: Math.PI / 4, phi: Math.PI * 45 / 180 };
 
     const panTarget = selected3DModel === 'masterplan'
-      ? { x: 0, y: 0.5, z: 0 }
+      ? { x: -35, y: 0.5, z: -34 }
       : selected3DModel === 'revit'
       ? { x: 0, y: 0, z: 0 }
       : { x: 0, y: 1.5, z: 0 };
@@ -1220,6 +1046,38 @@ export default function ModelViewer3D({ onSelectModule }) {
     camera.position.y = panTarget.y + spherical.radius * Math.cos(spherical.phi);
     camera.position.z = panTarget.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
     camera.lookAt(panTarget.x, panTarget.y, panTarget.z);
+  };
+
+  // Encuadre rápido a nodos estratégicos del Masterplan
+  const focusMasterplanNode = (nodeKey) => {
+    if (!cameraRef.current || !mountRef.current) return;
+    const container = mountRef.current;
+    const aspect = container.clientWidth / container.clientHeight;
+    const viewSize = 22;
+    const camera = cameraRef.current;
+    if (camera.isOrthographicCamera) {
+      camera.left = -viewSize * aspect;
+      camera.right = viewSize * aspect;
+      camera.top = viewSize;
+      camera.bottom = -viewSize;
+      camera.updateProjectionMatrix();
+    }
+
+    const nodeTargets = {
+      colegio: { x: -34.8, y: 0.5, z: -35.2 },
+      viviendas: { x: -32.2, y: 0.5, z: -37.5 },
+      reserva: { x: -36.5, y: 0.5, z: -32.0 },
+      erosion: { x: -35.0, y: 0.5, z: -40.5 },
+      division: { x: -34.0, y: 0.5, z: -31.5 },
+    };
+
+    const target = nodeTargets[nodeKey] || { x: -35, y: 0.5, z: -34 };
+    const spherical = { radius: 55, theta: -Math.PI * 0.22, phi: Math.PI * 45 / 180 };
+
+    camera.position.x = target.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+    camera.position.y = target.y + spherical.radius * Math.cos(spherical.phi);
+    camera.position.z = target.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+    camera.lookAt(target.x, target.y, target.z);
   };
 
   // Vista Panorámica Aérea Axonométrica a 45° de Cartagena y Tierra Bomba
@@ -2162,6 +2020,95 @@ export default function ModelViewer3D({ onSelectModule }) {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 2D. MASTERPLAN TIERRA BOMBA: PANEL ESTRATÉGICO FLOTANTE & NODOS 3D       */}
+      {/* ========================================================================= */}
+      {selected3DModel === 'masterplan' && (
+        <div className="absolute bottom-6 left-6 z-[400] max-w-md w-full glass-dark p-4 rounded-3xl border border-teal-500/30 text-white shadow-2xl backdrop-blur-xl animate-fade-in pointer-events-auto space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-7 h-7 rounded-xl bg-teal-500/20 border border-teal-400 flex items-center justify-center text-teal-300">
+                <Compass className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-mono font-bold text-white tracking-wide">
+                  Masterplan Tierrabomba (+22m)
+                </h4>
+                <p className="text-[10px] text-teal-300 font-sans">
+                  Polígono de Meseta Segura &amp; Corredores Ecológicos
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowFutureModal(true)}
+              className="px-2.5 py-1 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-mono font-black shadow-md hover:scale-105 active:scale-95 transition-all flex items-center space-x-1"
+            >
+              <Sparkles className="w-3 h-3" />
+              <span>Ver Láminas</span>
+            </button>
+          </div>
+
+          {/* Quick interactive node focus buttons */}
+          <div className="grid grid-cols-2 gap-1.5 pt-1">
+            <button
+              onClick={() => focusMasterplanNode('colegio')}
+              className="p-2 rounded-xl bg-teal-950/60 hover:bg-teal-900/80 border border-teal-500/30 text-left transition-all hover:scale-[1.02] flex items-center space-x-2"
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-teal-400 shrink-0 shadow-sm" />
+              <div className="truncate">
+                <span className="text-[11px] font-bold block text-teal-200">Colegio &amp; Cisterna</span>
+                <span className="text-[9px] text-slate-400 block">450.000 L reserva</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => focusMasterplanNode('viviendas')}
+              className="p-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/30 text-left transition-all hover:scale-[1.02] flex items-center space-x-2"
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-400 shrink-0 shadow-sm" />
+              <div className="truncate">
+                <span className="text-[11px] font-bold block text-rose-200">120 Viviendas</span>
+                <span className="text-[9px] text-slate-400 block">Reasentamiento seguro</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => focusMasterplanNode('reserva')}
+              className="p-2 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/30 text-left transition-all hover:scale-[1.02] flex items-center space-x-2"
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0 shadow-sm" />
+              <div className="truncate">
+                <span className="text-[11px] font-bold block text-emerald-200">Parque Ecológico</span>
+                <span className="text-[9px] text-slate-400 block">Reserva bosque seco</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => focusMasterplanNode('erosion')}
+              className="p-2 rounded-xl bg-amber-950/60 hover:bg-amber-900/80 border border-amber-500/30 text-left transition-all hover:scale-[1.02] flex items-center space-x-2"
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 shadow-sm" />
+              <div className="truncate">
+                <span className="text-[11px] font-bold block text-amber-200">Franja 500m Riesgo</span>
+                <span className="text-[9px] text-slate-400 block">Erosión costera norte</span>
+              </div>
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 pt-1 border-t border-white/10">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-0.5 bg-sky-400 inline-block rounded" />
+              Línea Divisoria Norte (Lat 10.3725)
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-0.5 bg-emerald-400 inline-block rounded" />
+              Corredores Bióticos 3D
+            </span>
           </div>
         </div>
       )}

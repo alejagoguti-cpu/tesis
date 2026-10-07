@@ -139,13 +139,6 @@ export async function buildCartagenaTerritoryScene({
       side: THREE.DoubleSide,
       clippingPlanes,
     }),
-      metalness: 0.02,
-      polygonOffset: true,
-      polygonOffsetFactor: -1.0,
-      polygonOffsetUnits: -2.0,
-      side: THREE.DoubleSide,
-      clippingPlanes,
-    }),
     roads: new THREE.MeshStandardMaterial({
       map: viaTex,
       color: new THREE.Color('#64748b'),
@@ -234,10 +227,10 @@ export async function buildCartagenaTerritoryScene({
   if (landGeometries.length > 0) {
     const mergedLand = BufferGeometryUtils.mergeGeometries(landGeometries, false);
     
-    // Assign Planar UVs based on world X/Z so pasto tiles seamlessly without visible grids
+    // Assign Planar UVs based on world X/Z so pasto tiles seamlessly with crisp texture definition
     const posAttr = mergedLand.getAttribute('position');
     const uvs = new Float32Array(posAttr.count * 2);
-    const GRASS_UV_SCALE = 0.02;
+    const GRASS_UV_SCALE = 0.4;
     for (let i = 0; i < posAttr.count; i++) {
       uvs[i * 2] = posAttr.getX(i) * GRASS_UV_SCALE;
       uvs[i * 2 + 1] = posAttr.getZ(i) * GRASS_UV_SCALE;
@@ -277,10 +270,10 @@ export async function buildCartagenaTerritoryScene({
   if (manzanaGeometries.length > 0) {
     const mergedManzanas = BufferGeometryUtils.mergeGeometries(manzanaGeometries, false);
     
-    // Assign Planar UVs based on world X/Z for seamless limestone paving floor
+    // Assign Planar UVs based on world X/Z for seamless limestone paving floor with crisp seams
     const posManzanas = mergedManzanas.getAttribute('position');
     const pisoUvs = new Float32Array(posManzanas.count * 2);
-    const PISO_UV_SCALE = 0.035;
+    const PISO_UV_SCALE = 0.6;
     for (let i = 0; i < posManzanas.count; i++) {
       pisoUvs[i * 2] = posManzanas.getX(i) * PISO_UV_SCALE;
       pisoUvs[i * 2 + 1] = posManzanas.getZ(i) * PISO_UV_SCALE;
@@ -457,6 +450,259 @@ export async function buildCartagenaTerritoryScene({
   territoryGroup.add(noiseGroup);
   animatedObjects.noiseMesh = noiseGroup;
 
+  // -------------------------------------------------------------
+  // 7. MASTERPLAN TERRITORIAL TIERRA BOMBA (+22m MESETA SEGURA)
+  // -------------------------------------------------------------
+  const masterplanGroup = new THREE.Group();
+  masterplanGroup.name = "MasterplanTerritorialGroup";
+
+  // A. Polígono de Meseta Segura (+22m Cota Resiliente)
+  const mesetaCoords = [
+    [-75.5780, 10.3785],
+    [-75.5710, 10.3792],
+    [-75.5680, 10.3725],
+    [-75.5740, 10.3680],
+    [-75.5810, 10.3710],
+  ];
+
+  const meseta3DPoints = mesetaCoords.map(([lon, lat]) => lonLatToVector3(lon, lat, 0.35));
+  
+  // Fill shape for safe plateau
+  const mesetaShape = new THREE.Shape();
+  const [m0x, m0y] = to9377(mesetaCoords[0][0], mesetaCoords[0][1]);
+  mesetaShape.moveTo((m0x - ORIGIN_X) * SCALE_3D, (m0y - ORIGIN_Y) * SCALE_3D);
+  for (let i = 1; i < mesetaCoords.length; i++) {
+    const [mx, my] = to9377(mesetaCoords[i][0], mesetaCoords[i][1]);
+    mesetaShape.lineTo((mx - ORIGIN_X) * SCALE_3D, (my - ORIGIN_Y) * SCALE_3D);
+  }
+
+  const mesetaFillGeo = new THREE.ShapeGeometry(mesetaShape);
+  mesetaFillGeo.rotateX(-Math.PI / 2);
+  mesetaFillGeo.translate(0, 0.22, 0);
+
+  const mesetaFillMat = new THREE.MeshBasicMaterial({
+    color: 0x0d9488,
+    transparent: true,
+    opacity: 0.32,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  const mesetaFillMesh = new THREE.Mesh(mesetaFillGeo, mesetaFillMat);
+  mesetaFillMesh.name = "MesetaSeguraFill";
+  masterplanGroup.add(mesetaFillMesh);
+
+  // Border ribbon for safe plateau
+  const curvePoints = [...meseta3DPoints, meseta3DPoints[0]];
+  for (let i = 0; i < curvePoints.length - 1; i++) {
+    const pA = curvePoints[i];
+    const pB = curvePoints[i + 1];
+    const dist = pA.distanceTo(pB);
+    const cylGeo = new THREE.CylinderGeometry(0.18, 0.18, dist, 8);
+    cylGeo.translate(0, dist / 2, 0);
+    cylGeo.rotateX(Math.PI / 2);
+
+    const cylMat = new THREE.MeshStandardMaterial({
+      color: 0x14b8a6,
+      emissive: 0x0d9488,
+      emissiveIntensity: 0.8,
+      roughness: 0.2,
+      metalness: 0.1,
+    });
+    const cylMesh = new THREE.Mesh(cylGeo, cylMat);
+    cylMesh.position.copy(pA);
+    cylMesh.lookAt(pB);
+    masterplanGroup.add(cylMesh);
+  }
+
+  // B. Línea Divisoria Horizontal del Horizonte (Lat 10.3725)
+  const lineStart = lonLatToVector3(-75.5860, 10.3725, 0.38);
+  const lineEnd = lonLatToVector3(-75.5620, 10.3725, 0.38);
+  const lineDist = lineStart.distanceTo(lineEnd);
+  
+  const divLineGeo = new THREE.CylinderGeometry(0.14, 0.14, lineDist, 8);
+  divLineGeo.translate(0, lineDist / 2, 0);
+  divLineGeo.rotateX(Math.PI / 2);
+
+  const divLineMat = new THREE.MeshStandardMaterial({
+    color: 0x38bdf8,
+    emissive: 0x0284c7,
+    emissiveIntensity: 0.9,
+    roughness: 0.3,
+  });
+  const divLineMesh = new THREE.Mesh(divLineGeo, divLineMat);
+  divLineMesh.position.copy(lineStart);
+  divLineMesh.lookAt(lineEnd);
+  masterplanGroup.add(divLineMesh);
+
+  // C. Franja de 500m de Erosión Costera (Sector Norte en Riesgo)
+  const erosionCoords = [
+    [-75.5800, 10.3725],
+    [-75.5835, 10.3760],
+    [-75.5810, 10.3805],
+    [-75.5750, 10.3828],
+    [-75.5705, 10.3805],
+    [-75.5735, 10.3780],
+    [-75.5770, 10.3750],
+    [-75.5775, 10.3725],
+  ];
+  const erosionShape = new THREE.Shape();
+  const [e0x, e0y] = to9377(erosionCoords[0][0], erosionCoords[0][1]);
+  erosionShape.moveTo((e0x - ORIGIN_X) * SCALE_3D, (e0y - ORIGIN_Y) * SCALE_3D);
+  for (let i = 1; i < erosionCoords.length; i++) {
+    const [ex, ey] = to9377(erosionCoords[i][0], erosionCoords[i][1]);
+    erosionShape.lineTo((ex - ORIGIN_X) * SCALE_3D, (ey - ORIGIN_Y) * SCALE_3D);
+  }
+
+  const erosionGeo = new THREE.ShapeGeometry(erosionShape);
+  erosionGeo.rotateX(-Math.PI / 2);
+  erosionGeo.translate(0, 0.18, 0);
+  const erosionMat = new THREE.MeshBasicMaterial({
+    color: 0xef4444,
+    transparent: true,
+    opacity: 0.28,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  const erosionMesh = new THREE.Mesh(erosionGeo, erosionMat);
+  masterplanGroup.add(erosionMesh);
+
+  // D. Corredores Ecológicos (Flechas 3D Verdes de Conexión)
+  function create3DArrow(fromLonLat, toLonLat, colorHex = 0x10b981) {
+    const p1 = lonLatToVector3(fromLonLat[0], fromLonLat[1], 0.5);
+    const p2 = lonLatToVector3(toLonLat[0], toLonLat[1], 0.5);
+    const dir = new THREE.Vector3().subVectors(p2, p1);
+    const len = dir.length();
+    
+    const shaftLen = len * 0.75;
+    const headLen = len * 0.25;
+
+    const shaftGeo = new THREE.CylinderGeometry(0.12, 0.12, shaftLen, 8);
+    shaftGeo.translate(0, shaftLen / 2, 0);
+    shaftGeo.rotateX(Math.PI / 2);
+
+    const headGeo = new THREE.ConeGeometry(0.35, headLen, 12);
+    headGeo.translate(0, headLen / 2, 0);
+    headGeo.rotateX(Math.PI / 2);
+
+    const arrowMat = new THREE.MeshStandardMaterial({
+      color: colorHex,
+      emissive: colorHex,
+      emissiveIntensity: 0.5,
+      roughness: 0.3,
+    });
+
+    const arrowGroup = new THREE.Group();
+    const shaft = new THREE.Mesh(shaftGeo, arrowMat);
+    const head = new THREE.Mesh(headGeo, arrowMat);
+    head.position.set(0, 0, shaftLen);
+
+    arrowGroup.add(shaft);
+    arrowGroup.add(head);
+    arrowGroup.position.copy(p1);
+    arrowGroup.lookAt(p2);
+
+    return arrowGroup;
+  }
+
+  // Corredor 1: Meseta -> Borde Norte / Punta Arenas
+  masterplanGroup.add(create3DArrow([-75.5745, 10.3745], [-75.5760, 10.3810], 0x10b981));
+  // Corredor 2: Meseta -> Bahía Este / Caño de Oro
+  masterplanGroup.add(create3DArrow([-75.5730, 10.3745], [-75.5685, 10.3730], 0x059669));
+  // Corredor 3: Meseta -> Costa Occidental / Balneario
+  masterplanGroup.add(create3DArrow([-75.5760, 10.3740], [-75.5815, 10.3740], 0x14b8a6));
+
+  // E. Beacons / Hotspots 3D Estratégicos con Anillos Luminosos
+  const hotspotsData = [
+    {
+      id: "colegio",
+      title: "Colegio & Cisterna 450.000 L",
+      coords: [-75.5745, 10.3755],
+      color: 0x0d9488,
+      height: 3.5,
+    },
+    {
+      id: "viviendas",
+      title: "120 Viviendas Palafíticas",
+      coords: [-75.5725, 10.3770],
+      color: 0xe11d48,
+      height: 3.0,
+    },
+    {
+      id: "reserva",
+      title: "Parque Ecológico Central",
+      coords: [-75.5760, 10.3730],
+      color: 0x16a34a,
+      height: 2.8,
+    },
+    {
+      id: "borde_erosion",
+      title: "Franja 500m & Reforestación Manglar",
+      coords: [-75.5750, 10.3800],
+      color: 0xf59e0b,
+      height: 2.5,
+    },
+    {
+      id: "muelle",
+      title: "Muelle & Conectividad Limpia",
+      coords: [-75.5715, 10.3820],
+      color: 0x0284c7,
+      height: 2.5,
+    }
+  ];
+
+  const hotspotRings = [];
+
+  hotspotsData.forEach((spot) => {
+    const spotPos = lonLatToVector3(spot.coords[0], spot.coords[1], 0.3);
+    const spotGroup = new THREE.Group();
+    spotGroup.position.copy(spotPos);
+
+    // Vertical Pillar
+    const pillarGeo = new THREE.CylinderGeometry(0.08, 0.08, spot.height, 8);
+    pillarGeo.translate(0, spot.height / 2, 0);
+    const pillarMat = new THREE.MeshBasicMaterial({
+      color: spot.color,
+      transparent: true,
+      opacity: 0.85,
+    });
+    const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+    spotGroup.add(pillar);
+
+    // Top Orb
+    const orbGeo = new THREE.SphereGeometry(0.35, 16, 16);
+    orbGeo.translate(0, spot.height, 0);
+    const orbMat = new THREE.MeshStandardMaterial({
+      color: spot.color,
+      emissive: spot.color,
+      emissiveIntensity: 0.9,
+      roughness: 0.2,
+    });
+    const orb = new THREE.Mesh(orbGeo, orbMat);
+    spotGroup.add(orb);
+
+    // Pulsating Ground Ring
+    const ringGeo = new THREE.RingGeometry(0.4, 0.7, 32);
+    ringGeo.rotateX(-Math.PI / 2);
+    ringGeo.translate(0, 0.1, 0);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: spot.color,
+      transparent: true,
+      opacity: 0.7,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    spotGroup.add(ring);
+    hotspotRings.push(ring);
+
+    masterplanGroup.add(spotGroup);
+  });
+
+  masterplanGroup.visible = !!activeLayers.masterplan;
+  territoryGroup.add(masterplanGroup);
+  animatedObjects.masterplanGroup = masterplanGroup;
+  animatedObjects.hotspotRings = hotspotRings;
+
   // Add all to root scene
   sceneRoot.add(territoryGroup);
   onProgress(100, `Modelo 3D Catastro AMB (${catastroData.meta.counts.buildings} edificios 3D) listo`);
@@ -475,6 +721,13 @@ export async function buildCartagenaTerritoryScene({
       if (bumpTex) {
         bumpTex.offset.x = (t * -0.000027 * speedMultiplier) % 1;
         bumpTex.offset.y = (t * 0.000021 * speedMultiplier) % 1;
+      }
+      // Pulsate hotspot rings
+      if (hotspotRings && hotspotRings.length > 0) {
+        const pulse = 1.0 + 0.35 * Math.sin(t * 0.004);
+        hotspotRings.forEach((r) => {
+          r.scale.set(pulse, 1, pulse);
+        });
       }
     },
     setWaterColor: (hex) => {
@@ -519,12 +772,67 @@ export async function buildCartagenaTerritoryScene({
         animatedObjects.noiseMesh.visible = visible;
       }
     },
+    setMasterplanVisible: (visible) => {
+      if (animatedObjects.masterplanGroup) {
+        animatedObjects.masterplanGroup.visible = visible;
+      }
+    },
     setClimateMonth: (monthIndex) => {
       const wetness = 0.5 + 0.5 * Math.sin((monthIndex - 3) * (Math.PI / 6));
       mats.water.color.set(wetness > 0.6 ? '#6a8ea8' : colors.water);
       mats.terrain.color.set(wetness > 0.7 ? '#345e3f' : colors.terrain);
     },
   };
+}
+
+// Coordinate Conversion helpers (MAGNA-SIRGAS EPSG:9377 to Three.js)
+const ORIGIN_X = 4720500;
+const ORIGIN_Y = 2705500;
+const SCALE_3D = 0.02;
+
+export function to9377(lon, lat) {
+  const a = 6378137.0;
+  const f = 1 / 298.257222101;
+  const b = a * (1 - f);
+  const e2 = (a*a - b*b) / (a*a);
+  const ep2 = (a*a - b*b) / (b*b);
+  const k0 = 0.9992;
+  const lon0 = -73.0 * Math.PI / 180;
+  const lat0 = 4.0 * Math.PI / 180;
+  const FE = 5000000.0;
+  const FN = 2000000.0;
+
+  const phi = lat * Math.PI / 180;
+  const lambda = lon * Math.PI / 180;
+
+  const N = a / Math.sqrt(1 - e2 * Math.sin(phi) * Math.sin(phi));
+  const T = Math.tan(phi) * Math.tan(phi);
+  const C = ep2 * Math.cos(phi) * Math.cos(phi);
+  const A = (lambda - lon0) * Math.cos(phi);
+
+  function M(p) {
+    return a * (
+      (1 - e2/4 - 3*e2*e2/64 - 5*e2*e2*e2/256) * p
+      - (3*e2/8 + 3*e2*e2/32 + 45*e2*e2*e2/1024) * Math.sin(2*p)
+      + (15*e2*e2/256 + 45*e2*e2*e2/1024) * Math.sin(4*p)
+      - (3*e2*e2*e2/3072) * Math.sin(6*p)
+    );
+  }
+
+  const M_phi = M(phi);
+  const M_phi0 = M(lat0);
+
+  const x = FE + k0 * N * (A + (1 - T + C) * Math.pow(A, 3) / 6 + (5 - 18 * T + T * T + 72 * C - 58 * ep2) * Math.pow(A, 5) / 120);
+  const y = FN + k0 * (M_phi - M_phi0 + N * Math.tan(phi) * (A*A/2 + (5 - T + 9*C + 4*C*C) * Math.pow(A, 4) / 24 + (61 - 58*T + T*T + 600*C - 330*ep2) * Math.pow(A, 6) / 720));
+
+  return [x, y];
+}
+
+export function lonLatToVector3(lon, lat, height = 0.3) {
+  const [x, y] = to9377(lon, lat);
+  const x3d = (x - ORIGIN_X) * SCALE_3D;
+  const y3d = (y - ORIGIN_Y) * SCALE_3D;
+  return new THREE.Vector3(x3d, height, -y3d);
 }
 
 // Synthetic fallback for offline environments
