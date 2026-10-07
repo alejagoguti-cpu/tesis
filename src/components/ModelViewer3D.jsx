@@ -1914,6 +1914,7 @@ export default function ModelViewer3D({ onSelectModule }) {
           </div>
         </div>
       </div>
+      )}
 
       {/* TOASTS NOTIFICATIONS */}
       {saveColorsToast && (
