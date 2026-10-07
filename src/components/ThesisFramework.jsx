@@ -44,6 +44,7 @@ import {
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 import calqueImage from '../assets/calque_tierrabomba.png';
+import calcoCotasImage from '../assets/calco_cotas.png';
 import L from 'leaflet';
 
 // Fix Leaflet marker icons safely in Vite/React
@@ -396,12 +397,21 @@ export const DEFAULT_DELIMITATIONS = {
   ]
 };
 
-export const DEFAULT_CALQUE_BOUNDS = {
+export const DEFAULT_CALQUE_COTAS_BOUNDS = {
+  south: 10.3660,
+  west: -75.5865,
+  north: 10.3835,
+  east: -75.5680
+};
+
+export const DEFAULT_CALQUE_GENERAL_BOUNDS = {
   south: 10.3325,
   west: -75.5865,
   north: 10.3838,
   east: -75.5340
 };
+
+export const DEFAULT_CALQUE_BOUNDS = DEFAULT_CALQUE_COTAS_BOUNDS;
 
 export const ZONE_CONFIG = {
   island: {
@@ -698,11 +708,13 @@ export default function ThesisFramework({ onSelectModule }) {
   const [copyToast, setCopyToast] = useState(false);
   const [deleteToast, setDeleteToast] = useState(false);
 
-  // Reference Calque Image Overlay State (Plano para calcar - oculto por defecto para no estorbar)
+  // Reference Calque Image Overlay State (Plano para calcar con cotas de nivel y topografía)
   const [showCalque, setShowCalque] = useState(false);
-  const [calqueOpacity, setCalqueOpacity] = useState(0.70);
-  const [calqueBounds, setCalqueBounds] = useState(DEFAULT_CALQUE_BOUNDS);
-  const [showCalqueControls, setShowCalqueControls] = useState(false);
+  const [calqueType, setCalqueType] = useState('cotas'); // 'cotas' (foto con curvas de nivel y casas) | 'general'
+  const [hideOtherLayersOnCalque, setHideOtherLayersOnCalque] = useState(true);
+  const [nudgeStep, setNudgeStep] = useState(0.0004); // 0.0002 (fino) | 0.0006 (normal) | 0.0015 (rápido)
+  const [calqueOpacity, setCalqueOpacity] = useState(0.78);
+  const [calqueBounds, setCalqueBounds] = useState(DEFAULT_CALQUE_COTAS_BOUNDS);
   const calqueOverlayRef = useRef(null);
 
   const moveCalqueLat = (delta) => {
@@ -734,6 +746,14 @@ export default function ThesisFramework({ onSelectModule }) {
         east: Number((centerLng + halfLng).toFixed(5))
       };
     });
+  };
+
+  const handleResetCalquePosition = (type = calqueType) => {
+    if (type === 'cotas') {
+      setCalqueBounds(DEFAULT_CALQUE_COTAS_BOUNDS);
+    } else {
+      setCalqueBounds(DEFAULT_CALQUE_GENERAL_BOUNDS);
+    }
   };
 
   // Cinematic Intro Animation States
@@ -1351,24 +1371,38 @@ export default function ThesisFramework({ onSelectModule }) {
   // =========================================================================
   useEffect(() => {
     const { islandLayer, erosionLayer, schoolLayer, masterplanLayer, roadsLayer, customLayer, marker3 } = layersRef.current;
+    const hideOthers = showCalque && hideOtherLayersOnCalque;
+
     if (islandLayer && delimitations.island) {
       islandLayer.setLatLngs(delimitations.island);
+      if (hideOthers && activeZoneKey !== 'island') {
+        islandLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      }
     }
     if (erosionLayer && delimitations.erosion) {
       erosionLayer.setLatLngs(delimitations.erosion);
+      if (hideOthers && activeZoneKey !== 'erosion') {
+        erosionLayer.setStyle({ opacity: 0 });
+      }
     }
     if (schoolLayer && delimitations.school) {
       schoolLayer.setLatLngs(delimitations.school);
+      if (hideOthers && activeZoneKey !== 'school') {
+        schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      }
     }
     if (marker3 && delimitations.school && delimitations.school.length > 0) {
       marker3.setLatLng(delimitations.school[0]);
     }
     if (masterplanLayer && delimitations.plateau) {
       masterplanLayer.setLatLngs(delimitations.plateau);
+      if (hideOthers && activeZoneKey !== 'plateau') {
+        masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      }
     }
     if (roadsLayer && delimitations.roads) {
       syncRoadsLayer(roadsLayer, delimitations.roads, {
-        opacity: (isEditMode && activeZoneKey === 'roads') || (!isEditMode && currentStepIndex === 4) ? 1 : (isEditMode ? 0.2 : 0),
+        opacity: (isEditMode && activeZoneKey === 'roads') || (!isEditMode && currentStepIndex === 4) || (showCalque && activeZoneKey === 'roads') ? 1 : (isEditMode ? 0.2 : 0),
         weight: 5,
         color: '#f59e0b',
         dashArray: '8, 6',
@@ -1378,8 +1412,11 @@ export default function ThesisFramework({ onSelectModule }) {
     }
     if (customLayer && delimitations.custom) {
       customLayer.setLatLngs(delimitations.custom);
+      if (hideOthers && activeZoneKey !== 'custom') {
+        customLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      }
     }
-  }, [delimitations, isEditMode, activeZoneKey, currentStepIndex]);
+  }, [delimitations, isEditMode, activeZoneKey, currentStepIndex, showCalque, hideOtherLayersOnCalque]);
 
   // Synchronize Reference Calque Image Overlay on the map
   useEffect(() => {
@@ -1391,17 +1428,20 @@ export default function ThesisFramework({ onSelectModule }) {
       [calqueBounds.north, calqueBounds.east]
     );
 
+    const activeImageSrc = calqueType === 'cotas' ? calcoCotasImage : calqueImage;
+
     if (!calqueOverlayRef.current) {
-      calqueOverlayRef.current = L.imageOverlay(calqueImage, bounds, {
+      calqueOverlayRef.current = L.imageOverlay(activeImageSrc, bounds, {
         opacity: showCalque ? calqueOpacity : 0,
         interactive: false,
         zIndex: 200
       }).addTo(map);
     } else {
+      calqueOverlayRef.current.setUrl(activeImageSrc);
       calqueOverlayRef.current.setBounds(bounds);
       calqueOverlayRef.current.setOpacity(showCalque ? calqueOpacity : 0);
     }
-  }, [showCalque, calqueOpacity, calqueBounds]);
+  }, [showCalque, calqueOpacity, calqueBounds, calqueType]);
 
   // =========================================================================
   // 3. RENDER INTERACTIVE DRAGGABLE & DELETABLE NODE HANDLERS IN EDIT MODE
@@ -2715,27 +2755,90 @@ export default function ThesisFramework({ onSelectModule }) {
         </div>
       )}
 
-      {/* Floating On-Screen Quick Nudge Pad (top right below HUD) */}
-      {showCalque && !showRightPanel && (
-        <div className="absolute top-20 right-4 z-[400] glass-panel p-3 rounded-2xl shadow-2xl space-y-2 pointer-events-auto border border-amber-400/60 animate-fade-in text-slate-900 w-52">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-1">
-            <div className="flex items-center space-x-1.5">
-              <div className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800">
-                Calibrar Plano
-              </span>
+      {/* ========================================================================= */}
+      {/* 3B. FLOATING CALQUE & CONTOUR LINES CALIBRATION PANEL (ALWAYS VISIBLE ON CALQUE) */}
+      {/* ========================================================================= */}
+      {showCalque && (
+        <div className="absolute top-20 right-4 z-[450] glass-panel p-3.5 rounded-3xl shadow-2xl space-y-3 pointer-events-auto border-2 border-amber-400/80 animate-scale-up text-slate-900 w-72 max-h-[calc(100vh-6rem)] overflow-y-auto backdrop-blur-xl">
+          
+          {/* Header & Close */}
+          <div className="flex items-center justify-between border-b border-slate-200/90 pb-2">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded-full bg-amber-500 animate-ping" />
+              <div>
+                <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-amber-800 block">
+                  Acomodar Calco en Vivo
+                </span>
+                <h4 className="font-bold text-xs text-slate-900">
+                  {calqueType === 'cotas' ? 'Curvas de Nivel & Cotas' : 'Plano General'}
+                </h4>
+              </div>
             </div>
+
             <button
-              onClick={() => setCalqueBounds(DEFAULT_CALQUE_BOUNDS)}
-              className="text-[10px] font-mono font-bold text-amber-700 hover:underline"
+              onClick={() => setShowCalque(false)}
+              className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+              title="Cerrar Calco"
             >
-              Centrar
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
 
+          {/* Selector de Imagen de Calco */}
           <div className="space-y-1">
+            <span className="text-[10px] font-mono font-bold text-slate-600 block">
+              Imagen a Calcar:
+            </span>
+            <div className="grid grid-cols-2 gap-1">
+              <button
+                onClick={() => {
+                  setCalqueType('cotas');
+                  handleResetCalquePosition('cotas');
+                }}
+                className={`py-1.5 px-2 rounded-xl text-[10px] font-mono font-bold border transition-all ${
+                  calqueType === 'cotas'
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 font-black ring-2 ring-amber-400/50 shadow-sm'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                }`}
+              >
+                ⛰️ Cotas / Casas
+              </button>
+              <button
+                onClick={() => {
+                  setCalqueType('general');
+                  handleResetCalquePosition('general');
+                }}
+                className={`py-1.5 px-2 rounded-xl text-[10px] font-mono font-bold border transition-all ${
+                  calqueType === 'general'
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 font-black ring-2 ring-amber-400/50 shadow-sm'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                }`}
+              >
+                🗺️ Plano Isla
+              </button>
+            </div>
+          </div>
+
+          {/* Opción para Ocultar Otras Líneas al Calcar */}
+          <label className="flex items-center space-x-2 p-2 rounded-xl bg-amber-50/80 border border-amber-200/80 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={hideOtherLayersOnCalque}
+              onChange={(e) => setHideOtherLayersOnCalque(e.target.checked)}
+              className="rounded text-amber-600 focus:ring-amber-500 w-4 h-4 cursor-pointer"
+            />
+            <span className="text-[10px] font-mono font-bold text-amber-950 leading-tight">
+              Ocultar líneas ajenas (vista limpia para calcar cotas)
+            </span>
+          </label>
+
+          {/* Opacidad del Calco */}
+          <div className="space-y-1 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
             <div className="flex items-center justify-between text-[10px] font-mono text-slate-600">
-              <span>Opacidad:</span>
+              <span className="flex items-center gap-1">
+                <Sliders className="w-3 h-3 text-amber-600" />
+                <span>Opacidad:</span>
+              </span>
               <span className="font-bold text-slate-900">{Math.round(calqueOpacity * 100)}%</span>
             </div>
             <input
@@ -2749,56 +2852,123 @@ export default function ThesisFramework({ onSelectModule }) {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-center text-xs font-mono font-bold">
-            <div />
-            <button
-              onClick={() => moveCalqueLat(0.0006)}
-              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
-              title="Subir hacia el Norte"
-            >
-              ▲
-            </button>
-            <div />
-
-            <button
-              onClick={() => moveCalqueLng(-0.0006)}
-              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
-              title="Correr a la Izquierda"
-            >
-              ◀
-            </button>
-
-            <button
-              onClick={() => moveCalqueLat(-0.0006)}
-              className="py-1.5 rounded-lg bg-white hover:bg-slate-200 shadow-xs active:scale-95 text-slate-800 font-bold"
-              title="Bajar hacia el Sur"
-            >
-              ▼
-            </button>
-
-            <button
-              onClick={() => moveCalqueLng(0.0006)}
-              className="py-1.5 rounded-lg bg-amber-500 text-slate-950 shadow-sm font-black ring-2 ring-amber-400 active:scale-95"
-              title="Correr a la Derecha"
-            >
-              ▶
-            </button>
+          {/* Escala (Agrandar / Reducir) */}
+          <div className="space-y-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+            <span className="text-[10px] font-mono font-bold text-slate-700 block">
+              Escala / Tamaño del Plano:
+            </span>
+            <div className="grid grid-cols-4 gap-1 text-[10px] font-mono font-bold">
+              <button
+                onClick={() => scaleCalque(1.05)}
+                className="py-1.5 rounded-lg bg-white hover:bg-slate-200 border border-slate-200 text-slate-900 shadow-xs active:scale-95"
+                title="Agrandar +5%"
+              >
+                +5%
+              </button>
+              <button
+                onClick={() => scaleCalque(1.01)}
+                className="py-1.5 rounded-lg bg-white hover:bg-slate-200 border border-slate-200 text-slate-900 shadow-xs active:scale-95"
+                title="Agrandar +1%"
+              >
+                +1%
+              </button>
+              <button
+                onClick={() => scaleCalque(0.99)}
+                className="py-1.5 rounded-lg bg-white hover:bg-slate-200 border border-slate-200 text-slate-900 shadow-xs active:scale-95"
+                title="Reducir -1%"
+              >
+                -1%
+              </button>
+              <button
+                onClick={() => scaleCalque(0.95)}
+                className="py-1.5 rounded-lg bg-white hover:bg-slate-200 border border-slate-200 text-slate-900 shadow-xs active:scale-95"
+                title="Reducir -5%"
+              >
+                -5%
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-1 text-[10px] font-mono font-bold">
-            <button
-              onClick={() => scaleCalque(1.02)}
-              className="py-1 rounded-lg bg-slate-100 hover:bg-slate-200 shadow-xs text-center text-slate-800"
-            >
-              + Agrandar
-            </button>
-            <button
-              onClick={() => scaleCalque(0.98)}
-              className="py-1 rounded-lg bg-slate-100 hover:bg-slate-200 shadow-xs text-center text-slate-800"
-            >
-              - Reducir
-            </button>
+          {/* Nudge / Posición (Mover en los 4 ejes) */}
+          <div className="space-y-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+            <div className="flex items-center justify-between text-[10px] font-mono">
+              <span className="font-bold text-slate-700">Mover / Alinear:</span>
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={() => setNudgeStep(0.0002)}
+                  className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                    nudgeStep === 0.0002 ? 'bg-amber-600 text-white' : 'bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  Fino
+                </button>
+                <button
+                  onClick={() => setNudgeStep(0.0008)}
+                  className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                    nudgeStep === 0.0008 ? 'bg-amber-600 text-white' : 'bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  Rápido
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-1 bg-white p-1.5 rounded-xl border border-slate-200 text-center text-xs font-mono font-bold shadow-xs">
+              <div />
+              <button
+                onClick={() => moveCalqueLat(nudgeStep)}
+                className="py-2 rounded-lg bg-slate-100 hover:bg-amber-100 hover:text-amber-900 shadow-xs active:scale-90 text-slate-800 font-bold transition-all"
+                title="Mover hacia el Norte (Arriba)"
+              >
+                ▲
+              </button>
+              <div />
+
+              <button
+                onClick={() => moveCalqueLng(-nudgeStep)}
+                className="py-2 rounded-lg bg-slate-100 hover:bg-amber-100 hover:text-amber-900 shadow-xs active:scale-90 text-slate-800 font-bold transition-all"
+                title="Mover hacia el Oeste (Izquierda)"
+              >
+                ◀
+              </button>
+
+              <button
+                onClick={() => handleResetCalquePosition()}
+                className="py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[9px] font-black shadow-xs active:scale-95 transition-all"
+                title="Centrar en el sector norte"
+              >
+                🎯
+              </button>
+
+              <button
+                onClick={() => moveCalqueLng(nudgeStep)}
+                className="py-2 rounded-lg bg-slate-100 hover:bg-amber-100 hover:text-amber-900 shadow-xs active:scale-90 text-slate-800 font-bold transition-all"
+                title="Mover hacia el Este (Derecha)"
+              >
+                ▶
+              </button>
+
+              <div />
+              <button
+                onClick={() => moveCalqueLat(-nudgeStep)}
+                className="py-2 rounded-lg bg-slate-100 hover:bg-amber-100 hover:text-amber-900 shadow-xs active:scale-90 text-slate-800 font-bold transition-all"
+                title="Mover hacia el Sur (Abajo)"
+              >
+                ▼
+              </button>
+              <div />
+            </div>
           </div>
+
+          {/* Centrar y Restablecer */}
+          <button
+            onClick={() => handleResetCalquePosition()}
+            className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-mono text-[10px] font-bold flex items-center justify-center space-x-1.5 transition-all shadow-sm"
+          >
+            <RotateCcw className="w-3 h-3 text-amber-400" />
+            <span>Restablecer Posición Predeterminada</span>
+          </button>
+
         </div>
       )}
 
