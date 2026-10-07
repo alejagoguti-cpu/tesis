@@ -1,5 +1,9 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import pastoTextureImg from '../assets/textura_pasto_m5.png';
+import waterTextureImg from '../assets/textura_agua_m5.jpg';
+import pisoTextureImg from '../assets/textura_piso_m5.png';
+import viaTextureImg from '../assets/textura_via.jpg';
 
 /**
  * Generador 3D Territorial: Bahía de Cartagena & Isla de Tierra Bomba
@@ -20,12 +24,12 @@ export async function buildCartagenaTerritoryScene({
     grid: false,
   },
   colors = {
-    water: '#88a2b5',
+    water: '#ffffff',
     roads: '#334155',
-    terrain: '#4a7856',
+    terrain: '#ffffff',
     buildings: '#ffffff',
     roofs: '#b45309',
-    manzanas: '#9aa3af',
+    manzanas: '#ffffff',
     vehicles: '#e2635a',
     boats: '#24c8bd',
   },
@@ -59,71 +63,41 @@ export async function buildCartagenaTerritoryScene({
     catastroData = generateSyntheticFallback();
   }
 
-// Helper to create neutral white placeholder texture so Three.js never renders black while loading
-function loadSafeTexture(url, wrapConfig = {}) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 4;
-  canvas.height = 4;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, 4, 4);
+  // Load real textures with direct Three.js TextureLoader for maximum fidelity and crispness
+  const texLoader = new THREE.TextureLoader();
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = wrapConfig.wrapS || THREE.MirroredRepeatWrapping;
-  texture.wrapT = wrapConfig.wrapT || THREE.MirroredRepeatWrapping;
-  if (wrapConfig.repeat) {
-    texture.repeat.set(wrapConfig.repeat[0], wrapConfig.repeat[1]);
-  }
-  texture.anisotropy = 16;
-  texture.generateMipmaps = true;
+  // 1. Pasto / Grass (Seamless Mottled Green from user upload)
+  const pastoTex = texLoader.load(pastoTextureImg);
+  pastoTex.wrapS = THREE.RepeatWrapping;
+  pastoTex.wrapT = THREE.RepeatWrapping;
+  pastoTex.repeat.set(35, 35);
+  pastoTex.anisotropy = 16;
 
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => {
-    texture.image = img;
-    texture.needsUpdate = true;
-  };
-  img.src = url;
+  // 2. Agua / Water (Seamless Light Aqua Surface from user upload)
+  const waterTex = texLoader.load(waterTextureImg);
+  waterTex.wrapS = THREE.RepeatWrapping;
+  waterTex.wrapT = THREE.RepeatWrapping;
+  waterTex.repeat.set(120, 120);
+  waterTex.anisotropy = 16;
 
-  return texture;
-}
-
-  // Load real textures (Seamless high-res architectural materials with safe non-black loading)
-  const normalizedBase = basePath.endsWith('/') ? basePath : basePath + '/';
-
-  // 1. Pasto / Grass (Seamless Mottled Green)
-  const pastoTex = loadSafeTexture(`${normalizedBase}assets/textura_pasto_m5.png`, {
-    wrapS: THREE.MirroredRepeatWrapping,
-    wrapT: THREE.MirroredRepeatWrapping,
-    repeat: [120, 120]
-  });
-
-  // 2. Agua / Water (Seamless Light Aqua Surface with fine ripple scale)
-  const waterTex = loadSafeTexture(`${normalizedBase}assets/textura_agua_m5.jpg`, {
-    wrapS: THREE.MirroredRepeatWrapping,
-    wrapT: THREE.MirroredRepeatWrapping,
-    repeat: [180, 180]
-  });
-
-  const bumpTex = loadSafeTexture(`${normalizedBase}assets/textura_agua_m5.jpg`, {
-    wrapS: THREE.MirroredRepeatWrapping,
-    wrapT: THREE.MirroredRepeatWrapping,
-    repeat: [240, 240]
-  });
+  const bumpTex = texLoader.load(waterTextureImg);
+  bumpTex.wrapS = THREE.RepeatWrapping;
+  bumpTex.wrapT = THREE.RepeatWrapping;
+  bumpTex.repeat.set(160, 160);
+  bumpTex.anisotropy = 16;
 
   // 3. Piso / Manzanas / Urban Ground (Light Limestone Pavement from user upload)
-  const pisoTex = loadSafeTexture(`${normalizedBase}assets/textura_piso_m5.png`, {
-    wrapS: THREE.MirroredRepeatWrapping,
-    wrapT: THREE.MirroredRepeatWrapping,
-    repeat: [60, 60]
-  });
+  const pisoTex = texLoader.load(pisoTextureImg);
+  pisoTex.wrapS = THREE.RepeatWrapping;
+  pisoTex.wrapT = THREE.RepeatWrapping;
+  pisoTex.repeat.set(40, 40);
+  pisoTex.anisotropy = 16;
 
   // 4. Vías / Roads (Gray asphalt texture)
-  const viaTex = loadSafeTexture(`${normalizedBase}assets/textura_via.jpg`, {
-    wrapS: THREE.RepeatWrapping,
-    wrapT: THREE.RepeatWrapping,
-    repeat: [10, 10]
-  });
+  const viaTex = texLoader.load(viaTextureImg);
+  viaTex.wrapS = THREE.RepeatWrapping;
+  viaTex.wrapT = THREE.RepeatWrapping;
+  viaTex.repeat.set(10, 10);
 
   // Animated Water Shader Uniforms (GPU vertex displacement and normal caustics)
   const waterUniforms = {
@@ -133,8 +107,8 @@ function loadSafeTexture(url, wrapConfig = {}) {
   const waterMat = new THREE.MeshStandardMaterial({
     map: waterTex,
     bumpMap: bumpTex,
-    bumpScale: 0.05,
-    color: new THREE.Color('#8dc8d2'),
+    bumpScale: 0.04,
+    color: new THREE.Color(colors.water || '#ffffff'),
     roughness: 0.15,
     metalness: 0.08,
     transparent: true,
@@ -148,16 +122,23 @@ function loadSafeTexture(url, wrapConfig = {}) {
     water: waterMat,
     terrain: new THREE.MeshStandardMaterial({
       map: pastoTex,
-      color: new THREE.Color(colors.terrain || '#65763e'),
-      roughness: 0.90,
+      color: new THREE.Color(colors.terrain || '#ffffff'),
+      roughness: 0.88,
       metalness: 0.0,
       side: THREE.DoubleSide,
       clippingPlanes,
     }),
     manzanas: new THREE.MeshStandardMaterial({
       map: pisoTex,
-      color: new THREE.Color(colors.manzanas || '#d4c5b3'),
-      roughness: 0.88,
+      color: new THREE.Color(colors.manzanas || '#ffffff'),
+      roughness: 0.85,
+      metalness: 0.02,
+      polygonOffset: true,
+      polygonOffsetFactor: -1.0,
+      polygonOffsetUnits: -2.0,
+      side: THREE.DoubleSide,
+      clippingPlanes,
+    }),
       metalness: 0.02,
       polygonOffset: true,
       polygonOffsetFactor: -1.0,
