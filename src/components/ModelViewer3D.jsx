@@ -827,13 +827,6 @@ export default function ModelViewer3D({ onSelectModule }) {
     light.position.y = dist * Math.sin(radEl);
     light.position.z = dist * Math.sin(radAz) * Math.cos(radEl);
     light.intensity = sunIntensity;
-  }, [sunAzimuth, sunElevation, sunIntensity]);
-
-  // Update Section Box Clipping Planes in real-time
-  useEffect(() => {
-    updateSectionPlanes(sectionLimits, sectionBoxActive);
-  }, [sectionLimits, sectionBoxActive]);
-
   // Restablecer Vista Axonométrica a 45° (proyección paralela)
   const resetAxonometricView = () => {
     if (!cameraRef.current || !mountRef.current) return;
@@ -924,18 +917,7 @@ export default function ModelViewer3D({ onSelectModule }) {
       const scale = targetSize / (maxDim || 1);
 
       modelGroup.scale.set(scale, scale, scale);
-      modelGroup.position.x = -center.x * scale;
-      modelGroup.position.y = -box.min.y * scale + 0.05;
-      modelGroup.position.z = -center.z * scale;
-
-      const clipPlanesArray = [
-        secPlanesRef.current.xMin,
-        secPlanesRef.current.xMax,
-        secPlanesRef.current.yMin,
-        secPlanesRef.current.yMax,
-        secPlanesRef.current.zMin,
-        secPlanesRef.current.zMax,
-      ];
+      const basePath = import.meta.env.BASE_URL || '/';
 
       scene.background = new THREE.Color(0xdbe8d4);
       scene.fog = new THREE.Fog(0xdbe8d4, 250, 800);
@@ -947,10 +929,10 @@ export default function ModelViewer3D({ onSelectModule }) {
       objectsRef.current.revitWalls = [];
       objectsRef.current.revitBuildings = [];
 
-      const pastoTex = new THREE.TextureLoader().load(`${basePath.endsWith('/') ? basePath : basePath + '/'}assets/textura_pasto.jpg`);
-      pastoTex.wrapS = THREE.RepeatWrapping;
-      pastoTex.wrapT = THREE.RepeatWrapping;
-      pastoTex.repeat.set(16, 16);
+      const pastoTex = new THREE.TextureLoader().load(`${basePath.endsWith('/') ? basePath : basePath + '/'}assets/textura_pasto_m5.png`);
+      pastoTex.wrapS = THREE.MirroredRepeatWrapping;
+      pastoTex.wrapT = THREE.MirroredRepeatWrapping;
+      pastoTex.repeat.set(12, 12);
 
       modelGroup.traverse((child) => {
         if (child.isMesh) {
@@ -967,11 +949,10 @@ export default function ModelViewer3D({ onSelectModule }) {
           if (name.includes('Toposolid') || name.toLowerCase().includes('terrain') || matName.includes('Toposolid') || matName.toLowerCase().includes('terrain')) {
             child.material = new THREE.MeshStandardMaterial({
               map: pastoTex,
-              color: 0x7fa672,
+              color: 0xffffff,
               roughness: 0.90,
-              metalness: 0.02,
+              metalness: 0.0,
               side: THREE.DoubleSide,
-              clippingPlanes: clipPlanesArray,
             });
             child.renderOrder = 1;
             child.userData.layer = 'terrain';
@@ -986,7 +967,6 @@ export default function ModelViewer3D({ onSelectModule }) {
               polygonOffset: true,
               polygonOffsetFactor: -2.0,
               polygonOffsetUnits: -4.0,
-              clippingPlanes: clipPlanesArray,
             });
             child.renderOrder = 3;
             child.userData.layer = 'walls';
@@ -1001,7 +981,6 @@ export default function ModelViewer3D({ onSelectModule }) {
               polygonOffset: true,
               polygonOffsetFactor: -3.0,
               polygonOffsetUnits: -6.0,
-              clippingPlanes: clipPlanesArray,
             });
             child.renderOrder = 4;
             child.userData.layer = 'buildings';
