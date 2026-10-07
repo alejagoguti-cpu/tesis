@@ -59,49 +59,71 @@ export async function buildCartagenaTerritoryScene({
     catastroData = generateSyntheticFallback();
   }
 
-  // Load real textures (Seamless high-res architectural materials)
-  const texLoader = new THREE.TextureLoader();
+// Helper to create neutral white placeholder texture so Three.js never renders black while loading
+function loadSafeTexture(url, wrapConfig = {}) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 4;
+  canvas.height = 4;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, 4, 4);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = wrapConfig.wrapS || THREE.MirroredRepeatWrapping;
+  texture.wrapT = wrapConfig.wrapT || THREE.MirroredRepeatWrapping;
+  if (wrapConfig.repeat) {
+    texture.repeat.set(wrapConfig.repeat[0], wrapConfig.repeat[1]);
+  }
+  texture.anisotropy = 16;
+  texture.generateMipmaps = true;
+
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    texture.image = img;
+    texture.needsUpdate = true;
+  };
+  img.src = url;
+
+  return texture;
+}
+
+  // Load real textures (Seamless high-res architectural materials with safe non-black loading)
   const normalizedBase = basePath.endsWith('/') ? basePath : basePath + '/';
 
   // 1. Pasto / Grass (Seamless Mottled Green)
-  const pastoTex = texLoader.load(`${normalizedBase}assets/textura_pasto_m5.png`);
-  pastoTex.wrapS = THREE.MirroredRepeatWrapping;
-  pastoTex.wrapT = THREE.MirroredRepeatWrapping;
-  pastoTex.anisotropy = 16;
-  pastoTex.generateMipmaps = true;
-  pastoTex.minFilter = THREE.LinearMipmapLinearFilter;
-  pastoTex.magFilter = THREE.LinearFilter;
+  const pastoTex = loadSafeTexture(`${normalizedBase}assets/textura_pasto_m5.png`, {
+    wrapS: THREE.MirroredRepeatWrapping,
+    wrapT: THREE.MirroredRepeatWrapping,
+    repeat: [120, 120]
+  });
 
   // 2. Agua / Water (Seamless Light Aqua Surface with fine ripple scale)
-  const waterTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
-  waterTex.wrapS = THREE.MirroredRepeatWrapping;
-  waterTex.wrapT = THREE.MirroredRepeatWrapping;
-  waterTex.repeat.set(180, 180); // Ondas de agua reducidas y de alta definición
-  waterTex.anisotropy = 16;
-  waterTex.generateMipmaps = true;
-  waterTex.minFilter = THREE.LinearMipmapLinearFilter;
-  waterTex.magFilter = THREE.LinearFilter;
+  const waterTex = loadSafeTexture(`${normalizedBase}assets/textura_agua_m5.jpg`, {
+    wrapS: THREE.MirroredRepeatWrapping,
+    wrapT: THREE.MirroredRepeatWrapping,
+    repeat: [180, 180]
+  });
 
-  const bumpTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
-  bumpTex.wrapS = THREE.MirroredRepeatWrapping;
-  bumpTex.wrapT = THREE.MirroredRepeatWrapping;
-  bumpTex.repeat.set(240, 240);
-  bumpTex.anisotropy = 16;
+  const bumpTex = loadSafeTexture(`${normalizedBase}assets/textura_agua_m5.jpg`, {
+    wrapS: THREE.MirroredRepeatWrapping,
+    wrapT: THREE.MirroredRepeatWrapping,
+    repeat: [240, 240]
+  });
 
   // 3. Piso / Manzanas / Urban Ground (Light Limestone Pavement from user upload)
-  const pisoTex = texLoader.load(`${normalizedBase}assets/textura_piso_m5.png`);
-  pisoTex.wrapS = THREE.MirroredRepeatWrapping;
-  pisoTex.wrapT = THREE.MirroredRepeatWrapping;
-  pisoTex.repeat.set(60, 60);
-  pisoTex.anisotropy = 16;
-  pisoTex.generateMipmaps = true;
-  pisoTex.minFilter = THREE.LinearMipmapLinearFilter;
-  pisoTex.magFilter = THREE.LinearFilter;
+  const pisoTex = loadSafeTexture(`${normalizedBase}assets/textura_piso_m5.png`, {
+    wrapS: THREE.MirroredRepeatWrapping,
+    wrapT: THREE.MirroredRepeatWrapping,
+    repeat: [60, 60]
+  });
 
   // 4. Vías / Roads (Gray asphalt texture)
-  const viaTex = texLoader.load(`${normalizedBase}assets/textura_via.jpg`);
-  viaTex.wrapS = THREE.RepeatWrapping;
-  viaTex.wrapT = THREE.RepeatWrapping;
+  const viaTex = loadSafeTexture(`${normalizedBase}assets/textura_via.jpg`, {
+    wrapS: THREE.RepeatWrapping,
+    wrapT: THREE.RepeatWrapping,
+    repeat: [10, 10]
+  });
 
   // Animated Water Shader Uniforms (GPU vertex displacement and normal caustics)
   const waterUniforms = {
@@ -126,8 +148,8 @@ export async function buildCartagenaTerritoryScene({
     water: waterMat,
     terrain: new THREE.MeshStandardMaterial({
       map: pastoTex,
-      color: new THREE.Color(colors.terrain || '#7d8c4e'),
-      roughness: 0.92,
+      color: new THREE.Color(colors.terrain || '#65763e'),
+      roughness: 0.90,
       metalness: 0.0,
       side: THREE.DoubleSide,
       clippingPlanes,

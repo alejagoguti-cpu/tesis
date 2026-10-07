@@ -135,7 +135,34 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     const basePath = import.meta.env.BASE_URL || '/';
     const normalizedBase = basePath.endsWith('/') ? basePath : basePath + '/';
-    const texLoader = new THREE.TextureLoader();
+
+    const loadSafeTexture = (url, wrapConfig = {}) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 4;
+      canvas.height = 4;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 4, 4);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = wrapConfig.wrapS || THREE.MirroredRepeatWrapping;
+      texture.wrapT = wrapConfig.wrapT || THREE.MirroredRepeatWrapping;
+      if (wrapConfig.repeat) {
+        texture.repeat.set(wrapConfig.repeat[0], wrapConfig.repeat[1]);
+      }
+      texture.anisotropy = 16;
+      texture.generateMipmaps = true;
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        texture.image = img;
+        texture.needsUpdate = true;
+      };
+      img.src = url;
+
+      return texture;
+    };
 
     if (modelType === 'revit') {
       setIsLoadingFile(true);
@@ -153,10 +180,13 @@ export default function ModelViewer3D({ onSelectModule }) {
           sceneRoot: rootContainer,
           activeLayers,
           colors: {
-            buildings: '#ffffff',
-            roofs: '#b5714a',
+            terrain: grassColor,
+            manzanas: pavementColor,
+            water: waterColor,
+            roads: roadColor,
+            buildings: buildingColor,
+            roofs: roofColor,
             trees: '#5c8f52',
-            manzanas: '#eae6df',
             vehicles: '#e2635a',
             boats: '#24c8bd',
           },
@@ -184,24 +214,24 @@ export default function ModelViewer3D({ onSelectModule }) {
     }
 
     if (modelType === 'colegio') {
-      // Pasto, Agua y Piso Textures (Endless / Seamless & Scaled)
-      const pastoTex = texLoader.load(`${normalizedBase}assets/textura_pasto_m5.png`);
-      pastoTex.wrapS = THREE.MirroredRepeatWrapping;
-      pastoTex.wrapT = THREE.MirroredRepeatWrapping;
-      pastoTex.repeat.set(12, 12);
-      pastoTex.anisotropy = 16;
+      // Pasto, Agua y Piso Textures (Endless / Seamless & Scaled with zero black flash)
+      const pastoTex = loadSafeTexture(`${normalizedBase}assets/textura_pasto_m5.png`, {
+        wrapS: THREE.MirroredRepeatWrapping,
+        wrapT: THREE.MirroredRepeatWrapping,
+        repeat: [12, 12]
+      });
 
-      const waterTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
-      waterTex.wrapS = THREE.MirroredRepeatWrapping;
-      waterTex.wrapT = THREE.MirroredRepeatWrapping;
-      waterTex.repeat.set(120, 120); // Textura de agua diminuta y fina
-      waterTex.anisotropy = 16;
+      const waterTex = loadSafeTexture(`${normalizedBase}assets/textura_agua_m5.jpg`, {
+        wrapS: THREE.MirroredRepeatWrapping,
+        wrapT: THREE.MirroredRepeatWrapping,
+        repeat: [120, 120]
+      });
 
-      const pisoTex = texLoader.load(`${normalizedBase}assets/textura_piso_m5.png`);
-      pisoTex.wrapS = THREE.MirroredRepeatWrapping;
-      pisoTex.wrapT = THREE.MirroredRepeatWrapping;
-      pisoTex.repeat.set(8, 8);
-      pisoTex.anisotropy = 16;
+      const pisoTex = loadSafeTexture(`${normalizedBase}assets/textura_piso_m5.png`, {
+        wrapS: THREE.MirroredRepeatWrapping,
+        wrapT: THREE.MirroredRepeatWrapping,
+        repeat: [8, 8]
+      });
 
       // Base de Pasto (Tono verde amarillento café)
       const grassGeo = new THREE.PlaneGeometry(90, 90);
@@ -349,18 +379,18 @@ export default function ModelViewer3D({ onSelectModule }) {
       objectsRef.current.roof = roofGroup;
     } 
     else if (modelType === 'vivienda') {
-      // Pasto y Agua para Vivienda
-      const pastoTex = texLoader.load(`${normalizedBase}assets/textura_pasto_m5.png`);
-      pastoTex.wrapS = THREE.MirroredRepeatWrapping;
-      pastoTex.wrapT = THREE.MirroredRepeatWrapping;
-      pastoTex.repeat.set(10, 10);
-      pastoTex.anisotropy = 16;
+      // Pasto y Agua para Vivienda (Seamless & Scaled with safe non-black loading)
+      const pastoTex = loadSafeTexture(`${normalizedBase}assets/textura_pasto_m5.png`, {
+        wrapS: THREE.MirroredRepeatWrapping,
+        wrapT: THREE.MirroredRepeatWrapping,
+        repeat: [10, 10]
+      });
 
-      const waterTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
-      waterTex.wrapS = THREE.MirroredRepeatWrapping;
-      waterTex.wrapT = THREE.MirroredRepeatWrapping;
-      waterTex.repeat.set(120, 120); // Ondas de agua reducidas y suaves
-      waterTex.anisotropy = 16;
+      const waterTex = loadSafeTexture(`${normalizedBase}assets/textura_agua_m5.jpg`, {
+        wrapS: THREE.MirroredRepeatWrapping,
+        wrapT: THREE.MirroredRepeatWrapping,
+        repeat: [120, 120]
+      });
 
       // Base de Pasto (Tono verde amarillento café)
       const grassMesh = new THREE.Mesh(
@@ -703,9 +733,12 @@ export default function ModelViewer3D({ onSelectModule }) {
     }
     container.appendChild(renderer.domElement);
 
-    // Iluminación Solar con Acimut y Altura
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x334155, 0.85);
+    // Iluminación Solar & Ambiental Equilibrada (Sin sombras negras en pasto)
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xdbe8d4, 1.1);
     scene.add(hemiLight);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+    scene.add(ambientLight);
 
     const dirLight = new THREE.DirectionalLight(0xfffaed, sunIntensity);
     const radAz = (sunAzimuth * Math.PI) / 180;

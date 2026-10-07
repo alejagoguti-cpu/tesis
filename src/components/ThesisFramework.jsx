@@ -253,34 +253,26 @@ export const DEFAULT_DELIMITATIONS = {
     [10.38059, -75.57592]
   ],
   vulnerableHouses: [
+    [10.38154, -75.57543],
+    [10.38090, -75.57640],
+    [10.38040, -75.57697],
+    [10.37884, -75.57763],
+    [10.37680, -75.57860],
+    [10.37450, -75.57950],
+    [10.37150, -75.58020],
     [10.36857, -75.58044],
     [10.36650, -75.58302],
-    [10.36599, -75.58559],
     [10.36401, -75.58632],
-    [10.36223, -75.58667],
     [10.36071, -75.58890],
-    [10.35907, -75.58959],
-    [10.35819, -75.59147],
-    [10.35598, -75.59177],
-    [10.35404, -75.59053],
-    [10.35167, -75.59053],
-    [10.34918, -75.59199],
-    [10.34694, -75.59298],
-    [10.34373, -75.59246],
-    [10.34204, -75.59229],
-    [10.33968, -75.59109],
-    [10.33735, -75.59160],
-    [10.33368, -75.59302],
-    [10.33161, -75.59302],
-    [10.32929, -75.59242],
-    [10.32717, -75.59173],
-    [10.32561, -75.59074],
-    [10.32717, -75.59173],
-    [10.33368, -75.59302],
-    [10.34373, -75.59246],
-    [10.35598, -75.59177],
-    [10.36401, -75.58632],
-    [10.36857, -75.58044]
+    [10.36223, -75.58667],
+    [10.36599, -75.58559],
+    [10.36920, -75.57850],
+    [10.37120, -75.57680],
+    [10.37350, -75.57580],
+    [10.37650, -75.57480],
+    [10.37950, -75.57430],
+    [10.38100, -75.57480],
+    [10.38154, -75.57543]
   ],
   plateau: [
     [10.37487, -75.57396],
@@ -842,10 +834,10 @@ export default function ThesisFramework({ onSelectModule }) {
       cameraZoom = 13.2;
     } else if (stepIdx === 2) {
       isPolygon = true;
-      mainColor = '#f43f5e';
-      glowColor = '#fda4af';
-      cameraCenter = [10.3805, -75.5761];
-      cameraZoom = 18.2;
+      mainColor = '#dc2626';
+      glowColor = '#f87171';
+      cameraCenter = vulnerabilitySubTab === 'houses' ? [10.3735, -75.5790] : [10.3805, -75.5761];
+      cameraZoom = vulnerabilitySubTab === 'houses' ? 16.0 : 18.2;
     } else if (stepIdx === 3) {
       isPolygon = true;
       mainColor = '#0d9488';
@@ -856,8 +848,8 @@ export default function ThesisFramework({ onSelectModule }) {
       isPolygon = false;
       mainColor = '#f59e0b';
       glowColor = '#fde68a';
-      cameraCenter = [10.3715, -75.5755];
-      cameraZoom = 16.5;
+      cameraCenter = [10.3730, -75.5759];
+      cameraZoom = 16.2;
     }
 
     // Clear any previous running animation
@@ -879,12 +871,13 @@ export default function ThesisFramework({ onSelectModule }) {
     }
 
     // Hide static layers during active tracing
-    const { islandLayer, erosionLayer, schoolLayer, masterplanLayer, roadsLayer } = layersRef.current;
+    const { islandLayer, erosionLayer, schoolLayer, vulnerableHousesLayer, masterplanLayer, roadsLayer } = layersRef.current;
     if (islandLayer) islandLayer.setStyle({ opacity: stepIdx === 0 ? 0 : 0.15, fillOpacity: 0, weight: 2 });
     if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
     if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+    if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
     if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-    if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 5, color: '#f59e0b' });
+    if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 3.2, color: '#f59e0b', dashArray: '6, 5', lineCap: 'round', lineJoin: 'round' });
 
     // Instantly stabilize camera on the exact coordinates so the animation never jumps or warps
     if (stepIdx === 0 || stepIdx === 1) {
@@ -905,99 +898,47 @@ export default function ThesisFramework({ onSelectModule }) {
     setTimeout(() => {
       if (!mapInstanceRef.current) return;
 
-      // Handle Multi-line roads tracing
+      // Handle Smooth Opacity Fade for Master Plan Vías (Step 5)
       if (stepIdx === 4) {
-        const rawRoadLines = normalizeRoadLines(delimitations.roads || DEFAULT_DELIMITATIONS.roads);
-        const validLines = rawRoadLines.filter(l => Array.isArray(l) && l.length >= 2);
-        if (validLines.length === 0) {
-          if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 1, weight: 5, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
-          return;
-        }
-
         setIsIntroAnimating(true);
         setAnimProgress(0);
 
-        const resampledLines = validLines.map(line => resampleCoordinates(line, false, Math.max(25, Math.floor(120 / validLines.length))));
+        let curOpacity = 0.05;
+        if (roadsLayer) {
+          syncRoadsLayer(roadsLayer, delimitations.roads, {
+            opacity: curOpacity,
+            weight: 3.2,
+            color: '#f59e0b',
+            dashArray: '6, 5',
+            lineCap: 'round',
+            lineJoin: 'round'
+          });
+        }
 
-        const glowLine = L.polyline([], {
-          color: glowColor,
-          weight: 6,
-          opacity: 0.45,
-          lineCap: 'round',
-          lineJoin: 'round'
-        }).addTo(map);
-
-        const mainLine = L.polyline([], {
-          color: mainColor,
-          weight: 3.5,
-          opacity: 1,
-          lineCap: 'round',
-          lineJoin: 'round'
-        }).addTo(map);
-
-        const leadIcon = L.divIcon({
-          className: 'custom-anim-lead-node',
-          html: `
-            <div class="relative flex items-center justify-center pointer-events-none">
-              <div class="absolute -inset-2 rounded-full animate-ping opacity-75" style="background-color: ${glowColor}"></div>
-              <div class="w-4 h-4 rounded-full border-2 border-white shadow-xl flex items-center justify-center" style="background-color: ${mainColor}">
-                <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
-              </div>
-            </div>
-          `,
-          iconSize: [20, 20],
-          iconAnchor: [10, 10]
-        });
-
-        const leadMarker = L.marker(resampledLines[0][0], {
-          icon: leadIcon,
-          zIndexOffset: 3000
-        }).addTo(map);
-
-        animatingGlowRef.current = glowLine;
-        animatingLayerRef.current = mainLine;
-        tracerMarkerRef.current = leadMarker;
-
-        let currentLineIdx = 0;
-        let currentStepInLine = 1;
-        const completedLines = [];
-
+        let stepCount = 0;
+        const totalSteps = 20;
         animationTimerRef.current = setInterval(() => {
-          const curLineCoords = resampledLines[currentLineIdx];
-          currentStepInLine++;
-          const currentSlice = curLineCoords.slice(0, currentStepInLine);
+          stepCount++;
+          curOpacity = Math.min(1, stepCount / totalSteps);
+          setAnimProgress(Math.round((stepCount / totalSteps) * 100));
 
-          const allDrawn = [...completedLines, currentSlice];
-          glowLine.setLatLngs(allDrawn);
-          mainLine.setLatLngs(allDrawn);
-
-          const head = curLineCoords[Math.min(currentStepInLine - 1, curLineCoords.length - 1)];
-          leadMarker.setLatLng(head);
-
-          const totalPointsAcrossAll = resampledLines.reduce((sum, l) => sum + l.length, 0);
-          const drawnSoFar = completedLines.reduce((sum, l) => sum + l.length, 0) + currentStepInLine;
-          setAnimProgress(Math.min(100, Math.round((drawnSoFar / totalPointsAcrossAll) * 100)));
-
-          if (currentStepInLine >= curLineCoords.length) {
-            completedLines.push(curLineCoords);
-            currentLineIdx++;
-            currentStepInLine = 1;
-
-            if (currentLineIdx >= resampledLines.length) {
-              clearInterval(animationTimerRef.current);
-              animationTimerRef.current = null;
-              setTimeout(() => {
-                if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 1, weight: 5, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
-                if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
-                if (animatingLayerRef.current) map.removeLayer(animatingLayerRef.current);
-                if (tracerMarkerRef.current) map.removeLayer(tracerMarkerRef.current);
-                setIsIntroAnimating(false);
-              }, 150);
-            } else {
-              leadMarker.setLatLng(resampledLines[currentLineIdx][0]);
-            }
+          if (roadsLayer) {
+            syncRoadsLayer(roadsLayer, delimitations.roads, {
+              opacity: curOpacity,
+              weight: 3.2,
+              color: '#f59e0b',
+              dashArray: '6, 5',
+              lineCap: 'round',
+              lineJoin: 'round'
+            });
           }
-        }, 20);
+
+          if (stepCount >= totalSteps) {
+            clearInterval(animationTimerRef.current);
+            animationTimerRef.current = null;
+            setIsIntroAnimating(false);
+          }
+        }, 18);
 
         return;
       }
@@ -1006,7 +947,7 @@ export default function ThesisFramework({ onSelectModule }) {
       let rawCoords = [];
       if (stepIdx === 0) rawCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
       else if (stepIdx === 1) rawCoords = delimitations.erosion || DEFAULT_DELIMITATIONS.erosion || [];
-      else if (stepIdx === 2) rawCoords = delimitations.school || DEFAULT_DELIMITATIONS.school || [];
+      else if (stepIdx === 2) rawCoords = (vulnerabilitySubTab === 'houses' ? delimitations.vulnerableHouses : delimitations.school) || DEFAULT_DELIMITATIONS.school || [];
       else if (stepIdx === 3) rawCoords = delimitations.plateau || DEFAULT_DELIMITATIONS.plateau || [];
 
       if (rawCoords.length < 2) return;
@@ -1710,15 +1651,14 @@ export default function ThesisFramework({ onSelectModule }) {
           });
 
           const VULNERABLE_HOUSES_COORDS = [
-            [10.3682, -75.5807], [10.3675, -75.5818], [10.3668, -75.5828], [10.3662, -75.5842],
+            [10.3812, -75.5752], [10.3807, -75.5760], [10.3802, -75.5765], [10.3798, -75.5770],
+            [10.3792, -75.5774], [10.3785, -75.5777], [10.3778, -75.5781], [10.3770, -75.5784],
+            [10.3762, -75.5787], [10.3754, -75.5790], [10.3746, -75.5793], [10.3738, -75.5796],
+            [10.3728, -75.5799], [10.3718, -75.5802], [10.3705, -75.5804], [10.3695, -75.5805],
+            [10.3685, -75.5807], [10.3675, -75.5818], [10.3668, -75.5828], [10.3662, -75.5842],
             [10.3655, -75.5852], [10.3648, -75.5858], [10.3641, -75.5862], [10.3632, -75.5864],
-            [10.3624, -75.5866], [10.3615, -75.5878], [10.3608, -75.5888], [10.3598, -75.5893],
-            [10.3590, -75.5898], [10.3582, -75.5912], [10.3571, -75.5915], [10.3560, -75.5916],
-            [10.3551, -75.5912], [10.3541, -75.5906], [10.3530, -75.5904], [10.3518, -75.5905],
-            [10.3505, -75.5911], [10.3493, -75.5918], [10.3481, -75.5925], [10.3470, -75.5928],
-            [10.3455, -75.5927], [10.3440, -75.5925], [10.3425, -75.5922], [10.3408, -75.5915],
-            [10.3385, -75.5913], [10.3360, -75.5918], [10.3342, -75.5927], [10.3325, -75.5929],
-            [10.3305, -75.5922], [10.3285, -75.5918], [10.3265, -75.5910]
+            [10.3624, -75.5866], [10.3615, -75.5878], [10.3608, -75.5888], [10.3789, -75.5768],
+            [10.3775, -75.5772], [10.3760, -75.5776], [10.3745, -75.5780], [10.3730, -75.5783]
           ];
 
           VULNERABLE_HOUSES_COORDS.forEach(pt => {
@@ -1733,7 +1673,7 @@ export default function ThesisFramework({ onSelectModule }) {
       if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '6, 6' });
-      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 2.8, color: '#f59e0b' });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 3.2, color: '#f59e0b' });
     } else if (currentStepIndex === 4) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
@@ -1741,7 +1681,7 @@ export default function ThesisFramework({ onSelectModule }) {
       if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0.35, fillOpacity: 0, weight: 2, color: '#0d9488', dashArray: '6, 6' });
-      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 1, weight: 2.8, color: '#f59e0b', dashArray: '6, 5', lineCap: 'round', lineJoin: 'round' });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 1, weight: 3.2, color: '#f59e0b', dashArray: '6, 5', lineCap: 'round', lineJoin: 'round' });
     }
   }, [currentStepIndex, isEditMode, isIntroAnimating, activeZoneKey, delimitations.roads, vulnerabilitySubTab]);
 
@@ -2224,7 +2164,7 @@ export default function ThesisFramework({ onSelectModule }) {
             onClick={() => {
               setVulnerabilitySubTab('houses');
               const map = mapInstanceRef.current;
-              if (map) map.setView([10.3540, -75.5880], 14.8);
+              if (map) map.setView([10.3735, -75.5790], 16.0);
             }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               vulnerabilitySubTab === 'houses'
@@ -2233,7 +2173,7 @@ export default function ThesisFramework({ onSelectModule }) {
             }`}
           >
             <Home className="w-3.5 h-3.5" />
-            <span>2. Viviendas Actuales en Riesgo (120 familias en franja roja)</span>
+            <span>2. Viviendas Actuales en Riesgo (Área de Estudio Norte // Franja Crítica)</span>
           </button>
         </div>
       )}
