@@ -31,8 +31,20 @@ import {
   Calendar,
   Layers2,
   ExternalLink,
-  Info
+  Info,
+  FileImage,
+  Layers as LayersIcon
 } from 'lucide-react';
+
+// Import real project architectural drawings, maps, and spectral satellite analyses
+import bocetoViviendaImg from '../assets/boceto_vivienda_corte.png';
+import bocetoColegioImg from '../assets/boceto_colegio_corte.png';
+import calcoCotasImg from '../assets/calco_cotas.png';
+import calqueTbImg from '../assets/calque_tierrabomba.png';
+import spectralManglarImg from '../assets/spectral_manglar.png';
+import spectralNdviImg from '../assets/spectral_ndvi.png';
+import mapDefensivoImg from '../assets/maps/historical/map_1780_defensivo_manga.jpg';
+import mapPearsonImg from '../assets/maps/historical/map_1915_pearson_puerto.jpg';
 
 export const FUTURE_TIERRABOMBA_SLIDES = [
   // LÁMINA 1
@@ -55,25 +67,27 @@ export const FUTURE_TIERRABOMBA_SLIDES = [
         icon: TreePine,
         title: "Ecoturismo y Senderismo",
         desc: "Aprovechamiento de senderos ecológicos en la meseta central y recorridos ambientales para visitantes de bajo impacto.",
-        refName: "Senderos Elevados & Bioclimáticos",
-        refImg: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&q=80"
+        refName: "Análisis Satelital del Bosque & Manglar de Tierrabomba",
+        refImg: spectralManglarImg,
+        isAsset: true
       },
       {
         icon: Landmark,
         title: "Patrimonio Histórico",
-        desc: "Puesta en valor y restauración del sistema defensivo colonial de la bahía (Fuerte de San Fernando y Batería de San Luis).",
-        refName: "Restauración de Piedra Coralina",
-        refImg: "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=600&q=80"
+        desc: "Puesta en valor y restauración del sistema defensivo colonial de la bahía (Fuerte de San Fernando y Batería de San Luis de Bocachica).",
+        refName: "Cartografía Histórica Militar de Tierrabomba (1780)",
+        refImg: mapDefensivoImg,
+        isAsset: true
       },
       {
         icon: Anchor,
         title: "Restauración Ambiental",
         desc: "Protección y reforestación del bosque de manglar como barrera biológica contra la erosión costera y el oleaje de buques.",
-        refName: "Barrera Viva de Manglar Costero",
-        refImg: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80"
+        refName: "Fuerte de San Fernando en Bocachica (Tierra Bomba)",
+        refImg: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Fuerte_de_San_Fernando_de_Bocachica.jpg/800px-Fuerte_de_San_Fernando_de_Bocachica.jpg",
+        isAsset: false
       }
-    ],
-    diagramType: "mapVision"
+    ]
   },
 
   // LÁMINA 2
@@ -94,10 +108,10 @@ export const FUTURE_TIERRABOMBA_SLIDES = [
     anthropologicalDimension: {
       title: "Dimensión Antropológica y Cultural",
       desc: "Reconocimiento de los títulos colectivos preexistentes y derechos de las comunidades raizales. La propuesta prioriza la cualificación y permanencia de los pobladores nativos en su territorio ancestral frente a cualquier modelo de expulsión.",
-      refImg: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=600&q=80",
-      refLabel: "Espacio Público Comunitario Raizal"
-    },
-    diagramType: "swotMatrix"
+      refImg: calqueTbImg,
+      refLabel: "Plano de Delimitación Territorial de Asentamientos Nativos",
+      isAsset: true
+    }
   },
 
   // LÁMINA 3
@@ -114,14 +128,14 @@ export const FUTURE_TIERRABOMBA_SLIDES = [
       desc: "El proyecto de acueducto contempla la compra de lotes para tanques de almacenamiento en la meseta que abastecerán a Tierrabomba, Boca Chica y Caño del Oro con una dotación mínima de 50 litros por persona al día.",
       targetPop: "Población Objetivo: Diseñado estrictamente para atender a los 10.000 habitantes actuales de la isla (Cartagena Cómo Vamos).",
       formula: "50 L/hab/día × 10.000 habitantes = 500.000 L/día (0.50 Megalitros/día)",
-      refImg: "https://images.unsplash.com/photo-1584467735815-f778f274e296?auto=format&fit=crop&w=600&q=80",
-      refLabel: "Tanques de Almacenamiento Bioclimáticos en Meseta"
+      refImg: bocetoColegioImg,
+      refLabel: "Corte Arquitectónico: Macrocubierta Captadora & Aljibe Central 450.000 L",
+      isAsset: true
     },
     strategicConclusion: {
       title: "Conclusión Estratégica",
       desc: "La capacidad de agua demuestra que la isla no admite sobrepoblación ni crecimiento urbano desmedido, justificando la decisión de consolidar y blindar únicamente a la población existente."
-    },
-    diagramType: "waterBalance"
+    }
   },
 
   // LÁMINA 4
@@ -142,10 +156,10 @@ export const FUTURE_TIERRABOMBA_SLIDES = [
     connectivity: {
       title: "Tiempos de Conectividad & Nodo Intermedio",
       desc: "La distancia entre asentamientos permite desplazamientos rápidos: 10 minutos en moto y 25 minutos en bicicleta. En lugar de saturar cada sector con proyectos aislados, se propone una red interconectada con un nodo intermedio de equipamientos colectivos en el centro de la isla para dar cobertura eficiente a todos los poblados.",
-      refImg: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=600&q=80",
-      refLabel: "Ciclo-rutas Escénicas y Corredores de Conectividad Limpia"
-    },
-    diagramType: "isochrones"
+      refImg: calqueTbImg,
+      refLabel: "Red de Conectividad Insular & Polígono de Meseta Central",
+      isAsset: true
+    }
   },
 
   // LÁMINA 5
@@ -162,25 +176,27 @@ export const FUTURE_TIERRABOMBA_SLIDES = [
         num: "01",
         title: "Adaptación a la Topografía",
         desc: "Continuación de la trama vial existente adaptándose estrictamente a las curvas de nivel de la meseta (+22m a +30m) para evitar cortes agresivos en el terreno.",
-        refImg: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80",
-        refLabel: "Curvas de Nivel Adaptadas al Relieve"
+        refImg: calcoCotasImg,
+        refLabel: "Plano Oficial de Cotas de Nivel & Topografía de Tierrabomba",
+        isAsset: true
       },
       {
         num: "02",
         title: "Corredores Ecológicos",
         desc: "Trazado de ejes ambientales perpendiculares a las vías que conectan el bosque denso de la meseta central con el mar Caribe y la bahía.",
-        refImg: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80",
-        refLabel: "Ejes Verdes de Drenaje y Amortiguación"
+        refImg: spectralNdviImg,
+        refLabel: "Análisis Satelital NDVI: Corredores Verdes Meseta-Mar",
+        isAsset: true
       },
       {
         num: "03",
         title: "Articulación Urbana",
         desc: "Conexión de la zona de expansión con el casco consolidado, tomando como hito ordenador la plaza principal, la iglesia y el colegio preexistente.",
-        refImg: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=600&q=80",
-        refLabel: "Hitos Urbanos y Plazas Cívicas"
+        refImg: bocetoColegioImg,
+        refLabel: "Plaza Cívica, Ágora Comunitaria & Equipamiento Educativo",
+        isAsset: true
       }
-    ],
-    diagramType: "topographyCorridors"
+    ]
   },
 
   // LÁMINA 6
@@ -199,13 +215,13 @@ export const FUTURE_TIERRABOMBA_SLIDES = [
     },
     methodology: {
       title: "Metodología de Identificación de Riesgo",
-      desc: "Se descarta la reubicación total de la isla; el proyecto se enfoca únicamente en las 800 viviendas expuestas a la erosión costera de la franja norte de 500 metros.",
+      desc: "Se descarta la reubicación total de la isla; el proyecto se enfoca únicamente en las 800 viviendas expuestas a la erosión costera de la franja norte de 500 metros delimitada por la línea horizontal Lat 10.3725.",
       cross: "Cruce Técnico: Selección de predios mediante el cruce de la cota de inundación con fotografía aérea y la consulta de los códigos de identificación catastral en el sistema MIDAS de Cartagena.",
-      localization: "Criterio de Localización: La nueva vivienda se implanta contigua al núcleo urbano consolidado para preservar las redes de parentesco y evitar el desarraigo de la comunidad.",
-      refImg: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
-      refLabel: "Diagnóstico de Erosión Costera y Frente de Playa"
-    },
-    diagramType: "midasCensus"
+      localization: "Criterio de Localización: La nueva vivienda se implanta contigua al núcleo urbano consolidado en la meseta (+22m) para preservar las redes de parentesco y evitar el desarraigo de la comunidad.",
+      refImg: calcoCotasImg,
+      refLabel: "Cruce Catastral MIDAS: Huellas de 800 Viviendas en Franja Norte de 500m",
+      isAsset: true
+    }
   },
 
   // LÁMINA 7
@@ -223,25 +239,30 @@ export const FUTURE_TIERRABOMBA_SLIDES = [
         area: "54 m²",
         occupants: "4 - 5 personas",
         elements: "Estructura palafítica (+0.60m), 2 habitaciones, porche de sombra frontal, cocina, baño de bajo consumo y tanque pluvial 2.500 L.",
-        refImg: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80"
+        refImg: bocetoViviendaImg,
+        refLabel: "Corte Bioclimático del Prototipo Palafítico (+0.60m)",
+        isAsset: true
       },
       {
         stage: "Fase 2: Crecimiento Productivo",
         area: "72 m²",
         occupants: "5 - 7 personas",
         elements: "Ampliación lateral para taller de redes de pesca, huerto o 3ª habitación y patio interior de convección térmica.",
-        refImg: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80"
+        refImg: bocetoViviendaImg,
+        refLabel: "Módulo Productivo: Taller de Redes & Huerto Isleño",
+        isAsset: true
       },
       {
         stage: "Fase 3: Consolidación & Altillo",
         area: "86 m²",
         occupants: "6 - 8 personas",
         elements: "Consolidación de altillo habitable bajo cubierta a dos aguas y paneles solares fotovoltaicos para 100% de autonomía.",
-        refImg: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80"
+        refImg: bocetoViviendaImg,
+        refLabel: "Altillo Habitable & Cubierta Captadora Invertida",
+        isAsset: true
       }
     ],
-    technicalFocus: "Diseño que prevé la consolidación progresiva tanto de las unidades habitacionales como de las redes de infraestructura técnica por autoconstrucción comunitaria guiada.",
-    diagramType: "progressiveHousing"
+    technicalFocus: "Diseño que prevé la consolidación progresiva tanto de las unidades habitacionales como de las redes de infraestructura técnica por autoconstrucción comunitaria guiada en madera tratada y Bloques de Tierra Comprimida (BTC)."
   },
 
   // LÁMINA 8
@@ -265,9 +286,9 @@ export const FUTURE_TIERRABOMBA_SLIDES = [
       title: "Confort Bioclimático Pasivo",
       desc: "Espacio central que favorece la captura de brisas marinas N-NE y garantiza la ventilación cruzada continua en todas las unidades, con una reducción térmica de hasta 5°C."
     },
-    refImg: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80",
-    refLabel: "Patio Central Comunal con Vegetación de Sombra Fresca",
-    diagramType: "communalCourtyard"
+    refImg: bocetoViviendaImg,
+    refLabel: "Detalle Arquitectónico: Patios Centrales de Convección y Ventilación Cruzada",
+    isAsset: true
   }
 ];
 
@@ -406,7 +427,7 @@ export default function TierrabombaFutureModal({ isOpen, onClose }) {
                 {currentSlide.number} &bull; {currentSlide.tag}
               </span>
               <span className="text-xs font-mono text-stone-500 font-medium">
-                Tesis de Arquitectura & Urbanismo 2026 &bull; Universidad Santo Tomás
+                Tesis de Arquitectura & Urbanismo 2026 &bull; Isla de Tierrabomba, Cartagena
               </span>
             </div>
 
@@ -446,24 +467,24 @@ export default function TierrabombaFutureModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* 3 Vocaciones con Referentes Fotográficos Reales */}
+              {/* 3 Vocaciones con Planos e Imágenes Reales de Tierrabomba */}
               <div className="space-y-3">
                 <h3 className="text-xs font-mono font-bold text-stone-700 uppercase tracking-wider flex items-center gap-2">
                   <TreePine className="w-4 h-4 text-emerald-600" />
-                  3 Vocaciones Principales & Referentes Paisajísticos
+                  3 Vocaciones Principales: Planos y Evidencias Reales
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {currentSlide.vocations.map((voc, i) => {
                     const Icon = voc.icon;
                     return (
                       <div key={i} className="rounded-2xl bg-white border border-stone-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
-                        <div className="h-36 relative overflow-hidden bg-stone-100">
+                        <div className="h-40 relative overflow-hidden bg-stone-100 flex items-center justify-center">
                           <img 
                             src={voc.refImg} 
                             alt={voc.title} 
                             className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
                           />
-                          <div className="absolute bottom-2 left-2 right-2 bg-stone-900/80 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[10px] font-mono truncate">
+                          <div className="absolute bottom-2 left-2 right-2 bg-stone-900/85 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[10px] font-mono truncate">
                             {voc.refName}
                           </div>
                         </div>
@@ -526,19 +547,19 @@ export default function TierrabombaFutureModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Dimensión Antropológica con Referente Fotográfico */}
+              {/* Dimensión Antropológica con Plano Territorial de Tierrabomba */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5 p-5 rounded-2xl bg-stone-50 border border-stone-200 items-center">
-                <div className="md:col-span-4 h-44 rounded-xl overflow-hidden bg-stone-200 shadow-sm relative">
+                <div className="md:col-span-5 h-48 rounded-xl overflow-hidden bg-stone-200 shadow-sm relative border border-stone-300">
                   <img 
                     src={currentSlide.anthropologicalDimension.refImg} 
-                    alt="Comunidad Raizal" 
-                    className="w-full h-full object-cover"
+                    alt="Delimitación Tierrabomba" 
+                    className="w-full h-full object-contain bg-white"
                   />
-                  <div className="absolute bottom-2 left-2 right-2 bg-stone-900/80 text-white px-2 py-1 rounded text-[10px] font-mono">
+                  <div className="absolute bottom-2 left-2 right-2 bg-stone-900/85 text-white px-2 py-1 rounded text-[10px] font-mono">
                     {currentSlide.anthropologicalDimension.refLabel}
                   </div>
                 </div>
-                <div className="md:col-span-8 space-y-2">
+                <div className="md:col-span-7 space-y-2">
                   <h3 className="text-sm font-bold text-stone-900 font-serif flex items-center gap-2">
                     <Users className="w-4 h-4 text-sky-700" />
                     {currentSlide.anthropologicalDimension.title}
@@ -580,15 +601,15 @@ export default function TierrabombaFutureModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Sustento Técnico & Referente Real de Almacenamiento */}
+              {/* Sustento Técnico con Corte Arquitectónico Real de la Tesis */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5 p-5 rounded-2xl bg-stone-50 border border-stone-200 items-center">
-                <div className="md:col-span-5 h-48 rounded-xl overflow-hidden bg-stone-200 shadow-sm relative">
+                <div className="md:col-span-5 h-52 rounded-xl overflow-hidden bg-white shadow-sm relative border border-stone-300">
                   <img 
                     src={currentSlide.waterSystemTechnical.refImg} 
-                    alt="Infraestructura Hídrica" 
-                    className="w-full h-full object-cover"
+                    alt="Corte Colegio y Aljibe" 
+                    className="w-full h-full object-contain p-2"
                   />
-                  <div className="absolute bottom-2 left-2 right-2 bg-stone-900/80 text-white px-2 py-1 rounded text-[10px] font-mono">
+                  <div className="absolute bottom-2 left-2 right-2 bg-stone-900/85 text-white px-2 py-1 rounded text-[10px] font-mono">
                     {currentSlide.waterSystemTechnical.refLabel}
                   </div>
                 </div>
@@ -603,7 +624,7 @@ export default function TierrabombaFutureModal({ isOpen, onClose }) {
                     </p>
                   </div>
                   <div className="p-3 rounded-xl bg-teal-100/60 border border-teal-200 text-xs font-mono text-teal-950 font-bold">
-                    📐 Fórmula: {currentSlide.waterSystemTechnical.formula}
+                    📐 Fórmula Técnica: {currentSlide.waterSystemTechnical.formula}
                   </div>
                   <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
                     <strong>{currentSlide.strategicConclusion.title}:</strong> {currentSlide.strategicConclusion.desc}
@@ -635,15 +656,15 @@ export default function TierrabombaFutureModal({ isOpen, onClose }) {
                 ))}
               </div>
 
-              {/* Conectividad & Nodo Intermedio con Referente Fotográfico */}
+              {/* Conectividad con Plano Territorial Real */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5 p-5 rounded-2xl bg-stone-50 border border-stone-200 items-center">
-                <div className="md:col-span-5 h-48 rounded-xl overflow-hidden bg-stone-200 shadow-sm relative">
+                <div className="md:col-span-5 h-52 rounded-xl overflow-hidden bg-white shadow-sm relative border border-stone-300">
                   <img 
                     src={currentSlide.connectivity.refImg} 
-                    alt="Ciclo-rutas" 
-                    className="w-full h-full object-cover"
+                    alt="Plano Policéntrico" 
+                    className="w-full h-full object-contain p-2"
                   />
-                  <div className="absolute bottom-2 left-2 right-2 bg-stone-900/80 text-white px-2 py-1 rounded text-[10px] font-mono">
+                  <div className="absolute bottom-2 left-2 right-2 bg-stone-900/85 text-white px-2 py-1 rounded text-[10px] font-mono">
                     {currentSlide.connectivity.refLabel}
                   </div>
                 </div>
@@ -657,10 +678,10 @@ export default function TierrabombaFutureModal({ isOpen, onClose }) {
                   </p>
                   <div className="grid grid-cols-2 gap-2 text-xs font-mono">
                     <div className="p-2.5 rounded-xl bg-white border border-stone-200">
-                      🛵 <strong>10 min en Moto</strong> entre poblados
+                      🛵 <strong>10 min en Moto</strong> entre asentamientos
                     </div>
                     <div className="p-2.5 rounded-xl bg-white border border-stone-200">
-                      🚲 <strong>25 min en Bici</strong> por la meseta
+                      🚲 <strong>25 min en Bici</strong> a través de la meseta
                     </div>
                   </div>
                 </div>
@@ -676,13 +697,13 @@ export default function TierrabombaFutureModal({ isOpen, onClose }) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {currentSlide.urbanCriteria.map((crit, i) => (
                   <div key={i} className="rounded-2xl bg-white border border-stone-200 overflow-hidden shadow-sm flex flex-col">
-                    <div className="h-36 relative bg-stone-100">
+                    <div className="h-44 relative bg-stone-50 p-2 border-b border-stone-100 flex items-center justify-center">
                       <img 
                         src={crit.refImg} 
                         alt={crit.title} 
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
-                      <div className="absolute bottom-2 left-2 right-2 bg-stone-900/80 text-white px-2 py-0.5 rounded text-[10px] font-mono">
+                      <div className="absolute bottom-2 left-2 right-2 bg-stone-900/85 text-white px-2 py-0.5 rounded text-[10px] font-mono truncate">
                         {crit.refLabel}
                       </div>
                     </div>
@@ -725,15 +746,15 @@ export default function TierrabombaFutureModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Metodología & Criterios Técnicos */}
+              {/* Metodología & Plano de Huellas MIDAS de la Tesis */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5 p-5 rounded-2xl bg-stone-50 border border-stone-200 items-center">
-                <div className="md:col-span-5 h-48 rounded-xl overflow-hidden bg-stone-200 shadow-sm relative">
+                <div className="md:col-span-5 h-52 rounded-xl overflow-hidden bg-white shadow-sm relative border border-stone-300">
                   <img 
                     src={currentSlide.methodology.refImg} 
-                    alt="Erosión Costera" 
-                    className="w-full h-full object-cover"
+                    alt="Plano Huellas Catastrales MIDAS" 
+                    className="w-full h-full object-contain p-2"
                   />
-                  <div className="absolute bottom-2 left-2 right-2 bg-stone-900/80 text-white px-2 py-1 rounded text-[10px] font-mono">
+                  <div className="absolute bottom-2 left-2 right-2 bg-stone-900/85 text-white px-2 py-1 rounded text-[10px] font-mono">
                     {currentSlide.methodology.refLabel}
                   </div>
                 </div>
@@ -766,14 +787,17 @@ export default function TierrabombaFutureModal({ isOpen, onClose }) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {currentSlide.phases.map((phase, i) => (
                   <div key={i} className="rounded-2xl bg-white border border-stone-200 overflow-hidden shadow-sm flex flex-col">
-                    <div className="h-36 relative bg-stone-100">
+                    <div className="h-44 relative bg-stone-50 p-2 border-b border-stone-100 flex items-center justify-center">
                       <img 
                         src={phase.refImg} 
                         alt={phase.stage} 
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
                       <div className="absolute top-2 right-2 bg-orange-600 text-white px-2 py-0.5 rounded text-[10px] font-mono font-bold">
                         {phase.area}
+                      </div>
+                      <div className="absolute bottom-2 left-2 right-2 bg-stone-900/85 text-white px-2 py-0.5 rounded text-[10px] font-mono truncate">
+                        {phase.refLabel}
                       </div>
                     </div>
                     <div className="p-4 space-y-1.5 flex-1 flex flex-col justify-between">
@@ -826,17 +850,15 @@ export default function TierrabombaFutureModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Referente Fotográfico de Patio Central */}
-              <div className="h-44 rounded-2xl overflow-hidden bg-stone-200 relative border border-stone-200 shadow-sm">
+              {/* Corte Técnico y Esquema de Patio Comunal de la Tesis */}
+              <div className="h-52 rounded-2xl overflow-hidden bg-white relative border border-stone-300 shadow-sm p-2 flex items-center justify-center">
                 <img 
                   src={currentSlide.refImg} 
-                  alt="Patio Comunal" 
-                  className="w-full h-full object-cover"
+                  alt="Patio Comunal y Corte Bioclimático" 
+                  className="w-full h-full object-contain"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-900/80 via-transparent to-transparent flex items-end p-4">
-                  <span className="text-white text-xs font-mono font-medium">
-                    Referente Arquitectónico: {currentSlide.refLabel} &bull; Microclima de Sombra y Brisa Marina
-                  </span>
+                <div className="absolute bottom-2 left-2 right-2 bg-stone-900/85 text-white px-3 py-1.5 rounded-lg text-xs font-mono">
+                  {currentSlide.refLabel} &bull; Captación de Brisas N-NE y Reducción Térmica de hasta 5°C
                 </div>
               </div>
             </div>
