@@ -908,17 +908,6 @@ export default function ModelViewer3D({ onSelectModule }) {
     }
   }, [activeLayers]);
 
-  // Update Sun Lighting with Azimuth & Elevation
-  useEffect(() => {
-    const light = objectsRef.current.dirLight;
-    if (!light) return;
-    const radAz = (sunAzimuth * Math.PI) / 180;
-    const radEl = (sunElevation * Math.PI) / 180;
-    const dist = 90;
-    light.position.x = dist * Math.cos(radAz) * Math.cos(radEl);
-    light.position.y = dist * Math.sin(radEl);
-    light.position.z = dist * Math.sin(radAz) * Math.cos(radEl);
-    light.intensity = sunIntensity;
   // Restablecer Vista Axonométrica a 45° (proyección paralela)
   const resetAxonometricView = () => {
     if (!cameraRef.current || !mountRef.current) return;
