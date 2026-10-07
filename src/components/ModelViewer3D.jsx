@@ -43,9 +43,13 @@ import {
 export default function ModelViewer3D({ onSelectModule }) {
   const mountRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [selected3DModel, setSelected3DModel] = useState('colegio'); // 'colegio' (Carga ultra-rápida por defecto) | 'masterplan' | 'vivienda' | 'revit' | 'custom'
+  const [selected3DModel, setSelected3DModel] = useState('masterplan'); // 'masterplan' (Axonometría BIM por defecto) | 'colegio' | 'vivienda' | 'revit' | 'custom'
   const [wireframe, setWireframe] = useState(false);
   const [explodedView, setExplodedView] = useState(false);
+
+  // Tonos de Materialidad Personalizables (Pasto verde amarillento café & Pavimento travertino)
+  const [grassColor, setGrassColor] = useState('#7d8c4e'); // Verde amarillento café suave
+  const [pavementColor, setPavementColor] = useState('#d4c5b3'); // Travertino / arena cálido
 
   // Simulación de Tránsito Marítimo y Urbano en Vivo
   const [isPlayingSimulation, setIsPlayingSimulation] = useState(true);
@@ -176,29 +180,30 @@ export default function ModelViewer3D({ onSelectModule }) {
     }
 
     if (modelType === 'colegio') {
-      // Pasto, Agua y Piso Textures (Endless / Seamless)
+      // Pasto, Agua y Piso Textures (Endless / Seamless & Scaled)
       const pastoTex = texLoader.load(`${normalizedBase}assets/textura_pasto_m5.png`);
       pastoTex.wrapS = THREE.MirroredRepeatWrapping;
       pastoTex.wrapT = THREE.MirroredRepeatWrapping;
-      pastoTex.repeat.set(10, 10);
+      pastoTex.repeat.set(12, 12);
       pastoTex.anisotropy = 16;
 
       const waterTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
       waterTex.wrapS = THREE.MirroredRepeatWrapping;
       waterTex.wrapT = THREE.MirroredRepeatWrapping;
-      waterTex.repeat.set(16, 16);
+      waterTex.repeat.set(45, 45); // Textura de agua mucho más fina y pequeña
       waterTex.anisotropy = 16;
 
       const pisoTex = texLoader.load(`${normalizedBase}assets/textura_piso_m5.png`);
       pisoTex.wrapS = THREE.MirroredRepeatWrapping;
       pisoTex.wrapT = THREE.MirroredRepeatWrapping;
-      pisoTex.repeat.set(6, 6);
+      pisoTex.repeat.set(8, 8);
       pisoTex.anisotropy = 16;
 
-      // Base de Pasto
+      // Base de Pasto (Tono verde amarillento café)
       const grassGeo = new THREE.PlaneGeometry(90, 90);
       const grassMat = new THREE.MeshStandardMaterial({
         map: pastoTex,
+        color: new THREE.Color(grassColor),
         roughness: 0.90,
         metalness: 0.0,
         side: THREE.DoubleSide
@@ -207,15 +212,16 @@ export default function ModelViewer3D({ onSelectModule }) {
       grassMesh.rotation.x = -Math.PI / 2;
       grassMesh.position.y = -0.02;
       grassMesh.receiveShadow = true;
+      grassMesh.userData.layer = 'terrain_grass';
       modelGroup.add(grassMesh);
       objectsRef.current.terrain = grassMesh;
 
-      // Espejo de Agua Marino
+      // Espejo de Agua Marino (Ondas pequeñas y suaves)
       const waterGeo = new THREE.PlaneGeometry(180, 180);
       const waterMat = new THREE.MeshStandardMaterial({
         map: waterTex,
-        color: new THREE.Color('#9cd3db'),
-        roughness: 0.20,
+        color: new THREE.Color('#8dc8d2'),
+        roughness: 0.18,
         metalness: 0.10,
         transparent: true,
         opacity: 0.92,
@@ -245,11 +251,17 @@ export default function ModelViewer3D({ onSelectModule }) {
 
       // B. Plataforma / Losa Cívica Nivel +0.00 (Textura de Piso Travertino)
       const slabGeo = new THREE.BoxGeometry(22, 0.4, 15);
-      const slabMat = new THREE.MeshStandardMaterial({ map: pisoTex, roughness: 0.85, metalness: 0.02 });
+      const slabMat = new THREE.MeshStandardMaterial({
+        map: pisoTex,
+        color: new THREE.Color(pavementColor),
+        roughness: 0.85,
+        metalness: 0.02
+      });
       const slabMesh = new THREE.Mesh(slabGeo, slabMat);
       slabMesh.position.set(0, 0.2, 0);
       slabMesh.castShadow = true;
       slabMesh.receiveShadow = true;
+      slabMesh.userData.layer = 'terrain_pavement';
       modelGroup.add(slabMesh);
 
       // C. Aulas & Volúmenes de Concreto / BTC
@@ -337,30 +349,44 @@ export default function ModelViewer3D({ onSelectModule }) {
       const pastoTex = texLoader.load(`${normalizedBase}assets/textura_pasto_m5.png`);
       pastoTex.wrapS = THREE.MirroredRepeatWrapping;
       pastoTex.wrapT = THREE.MirroredRepeatWrapping;
-      pastoTex.repeat.set(8, 8);
+      pastoTex.repeat.set(10, 10);
       pastoTex.anisotropy = 16;
 
       const waterTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
       waterTex.wrapS = THREE.MirroredRepeatWrapping;
       waterTex.wrapT = THREE.MirroredRepeatWrapping;
-      waterTex.repeat.set(12, 12);
+      waterTex.repeat.set(45, 45); // Ondas de agua reducidas y suaves
       waterTex.anisotropy = 16;
 
-      // Base de Pasto
+      // Base de Pasto (Tono verde amarillento café)
       const grassMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(60, 60),
-        new THREE.MeshStandardMaterial({ map: pastoTex, roughness: 0.9, side: THREE.DoubleSide })
+        new THREE.MeshStandardMaterial({
+          map: pastoTex,
+          color: new THREE.Color(grassColor),
+          roughness: 0.9,
+          side: THREE.DoubleSide
+        })
       );
       grassMesh.rotation.x = -Math.PI / 2;
       grassMesh.position.y = -0.02;
       grassMesh.receiveShadow = true;
+      grassMesh.userData.layer = 'terrain_grass';
       modelGroup.add(grassMesh);
       objectsRef.current.terrain = grassMesh;
 
       // Espejo de Agua Costero
       const waterMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(120, 120),
-        new THREE.MeshStandardMaterial({ map: waterTex, color: 0x9cd3db, roughness: 0.2, transparent: true, opacity: 0.92, side: THREE.DoubleSide })
+        new THREE.PlaneGeometry(140, 140),
+        new THREE.MeshStandardMaterial({
+          map: waterTex,
+          color: new THREE.Color('#8dc8d2'),
+          roughness: 0.18,
+          metalness: 0.10,
+          transparent: true,
+          opacity: 0.92,
+          side: THREE.DoubleSide
+        })
       );
       waterMesh.rotation.x = -Math.PI / 2;
       waterMesh.position.y = -0.15;
@@ -500,6 +526,30 @@ export default function ModelViewer3D({ onSelectModule }) {
           const rootContainer = new THREE.Group();
           rootContainer.add(model);
 
+          // Espejo de Agua Marino Insular alrededor de Tierrabomba
+          const waterTex = new THREE.TextureLoader().load(`${basePath.endsWith('/') ? basePath : basePath + '/'}assets/textura_agua_m5.jpg`);
+          waterTex.wrapS = THREE.MirroredRepeatWrapping;
+          waterTex.wrapT = THREE.MirroredRepeatWrapping;
+          waterTex.anisotropy = 16;
+          waterTex.repeat.set(65, 65); // Textura de agua fina a gran escala
+
+          const waterMesh = new THREE.Mesh(
+            new THREE.PlaneGeometry(350, 350),
+            new THREE.MeshStandardMaterial({
+              map: waterTex,
+              color: new THREE.Color('#8dc8d2'),
+              roughness: 0.18,
+              metalness: 0.10,
+              transparent: true,
+              opacity: 0.92,
+              side: THREE.DoubleSide
+            })
+          );
+          waterMesh.rotation.x = -Math.PI / 2;
+          waterMesh.position.y = -0.15;
+          waterMesh.receiveShadow = true;
+          rootContainer.add(waterMesh);
+
           objectsRef.current.revitTerrain = [];
           objectsRef.current.revitWalls = [];
           objectsRef.current.revitBuildings = [];
@@ -508,13 +558,13 @@ export default function ModelViewer3D({ onSelectModule }) {
           pastoTex.wrapS = THREE.MirroredRepeatWrapping;
           pastoTex.wrapT = THREE.MirroredRepeatWrapping;
           pastoTex.anisotropy = 16;
-          pastoTex.repeat.set(12, 12);
+          pastoTex.repeat.set(16, 16);
 
           const pisoTex = new THREE.TextureLoader().load(`${basePath.endsWith('/') ? basePath : basePath + '/'}assets/textura_piso_m5.png`);
           pisoTex.wrapS = THREE.MirroredRepeatWrapping;
           pisoTex.wrapT = THREE.MirroredRepeatWrapping;
           pisoTex.anisotropy = 16;
-          pisoTex.repeat.set(16, 16);
+          pisoTex.repeat.set(24, 24);
 
           model.traverse((child) => {
             if (child.isMesh) {
@@ -531,25 +581,26 @@ export default function ModelViewer3D({ onSelectModule }) {
               if (name.includes('Terrain') || matName.includes('Terrain') || name.includes('Toposolid')) {
                 child.material = new THREE.MeshStandardMaterial({
                   map: pastoTex,
-                  color: 0xffffff,
+                  color: new THREE.Color(grassColor),
                   roughness: 0.90,
                   metalness: 0.0,
                   side: THREE.DoubleSide,
                 });
                 child.renderOrder = 1;
-                child.userData.layer = 'terrain';
+                child.userData.layer = 'terrain_grass';
                 objectsRef.current.revitTerrain.push(child);
                 child.visible = activeLayers.terrain;
               } else if (name.includes('Floor') || matName.includes('Floor') || name.includes('Slab') || name.includes('Suelo') || name.includes('Plaza') || name.includes('Pavimento')) {
                 child.material = new THREE.MeshStandardMaterial({
                   map: pisoTex,
-                  color: 0xffffff,
+                  color: new THREE.Color(pavementColor),
                   roughness: 0.88,
                   metalness: 0.02,
                   side: THREE.DoubleSide,
                 });
                 child.renderOrder = 2;
-                child.userData.layer = 'terrain';
+                child.userData.layer = 'terrain_pavement';
+                objectsRef.current.revitTerrain.push(child);
                 child.visible = activeLayers.terrain;
               } else if (name.includes('Walls') || name.includes('Partición') || name.includes('Interior') || name.includes('muro') || matName.includes('Walls')) {
                 child.material = new THREE.MeshStandardMaterial({
@@ -620,7 +671,7 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     // Cámara Ortográfica para Proyección Axonométrica Paralela a 35° (sin distorsión de perspectiva)
     const aspect = container.clientWidth / container.clientHeight;
-    let viewSize = selected3DModel === 'revit' ? 130 : 22;
+    let viewSize = selected3DModel === 'masterplan' ? 26 : selected3DModel === 'revit' ? 130 : 22;
     const camera = new THREE.OrthographicCamera(
       -viewSize * aspect,
       viewSize * aspect,
@@ -687,10 +738,14 @@ export default function ModelViewer3D({ onSelectModule }) {
     let dragButton = 0;
     let prevMousePos = { x: 0, y: 0 };
     // Ángulo axonométrico panorámico a 45°
-    let spherical = selected3DModel === 'revit'
+    let spherical = selected3DModel === 'masterplan'
+      ? { radius: 55, theta: Math.PI / 4, phi: Math.PI * 45 / 180 }
+      : selected3DModel === 'revit'
       ? { radius: 180, theta: -Math.PI * 0.25, phi: Math.PI * 45 / 180 }
       : { radius: 45, theta: Math.PI / 4, phi: Math.PI * 45 / 180 };
-    let panTarget = selected3DModel === 'revit'
+    let panTarget = selected3DModel === 'masterplan'
+      ? { x: 0, y: 0.5, z: 0 }
+      : selected3DModel === 'revit'
       ? { x: 0, y: 0, z: 0 }
       : { x: 0, y: 1.5, z: 0 };
 
@@ -908,12 +963,31 @@ export default function ModelViewer3D({ onSelectModule }) {
     }
   }, [activeLayers]);
 
+  // Update Materials Color in Real-time
+  useEffect(() => {
+    if (!sceneRef.current) return;
+    const gCol = new THREE.Color(grassColor);
+    const pCol = new THREE.Color(pavementColor);
+
+    sceneRef.current.traverse((child) => {
+      if (child.isMesh && child.material) {
+        const name = (child.name || '') + (child.parent?.name || '');
+        const matName = child.material.name || '';
+        if (child.userData.layer === 'terrain_grass' || name.includes('Terrain') || matName.includes('Terrain') || name.includes('Toposolid')) {
+          child.material.color = gCol;
+        } else if (child.userData.layer === 'terrain_pavement' || name.includes('Floor') || matName.includes('Floor') || name.includes('Slab') || name.includes('Suelo') || name.includes('Pavimento')) {
+          child.material.color = pCol;
+        }
+      }
+    });
+  }, [grassColor, pavementColor]);
+
   // Restablecer Vista Axonométrica a 45° (proyección paralela)
   const resetAxonometricView = () => {
     if (!cameraRef.current || !mountRef.current) return;
     const container = mountRef.current;
     const aspect = container.clientWidth / container.clientHeight;
-    const viewSize = 22;
+    const viewSize = selected3DModel === 'masterplan' ? 26 : selected3DModel === 'revit' ? 110 : 22;
     const camera = cameraRef.current;
     if (camera.isOrthographicCamera) {
       camera.left = -viewSize * aspect;
@@ -923,8 +997,18 @@ export default function ModelViewer3D({ onSelectModule }) {
       camera.updateProjectionMatrix();
     }
 
-    const spherical = { radius: 45, theta: Math.PI / 4, phi: Math.PI * 45 / 180 };
-    const panTarget = { x: 0, y: 1.5, z: 0 };
+    const spherical = selected3DModel === 'masterplan'
+      ? { radius: 55, theta: Math.PI / 4, phi: Math.PI * 45 / 180 }
+      : selected3DModel === 'revit'
+      ? { radius: 180, theta: -Math.PI * 0.25, phi: Math.PI * 45 / 180 }
+      : { radius: 45, theta: Math.PI / 4, phi: Math.PI * 45 / 180 };
+
+    const panTarget = selected3DModel === 'masterplan'
+      ? { x: 0, y: 0.5, z: 0 }
+      : selected3DModel === 'revit'
+      ? { x: 0, y: 0, z: 0 }
+      : { x: 0, y: 1.5, z: 0 };
+
     camera.position.x = panTarget.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
     camera.position.y = panTarget.y + spherical.radius * Math.cos(spherical.phi);
     camera.position.z = panTarget.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
@@ -1474,6 +1558,97 @@ export default function ModelViewer3D({ onSelectModule }) {
               onChange={(e) => setSunIntensity(Number(e.target.value))}
               className="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
             />
+          </div>
+        </div>
+
+        {/* Tonos de Color Personalizables (Pasto & Pavimento) */}
+        <div className="pt-2.5 border-t border-white/10 space-y-3">
+          <span className="text-[11px] font-mono font-bold text-[#24c8bd] uppercase tracking-wider block">
+            Materialidad & Texturas
+          </span>
+
+          {/* Color del Pasto */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-300 flex items-center gap-1.5">
+                <Palette className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Tono del pasto:</span>
+              </span>
+              <div className="flex items-center space-x-1.5">
+                <input
+                  type="color"
+                  value={grassColor}
+                  onChange={(e) => setGrassColor(e.target.value)}
+                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
+                  title="Seleccionar color personalizado"
+                />
+                <span className="text-emerald-400 font-bold text-[10px]">{grassColor}</span>
+              </div>
+            </div>
+            {/* Presets verde amarillento café */}
+            <div className="grid grid-cols-2 gap-1">
+              {[
+                { name: 'Oliva Cálido', hex: '#7d8c4e' },
+                { name: 'Verde Café', hex: '#6b7d42' },
+                { name: 'Amarillento', hex: '#8a9a5b' },
+                { name: 'Sabana Seca', hex: '#949c66' }
+              ].map(preset => (
+                <button
+                  key={preset.hex}
+                  onClick={() => setGrassColor(preset.hex)}
+                  className={`py-1 px-1 rounded-lg text-[10px] font-mono border transition-all ${
+                    grassColor.toLowerCase() === preset.hex.toLowerCase()
+                      ? 'border-white ring-1 ring-emerald-400 font-bold text-white bg-white/20'
+                      : 'border-white/10 text-slate-300 hover:bg-white/10'
+                  }`}
+                  style={{ backgroundColor: `${preset.hex}33` }}
+                >
+                  {preset.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Color del Pavimento / Piso */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-300 flex items-center gap-1.5">
+                <Palette className="w-3.5 h-3.5 text-amber-300" />
+                <span>Tono del piso:</span>
+              </span>
+              <div className="flex items-center space-x-1.5">
+                <input
+                  type="color"
+                  value={pavementColor}
+                  onChange={(e) => setPavementColor(e.target.value)}
+                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
+                  title="Seleccionar color personalizado"
+                />
+                <span className="text-amber-300 font-bold text-[10px]">{pavementColor}</span>
+              </div>
+            </div>
+            {/* Presets travertino / arena */}
+            <div className="grid grid-cols-2 gap-1">
+              {[
+                { name: 'Travertino', hex: '#d4c5b3' },
+                { name: 'Arena Cálida', hex: '#c8b9a6' },
+                { name: 'Piedra Coral', hex: '#e2d5c3' },
+                { name: 'Gris Cemento', hex: '#a8a29e' }
+              ].map(preset => (
+                <button
+                  key={preset.hex}
+                  onClick={() => setPavementColor(preset.hex)}
+                  className={`py-1 px-1 rounded-lg text-[10px] font-mono border transition-all ${
+                    pavementColor.toLowerCase() === preset.hex.toLowerCase()
+                      ? 'border-white ring-1 ring-amber-400 font-bold text-white bg-white/20'
+                      : 'border-white/10 text-slate-300 hover:bg-white/10'
+                  }`}
+                  style={{ backgroundColor: `${preset.hex}33` }}
+                >
+                  {preset.name}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
