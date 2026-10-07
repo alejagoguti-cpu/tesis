@@ -74,18 +74,18 @@ export async function buildCartagenaTerritoryScene({
   pastoTex.colorSpace = THREE.SRGBColorSpace;
   pastoTex.anisotropy = 16;
 
-  // 2. Agua / Water (Seamless Light Aqua Surface from user upload)
+  // 2. Agua / Water (Seamless Fine Caribbean Aqua Texture)
   const waterTex = texLoader.load(waterTextureImg);
   waterTex.wrapS = THREE.RepeatWrapping;
   waterTex.wrapT = THREE.RepeatWrapping;
-  waterTex.repeat.set(12, 12);
+  waterTex.repeat.set(120, 120);
   waterTex.colorSpace = THREE.SRGBColorSpace;
   waterTex.anisotropy = 16;
 
   const bumpTex = texLoader.load(waterTextureImg);
   bumpTex.wrapS = THREE.RepeatWrapping;
   bumpTex.wrapT = THREE.RepeatWrapping;
-  bumpTex.repeat.set(16, 16);
+  bumpTex.repeat.set(120, 120);
   bumpTex.anisotropy = 16;
 
   // 3. Piso / Manzanas / Urban Ground (Light Limestone Pavement from user upload)
@@ -111,10 +111,10 @@ export async function buildCartagenaTerritoryScene({
   const waterMat = new THREE.MeshStandardMaterial({
     map: waterTex,
     bumpMap: bumpTex,
-    bumpScale: 0.04,
+    bumpScale: 0.02,
     color: new THREE.Color(colors.water || '#ffffff'),
-    roughness: 0.15,
-    metalness: 0.08,
+    roughness: 0.12,
+    metalness: 0.10,
     transparent: true,
     opacity: 0.94,
     side: THREE.DoubleSide,

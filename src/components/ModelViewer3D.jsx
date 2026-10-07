@@ -1621,6 +1621,22 @@ export default function ModelViewer3D({ onSelectModule }) {
         </div>
       )}
 
+      {/* Botón Flotante Lateral de Acceso Rápido al Editor de Colores */}
+      <div className="absolute top-24 right-4 z-[350] pointer-events-auto">
+        <button
+          onClick={() => setShowRightControls(prev => !prev)}
+          className={`px-3.5 py-2 rounded-2xl text-xs font-mono font-bold border transition-all flex items-center space-x-2 shadow-2xl backdrop-blur-xl cursor-pointer ${
+            showRightControls
+              ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-400/50'
+              : 'glass-dark text-white hover:bg-white/20 border-white/20'
+          }`}
+          title="Abrir Editor de Colores de Materiales (Pasto, Agua, Pavimento, Edificios, Vías)"
+        >
+          <Palette className="w-4 h-4 text-emerald-400" />
+          <span>{showRightControls ? 'Ocultar Paleta' : '🎨 Cambiar Colores'}</span>
+        </button>
+      </div>
+
       {/* ========================================================================= */}
       {/* 2B. RED BIÓTICA: BOLITAS DISCRETAS CON FOTO DE ÁRBOLES EN EL TERRITORIO   */}
       {/* ========================================================================= */}
