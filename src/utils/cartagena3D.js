@@ -70,34 +70,38 @@ export async function buildCartagenaTerritoryScene({
   const pastoTex = texLoader.load(pastoTextureImg);
   pastoTex.wrapS = THREE.RepeatWrapping;
   pastoTex.wrapT = THREE.RepeatWrapping;
-  pastoTex.repeat.set(35, 35);
+  pastoTex.repeat.set(1, 1);
+  pastoTex.colorSpace = THREE.SRGBColorSpace;
   pastoTex.anisotropy = 16;
 
   // 2. Agua / Water (Seamless Light Aqua Surface from user upload)
   const waterTex = texLoader.load(waterTextureImg);
   waterTex.wrapS = THREE.RepeatWrapping;
   waterTex.wrapT = THREE.RepeatWrapping;
-  waterTex.repeat.set(120, 120);
+  waterTex.repeat.set(12, 12);
+  waterTex.colorSpace = THREE.SRGBColorSpace;
   waterTex.anisotropy = 16;
 
   const bumpTex = texLoader.load(waterTextureImg);
   bumpTex.wrapS = THREE.RepeatWrapping;
   bumpTex.wrapT = THREE.RepeatWrapping;
-  bumpTex.repeat.set(160, 160);
+  bumpTex.repeat.set(16, 16);
   bumpTex.anisotropy = 16;
 
   // 3. Piso / Manzanas / Urban Ground (Light Limestone Pavement from user upload)
   const pisoTex = texLoader.load(pisoTextureImg);
   pisoTex.wrapS = THREE.RepeatWrapping;
   pisoTex.wrapT = THREE.RepeatWrapping;
-  pisoTex.repeat.set(40, 40);
+  pisoTex.repeat.set(1, 1);
+  pisoTex.colorSpace = THREE.SRGBColorSpace;
   pisoTex.anisotropy = 16;
 
   // 4. Vías / Roads (Gray asphalt texture)
   const viaTex = texLoader.load(viaTextureImg);
   viaTex.wrapS = THREE.RepeatWrapping;
   viaTex.wrapT = THREE.RepeatWrapping;
-  viaTex.repeat.set(10, 10);
+  viaTex.repeat.set(4, 4);
+  viaTex.colorSpace = THREE.SRGBColorSpace;
 
   // Animated Water Shader Uniforms (GPU vertex displacement and normal caustics)
   const waterUniforms = {
@@ -230,7 +234,7 @@ export async function buildCartagenaTerritoryScene({
     // Assign Planar UVs based on world X/Z so pasto tiles seamlessly with crisp texture definition
     const posAttr = mergedLand.getAttribute('position');
     const uvs = new Float32Array(posAttr.count * 2);
-    const GRASS_UV_SCALE = 0.4;
+    const GRASS_UV_SCALE = 0.05;
     for (let i = 0; i < posAttr.count; i++) {
       uvs[i * 2] = posAttr.getX(i) * GRASS_UV_SCALE;
       uvs[i * 2 + 1] = posAttr.getZ(i) * GRASS_UV_SCALE;
@@ -273,7 +277,7 @@ export async function buildCartagenaTerritoryScene({
     // Assign Planar UVs based on world X/Z for seamless limestone paving floor with crisp seams
     const posManzanas = mergedManzanas.getAttribute('position');
     const pisoUvs = new Float32Array(posManzanas.count * 2);
-    const PISO_UV_SCALE = 0.6;
+    const PISO_UV_SCALE = 0.08;
     for (let i = 0; i < posManzanas.count; i++) {
       pisoUvs[i * 2] = posManzanas.getX(i) * PISO_UV_SCALE;
       pisoUvs[i * 2 + 1] = posManzanas.getZ(i) * PISO_UV_SCALE;

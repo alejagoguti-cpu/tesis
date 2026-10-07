@@ -1402,27 +1402,26 @@ export default function ModelViewer3D({ onSelectModule }) {
       {/* 2. FLOATING HUD OVERLAYS ON TOP OF 3D VIEWPORT (Ultra-Clean Axonometry)   */}
       {/* ========================================================================= */}
 
-      {/* Top Floating Control Bar (Clean, Minimalist & Centered) */}
-      <div className="absolute top-4 left-4 right-4 z-[400] flex items-center justify-between gap-3 pointer-events-none">
+      {/* Top Floating Control Bar (Clean, Minimalist & Responsive) */}
+      <div className="absolute top-3 left-3 right-3 z-[400] flex items-center justify-between gap-2 pointer-events-none flex-wrap">
         
-        {/* Left: Minimalist Module Badge */}
-        <div className="glass-dark px-3 py-1.5 rounded-xl pointer-events-auto flex items-center space-x-2 text-white shadow-md">
-          <div className="w-6 h-6 rounded-lg bg-[#24c8bd] text-slate-950 flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-sm">
-            05
-          </div>
-          <span className="text-xs font-mono font-bold text-white tracking-wide">
-            {selected3DModel === 'revit'
-              ? 'Cartagena + Tierra Bomba (3D)'
-              : selected3DModel === 'masterplan'
-              ? 'Masterplan Tierrabomba'
-              : selected3DModel === 'colegio'
-              ? 'Equipamiento Educativo'
-              : 'Prototipo Vivienda'}
-          </span>
-        </div>
-
-        {/* Center & Right: 3D Model Switcher Bar & Axonometric Reset */}
+        {/* Left: Minimalist Module Badge & Model Selector */}
         <div className="flex items-center gap-2 pointer-events-auto flex-wrap">
+          <div className="glass-dark px-3 py-1.5 rounded-xl flex items-center space-x-2 text-white shadow-md">
+            <div className="w-6 h-6 rounded-lg bg-[#24c8bd] text-slate-950 flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-sm">
+              05
+            </div>
+            <span className="text-xs font-mono font-bold text-white tracking-wide">
+              {selected3DModel === 'revit'
+                ? 'Cartagena + Tierra Bomba (3D)'
+                : selected3DModel === 'masterplan'
+                ? 'Masterplan Tierrabomba'
+                : selected3DModel === 'colegio'
+                ? 'Equipamiento Educativo'
+                : 'Prototipo Vivienda'}
+            </span>
+          </div>
+
           <div className="glass-dark p-1 rounded-2xl flex items-center gap-1 text-white flex-wrap shadow-xl">
             <button
               onClick={() => {
@@ -1513,15 +1512,19 @@ export default function ModelViewer3D({ onSelectModule }) {
               <span>Cargar</span>
             </button>
           </div>
+        </div>
 
-          {/* Botón Ver Futuro de Tierrabomba (Láminas Estratégicas 1 a 8) */}
+        {/* Right: Actions, Futuro de Tierrabomba & View Controls */}
+        <div className="flex items-center gap-2 pointer-events-auto flex-wrap">
+          {/* Botón Principal: Ver Futuro de Tierrabomba (Láminas Estratégicas 1 a 8) */}
           <button
             onClick={() => setShowFutureModal(true)}
-            className="px-3.5 py-2 rounded-2xl text-xs font-mono font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white border border-emerald-300/40 transition-all flex items-center space-x-2 shadow-xl hover:scale-[1.03] active:scale-95 animate-pulse"
-            title="Ver las 8 Láminas Oficiales del Futuro y Plan Maestro de Tierrabomba"
+            className="px-4 py-2 rounded-2xl text-xs font-mono font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white border-2 border-emerald-300/60 transition-all flex items-center space-x-2 shadow-2xl hover:scale-[1.04] active:scale-95 ring-2 ring-emerald-400/30 cursor-pointer"
+            title="Abrir las 8 Láminas del Futuro y Plan Maestro de Tierrabomba"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+            <Sparkles className="w-4 h-4 text-amber-300 animate-spin" style={{ animationDuration: '6s' }} />
             <span>Ver Futuro de Tierrabomba</span>
+            <span className="px-1.5 py-0.5 rounded bg-emerald-950/70 text-emerald-300 text-[10px] font-bold">8 LÁMINAS</span>
           </button>
 
           {/* Botón Editor de Materiales */}
@@ -1552,7 +1555,7 @@ export default function ModelViewer3D({ onSelectModule }) {
           {selected3DModel === 'revit' && (
             <button
               onClick={setBirdEyeView}
-              className="px-3.5 py-2 rounded-2xl text-xs font-mono font-bold bg-gradient-to-r from-blue-600/30 to-teal-500/30 hover:from-blue-600/50 hover:to-teal-500/50 text-blue-200 border border-blue-400/40 transition-all flex items-center space-x-1.5 shadow-xl hover:scale-[1.02] active:scale-95"
+              className="px-3 py-2 rounded-2xl text-xs font-mono font-bold bg-gradient-to-r from-blue-600/30 to-teal-500/30 hover:from-blue-600/50 hover:to-teal-500/50 text-blue-200 border border-blue-400/40 transition-all flex items-center space-x-1.5 shadow-xl hover:scale-[1.02] active:scale-95"
               title="Encuadre aéreo panorámico de toda Cartagena y la Bahía"
             >
               <Maximize2 className="w-3.5 h-3.5 text-blue-300" />
@@ -1567,7 +1570,7 @@ export default function ModelViewer3D({ onSelectModule }) {
             title="Restablecer orientación isométrica a 35°"
           >
             <RotateCcw className="w-3.5 h-3.5 text-[#24c8bd]" />
-            <span>Restablecer vista axonométrica</span>
+            <span>Restablecer vista</span>
           </button>
         </div>
 
@@ -2122,6 +2125,18 @@ export default function ModelViewer3D({ onSelectModule }) {
           <span className="text-slate-600">|</span>
           <span className="flex items-center space-x-1.5"><Sliders className="w-3.5 h-3.5 text-[#24c8bd]" /><span><b>Clic Derecho:</b> Mover</span></span>
         </div>
+      </div>
+
+      {/* Floating Action Button permanente: Ver Futuro de Tierrabomba */}
+      <div className="fixed bottom-6 right-6 z-[450] pointer-events-auto">
+        <button
+          onClick={() => setShowFutureModal(true)}
+          className="group px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-mono text-xs font-black shadow-2xl border-2 border-emerald-300/60 transition-all flex items-center space-x-2.5 hover:scale-105 active:scale-95 ring-4 ring-emerald-500/20 cursor-pointer"
+        >
+          <Sparkles className="w-4 h-4 text-amber-300 animate-spin" style={{ animationDuration: '6s' }} />
+          <span className="tracking-wide">VER FUTURO DE TIERRABOMBA</span>
+          <span className="px-1.5 py-0.5 rounded bg-emerald-950/70 text-emerald-300 text-[10px] font-bold">8 LÁMINAS</span>
+        </button>
       </div>
 
       {/* ========================================================================= */}
