@@ -5,6 +5,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { buildCartagenaTerritoryScene } from '../utils/cartagena3D.js';
+import TierrabombaFutureModal from './TierrabombaFutureModal.jsx';
 import pastoTextureImg from '../assets/textura_pasto_m5.png';
 import waterTextureImg from '../assets/textura_agua_m5.jpg';
 import pisoTextureImg from '../assets/textura_piso_m5.png';
@@ -160,6 +161,7 @@ export default function ModelViewer3D({ onSelectModule }) {
   const [sunIntensity, setSunIntensity] = useState(1.2);
   const [cameraMode, setCameraMode] = useState('orthographic');
 
+  const [showFutureModal, setShowFutureModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -1654,6 +1656,16 @@ export default function ModelViewer3D({ onSelectModule }) {
             </button>
           </div>
 
+          {/* Botón Ver Futuro de Tierrabomba (Láminas Estratégicas 1 a 8) */}
+          <button
+            onClick={() => setShowFutureModal(true)}
+            className="px-3.5 py-2 rounded-2xl text-xs font-mono font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white border border-emerald-300/40 transition-all flex items-center space-x-2 shadow-xl hover:scale-[1.03] active:scale-95 animate-pulse"
+            title="Ver las 8 Láminas Oficiales del Futuro y Plan Maestro de Tierrabomba"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+            <span>Ver Futuro de Tierrabomba</span>
+          </button>
+
           {/* Botón Editor de Materiales */}
           <button
             onClick={() => setShowRightControls(!showRightControls)}
@@ -2374,6 +2386,14 @@ export default function ModelViewer3D({ onSelectModule }) {
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* 5. PRESENTACIÓN ESTRATÉGICA: EL FUTURO DE TIERRABOMBA (8 LÁMINAS)         */}
+      {/* ========================================================================= */}
+      <TierrabombaFutureModal
+        isOpen={showFutureModal}
+        onClose={() => setShowFutureModal(false)}
+      />
 
     </div>
   );
