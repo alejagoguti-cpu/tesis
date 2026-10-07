@@ -253,26 +253,28 @@ export const DEFAULT_DELIMITATIONS = {
     [10.38059, -75.57592]
   ],
   vulnerableHouses: [
-    [10.38154, -75.57543],
+    // Borde Costero Oeste (de Norte a Sur hasta la línea horizontal de la Meseta Segura Lat 10.3725)
+    [10.38158, -75.57545],
     [10.38090, -75.57640],
     [10.38040, -75.57697],
+    [10.37950, -75.57740],
     [10.37884, -75.57763],
+    [10.37780, -75.57815],
     [10.37680, -75.57860],
+    [10.37550, -75.57910],
     [10.37450, -75.57950],
-    [10.37150, -75.58020],
-    [10.36857, -75.58044],
-    [10.36650, -75.58302],
-    [10.36401, -75.58632],
-    [10.36071, -75.58890],
-    [10.36223, -75.58667],
-    [10.36599, -75.58559],
-    [10.36920, -75.57850],
-    [10.37120, -75.57680],
-    [10.37350, -75.57580],
-    [10.37650, -75.57480],
-    [10.37950, -75.57430],
-    [10.38100, -75.57480],
-    [10.38154, -75.57543]
+    [10.37320, -75.57990],
+    [10.37250, -75.58050], // Límite horizontal meseta segura (Sur del área de estudio)
+    
+    // Franja interna de 500m de delimitación territorial / erosión (de Sur a Norte)
+    [10.37250, -75.57680],
+    [10.37350, -75.57620],
+    [10.37480, -75.57580],
+    [10.37650, -75.57520],
+    [10.37800, -75.57480],
+    [10.37950, -75.57440],
+    [10.38080, -75.57480],
+    [10.38158, -75.57545]
   ],
   plateau: [
     [10.37487, -75.57396],
@@ -1636,34 +1638,88 @@ export default function ThesisFramework({ onSelectModule }) {
         
         if (vulnerableHousesMarkersGroup) {
           vulnerableHousesMarkersGroup.clearLayers();
+          
+          // Icono Cuadradito Rojo Nítido para cada vivienda
           const houseIcon = L.divIcon({
             className: 'custom-vuln-house-pin',
             html: `
-              <div class="relative flex items-center justify-center group" title="Vivienda en Riesgo Crítico de Socavación">
-                <div class="absolute -inset-1.5 rounded-full bg-red-600/40 animate-ping"></div>
-                <div class="w-4 h-4 rounded-md bg-red-600 border border-white shadow-md flex items-center justify-center text-white text-[9px] font-bold">
-                  ⌂
-                </div>
+              <div class="relative flex items-center justify-center group" title="Vivienda en Riesgo Crítico (Sector Norte)">
+                <div class="w-3 h-3 bg-red-600 border border-white shadow-md rounded-[2px] transition-transform hover:scale-150"></div>
               </div>
             `,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8]
+            iconSize: [12, 12],
+            iconAnchor: [6, 6]
           });
 
+          // 120 Viviendas reales en riesgo dentro del Área de Estudio Norte (Punta Arena y Franja 500m sobre Lat 10.3725)
           const VULNERABLE_HOUSES_COORDS = [
-            [10.3812, -75.5752], [10.3807, -75.5760], [10.3802, -75.5765], [10.3798, -75.5770],
-            [10.3792, -75.5774], [10.3785, -75.5777], [10.3778, -75.5781], [10.3770, -75.5784],
-            [10.3762, -75.5787], [10.3754, -75.5790], [10.3746, -75.5793], [10.3738, -75.5796],
-            [10.3728, -75.5799], [10.3718, -75.5802], [10.3705, -75.5804], [10.3695, -75.5805],
-            [10.3685, -75.5807], [10.3675, -75.5818], [10.3668, -75.5828], [10.3662, -75.5842],
-            [10.3655, -75.5852], [10.3648, -75.5858], [10.3641, -75.5862], [10.3632, -75.5864],
-            [10.3624, -75.5866], [10.3615, -75.5878], [10.3608, -75.5888], [10.3789, -75.5768],
-            [10.3775, -75.5772], [10.3760, -75.5776], [10.3745, -75.5780], [10.3730, -75.5783]
+            // Sector 1: Punta Arena Norte (35 casas)
+            [10.38148, -75.57520], [10.38135, -75.57538], [10.38120, -75.57555], [10.38105, -75.57572],
+            [10.38090, -75.57590], [10.38075, -75.57608], [10.38060, -75.57625], [10.38045, -75.57640],
+            [10.38030, -75.57655], [10.38015, -75.57670], [10.38140, -75.57490], [10.38125, -75.57505],
+            [10.38110, -75.57522], [10.38095, -75.57540], [10.38080, -75.57558], [10.38065, -75.57575],
+            [10.38050, -75.57592], [10.38035, -75.57610], [10.38020, -75.57628], [10.38005, -75.57645],
+            [10.38115, -75.57465], [10.38100, -75.57480], [10.38085, -75.57498], [10.38070, -75.57515],
+            [10.38055, -75.57532], [10.38040, -75.57550], [10.38025, -75.57568], [10.38010, -75.57585],
+            [10.37995, -75.57602], [10.37980, -75.57620], [10.38090, -75.57445], [10.38075, -75.57462],
+            [10.38060, -75.57480], [10.38045, -75.57498], [10.38030, -75.57515],
+
+            // Sector 2: Punta Arena Centro-Oeste (45 casas)
+            [10.37990, -75.57680], [10.37975, -75.57695], [10.37960, -75.57710], [10.37945, -75.57725],
+            [10.37930, -75.57740], [10.37915, -75.57755], [10.37900, -75.57770], [10.37885, -75.57785],
+            [10.37870, -75.57800], [10.37855, -75.57815], [10.37970, -75.57640], [10.37955, -75.57655],
+            [10.37940, -75.57670], [10.37925, -75.57685], [10.37910, -75.57700], [10.37895, -75.57715],
+            [10.37880, -75.57730], [10.37865, -75.57745], [10.37850, -75.57760], [10.37835, -75.57775],
+            [10.37950, -75.57600], [10.37935, -75.57615], [10.37920, -75.57630], [10.37905, -75.57645],
+            [10.37890, -75.57660], [10.37875, -75.57675], [10.37860, -75.57690], [10.37845, -75.57705],
+            [10.37830, -75.57720], [10.37815, -75.57735], [10.37920, -75.57560], [10.37905, -75.57575],
+            [10.37890, -75.57590], [10.37875, -75.57605], [10.37860, -75.57620], [10.37845, -75.57635],
+            [10.37830, -75.57650], [10.37815, -75.57665], [10.37800, -75.57680], [10.37785, -75.57695],
+            [10.37770, -75.57710], [10.37755, -75.57725], [10.37740, -75.57740], [10.37725, -75.57755],
+            [10.37710, -75.57770],
+
+            // Sector 3: Franja Costera Socavación (40 casas hacia la línea horizontal de la Meseta)
+            [10.37680, -75.57860], [10.37665, -75.57875], [10.37650, -75.57890], [10.37635, -75.57905],
+            [10.37620, -75.57920], [10.37605, -75.57935], [10.37590, -75.57950], [10.37575, -75.57965],
+            [10.37560, -75.57980], [10.37545, -75.57995], [10.37650, -75.57820], [10.37635, -75.57835],
+            [10.37620, -75.57850], [10.37605, -75.57865], [10.37590, -75.57880], [10.37575, -75.57895],
+            [10.37560, -75.57910], [10.37545, -75.57925], [10.37530, -75.57940], [10.37515, -75.57955],
+            [10.37490, -75.57930], [10.37475, -75.57945], [10.37460, -75.57960], [10.37445, -75.57975],
+            [10.37430, -75.57990], [10.37415, -75.58005], [10.37400, -75.58020], [10.37385, -75.58035],
+            [10.37370, -75.58050], [10.37355, -75.58065], [10.37340, -75.58040], [10.37325, -75.58055],
+            [10.37310, -75.58070], [10.37295, -75.58085], [10.37280, -75.58100], [10.37265, -75.58115],
+            [10.37250, -75.58130], [10.37260, -75.58010], [10.37275, -75.57990], [10.37290, -75.57970]
           ];
 
           VULNERABLE_HOUSES_COORDS.forEach(pt => {
             vulnerableHousesMarkersGroup.addLayer(L.marker(pt, { icon: houseIcon, interactive: false }));
           });
+
+          // Línea horizontal divisoria a la altura del centro de la Meseta Segura (Lat 10.3725)
+          const limitLine = L.polyline([
+            [10.3725, -75.5835],
+            [10.3725, -75.5710]
+          ], {
+            color: '#38bdf8',
+            weight: 2,
+            dashArray: '5, 5',
+            opacity: 0.85
+          });
+          vulnerableHousesMarkersGroup.addLayer(limitLine);
+
+          const limitMarker = L.marker([10.3725, -75.5772], {
+            icon: L.divIcon({
+              className: 'custom-limit-line-tag',
+              html: `
+                <div class="px-2 py-0.5 rounded bg-slate-900/90 text-cyan-300 text-[9px] font-mono border border-cyan-400/40 shadow-lg whitespace-nowrap -translate-x-1/2">
+                  Línea Horizontal Meseta Segura // Límite Área de Estudio Norte ↑
+                </div>
+              `,
+              iconSize: [0, 0]
+            }),
+            interactive: false
+          });
+          vulnerableHousesMarkersGroup.addLayer(limitMarker);
         }
       }
     } else if (currentStepIndex === 3) {
@@ -2164,7 +2220,7 @@ export default function ThesisFramework({ onSelectModule }) {
             onClick={() => {
               setVulnerabilitySubTab('houses');
               const map = mapInstanceRef.current;
-              if (map) map.setView([10.3735, -75.5790], 16.0);
+              if (map) map.setView([10.3770, -75.5765], 16.5);
             }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               vulnerabilitySubTab === 'houses'
@@ -2173,7 +2229,7 @@ export default function ThesisFramework({ onSelectModule }) {
             }`}
           >
             <Home className="w-3.5 h-3.5" />
-            <span>2. Viviendas Actuales en Riesgo (Área de Estudio Norte // Franja Crítica)</span>
+            <span>2. 120 Viviendas en Riesgo (Sector Norte &bull; Franja 500m)</span>
           </button>
         </div>
       )}
