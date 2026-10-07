@@ -72,11 +72,11 @@ export async function buildCartagenaTerritoryScene({
   pastoTex.minFilter = THREE.LinearMipmapLinearFilter;
   pastoTex.magFilter = THREE.LinearFilter;
 
-  // 2. Agua / Water (Seamless Light Aqua Surface)
+  // 2. Agua / Water (Seamless Light Aqua Surface with fine ripple scale)
   const waterTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
   waterTex.wrapS = THREE.MirroredRepeatWrapping;
   waterTex.wrapT = THREE.MirroredRepeatWrapping;
-  waterTex.repeat.set(16, 16);
+  waterTex.repeat.set(180, 180); // Ondas de agua reducidas y de alta definición
   waterTex.anisotropy = 16;
   waterTex.generateMipmaps = true;
   waterTex.minFilter = THREE.LinearMipmapLinearFilter;
@@ -85,13 +85,14 @@ export async function buildCartagenaTerritoryScene({
   const bumpTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
   bumpTex.wrapS = THREE.MirroredRepeatWrapping;
   bumpTex.wrapT = THREE.MirroredRepeatWrapping;
-  bumpTex.repeat.set(24, 24);
+  bumpTex.repeat.set(240, 240);
   bumpTex.anisotropy = 16;
 
   // 3. Piso / Manzanas / Urban Ground (Light Limestone Pavement from user upload)
   const pisoTex = texLoader.load(`${normalizedBase}assets/textura_piso_m5.png`);
   pisoTex.wrapS = THREE.MirroredRepeatWrapping;
   pisoTex.wrapT = THREE.MirroredRepeatWrapping;
+  pisoTex.repeat.set(60, 60);
   pisoTex.anisotropy = 16;
   pisoTex.generateMipmaps = true;
   pisoTex.minFilter = THREE.LinearMipmapLinearFilter;
@@ -110,12 +111,12 @@ export async function buildCartagenaTerritoryScene({
   const waterMat = new THREE.MeshStandardMaterial({
     map: waterTex,
     bumpMap: bumpTex,
-    bumpScale: 0.08,
-    color: new THREE.Color('#9cd3db'),
-    roughness: 0.20,
-    metalness: 0.10,
+    bumpScale: 0.05,
+    color: new THREE.Color('#8dc8d2'),
+    roughness: 0.15,
+    metalness: 0.08,
     transparent: true,
-    opacity: 0.92,
+    opacity: 0.94,
     side: THREE.DoubleSide,
     clippingPlanes,
   });
@@ -125,7 +126,7 @@ export async function buildCartagenaTerritoryScene({
     water: waterMat,
     terrain: new THREE.MeshStandardMaterial({
       map: pastoTex,
-      color: new THREE.Color('#ffffff'),
+      color: new THREE.Color(colors.terrain || '#7d8c4e'),
       roughness: 0.92,
       metalness: 0.0,
       side: THREE.DoubleSide,
@@ -133,7 +134,7 @@ export async function buildCartagenaTerritoryScene({
     }),
     manzanas: new THREE.MeshStandardMaterial({
       map: pisoTex,
-      color: new THREE.Color('#ffffff'),
+      color: new THREE.Color(colors.manzanas || '#d4c5b3'),
       roughness: 0.88,
       metalness: 0.02,
       polygonOffset: true,
@@ -474,13 +475,28 @@ export async function buildCartagenaTerritoryScene({
       }
     },
     setWaterColor: (hex) => {
-      if (mats.water) mats.water.color.set(hex);
+      if (mats.water) {
+        mats.water.color.set(hex);
+        mats.water.needsUpdate = true;
+      }
     },
     setRoadsColor: (hex) => {
-      if (mats.roads) mats.roads.color.set(hex);
+      if (mats.roads) {
+        mats.roads.color.set(hex);
+        mats.roads.needsUpdate = true;
+      }
     },
     setGreenColor: (hex) => {
-      if (mats.terrain) mats.terrain.color.set(hex);
+      if (mats.terrain) {
+        mats.terrain.color.set(hex);
+        mats.terrain.needsUpdate = true;
+      }
+    },
+    setPavementColor: (hex) => {
+      if (mats.manzanas) {
+        mats.manzanas.color.set(hex);
+        mats.manzanas.needsUpdate = true;
+      }
     },
     setNoiseMapVisible: (visible) => {
       if (animatedObjects.noiseMesh) {

@@ -43,7 +43,7 @@ import {
 export default function ModelViewer3D({ onSelectModule }) {
   const mountRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [selected3DModel, setSelected3DModel] = useState('masterplan'); // 'masterplan' (Axonometría BIM por defecto) | 'colegio' | 'vivienda' | 'revit' | 'custom'
+  const [selected3DModel, setSelected3DModel] = useState('revit'); // 'revit' (Cartagena + Tierra Bomba por defecto) | 'masterplan' | 'colegio' | 'vivienda' | 'custom'
   const [wireframe, setWireframe] = useState(false);
   const [explodedView, setExplodedView] = useState(false);
 
@@ -190,7 +190,7 @@ export default function ModelViewer3D({ onSelectModule }) {
       const waterTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
       waterTex.wrapS = THREE.MirroredRepeatWrapping;
       waterTex.wrapT = THREE.MirroredRepeatWrapping;
-      waterTex.repeat.set(45, 45); // Textura de agua mucho más fina y pequeña
+      waterTex.repeat.set(120, 120); // Textura de agua diminuta y fina
       waterTex.anisotropy = 16;
 
       const pisoTex = texLoader.load(`${normalizedBase}assets/textura_piso_m5.png`);
@@ -355,7 +355,7 @@ export default function ModelViewer3D({ onSelectModule }) {
       const waterTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
       waterTex.wrapS = THREE.MirroredRepeatWrapping;
       waterTex.wrapT = THREE.MirroredRepeatWrapping;
-      waterTex.repeat.set(45, 45); // Ondas de agua reducidas y suaves
+      waterTex.repeat.set(120, 120); // Ondas de agua reducidas y suaves
       waterTex.anisotropy = 16;
 
       // Base de Pasto (Tono verde amarillento café)
@@ -531,7 +531,7 @@ export default function ModelViewer3D({ onSelectModule }) {
           waterTex.wrapS = THREE.MirroredRepeatWrapping;
           waterTex.wrapT = THREE.MirroredRepeatWrapping;
           waterTex.anisotropy = 16;
-          waterTex.repeat.set(65, 65); // Textura de agua fina a gran escala
+          waterTex.repeat.set(180, 180); // Textura de agua fina a gran escala
 
           const waterMesh = new THREE.Mesh(
             new THREE.PlaneGeometry(350, 350),
@@ -683,7 +683,8 @@ export default function ModelViewer3D({ onSelectModule }) {
     cameraRef.current = camera;
 
     // Renderer con soporte para sombras suaves y sRGB
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    renderer.setClearColor(0xdbe8d4, 1);
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
@@ -973,13 +974,22 @@ export default function ModelViewer3D({ onSelectModule }) {
       if (child.isMesh && child.material) {
         const name = (child.name || '') + (child.parent?.name || '');
         const matName = child.material.name || '';
-        if (child.userData.layer === 'terrain_grass' || name.includes('Terrain') || matName.includes('Terrain') || name.includes('Toposolid')) {
+        if (child.userData.layer === 'terrain_grass' || name.includes('Terrain') || matName.includes('Terrain') || name.includes('Toposolid') || name.includes('Grass') || name.includes('Pasto')) {
           child.material.color = gCol;
-        } else if (child.userData.layer === 'terrain_pavement' || name.includes('Floor') || matName.includes('Floor') || name.includes('Slab') || name.includes('Suelo') || name.includes('Pavimento')) {
+          child.material.needsUpdate = true;
+        } else if (child.userData.layer === 'terrain_pavement' || name.includes('Floor') || matName.includes('Floor') || name.includes('Slab') || name.includes('Suelo') || name.includes('Pavimento') || name.includes('Plaza') || name.includes('Manzana')) {
           child.material.color = pCol;
+          child.material.needsUpdate = true;
         }
       }
     });
+
+    if (cartagenaTerritoryRef.current?.setGreenColor) {
+      cartagenaTerritoryRef.current.setGreenColor(grassColor);
+    }
+    if (cartagenaTerritoryRef.current?.setPavementColor) {
+      cartagenaTerritoryRef.current.setPavementColor(pavementColor);
+    }
   }, [grassColor, pavementColor]);
 
   // Restablecer Vista Axonométrica a 45° (proyección paralela)

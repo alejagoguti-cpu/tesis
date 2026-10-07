@@ -266,15 +266,7 @@ export const DEFAULT_DELIMITATIONS = {
     [10.37348, -75.57450],
     [10.37419, -75.57408]
   ],
-  roads: [
-    [
-      [10.37520, -75.57680],
-      [10.37350, -75.57620],
-      [10.37180, -75.57550],
-      [10.36980, -75.57480],
-      [10.36750, -75.57420]
-    ]
-  ],
+  roads: [],
   custom: [
     [10.37884, -75.57763],
     [10.37879, -75.57730],
@@ -465,8 +457,8 @@ export const FRAMEWORK_STEPS = [
     title: "2. Franja de Erosión Costera",
     badge: "Paso 02 // Riesgo Físico",
     targetName: "Borde Crítico (Pérdida 1.8 m/año)",
-    center: [10.3585, -75.5905],
-    zoom: 16.5,
+    center: [10.352, -75.568],
+    zoom: 13.2,
     highlight: "erosion",
     modalType: "justification",
     btnLabel: "Justificación de la Propuesta",
@@ -656,7 +648,13 @@ export default function ThesisFramework({ onSelectModule }) {
           parsed.plateau = DEFAULT_DELIMITATIONS.plateau;
         }
         if (parsed.roads) {
-          parsed.roads = normalizeRoadLines(parsed.roads);
+          const norm = normalizeRoadLines(parsed.roads);
+          // If it only contains the old single dummy line [10.3752, -75.5768], clear it
+          if (norm.length === 1 && norm[0].length === 5 && norm[0][0] && Math.abs(norm[0][0][0] - 10.37520) < 0.0001) {
+            parsed.roads = [];
+          } else {
+            parsed.roads = norm;
+          }
         }
         return { ...DEFAULT_DELIMITATIONS, ...parsed };
       }
@@ -809,8 +807,8 @@ export default function ThesisFramework({ onSelectModule }) {
       isPolygon = false;
       mainColor = '#dc2626';
       glowColor = '#f87171';
-      cameraCenter = [10.3585, -75.5905];
-      cameraZoom = 16.0;
+      cameraCenter = [10.352, -75.568];
+      cameraZoom = 13.2;
     } else if (stepIdx === 2) {
       isPolygon = true;
       mainColor = '#f43f5e';
@@ -858,7 +856,7 @@ export default function ThesisFramework({ onSelectModule }) {
     if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 5, color: '#f59e0b' });
 
     // Instantly stabilize camera on the exact coordinates so the animation never jumps or warps
-    if (stepIdx === 0) {
+    if (stepIdx === 0 || stepIdx === 1) {
       const islandCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
       if (islandCoords.length > 0) {
         const islandBounds = L.latLngBounds(islandCoords);
