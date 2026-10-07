@@ -37,8 +37,30 @@ import {
   Pause,
   FastForward,
   Ship,
-  Activity
+  Activity,
+  Save,
+  Copy,
+  Check
 } from 'lucide-react';
+
+export const DEFAULT_M5_PALETTE = {
+  grass: '#65763e',
+  water: '#8dc8d2',
+  pavement: '#d4c5b3',
+  building: '#ffffff',
+  roof: '#b5714a',
+  road: '#64748b'
+};
+
+export const getSavedM5Palette = () => {
+  try {
+    const saved = localStorage.getItem('thesis_m5_custom_colors');
+    if (saved) {
+      return { ...DEFAULT_M5_PALETTE, ...JSON.parse(saved) };
+    }
+  } catch (e) {}
+  return DEFAULT_M5_PALETTE;
+};
 
 export default function ModelViewer3D({ onSelectModule }) {
   const mountRef = useRef(null);
@@ -48,12 +70,16 @@ export default function ModelViewer3D({ onSelectModule }) {
   const [explodedView, setExplodedView] = useState(false);
 
   // Tonos de Materialidad Personalizables (Mar, Pasto, Piso, Edificios, Techos, Vías)
-  const [waterColor, setWaterColor] = useState('#8dc8d2'); // Mar / Agua turquesa suave
-  const [grassColor, setGrassColor] = useState('#65763e'); // Verde amarillento café atenuado
-  const [pavementColor, setPavementColor] = useState('#d4c5b3'); // Travertino / arena cálido
-  const [buildingColor, setBuildingColor] = useState('#ffffff'); // Edificaciones / Muros
-  const [roofColor, setRoofColor] = useState('#b5714a'); // Cubiertas / Arcilla
-  const [roadColor, setRoadColor] = useState('#64748b'); // Asfalto / Vías
+  const [initialPalette] = useState(getSavedM5Palette);
+  const [waterColor, setWaterColor] = useState(initialPalette.water);
+  const [grassColor, setGrassColor] = useState(initialPalette.grass);
+  const [pavementColor, setPavementColor] = useState(initialPalette.pavement);
+  const [buildingColor, setBuildingColor] = useState(initialPalette.building);
+  const [roofColor, setRoofColor] = useState(initialPalette.roof);
+  const [roadColor, setRoadColor] = useState(initialPalette.road);
+
+  const [saveColorsToast, setSaveColorsToast] = useState(false);
+  const [copyColorsToast, setCopyColorsToast] = useState(false);
 
   // Simulación de Tránsito Marítimo y Urbano en Vivo
   const [isPlayingSimulation, setIsPlayingSimulation] = useState(true);
@@ -1001,7 +1027,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     }
   }, [activeLayers]);
 
-  // Update Materials Color in Real-time
+  // Update Materials Color in Real-time & Auto-save to LocalStorage
   useEffect(() => {
     if (!sceneRef.current) return;
     const gCol = new THREE.Color(grassColor);
@@ -1010,6 +1036,18 @@ export default function ModelViewer3D({ onSelectModule }) {
     const bCol = new THREE.Color(buildingColor);
     const rCol = new THREE.Color(roofColor);
     const rdCol = new THREE.Color(roadColor);
+
+    // Auto-save to localStorage so changes persist across sessions
+    try {
+      localStorage.setItem('thesis_m5_custom_colors', JSON.stringify({
+        grass: grassColor,
+        water: waterColor,
+        pavement: pavementColor,
+        building: buildingColor,
+        roof: roofColor,
+        road: roadColor
+      }));
+    } catch (e) {}
 
     sceneRef.current.traverse((child) => {
       if (child.isMesh && child.material) {
@@ -1056,6 +1094,54 @@ export default function ModelViewer3D({ onSelectModule }) {
       cartagenaTerritoryRef.current.setRoofsColor(roofColor);
     }
   }, [grassColor, pavementColor, waterColor, buildingColor, roofColor, roadColor]);
+
+  // Guardar permanente con feedback visual explícito
+  const handleSavePermanentColors = () => {
+    try {
+      localStorage.setItem('thesis_m5_custom_colors', JSON.stringify({
+        grass: grassColor,
+        water: waterColor,
+        pavement: pavementColor,
+        building: buildingColor,
+        roof: roofColor,
+        road: roadColor
+      }));
+      setSaveColorsToast(true);
+      setTimeout(() => setSaveColorsToast(false), 3200);
+    } catch (e) {
+      console.error("Error saving palette:", e);
+    }
+  };
+
+  // Restablecer paleta predeterminada
+  const handleResetDefaultColors = () => {
+    setGrassColor(DEFAULT_M5_PALETTE.grass);
+    setWaterColor(DEFAULT_M5_PALETTE.water);
+    setPavementColor(DEFAULT_M5_PALETTE.pavement);
+    setBuildingColor(DEFAULT_M5_PALETTE.building);
+    setRoofColor(DEFAULT_M5_PALETTE.roof);
+    setRoadColor(DEFAULT_M5_PALETTE.road);
+    try {
+      localStorage.removeItem('thesis_m5_custom_colors');
+    } catch (e) {}
+    setSaveColorsToast(true);
+    setTimeout(() => setSaveColorsToast(false), 3200);
+  };
+
+  // Copiar código HEX
+  const handleCopyPaletteCode = () => {
+    const palette = {
+      pasto: grassColor,
+      mar: waterColor,
+      pavimento: pavementColor,
+      edificios: buildingColor,
+      cubiertas: roofColor,
+      vias: roadColor
+    };
+    navigator.clipboard.writeText(JSON.stringify(palette, null, 2));
+    setCopyColorsToast(true);
+    setTimeout(() => setCopyColorsToast(false), 3000);
+  };
 
   // Restablecer Vista Axonométrica a 45° (proyección paralela)
   const resetAxonometricView = () => {
@@ -1797,8 +1883,105 @@ export default function ModelViewer3D({ onSelectModule }) {
               </div>
             </div>
           </div>
+
+          {/* 5. Color de Vías / Asfalto */}
+          <div className="space-y-1.5 p-2 rounded-xl bg-white/5 border border-white/5">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-300 flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5 text-slate-400" />
+                <span>Vías / Red Vial:</span>
+              </span>
+              <div className="flex items-center space-x-1.5">
+                <input
+                  type="color"
+                  value={roadColor}
+                  onChange={(e) => setRoadColor(e.target.value)}
+                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
+                  title="Seleccionar color de las vías"
+                />
+                <span className="text-slate-300 font-bold text-[10px]">{roadColor}</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-1">
+              {[
+                { name: 'Asfalto Oscuro', hex: '#334155' },
+                { name: 'Gris Neutro', hex: '#64748b' },
+                { name: 'Asfalto Claro', hex: '#94a3b8' }
+              ].map(preset => (
+                <button
+                  key={preset.hex}
+                  onClick={() => setRoadColor(preset.hex)}
+                  className={`py-1 px-1 rounded-lg text-[10px] font-mono border transition-all ${
+                    roadColor.toLowerCase() === preset.hex.toLowerCase()
+                      ? 'border-white ring-1 ring-slate-300 font-bold text-white bg-white/20'
+                      : 'border-white/10 text-slate-300 hover:bg-white/10'
+                  }`}
+                  style={{ backgroundColor: `${preset.hex}33` }}
+                >
+                  {preset.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 6. BOTONES DE GUARDADO PERMANENTE & SUBIR CAMBIOS */}
+          <div className="pt-2 border-t border-white/10 space-y-2">
+            <button
+              onClick={handleSavePermanentColors}
+              className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-mono font-bold text-xs flex items-center justify-center space-x-2 shadow-lg hover:shadow-teal-500/25 transition-all transform hover:scale-[1.02] active:scale-[0.98] border border-white/20"
+              title="Guarda esta configuración de colores para que se mantenga siempre"
+            >
+              <Save className="w-4 h-4 text-white animate-bounce" />
+              <span>Guardar Colores para Siempre</span>
+            </button>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={handleResetDefaultColors}
+                className="py-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white font-mono text-[10px] flex items-center justify-center space-x-1.5 transition-colors"
+                title="Restablecer a la paleta predeterminada"
+              >
+                <RotateCcw className="w-3 h-3 text-slate-400" />
+                <span>Restablecer</span>
+              </button>
+
+              <button
+                onClick={handleCopyPaletteCode}
+                className="py-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white font-mono text-[10px] flex items-center justify-center space-x-1.5 transition-colors"
+                title="Copiar configuración en formato JSON"
+              >
+                <Copy className="w-3 h-3 text-slate-400" />
+                <span>Copiar HEX</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* TOASTS NOTIFICATIONS */}
+      {saveColorsToast && (
+        <div className="fixed top-6 right-6 z-[9999] bg-slate-900/95 border-2 border-emerald-500 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 animate-fade-in backdrop-blur-md">
+          <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-400 flex items-center justify-center">
+            <Check className="w-4 h-4 text-emerald-400" />
+          </div>
+          <div>
+            <div className="text-xs font-mono font-bold text-emerald-400">¡Paleta Guardada Permanentemente!</div>
+            <div className="text-[11px] text-slate-300">Tus tonos personalizados se cargarán automáticamente.</div>
+          </div>
+        </div>
+      )}
+
+      {copyColorsToast && (
+        <div className="fixed top-6 right-6 z-[9999] bg-slate-900/95 border-2 border-cyan-500 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 animate-fade-in backdrop-blur-md">
+          <div className="w-7 h-7 rounded-full bg-cyan-500/20 border border-cyan-400 flex items-center justify-center">
+            <Check className="w-4 h-4 text-cyan-400" />
+          </div>
+          <div>
+            <div className="text-xs font-mono font-bold text-cyan-400">¡Códigos HEX Copiados!</div>
+            <div className="text-[11px] text-slate-300">Valores de la paleta copiados al portapapeles.</div>
+          </div>
+        </div>
+      )}
 
 
 
