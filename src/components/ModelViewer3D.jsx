@@ -43,7 +43,7 @@ import {
 export default function ModelViewer3D({ onSelectModule }) {
   const mountRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [selected3DModel, setSelected3DModel] = useState('revit'); // 'revit' (Cartagena + Tierra Bomba por defecto) | 'colegio' | 'masterplan' | 'vivienda' | 'custom'
+  const [selected3DModel, setSelected3DModel] = useState('colegio'); // 'colegio' (Carga ultra-rápida por defecto) | 'masterplan' | 'vivienda' | 'revit' | 'custom'
   const [wireframe, setWireframe] = useState(false);
   const [explodedView, setExplodedView] = useState(false);
 
@@ -65,7 +65,7 @@ export default function ModelViewer3D({ onSelectModule }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
-  const [loadPhase, setLoadPhase] = useState('Descargando geometría BIM...');
+  const [loadPhase, setLoadPhase] = useState('Cargando geometría BIM...');
   const [loadError, setLoadError] = useState('');
   const [customModel, setCustomModel] = useState(null);
   const [activeLayers, setActiveLayers] = useState({
@@ -125,6 +125,10 @@ export default function ModelViewer3D({ onSelectModule }) {
     objectsRef.current.revitWalls = [];
     objectsRef.current.revitBuildings = [];
 
+    const basePath = import.meta.env.BASE_URL || '/';
+    const normalizedBase = basePath.endsWith('/') ? basePath : basePath + '/';
+    const texLoader = new THREE.TextureLoader();
+
     if (modelType === 'revit') {
       setIsLoadingFile(true);
       setLoadProgress(15);
@@ -136,38 +140,93 @@ export default function ModelViewer3D({ onSelectModule }) {
 
       const rootContainer = new THREE.Group();
       
-      const territory = await buildCartagenaTerritoryScene({
-        sceneRoot: rootContainer,
-        activeLayers,
-        colors: {
-          buildings: '#ffffff',
-          roofs: '#b5714a',
-          trees: '#5c8f52',
-          manzanas: '#eae6df',
-          vehicles: '#e2635a',
-          boats: '#24c8bd',
-        },
-        onProgress: (p, msg) => {
-          setLoadProgress(p);
-          setLoadPhase(msg);
-        }
-      });
+      try {
+        const territory = await buildCartagenaTerritoryScene({
+          sceneRoot: rootContainer,
+          activeLayers,
+          colors: {
+            buildings: '#ffffff',
+            roofs: '#b5714a',
+            trees: '#5c8f52',
+            manzanas: '#eae6df',
+            vehicles: '#e2635a',
+            boats: '#24c8bd',
+          },
+          onProgress: (p, msg) => {
+            setLoadProgress(p);
+            setLoadPhase(msg);
+          }
+        });
 
-      cartagenaTerritoryRef.current = territory;
+        cartagenaTerritoryRef.current = territory;
 
-      // Centrar automáticamente la caja delimitadora de Cartagena + Tierrabomba en (0,0,0)
-      const box = new THREE.Box3().setFromObject(rootContainer);
-      const center = box.getCenter(new THREE.Vector3());
-      rootContainer.position.set(-center.x, -box.min.y, -center.z);
+        const box = new THREE.Box3().setFromObject(rootContainer);
+        const center = box.getCenter(new THREE.Vector3());
+        rootContainer.position.set(-center.x, -box.min.y, -center.z);
 
-      scene.add(rootContainer);
-      currentModelGroupRef.current = rootContainer;
-      setLoadProgress(100);
-      setIsLoadingFile(false);
+        scene.add(rootContainer);
+        currentModelGroupRef.current = rootContainer;
+      } catch (err) {
+        console.error("Error building cartagena territory:", err);
+      } finally {
+        setLoadProgress(100);
+        setIsLoadingFile(false);
+      }
       return;
     }
 
     if (modelType === 'colegio') {
+      // Pasto, Agua y Piso Textures (Endless / Seamless)
+      const pastoTex = texLoader.load(`${normalizedBase}assets/textura_pasto_m5.png`);
+      pastoTex.wrapS = THREE.MirroredRepeatWrapping;
+      pastoTex.wrapT = THREE.MirroredRepeatWrapping;
+      pastoTex.repeat.set(10, 10);
+      pastoTex.anisotropy = 16;
+
+      const waterTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
+      waterTex.wrapS = THREE.MirroredRepeatWrapping;
+      waterTex.wrapT = THREE.MirroredRepeatWrapping;
+      waterTex.repeat.set(16, 16);
+      waterTex.anisotropy = 16;
+
+      const pisoTex = texLoader.load(`${normalizedBase}assets/textura_piso_m5.png`);
+      pisoTex.wrapS = THREE.MirroredRepeatWrapping;
+      pisoTex.wrapT = THREE.MirroredRepeatWrapping;
+      pisoTex.repeat.set(6, 6);
+      pisoTex.anisotropy = 16;
+
+      // Base de Pasto
+      const grassGeo = new THREE.PlaneGeometry(90, 90);
+      const grassMat = new THREE.MeshStandardMaterial({
+        map: pastoTex,
+        roughness: 0.90,
+        metalness: 0.0,
+        side: THREE.DoubleSide
+      });
+      const grassMesh = new THREE.Mesh(grassGeo, grassMat);
+      grassMesh.rotation.x = -Math.PI / 2;
+      grassMesh.position.y = -0.02;
+      grassMesh.receiveShadow = true;
+      modelGroup.add(grassMesh);
+      objectsRef.current.terrain = grassMesh;
+
+      // Espejo de Agua Marino
+      const waterGeo = new THREE.PlaneGeometry(180, 180);
+      const waterMat = new THREE.MeshStandardMaterial({
+        map: waterTex,
+        color: new THREE.Color('#9cd3db'),
+        roughness: 0.20,
+        metalness: 0.10,
+        transparent: true,
+        opacity: 0.92,
+        side: THREE.DoubleSide
+      });
+      const waterMesh = new THREE.Mesh(waterGeo, waterMat);
+      waterMesh.rotation.x = -Math.PI / 2;
+      waterMesh.position.y = -0.15;
+      waterMesh.receiveShadow = true;
+      modelGroup.add(waterMesh);
+
       // A. Cisterna Subterránea (450.000 L)
       const cisternGeo = new THREE.BoxGeometry(14, 3, 9);
       const cisternMat = new THREE.MeshStandardMaterial({
@@ -184,9 +243,9 @@ export default function ModelViewer3D({ onSelectModule }) {
       modelGroup.add(cisternMesh);
       objectsRef.current.cistern = cisternMesh;
 
-      // B. Plataforma / Losa Cívica Nivel +0.00
+      // B. Plataforma / Losa Cívica Nivel +0.00 (Textura de Piso Travertino)
       const slabGeo = new THREE.BoxGeometry(22, 0.4, 15);
-      const slabMat = new THREE.MeshStandardMaterial({ color: 0xdce1e7, roughness: 0.8 });
+      const slabMat = new THREE.MeshStandardMaterial({ map: pisoTex, roughness: 0.85, metalness: 0.02 });
       const slabMesh = new THREE.Mesh(slabGeo, slabMat);
       slabMesh.position.set(0, 0.2, 0);
       slabMesh.castShadow = true;
@@ -274,7 +333,40 @@ export default function ModelViewer3D({ onSelectModule }) {
       objectsRef.current.roof = roofGroup;
     } 
     else if (modelType === 'vivienda') {
-      // MODEL 2: PROTOTIPO VIVIENDA PALAFÍTICA (54 m² - 86 m²)
+      // Pasto y Agua para Vivienda
+      const pastoTex = texLoader.load(`${normalizedBase}assets/textura_pasto_m5.png`);
+      pastoTex.wrapS = THREE.MirroredRepeatWrapping;
+      pastoTex.wrapT = THREE.MirroredRepeatWrapping;
+      pastoTex.repeat.set(8, 8);
+      pastoTex.anisotropy = 16;
+
+      const waterTex = texLoader.load(`${normalizedBase}assets/textura_agua_m5.jpg`);
+      waterTex.wrapS = THREE.MirroredRepeatWrapping;
+      waterTex.wrapT = THREE.MirroredRepeatWrapping;
+      waterTex.repeat.set(12, 12);
+      waterTex.anisotropy = 16;
+
+      // Base de Pasto
+      const grassMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(60, 60),
+        new THREE.MeshStandardMaterial({ map: pastoTex, roughness: 0.9, side: THREE.DoubleSide })
+      );
+      grassMesh.rotation.x = -Math.PI / 2;
+      grassMesh.position.y = -0.02;
+      grassMesh.receiveShadow = true;
+      modelGroup.add(grassMesh);
+      objectsRef.current.terrain = grassMesh;
+
+      // Espejo de Agua Costero
+      const waterMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(120, 120),
+        new THREE.MeshStandardMaterial({ map: waterTex, color: 0x9cd3db, roughness: 0.2, transparent: true, opacity: 0.92, side: THREE.DoubleSide })
+      );
+      waterMesh.rotation.x = -Math.PI / 2;
+      waterMesh.position.y = -0.15;
+      waterMesh.receiveShadow = true;
+      modelGroup.add(waterMesh);
+
       // Pilotes de elevación +0.60m
       const stiltMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 });
       const stiltsGroup = new THREE.Group();

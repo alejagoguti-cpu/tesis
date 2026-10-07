@@ -562,6 +562,22 @@ export function countRoadPoints(roadsData) {
   return lines.reduce((sum, line) => sum + (Array.isArray(line) ? line.length : 0), 0);
 }
 
+// Helper: Synchronize Multi-line roads on Leaflet LayerGroup
+export function syncRoadsLayer(roadsGroup, roadsData, style = { opacity: 1, weight: 5, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' }) {
+  if (!roadsGroup) return;
+  roadsGroup.clearLayers();
+  const lines = normalizeRoadLines(roadsData);
+  lines.forEach(line => {
+    if (line && line.length >= 2) {
+      const pl = L.polyline(line, {
+        ...style,
+        interactive: false
+      });
+      roadsGroup.addLayer(pl);
+    }
+  });
+}
+
 // Function to resample any polygon or polyline into N equidistant points along its length/perimeter
 function resampleCoordinates(coords, isPolygon, numSamples = 120) {
   if (!coords || coords.length < 2) return coords || [];
@@ -839,9 +855,9 @@ export default function ThesisFramework({ onSelectModule }) {
     if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
     if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
     if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-    if (roadsLayer) roadsLayer.setStyle({ opacity: 0 });
+    if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 5, color: '#f59e0b' });
 
-    // Instantly stabilize camera on the exact coordinates so the animation never jumps
+    // Instantly stabilize camera on the exact coordinates so the animation never jumps or warps
     if (stepIdx === 0) {
       const islandCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
       if (islandCoords.length > 0) {
@@ -856,31 +872,132 @@ export default function ThesisFramework({ onSelectModule }) {
       map.setView(cameraCenter, cameraZoom, { animate: false });
     }
 
-    // Handle Multi-line roads tracing
-    if (stepIdx === 4) {
-      const rawRoadLines = normalizeRoadLines(delimitations.roads || DEFAULT_DELIMITATIONS.roads);
-      const validLines = rawRoadLines.filter(l => Array.isArray(l) && l.length >= 2);
-      if (validLines.length === 0) {
-        if (roadsLayer) roadsLayer.setStyle({ opacity: 1, weight: 6, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
+    // Stabilize for 180ms before drawing starts to ensure the map viewport is completely stationary
+    setTimeout(() => {
+      if (!mapInstanceRef.current) return;
+
+      // Handle Multi-line roads tracing
+      if (stepIdx === 4) {
+        const rawRoadLines = normalizeRoadLines(delimitations.roads || DEFAULT_DELIMITATIONS.roads);
+        const validLines = rawRoadLines.filter(l => Array.isArray(l) && l.length >= 2);
+        if (validLines.length === 0) {
+          if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 1, weight: 5, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
+          return;
+        }
+
+        setIsIntroAnimating(true);
+        setAnimProgress(0);
+
+        const resampledLines = validLines.map(line => resampleCoordinates(line, false, Math.max(25, Math.floor(120 / validLines.length))));
+
+        const glowLine = L.polyline([], {
+          color: glowColor,
+          weight: 6,
+          opacity: 0.45,
+          lineCap: 'round',
+          lineJoin: 'round'
+        }).addTo(map);
+
+        const mainLine = L.polyline([], {
+          color: mainColor,
+          weight: 3.5,
+          opacity: 1,
+          lineCap: 'round',
+          lineJoin: 'round'
+        }).addTo(map);
+
+        const leadIcon = L.divIcon({
+          className: 'custom-anim-lead-node',
+          html: `
+            <div class="relative flex items-center justify-center pointer-events-none">
+              <div class="absolute -inset-2 rounded-full animate-ping opacity-75" style="background-color: ${glowColor}"></div>
+              <div class="w-4 h-4 rounded-full border-2 border-white shadow-xl flex items-center justify-center" style="background-color: ${mainColor}">
+                <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+              </div>
+            </div>
+          `,
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
+        });
+
+        const leadMarker = L.marker(resampledLines[0][0], {
+          icon: leadIcon,
+          zIndexOffset: 3000
+        }).addTo(map);
+
+        animatingGlowRef.current = glowLine;
+        animatingLayerRef.current = mainLine;
+        tracerMarkerRef.current = leadMarker;
+
+        let currentLineIdx = 0;
+        let currentStepInLine = 1;
+        const completedLines = [];
+
+        animationTimerRef.current = setInterval(() => {
+          const curLineCoords = resampledLines[currentLineIdx];
+          currentStepInLine++;
+          const currentSlice = curLineCoords.slice(0, currentStepInLine);
+
+          const allDrawn = [...completedLines, currentSlice];
+          glowLine.setLatLngs(allDrawn);
+          mainLine.setLatLngs(allDrawn);
+
+          const head = curLineCoords[Math.min(currentStepInLine - 1, curLineCoords.length - 1)];
+          leadMarker.setLatLng(head);
+
+          const totalPointsAcrossAll = resampledLines.reduce((sum, l) => sum + l.length, 0);
+          const drawnSoFar = completedLines.reduce((sum, l) => sum + l.length, 0) + currentStepInLine;
+          setAnimProgress(Math.min(100, Math.round((drawnSoFar / totalPointsAcrossAll) * 100)));
+
+          if (currentStepInLine >= curLineCoords.length) {
+            completedLines.push(curLineCoords);
+            currentLineIdx++;
+            currentStepInLine = 1;
+
+            if (currentLineIdx >= resampledLines.length) {
+              clearInterval(animationTimerRef.current);
+              animationTimerRef.current = null;
+              setTimeout(() => {
+                if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 1, weight: 5, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
+                if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
+                if (animatingLayerRef.current) map.removeLayer(animatingLayerRef.current);
+                if (tracerMarkerRef.current) map.removeLayer(tracerMarkerRef.current);
+                setIsIntroAnimating(false);
+              }, 150);
+            } else {
+              leadMarker.setLatLng(resampledLines[currentLineIdx][0]);
+            }
+          }
+        }, 20);
+
         return;
       }
+
+      // For single polygon/polyline (island, erosion, school, plateau)
+      let rawCoords = [];
+      if (stepIdx === 0) rawCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
+      else if (stepIdx === 1) rawCoords = delimitations.erosion || DEFAULT_DELIMITATIONS.erosion || [];
+      else if (stepIdx === 2) rawCoords = delimitations.school || DEFAULT_DELIMITATIONS.school || [];
+      else if (stepIdx === 3) rawCoords = delimitations.plateau || DEFAULT_DELIMITATIONS.plateau || [];
+
+      if (rawCoords.length < 2) return;
 
       setIsIntroAnimating(true);
       setAnimProgress(0);
 
-      const resampledLines = validLines.map(line => resampleCoordinates(line, false, Math.max(25, Math.floor(120 / validLines.length))));
+      const sampledCoords = resampleCoordinates(rawCoords, isPolygon, 120);
 
       const glowLine = L.polyline([], {
         color: glowColor,
-        weight: 8,
-        opacity: 0.65,
+        weight: 6,
+        opacity: 0.45,
         lineCap: 'round',
         lineJoin: 'round'
       }).addTo(map);
 
       const mainLine = L.polyline([], {
         color: mainColor,
-        weight: 4.5,
+        weight: 3.5,
         opacity: 1,
         lineCap: 'round',
         lineJoin: 'round'
@@ -890,17 +1007,17 @@ export default function ThesisFramework({ onSelectModule }) {
         className: 'custom-anim-lead-node',
         html: `
           <div class="relative flex items-center justify-center pointer-events-none">
-            <div class="absolute -inset-3 rounded-full animate-ping opacity-80" style="background-color: ${glowColor}"></div>
-            <div class="w-5 h-5 rounded-full border-2 border-white shadow-2xl flex items-center justify-center" style="background-color: ${mainColor}">
-              <div class="w-2 h-2 rounded-full bg-white"></div>
+            <div class="absolute -inset-2 rounded-full animate-ping opacity-75" style="background-color: ${glowColor}"></div>
+            <div class="w-4 h-4 rounded-full border-2 border-white shadow-xl flex items-center justify-center" style="background-color: ${mainColor}">
+              <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
             </div>
           </div>
         `,
-        iconSize: [26, 26],
-        iconAnchor: [13, 13]
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
       });
 
-      const leadMarker = L.marker(resampledLines[0][0], {
+      const leadMarker = L.marker(sampledCoords[0], {
         icon: leadIcon,
         zIndexOffset: 3000
       }).addTo(map);
@@ -909,142 +1026,46 @@ export default function ThesisFramework({ onSelectModule }) {
       animatingLayerRef.current = mainLine;
       tracerMarkerRef.current = leadMarker;
 
-      let currentLineIdx = 0;
-      let currentStepInLine = 1;
-      const completedLines = [];
+      const totalSteps = sampledCoords.length;
+      let stepCount = 1;
+      const stepIntervalMs = 20;
 
       animationTimerRef.current = setInterval(() => {
-        const curLineCoords = resampledLines[currentLineIdx];
-        currentStepInLine++;
-        const currentSlice = curLineCoords.slice(0, currentStepInLine);
+        stepCount++;
+        const currentPts = sampledCoords.slice(0, stepCount);
 
-        const allDrawn = [...completedLines, currentSlice];
-        glowLine.setLatLngs(allDrawn);
-        mainLine.setLatLngs(allDrawn);
+        glowLine.setLatLngs(currentPts);
+        mainLine.setLatLngs(currentPts);
 
-        const head = curLineCoords[Math.min(currentStepInLine - 1, curLineCoords.length - 1)];
-        leadMarker.setLatLng(head);
+        const currentHead = sampledCoords[Math.min(stepCount - 1, totalSteps - 1)];
+        leadMarker.setLatLng(currentHead);
 
-        const totalPointsAcrossAll = resampledLines.reduce((sum, l) => sum + l.length, 0);
-        const drawnSoFar = completedLines.reduce((sum, l) => sum + l.length, 0) + currentStepInLine;
-        setAnimProgress(Math.min(100, Math.round((drawnSoFar / totalPointsAcrossAll) * 100)));
+        const pct = Math.min(100, Math.round((stepCount / totalSteps) * 100));
+        setAnimProgress(pct);
 
-        if (currentStepInLine >= curLineCoords.length) {
-          completedLines.push(curLineCoords);
-          currentLineIdx++;
-          currentStepInLine = 1;
+        if (stepCount >= totalSteps) {
+          clearInterval(animationTimerRef.current);
+          animationTimerRef.current = null;
 
-          if (currentLineIdx >= resampledLines.length) {
-            clearInterval(animationTimerRef.current);
-            animationTimerRef.current = null;
-            setTimeout(() => {
-              if (roadsLayer) roadsLayer.setStyle({ opacity: 1, weight: 6, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
-              if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
-              if (animatingLayerRef.current) map.removeLayer(animatingLayerRef.current);
-              if (tracerMarkerRef.current) map.removeLayer(tracerMarkerRef.current);
-              setIsIntroAnimating(false);
-            }, 200);
-          } else {
-            leadMarker.setLatLng(resampledLines[currentLineIdx][0]);
-          }
+          setTimeout(() => {
+            if (stepIdx === 0 && islandLayer) {
+              islandLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#ea580c', dashArray: '6, 6' });
+            } else if (stepIdx === 1 && erosionLayer) {
+              erosionLayer.setStyle({ opacity: 1, weight: 6, color: '#dc2626', dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' });
+            } else if (stepIdx === 2 && schoolLayer) {
+              schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.25, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
+            } else if (stepIdx === 3 && masterplanLayer) {
+              masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '6, 6' });
+            }
+
+            if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
+            if (animatingLayerRef.current) map.removeLayer(animatingLayerRef.current);
+            if (tracerMarkerRef.current) map.removeLayer(tracerMarkerRef.current);
+            setIsIntroAnimating(false);
+          }, 150);
         }
-      }, 20);
-
-      return;
-    }
-
-    // For single polygon/polyline (island, erosion, school, plateau)
-    let rawCoords = [];
-    if (stepIdx === 0) rawCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
-    else if (stepIdx === 1) rawCoords = delimitations.erosion || DEFAULT_DELIMITATIONS.erosion || [];
-    else if (stepIdx === 2) rawCoords = delimitations.school || DEFAULT_DELIMITATIONS.school || [];
-    else if (stepIdx === 3) rawCoords = delimitations.plateau || DEFAULT_DELIMITATIONS.plateau || [];
-
-    if (rawCoords.length < 2) return;
-
-    setIsIntroAnimating(true);
-    setAnimProgress(0);
-
-    const sampledCoords = resampleCoordinates(rawCoords, isPolygon, 120);
-
-    const glowLine = L.polyline([], {
-      color: glowColor,
-      weight: 8,
-      opacity: 0.65,
-      lineCap: 'round',
-      lineJoin: 'round'
-    }).addTo(map);
-
-    const mainLine = L.polyline([], {
-      color: mainColor,
-      weight: 4.5,
-      opacity: 1,
-      lineCap: 'round',
-      lineJoin: 'round'
-    }).addTo(map);
-
-    const leadIcon = L.divIcon({
-      className: 'custom-anim-lead-node',
-      html: `
-        <div class="relative flex items-center justify-center pointer-events-none">
-          <div class="absolute -inset-3 rounded-full animate-ping opacity-80" style="background-color: ${glowColor}"></div>
-          <div class="w-5 h-5 rounded-full border-2 border-white shadow-2xl flex items-center justify-center" style="background-color: ${mainColor}">
-            <div class="w-2 h-2 rounded-full bg-white"></div>
-          </div>
-        </div>
-      `,
-      iconSize: [26, 26],
-      iconAnchor: [13, 13]
-    });
-
-    const leadMarker = L.marker(sampledCoords[0], {
-      icon: leadIcon,
-      zIndexOffset: 3000
-    }).addTo(map);
-
-    animatingGlowRef.current = glowLine;
-    animatingLayerRef.current = mainLine;
-    tracerMarkerRef.current = leadMarker;
-
-    const totalSteps = sampledCoords.length;
-    let stepCount = 1;
-    const stepIntervalMs = 20;
-
-    animationTimerRef.current = setInterval(() => {
-      stepCount++;
-      const currentPts = sampledCoords.slice(0, stepCount);
-
-      glowLine.setLatLngs(currentPts);
-      mainLine.setLatLngs(currentPts);
-
-      const currentHead = sampledCoords[Math.min(stepCount - 1, totalSteps - 1)];
-      leadMarker.setLatLng(currentHead);
-
-      const pct = Math.min(100, Math.round((stepCount / totalSteps) * 100));
-      setAnimProgress(pct);
-
-      if (stepCount >= totalSteps) {
-        clearInterval(animationTimerRef.current);
-        animationTimerRef.current = null;
-
-        setTimeout(() => {
-          if (stepIdx === 0 && islandLayer) {
-            islandLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#ea580c', dashArray: '6, 6' });
-          } else if (stepIdx === 1 && erosionLayer) {
-            erosionLayer.setStyle({ opacity: 1, weight: 6, color: '#dc2626', dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' });
-          } else if (stepIdx === 2 && schoolLayer) {
-            schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.25, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
-          } else if (stepIdx === 3 && masterplanLayer) {
-            masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '6, 6' });
-          }
-
-          if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
-          if (animatingLayerRef.current) map.removeLayer(animatingLayerRef.current);
-          if (tracerMarkerRef.current) map.removeLayer(tracerMarkerRef.current);
-          setIsIntroAnimating(false);
-        }, 200);
-      }
-    }, stepIntervalMs);
+      }, stepIntervalMs);
+    }, 180);
   };
 
   // =========================================================================
@@ -1141,16 +1162,16 @@ export default function ThesisFramework({ onSelectModule }) {
       interactive: false
     }).addTo(map);
 
-    // 5. Roads Layer (Master Plan: Vías)
-    const roadsLayer = L.polyline(delimitations.roads || [], {
+    // 5. Roads Layer (Master Plan: Vías - Independent branches)
+    const roadsLayer = L.layerGroup().addTo(map);
+    syncRoadsLayer(roadsLayer, delimitations.roads, {
       color: '#f59e0b',
-      weight: 6,
+      weight: 5,
       opacity: 0,
       dashArray: '8, 6',
       lineCap: 'round',
-      lineJoin: 'round',
-      interactive: false
-    }).addTo(map);
+      lineJoin: 'round'
+    });
 
     // 6. Custom Polygon Layer (Initially hidden)
     const customLayer = L.polygon(delimitations.custom || [], {
@@ -1359,12 +1380,19 @@ export default function ThesisFramework({ onSelectModule }) {
       masterplanLayer.setLatLngs(delimitations.plateau);
     }
     if (roadsLayer && delimitations.roads) {
-      roadsLayer.setLatLngs(normalizeRoadLines(delimitations.roads));
+      syncRoadsLayer(roadsLayer, delimitations.roads, {
+        opacity: (isEditMode && activeZoneKey === 'roads') || (!isEditMode && currentStepIndex === 4) ? 1 : (isEditMode ? 0.2 : 0),
+        weight: 5,
+        color: '#f59e0b',
+        dashArray: '8, 6',
+        lineCap: 'round',
+        lineJoin: 'round'
+      });
     }
     if (customLayer && delimitations.custom) {
       customLayer.setLatLngs(delimitations.custom);
     }
-  }, [delimitations]);
+  }, [delimitations, isEditMode, activeZoneKey, currentStepIndex]);
 
   // Synchronize Reference Calque Image Overlay on the map
   useEffect(() => {
@@ -1565,7 +1593,7 @@ export default function ThesisFramework({ onSelectModule }) {
       if (erosionLayer) erosionLayer.setStyle({ opacity: activeZoneKey === 'erosion' ? 1 : 0.2, weight: 6, color: '#dc2626' });
       if (schoolLayer) schoolLayer.setStyle({ opacity: activeZoneKey === 'school' ? 1 : 0.2, fillOpacity: activeZoneKey === 'school' ? 0.3 : 0, weight: 4.5 });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: activeZoneKey === 'plateau' ? 1 : 0.2, fillOpacity: 0, weight: 4.5 });
-      if (roadsLayer) roadsLayer.setStyle({ opacity: activeZoneKey === 'roads' ? 1 : 0.2, weight: 6, color: '#f59e0b' });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: activeZoneKey === 'roads' ? 1 : 0.2, weight: activeZoneKey === 'roads' ? 5 : 2, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
       if (customLayer) customLayer.setStyle({ opacity: activeZoneKey === 'custom' ? 1 : 0.2, fillOpacity: activeZoneKey === 'custom' ? 0.2 : 0, weight: 3.5 });
       return;
     }
@@ -1581,7 +1609,7 @@ export default function ThesisFramework({ onSelectModule }) {
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-      if (roadsLayer) roadsLayer.setStyle({ opacity: 0 });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 5, color: '#f59e0b' });
       if (customLayer) customLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       return;
     }
@@ -1592,33 +1620,33 @@ export default function ThesisFramework({ onSelectModule }) {
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-      if (roadsLayer) roadsLayer.setStyle({ opacity: 0 });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 5, color: '#f59e0b' });
     } else if (currentStepIndex === 1) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 1, weight: 6, color: '#dc2626', dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-      if (roadsLayer) roadsLayer.setStyle({ opacity: 0 });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 5, color: '#f59e0b' });
     } else if (currentStepIndex === 2) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.25, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
-      if (roadsLayer) roadsLayer.setStyle({ opacity: 0 });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 5, color: '#f59e0b' });
     } else if (currentStepIndex === 3) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '6, 6' });
-      if (roadsLayer) roadsLayer.setStyle({ opacity: 0 });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 5, color: '#f59e0b' });
     } else if (currentStepIndex === 4) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0.35, fillOpacity: 0, weight: 2, color: '#0d9488', dashArray: '6, 6' });
-      if (roadsLayer) roadsLayer.setStyle({ opacity: 1, weight: 6, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
+      if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 1, weight: 5, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
     }
-  }, [currentStepIndex, isEditMode, isIntroAnimating, activeZoneKey]);
+  }, [currentStepIndex, isEditMode, isIntroAnimating, activeZoneKey, delimitations.roads]);
 
   // Autoplay sequence timer
   useEffect(() => {
@@ -2701,6 +2729,52 @@ export default function ThesisFramework({ onSelectModule }) {
               - Reducir
             </button>
           </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3.5 FLOATING TOP HUD: MASTER PLAN VÍAS MULTI-LINE CONTROLS (EDIT MODE)    */}
+      {/* ========================================================================= */}
+      {isEditMode && activeZoneKey === 'roads' && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[450] flex flex-wrap items-center justify-center gap-2 px-3 py-2 bg-slate-950/90 backdrop-blur-md rounded-2xl shadow-2xl border border-amber-500/50 animate-fade-in text-white pointer-events-auto">
+          <button
+            onClick={handleAddNewRoadLine}
+            className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-black text-xs flex items-center space-x-1.5 shadow-lg transition-all active:scale-95 ring-2 ring-amber-300"
+            title="Crear un nuevo tramo de vía independiente sin unirlo a la anterior"
+          >
+            <Plus className="w-4 h-4 text-slate-950 stroke-[3]" />
+            <span>➕ INICIAR NUEVO TRAMO</span>
+          </button>
+
+          <div className="h-4 w-px bg-white/20 hidden sm:block" />
+
+          <div className="flex items-center space-x-1 max-w-[320px] overflow-x-auto py-0.5">
+            {normalizeRoadLines(delimitations.roads).map((line, lIdx) => (
+              <button
+                key={lIdx}
+                onClick={() => {
+                  setActiveRoadLineIndex(lIdx);
+                  setSelectedNodeIndex(null);
+                }}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all whitespace-nowrap ${
+                  lIdx === activeRoadLineIndex
+                    ? 'bg-amber-400 text-slate-950 ring-1 ring-white shadow-xs'
+                    : 'bg-white/10 hover:bg-white/20 text-white'
+                }`}
+              >
+                Tramo {lIdx + 1} ({line.length}p)
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => handleClearCurrentRoadLine(activeRoadLineIndex)}
+            disabled={activeNodes.length === 0}
+            className="px-2.5 py-1 rounded-xl bg-red-600/80 hover:bg-red-600 disabled:opacity-30 text-white text-[10px] font-mono font-bold transition-colors"
+            title="Vaciar únicamente los puntos del tramo seleccionado"
+          >
+            Vaciar Tramo {activeRoadLineIndex + 1}
+          </button>
         </div>
       )}
 
