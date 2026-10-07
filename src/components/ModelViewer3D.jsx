@@ -55,9 +55,9 @@ export default function ModelViewer3D({ onSelectModule }) {
   const cartagenaTerritoryRef = useRef(null);
 
   // Paleta de Colores Arquitectónicos y Ambientales (Inspirado en modulo-08-3d.html)
-  const [waterColor, setWaterColor] = useState('#0b0c0f');
+  const [waterColor, setWaterColor] = useState('#2c7a9c');
   const [roadsColor, setRoadsColor] = useState('#b7babd');
-  const [greenColor, setGreenColor] = useState('#4a7856');
+  const [greenColor, setGreenColor] = useState('#7fa672');
   const [showNoiseMap, setShowNoiseMap] = useState(false);
   const [climateMonth, setClimateMonth] = useState(0); // 0 = Ene, 11 = Dic
   const [isPlayingClimate, setIsPlayingClimate] = useState(false);
@@ -191,9 +191,9 @@ export default function ModelViewer3D({ onSelectModule }) {
       setLoadProgress(15);
       setLoadPhase('Cargando Catastro Oficial AMB Cartagena (MAGNA-SIRGAS)...');
 
-      const bgColor = 0x0b0c0f;
+      const bgColor = 0xdbe8d4;
       scene.background = new THREE.Color(bgColor);
-      scene.fog = null;
+      scene.fog = new THREE.Fog(bgColor, 300, 1200);
 
       const clipPlanesArray = [
         secPlanesRef.current.xMin,
@@ -442,9 +442,9 @@ export default function ModelViewer3D({ onSelectModule }) {
       setLoadProgress(15);
       setLoadPhase('Cargando Masterplan BIM Revit (Tierrabomba)...');
 
-      const bgColor = 0x0b0c0f;
+      const bgColor = 0xdbe8d4;
       scene.background = new THREE.Color(bgColor);
-      scene.fog = new THREE.Fog(bgColor, 160, 450);
+      scene.fog = new THREE.Fog(bgColor, 250, 800);
 
       const gltfLoader = new GLTFLoader();
       const dracoLoader = new DRACOLoader();
@@ -497,6 +497,11 @@ export default function ModelViewer3D({ onSelectModule }) {
           objectsRef.current.revitWalls = [];
           objectsRef.current.revitBuildings = [];
 
+          const pastoTex = new THREE.TextureLoader().load(`${basePath.endsWith('/') ? basePath : basePath + '/'}assets/textura_pasto.jpg`);
+          pastoTex.wrapS = THREE.RepeatWrapping;
+          pastoTex.wrapT = THREE.RepeatWrapping;
+          pastoTex.repeat.set(16, 16);
+
           model.traverse((child) => {
             if (child.isMesh) {
               child.castShadow = true;
@@ -511,8 +516,9 @@ export default function ModelViewer3D({ onSelectModule }) {
 
               if (name.includes('Terrain') || matName.includes('Terrain') || name.includes('Toposolid')) {
                 child.material = new THREE.MeshStandardMaterial({
-                  color: 0x477857,
-                  roughness: 0.85,
+                  map: pastoTex,
+                  color: 0x7fa672,
+                  roughness: 0.90,
                   metalness: 0.02,
                   side: THREE.DoubleSide,
                   clippingPlanes: clipPlanesArray,
@@ -586,8 +592,8 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     // Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0b0c0f);
-    scene.fog = new THREE.Fog(0x0b0c0f, 160, 450);
+    scene.background = new THREE.Color(0xdbe8d4);
+    scene.fog = new THREE.Fog(0xdbe8d4, 300, 1200);
     sceneRef.current = scene;
 
     // Cámara Ortográfica para Proyección Axonométrica Paralela a 35° (sin distorsión de perspectiva)
@@ -757,6 +763,9 @@ export default function ModelViewer3D({ onSelectModule }) {
     let reqId;
     const animate = () => {
       reqId = requestAnimationFrame(animate);
+      if (cartagenaTerritoryRef.current?.update) {
+        cartagenaTerritoryRef.current.update(isPlayingSimulationRef.current ? simulationSpeedRef.current : 0.8, performance.now());
+      }
       renderer.render(scene, camera);
     };
     animate();
@@ -1034,8 +1043,8 @@ export default function ModelViewer3D({ onSelectModule }) {
         secPlanesRef.current.zMax,
       ];
 
-      scene.background = new THREE.Color(0x0b0c0f);
-      scene.fog = new THREE.Fog(0x0b0c0f, 160, 450);
+      scene.background = new THREE.Color(0xdbe8d4);
+      scene.fog = new THREE.Fog(0xdbe8d4, 250, 800);
 
       const rootContainer = new THREE.Group();
       rootContainer.add(modelGroup);
@@ -1043,6 +1052,11 @@ export default function ModelViewer3D({ onSelectModule }) {
       objectsRef.current.revitTerrain = [];
       objectsRef.current.revitWalls = [];
       objectsRef.current.revitBuildings = [];
+
+      const pastoTex = new THREE.TextureLoader().load(`${basePath.endsWith('/') ? basePath : basePath + '/'}assets/textura_pasto.jpg`);
+      pastoTex.wrapS = THREE.RepeatWrapping;
+      pastoTex.wrapT = THREE.RepeatWrapping;
+      pastoTex.repeat.set(16, 16);
 
       modelGroup.traverse((child) => {
         if (child.isMesh) {
@@ -1058,8 +1072,9 @@ export default function ModelViewer3D({ onSelectModule }) {
 
           if (name.includes('Toposolid') || name.toLowerCase().includes('terrain') || matName.includes('Toposolid') || matName.toLowerCase().includes('terrain')) {
             child.material = new THREE.MeshStandardMaterial({
-              color: 0x477857,
-              roughness: 0.85,
+              map: pastoTex,
+              color: 0x7fa672,
+              roughness: 0.90,
               metalness: 0.02,
               side: THREE.DoubleSide,
               clippingPlanes: clipPlanesArray,

@@ -38,6 +38,8 @@ import {
   Eye,
   Eraser,
   RefreshCw,
+  Route,
+  PenTool,
   Image as ImageIcon
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
@@ -264,6 +266,13 @@ export const DEFAULT_DELIMITATIONS = {
     [10.37348, -75.57450],
     [10.37419, -75.57408]
   ],
+  roads: [
+    [10.37520, -75.57680],
+    [10.37350, -75.57620],
+    [10.37180, -75.57550],
+    [10.36980, -75.57480],
+    [10.36750, -75.57420]
+  ],
   custom: [
     [10.37884, -75.57763],
     [10.37879, -75.57730],
@@ -413,13 +422,22 @@ export const ZONE_CONFIG = {
     badge: "Cota Segura Masterplan",
     desc: "Área de implantación protegida para vivienda y colegio."
   },
+  roads: {
+    id: "roads",
+    name: "5. Master Plan: Vías",
+    type: "polyline",
+    color: "#f59e0b",
+    fillColor: "#f59e0b",
+    badge: "Red Vial Masterplan",
+    desc: "Trazado y diseño de vías estructurantes de la meseta y conexión insular."
+  },
   custom: {
     id: "custom",
-    name: "5. Polígono Calcado del Plano",
+    name: "6. Polígono Calcado del Plano",
     type: "polygon",
     color: "#06b6d4",
     fillColor: "#06b6d4",
-    badge: "101 Nodos Calcados",
+    badge: "Plano Calcado",
     desc: "Polígono de delimitación y zonificación territorial calcado del plano de tesis."
   }
 };
@@ -480,6 +498,20 @@ export const FRAMEWORK_STEPS = [
     btnLabel: "Criterios del Masterplan",
     description: "Reubicación integral: 120 viviendas, colegio bioclimático y soberanía hídrica 450kL.",
     hint: "Haz clic sobre el contorno verdeazulado de la meseta para abrir los Criterios"
+  },
+  {
+    step: 5,
+    id: "vias",
+    title: "5. Master Plan: Vías",
+    badge: "Paso 05 // Movilidad",
+    targetName: "Red Vial y Conectividad",
+    center: [10.3715, -75.5755],
+    zoom: 16.5,
+    highlight: "roads",
+    modalType: "solution",
+    btnLabel: "Trazado de Vías",
+    description: "Diseño de la red vial estructurante, senderos peatonales y vías de servicio para la meseta.",
+    hint: "Haz clic en el Pincel para dibujar o editar el trazado de las vías"
   }
 ];
 
@@ -597,6 +629,9 @@ export default function ThesisFramework({ onSelectModule }) {
   });
 
   const [selectedNodeIndex, setSelectedNodeIndex] = useState(null);
+  const [showRightPanel, setShowRightPanel] = useState(true);
+  const [showPasteBox, setShowPasteBox] = useState(false);
+  const [pastedCoordsText, setPastedCoordsText] = useState('');
   const [showExportModal, setShowExportModal] = useState(false);
   const [saveToast, setSaveToast] = useState(false);
   const [copyToast, setCopyToast] = useState(false);
@@ -702,7 +737,7 @@ export default function ThesisFramework({ onSelectModule }) {
 
   // =========================================================================
   // ANIMATED BOUNDARY TRACING (RUNS ON ANY CARD / STEP SELECTION)
-  // Standardized 2.4s uniform, smooth pacing & style across ALL 4 cards
+  // Standardized 2.4s uniform, smooth pacing & style across ALL 5 cards
   // =========================================================================
   const startZoneTraceAnimation = (stepIdx, targetMap) => {
     const map = targetMap || mapInstanceRef.current;
@@ -728,7 +763,7 @@ export default function ThesisFramework({ onSelectModule }) {
       mainColor = '#dc2626';
       glowColor = '#f87171';
       cameraCenter = [10.3585, -75.5905];
-      cameraZoom = 16.2;
+      cameraZoom = 16.0;
     } else if (stepIdx === 2) {
       rawCoords = delimitations.school || DEFAULT_DELIMITATIONS.school || [];
       isPolygon = true;
@@ -743,6 +778,13 @@ export default function ThesisFramework({ onSelectModule }) {
       glowColor = '#2dd4bf';
       cameraCenter = [10.3730, -75.5759];
       cameraZoom = 16.2;
+    } else if (stepIdx === 4) {
+      rawCoords = delimitations.roads || DEFAULT_DELIMITATIONS.roads || [];
+      isPolygon = false;
+      mainColor = '#f59e0b';
+      glowColor = '#fde68a';
+      cameraCenter = [10.3715, -75.5755];
+      cameraZoom = 16.5;
     }
 
     if (rawCoords.length < 2) return;
@@ -772,11 +814,12 @@ export default function ThesisFramework({ onSelectModule }) {
     setAnimProgress(0);
 
     // Hide static layers during active tracing
-    const { islandLayer, erosionLayer, schoolLayer, masterplanLayer } = layersRef.current;
+    const { islandLayer, erosionLayer, schoolLayer, masterplanLayer, roadsLayer } = layersRef.current;
     if (islandLayer) islandLayer.setStyle({ opacity: stepIdx === 0 ? 0 : 0.15, fillOpacity: 0, weight: 2 });
     if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
     if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
     if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+    if (roadsLayer) roadsLayer.setStyle({ opacity: 0 });
 
     // Smooth, cinematic camera motion (duration 2.0s to match contour trace)
     if (stepIdx === 0) {
@@ -798,7 +841,7 @@ export default function ThesisFramework({ onSelectModule }) {
     const glowLine = L.polyline([], {
       color: glowColor,
       weight: 8,
-      opacity: 0.6,
+      opacity: 0.65,
       lineCap: 'round',
       lineJoin: 'round'
     }).addTo(map);
@@ -806,7 +849,7 @@ export default function ThesisFramework({ onSelectModule }) {
     // Core crisp neon line
     const mainLine = L.polyline([], {
       color: mainColor,
-      weight: 4,
+      weight: 4.5,
       opacity: 1,
       lineCap: 'round',
       lineJoin: 'round'
@@ -858,15 +901,17 @@ export default function ThesisFramework({ onSelectModule }) {
         animationTimerRef.current = null;
 
         setTimeout(() => {
-          // Display the final crisp contour (identical weight: 4.5, dashArray: '6, 6' for all)
+          // Display the final crisp contour
           if (stepIdx === 0 && islandLayer) {
             islandLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#ea580c', dashArray: '6, 6' });
           } else if (stepIdx === 1 && erosionLayer) {
-            erosionLayer.setStyle({ opacity: 1, weight: 5.5, color: '#dc2626', dashArray: '6, 6' });
+            erosionLayer.setStyle({ opacity: 1, weight: 6, color: '#dc2626', dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' });
           } else if (stepIdx === 2 && schoolLayer) {
             schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.25, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
           } else if (stepIdx === 3 && masterplanLayer) {
             masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '6, 6' });
+          } else if (stepIdx === 4 && roadsLayer) {
+            roadsLayer.setStyle({ opacity: 1, weight: 6, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
           }
 
           if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
@@ -972,7 +1017,18 @@ export default function ThesisFramework({ onSelectModule }) {
       interactive: false
     }).addTo(map);
 
-    // 5. Custom Polygon Layer (Initially hidden)
+    // 5. Roads Layer (Master Plan: Vías)
+    const roadsLayer = L.polyline(delimitations.roads || [], {
+      color: '#f59e0b',
+      weight: 6,
+      opacity: 0,
+      dashArray: '8, 6',
+      lineCap: 'round',
+      lineJoin: 'round',
+      interactive: false
+    }).addTo(map);
+
+    // 6. Custom Polygon Layer (Initially hidden)
     const customLayer = L.polygon(delimitations.custom || [], {
       color: '#06b6d4',
       weight: 3.5,
@@ -984,7 +1040,7 @@ export default function ThesisFramework({ onSelectModule }) {
     }).addTo(map);
 
     // =========================================================================
-    // 4 DISTINCT INTERACTIVE MARKER ICONS (ALWAYS VISIBLE & CLICKABLE ON MAP)
+    // 5 DISTINCT INTERACTIVE MARKER ICONS (ALWAYS VISIBLE & CLICKABLE ON MAP)
     // =========================================================================
 
     // Marker 1: Delimitación Territorial (Isla Tierrabomba)
@@ -1074,16 +1130,39 @@ export default function ThesisFramework({ onSelectModule }) {
       startZoneTraceAnimation(3);
     });
 
+    // Marker 5: Master Plan Vías
+    const marker5Icon = L.divIcon({
+      className: 'custom-framework-pin-5 cursor-pointer',
+      html: `
+        <div class="relative flex items-center justify-center group cursor-pointer" title="Paso 05: Master Plan Vías">
+          <div class="absolute -inset-2 rounded-full bg-amber-500/30 animate-pulse"></div>
+          <div class="w-7 h-7 rounded-xl bg-amber-500 border-2 border-white shadow-xl flex items-center justify-center text-slate-950 font-bold transition-transform group-hover:scale-125">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M4 19L19 4M4 4l15 15"/></svg>
+          </div>
+        </div>
+      `,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+
+    const marker5 = L.marker([10.3715, -75.5755], { icon: marker5Icon, interactive: true }).addTo(map);
+    marker5.on('click', () => {
+      setCurrentStepIndex(4);
+      startZoneTraceAnimation(4);
+    });
+
     layersRef.current = {
       islandLayer,
       erosionLayer,
       schoolLayer,
       masterplanLayer,
+      roadsLayer,
       customLayer,
       marker1,
       marker2,
       marker3,
-      marker4
+      marker4,
+      marker5
     };
 
     mapInstanceRef.current = map;
@@ -1126,7 +1205,7 @@ export default function ThesisFramework({ onSelectModule }) {
   // 2. SYNCHRONIZE LEAFLET GEOMETRY WITH DELIMITATION STATE
   // =========================================================================
   useEffect(() => {
-    const { islandLayer, erosionLayer, schoolLayer, masterplanLayer, customLayer, marker3 } = layersRef.current;
+    const { islandLayer, erosionLayer, schoolLayer, masterplanLayer, roadsLayer, customLayer, marker3 } = layersRef.current;
     if (islandLayer && delimitations.island) {
       islandLayer.setLatLngs(delimitations.island);
     }
@@ -1141,6 +1220,9 @@ export default function ThesisFramework({ onSelectModule }) {
     }
     if (masterplanLayer && delimitations.plateau) {
       masterplanLayer.setLatLngs(delimitations.plateau);
+    }
+    if (roadsLayer && delimitations.roads) {
+      roadsLayer.setLatLngs(delimitations.roads);
     }
     if (customLayer && delimitations.custom) {
       customLayer.setLatLngs(delimitations.custom);
@@ -1270,7 +1352,7 @@ export default function ThesisFramework({ onSelectModule }) {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    const { islandLayer, erosionLayer, schoolLayer, masterplanLayer, customLayer } = layersRef.current;
+    const { islandLayer, erosionLayer, schoolLayer, masterplanLayer, roadsLayer, customLayer } = layersRef.current;
 
     if (isEditMode) {
       // Cancel animation if running
@@ -1293,9 +1375,10 @@ export default function ThesisFramework({ onSelectModule }) {
       setIsIntroAnimating(false);
 
       if (islandLayer) islandLayer.setStyle({ opacity: activeZoneKey === 'island' ? 1 : 0.2, fillOpacity: 0, weight: 4 });
-      if (erosionLayer) erosionLayer.setStyle({ opacity: activeZoneKey === 'erosion' ? 1 : 0.2, weight: 5.5 });
+      if (erosionLayer) erosionLayer.setStyle({ opacity: activeZoneKey === 'erosion' ? 1 : 0.2, weight: 6, color: '#dc2626' });
       if (schoolLayer) schoolLayer.setStyle({ opacity: activeZoneKey === 'school' ? 1 : 0.2, fillOpacity: activeZoneKey === 'school' ? 0.3 : 0, weight: 4.5 });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: activeZoneKey === 'plateau' ? 1 : 0.2, fillOpacity: 0, weight: 4.5 });
+      if (roadsLayer) roadsLayer.setStyle({ opacity: activeZoneKey === 'roads' ? 1 : 0.2, weight: 6, color: '#f59e0b' });
       if (customLayer) customLayer.setStyle({ opacity: activeZoneKey === 'custom' ? 1 : 0.2, fillOpacity: activeZoneKey === 'custom' ? 0.2 : 0, weight: 3.5 });
       return;
     }
@@ -1311,6 +1394,7 @@ export default function ThesisFramework({ onSelectModule }) {
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (roadsLayer) roadsLayer.setStyle({ opacity: 0 });
       if (customLayer) customLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       return;
     }
@@ -1321,21 +1405,31 @@ export default function ThesisFramework({ onSelectModule }) {
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (roadsLayer) roadsLayer.setStyle({ opacity: 0 });
     } else if (currentStepIndex === 1) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
-      if (erosionLayer) erosionLayer.setStyle({ opacity: 1, weight: 5.5, color: '#dc2626', dashArray: '6, 6' });
+      if (erosionLayer) erosionLayer.setStyle({ opacity: 1, weight: 6, color: '#dc2626', dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (roadsLayer) roadsLayer.setStyle({ opacity: 0 });
     } else if (currentStepIndex === 2) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.25, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (roadsLayer) roadsLayer.setStyle({ opacity: 0 });
     } else if (currentStepIndex === 3) {
       if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
       if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '6, 6' });
+      if (roadsLayer) roadsLayer.setStyle({ opacity: 0 });
+    } else if (currentStepIndex === 4) {
+      if (islandLayer) islandLayer.setStyle({ opacity: 0.15, fillOpacity: 0, weight: 2, color: '#ea580c', dashArray: '6, 6' });
+      if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
+      if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0.35, fillOpacity: 0, weight: 2, color: '#0d9488', dashArray: '6, 6' });
+      if (roadsLayer) roadsLayer.setStyle({ opacity: 1, weight: 6, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
     }
   }, [currentStepIndex, isEditMode, isIntroAnimating, activeZoneKey]);
 
@@ -1440,6 +1534,38 @@ export default function ThesisFramework({ onSelectModule }) {
     setTimeout(() => setCopyToast(false), 3000);
   };
 
+  const handleApplyPastedCoords = () => {
+    try {
+      let text = (pastedCoordsText || '').trim();
+      if (!text) {
+        alert("Por favor escribe o pega un array de coordenadas.");
+        return;
+      }
+      if (!text.startsWith('[')) {
+        text = '[' + text + ']';
+      }
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const valid = parsed.every(p => Array.isArray(p) && p.length >= 2 && !isNaN(Number(p[0])) && !isNaN(Number(p[1])));
+        if (!valid) throw new Error("Las coordenadas deben ser pares numéricos [lat, lng]");
+        
+        const cleanCoords = parsed.map(p => [Number(Number(p[0]).toFixed(5)), Number(Number(p[1]).toFixed(5))]);
+        setDelimitations(prev => ({
+          ...prev,
+          [activeZoneKey]: cleanCoords
+        }));
+        setPastedCoordsText('');
+        setShowPasteBox(false);
+        setSaveToast(true);
+        setTimeout(() => setSaveToast(false), 3000);
+      } else {
+        throw new Error("El formato debe ser un array de coordenadas.");
+      }
+    } catch (e) {
+      alert("Error al importar coordenadas: " + e.message + "\nFormato esperado: [[10.368, -75.580], [10.366, -75.583]]");
+    }
+  };
+
   const handleDownloadGeoJSON = () => {
     const coords = delimitations[activeZoneKey] || [];
     const isPoly = activeZoneConfig.type === 'polygon';
@@ -1505,7 +1631,7 @@ export default function ThesisFramework({ onSelectModule }) {
                 {isEditMode ? 'EDITOR DE DELIMITACIÓN' : 'MARCO DE TESIS'}
               </span>
               <span className="text-[10px] font-mono text-slate-500 font-bold">
-                {isEditMode ? `${zoneStats.count} Puntos` : `Paso 0${currentStep.step} de 04`}
+                {isEditMode ? `${zoneStats.count} Puntos` : `Paso 0${currentStep.step} de 05`}
               </span>
             </div>
             <h2 className="font-serif font-bold text-xs sm:text-sm text-slate-900 truncate">
@@ -1523,6 +1649,7 @@ export default function ThesisFramework({ onSelectModule }) {
                 else if (currentStepIndex === 1) setActiveZoneKey('erosion');
                 else if (currentStepIndex === 2) setActiveZoneKey('school');
                 else if (currentStepIndex === 3) setActiveZoneKey('plateau');
+                else if (currentStepIndex === 4) setActiveZoneKey('roads');
               }
               setIsEditMode(!isEditMode);
               setSelectedNodeIndex(null);
@@ -1580,13 +1707,28 @@ export default function ThesisFramework({ onSelectModule }) {
           )}
 
           {isEditMode && (
-            <button
-              onClick={handleSaveDelimitation}
-              className="inline-flex items-center space-x-1.5 px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold shadow-md transition-all hover:scale-105"
-            >
-              <Save className="w-3.5 h-3.5" />
-              <span>Guardar (Save)</span>
-            </button>
+            <>
+              <button
+                onClick={() => setShowRightPanel(!showRightPanel)}
+                className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shadow-sm ${
+                  showRightPanel
+                    ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-400/50'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
+                }`}
+                title="Mostrar / Ocultar panel de coordenadas a la derecha"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>{showRightPanel ? 'Panel Coords ON' : 'Ver Coordenadas'}</span>
+              </button>
+
+              <button
+                onClick={handleSaveDelimitation}
+                className="inline-flex items-center space-x-1.5 px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold shadow-md transition-all hover:scale-105"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Guardar (Save)</span>
+              </button>
+            </>
           )}
         </div>
 
@@ -1946,8 +2088,125 @@ export default function ThesisFramework({ onSelectModule }) {
         </div>
       )}
 
+      {/* ========================================================================= */}
+      {/* 3B. RIGHT SIDEBAR: LIVE COORDINATES & BRUSH PANEL                         */}
+      {/* ========================================================================= */}
+      {isEditMode && showRightPanel && (
+        <div className="absolute top-24 right-4 z-[400] glass-panel p-4 rounded-3xl space-y-3.5 pointer-events-auto text-slate-900 w-88 sm:w-96 shadow-2xl animate-scale-up max-h-[calc(100vh-8rem)] overflow-y-auto border border-amber-400/40">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: activeZoneConfig.color }} />
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 block">
+                  Coordenadas en Vivo
+                </span>
+                <h3 className="font-serif font-bold text-xs sm:text-sm text-slate-900">
+                  {activeZoneConfig.name}
+                </h3>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowRightPanel(false)}
+              className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
+              title="Cerrar panel de coordenadas"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Quick Brush / Drawing Tool Activation */}
+          <div className="p-3 bg-amber-500/10 border border-amber-300/80 rounded-2xl space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-mono font-black text-amber-950 uppercase flex items-center space-x-1.5">
+                <PenTool className="w-3.5 h-3.5 text-amber-700" />
+                <span>Herramienta Pincel</span>
+              </span>
+              <span className={`text-[9px] font-mono font-black px-2 py-0.5 rounded-full ${
+                toolMode === 'add' ? 'bg-emerald-600 text-white animate-pulse' : 'bg-slate-200 text-slate-700'
+              }`}>
+                {toolMode === 'add' ? 'PINCEL ACTIVO' : 'INACTIVO'}
+              </span>
+            </div>
+
+            <button
+              onClick={() => setToolMode('add')}
+              className={`w-full py-2 px-3 rounded-xl font-mono font-black text-xs flex items-center justify-center space-x-2 transition-all shadow-sm ${
+                toolMode === 'add'
+                  ? 'bg-slate-900 text-amber-300 ring-2 ring-amber-400'
+                  : 'bg-amber-500 hover:bg-amber-400 text-slate-950 hover:scale-102'
+              }`}
+            >
+              <PenTool className="w-4 h-4" />
+              <span>
+                {activeZoneKey === 'roads' ? '🖌️ Pincel: Dibujar Vías' : `🖌️ Pincel: Dibujar ${activeZoneConfig.name}`}
+              </span>
+            </button>
+            <p className="text-[10px] text-amber-900/90 font-mono leading-tight">
+              {toolMode === 'add' 
+                ? '🟢 Haz clic en el mapa satelital para ir trazando los puntos uno a uno.' 
+                : 'Pulsa el botón superior para activar el pincel y añadir puntos con clics.'}
+            </p>
+          </div>
+
+          {/* Big Copy Button (Pégamelas) */}
+          <button
+            onClick={() => handleCopyCodeToClipboard(activeZoneKey)}
+            className="w-full py-2.5 px-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-mono font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-md hover:scale-102 border border-slate-700"
+          >
+            <Copy className="w-4 h-4 text-amber-400" />
+            <span>📋 Copiar Coordenadas (Pégamelas)</span>
+          </button>
+
+          {/* Toggle Paste Box */}
+          <div className="pt-1">
+            <button
+              onClick={() => setShowPasteBox(!showPasteBox)}
+              className="text-[11px] font-mono font-bold text-slate-600 hover:text-slate-900 underline flex items-center space-x-1"
+            >
+              <span>{showPasteBox ? '▾ Ocultar importador' : '▸ 📥 Pegar Coordenadas Nuevas'}</span>
+            </button>
+
+            {showPasteBox && (
+              <div className="mt-2 space-y-2 p-2.5 bg-slate-100 rounded-2xl border border-slate-200">
+                <textarea
+                  value={pastedCoordsText}
+                  onChange={(e) => setPastedCoordsText(e.target.value)}
+                  placeholder="Pega aquí el arreglo [[lat, lng], [lat, lng], ...]"
+                  className="w-full h-24 p-2 text-[10px] font-mono bg-white border border-slate-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+                <button
+                  onClick={handleApplyPastedCoords}
+                  disabled={!pastedCoordsText.trim()}
+                  className="w-full py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-mono font-bold text-xs flex items-center justify-center space-x-1.5 transition-colors"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Aplicar al Mapa</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Live Coordinates Code Block */}
+          <div className="space-y-1.5 pt-1 border-t border-slate-200">
+            <div className="flex items-center justify-between text-[10px] font-mono font-bold text-slate-600">
+              <span>Arreglo de Puntos ({activeNodes.length}):</span>
+              <span>{zoneStats.areaKm !== undefined ? `${zoneStats.areaKm} km` : `${zoneStats.areaHa} Ha`}</span>
+            </div>
+
+            <pre className="p-2.5 bg-slate-950 text-amber-300 rounded-2xl text-[10px] font-mono max-h-48 overflow-y-auto leading-relaxed border border-slate-800 shadow-inner select-all">
+              {activeNodes.length === 0 
+                ? '// Sin puntos aún. Activa el pincel y haz clic en el mapa.' 
+                : JSON.stringify(activeNodes, null, 2)}
+            </pre>
+          </div>
+
+        </div>
+      )}
+
       {/* Floating On-Screen Quick Nudge Pad (top right below HUD) */}
-      {showCalque && (
+      {showCalque && !showRightPanel && (
         <div className="absolute top-20 right-4 z-[400] glass-panel p-3 rounded-2xl shadow-2xl space-y-2 pointer-events-auto border border-amber-400/60 animate-fade-in text-slate-900 w-52">
           <div className="flex items-center justify-between border-b border-slate-200 pb-1">
             <div className="flex items-center space-x-1.5">
@@ -2034,11 +2293,11 @@ export default function ThesisFramework({ onSelectModule }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 4. FLOATING BOTTOM: 4 STEP CARDS (VIEW MODE)                              */}
+      {/* 4. FLOATING BOTTOM: 5 STEP CARDS (VIEW MODE)                              */}
       {/* ========================================================================= */}
       {!isEditMode && (
         <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-5xl mx-auto pointer-events-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 max-w-6xl mx-auto pointer-events-auto">
             {FRAMEWORK_STEPS.map((step, idx) => {
               const isActive = currentStepIndex === idx;
               const isFirstStepPrompt = currentStepIndex === null && idx === 0;
@@ -2064,12 +2323,14 @@ export default function ThesisFramework({ onSelectModule }) {
                         idx === 0 ? 'bg-amber-100 text-amber-700' :
                         idx === 1 ? 'bg-red-100 text-red-700' :
                         idx === 2 ? 'bg-rose-100 text-rose-700' :
-                        'bg-teal-100 text-teal-700'
+                        idx === 3 ? 'bg-teal-100 text-teal-700' :
+                        'bg-orange-100 text-orange-700'
                       }`}>
                         {idx === 0 && <Compass className="w-3.5 h-3.5" />}
                         {idx === 1 && <ShieldAlert className="w-3.5 h-3.5" />}
                         {idx === 2 && <GraduationCap className="w-3.5 h-3.5" />}
                         {idx === 3 && <ShieldCheck className="w-3.5 h-3.5" />}
+                        {idx === 4 && <Route className="w-3.5 h-3.5" />}
                       </div>
                       <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
                         isActive 
