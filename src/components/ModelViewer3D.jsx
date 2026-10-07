@@ -52,6 +52,65 @@ export const DEFAULT_M5_PALETTE = {
   road: '#64748b'
 };
 
+export const NATIVE_TREE_SPECIES = [
+  {
+    id: "guayacan",
+    name: "Guayacán Polvillo",
+    scientific: "Handroanthus chrysanthus",
+    badge: "Bosque Seco Tropical // Flor Amarilla",
+    height: "12 - 15 metros",
+    crown: "Diámetro 8.5 m",
+    tempDrop: "-4.2 °C en Suelo",
+    soilFunction: "Raíz pivotante profunda para anclaje en suelo calcáreo",
+    description: "Árbol nativo emblemático del Caribe. Produce una densa floración amarilla estacional, aporta sombra refrescante en senderos peatonales y estabiliza pendientes de la meseta.",
+    photo: "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&w=600&q=80",
+    color: "#eab308",
+    screenPos: { top: '38%', left: '46%' }
+  },
+  {
+    id: "ceiba",
+    name: "Ceiba Bonga",
+    scientific: "Ceiba pentandra",
+    badge: "Árbol Hito // Cortaviento Mayor",
+    height: "25 - 35 metros",
+    crown: "Diámetro 18 m",
+    tempDrop: "-5.8 °C en Suelo",
+    soilFunction: "Raíces tabulares gigantes // Máxima cohesión del terreno",
+    description: "Hito visual monumental del masterplan. Su gran copa actúa como cortaviento natural frente a los alisios y su tronco almacena agua durante la época seca.",
+    photo: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=600&q=80",
+    color: "#10b981",
+    screenPos: { top: '34%', left: '55%' }
+  },
+  {
+    id: "campano",
+    name: "Campano / Samán",
+    scientific: "Samanea saman",
+    badge: "Cúpula Bioclimática Paragüera",
+    height: "15 - 20 metros",
+    crown: "Diámetro 22 m",
+    tempDrop: "-6.1 °C en Suelo",
+    soilFunction: "Fijación de nitrógeno y retención de humedad",
+    description: "Proporciona una amplia sombrilla vegetal para las plazas cívicas y el equipamiento educativo, reduciendo drásticamente la radiación solar sobre el pavimento.",
+    photo: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80",
+    color: "#059669",
+    screenPos: { top: '48%', left: '43%' }
+  },
+  {
+    id: "matarraton",
+    name: "Matarratón",
+    scientific: "Gliricidia sepium",
+    badge: "Cerca Viva & Regenerador",
+    height: "6 - 10 metros",
+    crown: "Diámetro 5 m",
+    tempDrop: "-2.8 °C en Suelo",
+    soilFunction: "Crecimiento rápido y enriquecimiento orgánico",
+    description: "Especie arbórea de rápido desarrollo para cercas vivas en los linderos de viviendas, cortinas de amortiguación y microclimas de sombra fresca.",
+    photo: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=600&q=80",
+    color: "#14b8a6",
+    screenPos: { top: '53%', left: '56%' }
+  }
+];
+
 export const getSavedM5Palette = () => {
   try {
     const saved = localStorage.getItem('thesis_m5_custom_colors');
@@ -80,6 +139,10 @@ export default function ModelViewer3D({ onSelectModule }) {
 
   const [saveColorsToast, setSaveColorsToast] = useState(false);
   const [copyColorsToast, setCopyColorsToast] = useState(false);
+
+  // Especies Nativas (Red Biótica) & Paneles Flotantes Limpios
+  const [selectedTreeSpecies, setSelectedTreeSpecies] = useState(null);
+  const [showRightControls, setShowRightControls] = useState(false);
 
   // Simulación de Tránsito Marítimo y Urbano en Vivo
   const [isPlayingSimulation, setIsPlayingSimulation] = useState(true);
@@ -1495,42 +1558,30 @@ export default function ModelViewer3D({ onSelectModule }) {
       <div ref={mountRef} className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing z-0" />
 
       {/* ========================================================================= */}
-      {/* 2. FLOATING HUD OVERLAYS ON TOP OF 3D VIEWPORT                            */}
+      {/* 2. FLOATING HUD OVERLAYS ON TOP OF 3D VIEWPORT (Ultra-Clean Axonometry)   */}
       {/* ========================================================================= */}
 
-      {/* Top Floating Control Bar */}
-      <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row md:items-center justify-between gap-3 pointer-events-none">
+      {/* Top Floating Control Bar (Clean, Minimalist & Centered) */}
+      <div className="absolute top-4 left-4 right-4 z-[400] flex items-center justify-between gap-3 pointer-events-none">
         
-        {/* Module Title & Axonometric Description Card */}
-        <div className="glass-dark px-4 py-2.5 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-xl text-white shadow-xl">
-          <div className="w-9 h-9 rounded-xl bg-[#24c8bd] text-slate-950 flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-md">
-            {selected3DModel === 'revit' ? '08' : '05'}
+        {/* Left: Minimalist Module Badge */}
+        <div className="glass-dark px-3 py-1.5 rounded-xl pointer-events-auto flex items-center space-x-2 text-white shadow-md">
+          <div className="w-6 h-6 rounded-lg bg-[#24c8bd] text-slate-950 flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-sm">
+            05
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center space-x-2">
-              <h1 className="font-bold text-sm text-white tracking-wide truncate">
-                {selected3DModel === 'revit'
-                  ? 'Cartagena + Tierra Bomba (Catastro AMB)'
-                  : selected3DModel === 'masterplan'
-                  ? 'Corte axonométrico — Masterplan Tierrabomba'
-                  : selected3DModel === 'colegio'
-                  ? 'Equipamiento Educativo & Dispensario Hídrico'
-                  : 'Prototipo Vivienda Palafítica'}
-              </h1>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#24c8bd]/20 text-[#24c8bd] border border-[#24c8bd]/30 shrink-0">
-                {selected3DModel === 'revit' ? 'CATASTRO AMB 3D' : 'AXONO 35°'}
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-400 truncate mt-0.5 font-sans">
-              {selected3DModel === 'revit'
-                ? 'Catastro Oficial AMB Cartagena (MAGNA-SIRGAS EPSG:9377) • Manzanas, Vías & Edificaciones • Lanchas en vivo'
-                : 'Proyección axonométrica a 35° • Arrastra para girar • Rueda para zoom • Clic derecho para mover'}
-            </p>
-          </div>
+          <span className="text-xs font-mono font-bold text-white tracking-wide">
+            {selected3DModel === 'revit'
+              ? 'Cartagena + Tierra Bomba (3D)'
+              : selected3DModel === 'masterplan'
+              ? 'Masterplan Tierrabomba'
+              : selected3DModel === 'colegio'
+              ? 'Equipamiento Educativo'
+              : 'Prototipo Vivienda'}
+          </span>
         </div>
 
-        {/* 3D Model Switcher Bar & Axonometric Reset */}
-        <div className="flex items-center gap-2 self-start md:self-center pointer-events-auto flex-wrap">
+        {/* Center & Right: 3D Model Switcher Bar & Axonometric Reset */}
+        <div className="flex items-center gap-2 pointer-events-auto flex-wrap">
           <div className="glass-dark p-1 rounded-2xl flex items-center gap-1 text-white flex-wrap shadow-xl">
             <button
               onClick={() => {
@@ -1622,6 +1673,20 @@ export default function ModelViewer3D({ onSelectModule }) {
             </button>
           </div>
 
+          {/* Botón Editor de Materiales */}
+          <button
+            onClick={() => setShowRightControls(!showRightControls)}
+            className={`px-3 py-2 rounded-2xl text-xs font-mono font-bold border transition-all flex items-center space-x-1.5 shadow-xl hover:scale-[1.02] active:scale-95 ${
+              showRightControls 
+                ? 'bg-teal-500 text-slate-950 border-teal-400 font-black ring-2 ring-teal-400/50'
+                : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
+            }`}
+            title="Abrir/Cerrar Editor de Materiales y Sol"
+          >
+            <Palette className="w-3.5 h-3.5" />
+            <span>{showRightControls ? 'Cerrar Editor' : 'Editar Colores'}</span>
+          </button>
+
           {/* Botón Ficha Técnica Catastral */}
           <button
             onClick={() => setShowInfoModal(true)}
@@ -1640,7 +1705,7 @@ export default function ModelViewer3D({ onSelectModule }) {
               title="Encuadre aéreo panorámico de toda Cartagena y la Bahía"
             >
               <Maximize2 className="w-3.5 h-3.5 text-blue-300" />
-              <span>Vista Panorámica Ciudad</span>
+              <span>Vista Panorámica</span>
             </button>
           )}
 
@@ -1657,13 +1722,51 @@ export default function ModelViewer3D({ onSelectModule }) {
 
       </div>
 
-
-
-
-
+      {/* ========================================================================= */}
+      {/* 2B. RED BIÓTICA: BOLITAS DISCRETAS CON FOTO DE ÁRBOLES EN EL TERRITORIO   */}
+      {/* ========================================================================= */}
+      {(selected3DModel === 'masterplan' || selected3DModel === 'revit') && (
+        <div className="absolute inset-0 pointer-events-none z-[300]">
+          {NATIVE_TREE_SPECIES.map((tree) => (
+            <div
+              key={tree.id}
+              style={{ top: tree.screenPos.top, left: tree.screenPos.left }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
+            >
+              <button
+                onClick={() => setSelectedTreeSpecies(tree)}
+                className="relative group flex items-center justify-center cursor-pointer transition-transform hover:scale-125 focus:outline-none"
+                title={`Árbol Nativo: ${tree.name} (${tree.scientific})`}
+              >
+                {/* Sutil halo pulsante */}
+                <div 
+                  className="absolute -inset-1.5 rounded-full opacity-60 animate-ping"
+                  style={{ backgroundColor: tree.color }}
+                />
+                {/* Bolita limpia con la foto miniatura del árbol */}
+                <div 
+                  className="w-8 h-8 rounded-full border-2 border-white shadow-xl overflow-hidden relative z-10 bg-slate-900 ring-2"
+                  style={{ ringColor: tree.color }}
+                >
+                  <img 
+                    src={tree.photo} 
+                    alt={tree.name} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {/* Nombre conciso al pasar el mouse */}
+                <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap px-2 py-0.5 rounded-md bg-slate-900/95 text-white text-[9px] font-mono font-bold pointer-events-none shadow-xl border border-white/20 z-20">
+                  {tree.name}
+                </div>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Floating Right: Axonometric Controls Panel (Sun, Colors, Noise, Climate & Section Box) */}
-      <div className="absolute top-20 right-4 z-[400] glass-dark p-4 rounded-2xl space-y-3.5 pointer-events-auto text-white w-72 max-h-[calc(100vh-100px)] overflow-y-auto shadow-2xl border border-white/10 backdrop-blur-xl">
+      {showRightControls && (
+      <div className="absolute top-20 right-4 z-[400] glass-dark p-4 rounded-2xl space-y-3.5 pointer-events-auto text-white w-72 max-h-[calc(100vh-100px)] overflow-y-auto shadow-2xl border border-white/10 backdrop-blur-xl animate-fade-in">
         
         {/* Sol — Acimut & Altura */}
         <div className="space-y-2.5">
@@ -1987,6 +2090,88 @@ export default function ModelViewer3D({ onSelectModule }) {
 
 
 
+
+      {/* ========================================================================= */}
+      {/* 2C. FICHA BOTÁNICA DETALLADA AL HACER CLIC EN LA BOLITA DEL ÁRBOL        */}
+      {/* ========================================================================= */}
+      {selectedTreeSpecies && (
+        <div 
+          onClick={() => setSelectedTreeSpecies(null)}
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-fade-in"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl border border-slate-200 overflow-hidden max-w-lg w-full shadow-2xl relative text-slate-900 animate-scale-up"
+          >
+            {/* Foto de cabecera del árbol */}
+            <div className="relative h-48 w-full bg-slate-900 overflow-hidden">
+              <img 
+                src={selectedTreeSpecies.photo} 
+                alt={selectedTreeSpecies.name} 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
+              
+              <button
+                onClick={() => setSelectedTreeSpecies(null)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="absolute bottom-3 left-5 right-5 text-white">
+                <span 
+                  className="text-[10px] font-mono font-bold px-2 py-0.5 rounded text-white shadow-sm inline-block"
+                  style={{ backgroundColor: selectedTreeSpecies.color }}
+                >
+                  {selectedTreeSpecies.badge}
+                </span>
+                <h3 className="font-bold text-xl text-white mt-1">
+                  {selectedTreeSpecies.name}
+                </h3>
+                <p className="text-xs text-slate-300 font-mono italic">
+                  {selectedTreeSpecies.scientific}
+                </p>
+              </div>
+            </div>
+
+            {/* Ficha técnica y propiedades bioambientales */}
+            <div className="p-5 space-y-4">
+              <p className="text-xs text-slate-600 leading-relaxed font-sans">
+                {selectedTreeSpecies.description}
+              </p>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] font-mono text-slate-500 uppercase block">Altura Promedio</span>
+                  <span className="font-bold text-xs text-slate-900 mt-0.5 block">{selectedTreeSpecies.height}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] font-mono text-slate-500 uppercase block">Copa y Sombra</span>
+                  <span className="font-bold text-xs text-slate-900 mt-0.5 block">{selectedTreeSpecies.crown}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200">
+                  <span className="text-[10px] font-mono text-emerald-700 uppercase block font-bold">Confort Térmico</span>
+                  <span className="font-bold text-xs text-emerald-900 mt-0.5 block">{selectedTreeSpecies.tempDrop}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-teal-50/80 border border-teal-200">
+                  <span className="text-[10px] font-mono text-teal-700 uppercase block font-bold">Aporte Ecosistémico</span>
+                  <span className="font-medium text-[11px] text-teal-950 mt-0.5 block line-clamp-2">{selectedTreeSpecies.soilFunction}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end pt-2">
+                <button
+                  onClick={() => setSelectedTreeSpecies(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 text-white font-mono text-xs font-bold hover:bg-slate-800 transition-colors"
+                >
+                  Cerrar Ficha
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Bottom Center: Orbit & Zoom Instruction Pill */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[400] pointer-events-none hidden md:block">
