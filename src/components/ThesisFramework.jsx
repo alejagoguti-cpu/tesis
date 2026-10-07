@@ -267,11 +267,13 @@ export const DEFAULT_DELIMITATIONS = {
     [10.37419, -75.57408]
   ],
   roads: [
-    [10.37520, -75.57680],
-    [10.37350, -75.57620],
-    [10.37180, -75.57550],
-    [10.36980, -75.57480],
-    [10.36750, -75.57420]
+    [
+      [10.37520, -75.57680],
+      [10.37350, -75.57620],
+      [10.37180, -75.57550],
+      [10.36980, -75.57480],
+      [10.36750, -75.57420]
+    ]
   ],
   custom: [
     [10.37884, -75.57763],
@@ -544,6 +546,22 @@ function calculatePolylineLengthKm(coords) {
   return Number((totalMeters / 1000).toFixed(2));
 }
 
+// Helper: Normalize road lines to array of lines [ [ [lat, lng], ... ], ... ]
+export function normalizeRoadLines(roadsData) {
+  if (!roadsData || !Array.isArray(roadsData) || roadsData.length === 0) {
+    return [[]];
+  }
+  if (typeof roadsData[0][0] === 'number') {
+    return [roadsData];
+  }
+  return roadsData.map(line => (Array.isArray(line) ? line : []));
+}
+
+export function countRoadPoints(roadsData) {
+  const lines = normalizeRoadLines(roadsData);
+  return lines.reduce((sum, line) => sum + (Array.isArray(line) ? line.length : 0), 0);
+}
+
 // Function to resample any polygon or polyline into N equidistant points along its length/perimeter
 function resampleCoordinates(coords, isPolygon, numSamples = 120) {
   if (!coords || coords.length < 2) return coords || [];
@@ -606,7 +624,8 @@ export default function ThesisFramework({ onSelectModule }) {
   // NODE-BASED DELIMITATION & POLYGON EDITOR STATE
   // =========================================================================
   const [isEditMode, setIsEditMode] = useState(false);
-  const [activeZoneKey, setActiveZoneKey] = useState('island'); // 'island' | 'erosion' | 'plateau' | 'custom'
+  const [activeZoneKey, setActiveZoneKey] = useState('island'); // 'island' | 'erosion' | 'school' | 'plateau' | 'roads' | 'custom'
+  const [activeRoadLineIndex, setActiveRoadLineIndex] = useState(0); // For multi-line roads support
   const [toolMode, setToolMode] = useState('add'); // 'add' | 'delete' | 'drag'
   
   const [delimitations, setDelimitations] = useState(() => {
@@ -619,6 +638,9 @@ export default function ThesisFramework({ onSelectModule }) {
         }
         if (parsed.plateau && parsed.plateau.length < 12) {
           parsed.plateau = DEFAULT_DELIMITATIONS.plateau;
+        }
+        if (parsed.roads) {
+          parsed.roads = normalizeRoadLines(parsed.roads);
         }
         return { ...DEFAULT_DELIMITATIONS, ...parsed };
       }
@@ -725,25 +747,36 @@ export default function ThesisFramework({ onSelectModule }) {
 
   // Active Zone Metadata
   const activeZoneConfig = ZONE_CONFIG[activeZoneKey];
-  const activeNodes = delimitations[activeZoneKey] || [];
+  const activeNodes = useMemo(() => {
+    if (activeZoneKey === 'roads') {
+      const lines = normalizeRoadLines(delimitations.roads);
+      return lines[activeRoadLineIndex] || [];
+    }
+    return delimitations[activeZoneKey] || [];
+  }, [delimitations, activeZoneKey, activeRoadLineIndex]);
   
   const zoneStats = useMemo(() => {
-    const count = activeNodes.length;
+    if (activeZoneKey === 'roads') {
+      const lines = normalizeRoadLines(delimitations.roads);
+      const count = countRoadPoints(delimitations.roads);
+      const lengthKm = lines.reduce((acc, line) => acc + calculatePolylineLengthKm(line), 0);
+      return { count, areaHa: 0, lengthKm: Number(lengthKm.toFixed(2)), lineCount: lines.length };
+    }
+    const count = (delimitations[activeZoneKey] || []).length;
     const isPoly = activeZoneConfig.type === 'polygon';
-    const areaHa = isPoly ? calculatePolygonAreaHa(activeNodes) : 0;
-    const lengthKm = calculatePolylineLengthKm(activeNodes);
-    return { count, areaHa, lengthKm };
-  }, [activeNodes, activeZoneConfig]);
+    const areaHa = isPoly ? calculatePolygonAreaHa(delimitations[activeZoneKey] || []) : 0;
+    const lengthKm = calculatePolylineLengthKm(delimitations[activeZoneKey] || []);
+    return { count, areaHa, lengthKm, lineCount: 1 };
+  }, [delimitations, activeZoneKey, activeZoneConfig]);
 
   // =========================================================================
   // ANIMATED BOUNDARY TRACING (RUNS ON ANY CARD / STEP SELECTION)
-  // Standardized 2.4s uniform, smooth pacing & style across ALL 5 cards
+  // Clean progressive trace directly over real geographic coordinates
   // =========================================================================
   const startZoneTraceAnimation = (stepIdx, targetMap) => {
     const map = targetMap || mapInstanceRef.current;
     if (!map) return;
 
-    let rawCoords = [];
     let isPolygon = true;
     let mainColor = '#ea580c';
     let glowColor = '#f59e0b';
@@ -751,46 +784,36 @@ export default function ThesisFramework({ onSelectModule }) {
     let cameraZoom = 13.2;
 
     if (stepIdx === 0) {
-      rawCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
       isPolygon = true;
       mainColor = '#ea580c';
       glowColor = '#f59e0b';
       cameraCenter = [10.352, -75.568];
       cameraZoom = 13.2;
     } else if (stepIdx === 1) {
-      rawCoords = delimitations.erosion || DEFAULT_DELIMITATIONS.erosion || [];
       isPolygon = false;
       mainColor = '#dc2626';
       glowColor = '#f87171';
       cameraCenter = [10.3585, -75.5905];
       cameraZoom = 16.0;
     } else if (stepIdx === 2) {
-      rawCoords = delimitations.school || DEFAULT_DELIMITATIONS.school || [];
       isPolygon = true;
       mainColor = '#f43f5e';
       glowColor = '#fda4af';
       cameraCenter = [10.3805, -75.5761];
       cameraZoom = 18.2;
     } else if (stepIdx === 3) {
-      rawCoords = delimitations.plateau || DEFAULT_DELIMITATIONS.plateau || [];
       isPolygon = true;
       mainColor = '#0d9488';
       glowColor = '#2dd4bf';
       cameraCenter = [10.3730, -75.5759];
       cameraZoom = 16.2;
     } else if (stepIdx === 4) {
-      rawCoords = delimitations.roads || DEFAULT_DELIMITATIONS.roads || [];
       isPolygon = false;
       mainColor = '#f59e0b';
       glowColor = '#fde68a';
       cameraCenter = [10.3715, -75.5755];
       cameraZoom = 16.5;
     }
-
-    if (rawCoords.length < 2) return;
-
-    // Standardize all geometries to exactly 120 equidistant points so EVERY card animation pace is identical
-    const sampledCoords = resampleCoordinates(rawCoords, isPolygon, 120);
 
     // Clear any previous running animation
     if (animationTimerRef.current) {
@@ -810,9 +833,6 @@ export default function ThesisFramework({ onSelectModule }) {
       tracerMarkerRef.current = null;
     }
 
-    setIsIntroAnimating(true);
-    setAnimProgress(0);
-
     // Hide static layers during active tracing
     const { islandLayer, erosionLayer, schoolLayer, masterplanLayer, roadsLayer } = layersRef.current;
     if (islandLayer) islandLayer.setStyle({ opacity: stepIdx === 0 ? 0 : 0.15, fillOpacity: 0, weight: 2 });
@@ -821,23 +841,132 @@ export default function ThesisFramework({ onSelectModule }) {
     if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
     if (roadsLayer) roadsLayer.setStyle({ opacity: 0 });
 
-    // Smooth, cinematic camera motion (duration 2.0s to match contour trace)
+    // Instantly stabilize camera on the exact coordinates so the animation never jumps
     if (stepIdx === 0) {
-      const islandBounds = L.latLngBounds(rawCoords);
-      map.fitBounds(islandBounds, {
-        paddingTopLeft: [70, 70],
-        paddingBottomRight: [70, 130],
-        animate: true,
-        duration: 2.0
-      });
+      const islandCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
+      if (islandCoords.length > 0) {
+        const islandBounds = L.latLngBounds(islandCoords);
+        map.fitBounds(islandBounds, {
+          paddingTopLeft: [70, 70],
+          paddingBottomRight: [70, 130],
+          animate: false
+        });
+      }
     } else {
-      map.flyTo(cameraCenter, cameraZoom, {
-        animate: true,
-        duration: 2.0
-      });
+      map.setView(cameraCenter, cameraZoom, { animate: false });
     }
 
-    // Outer glow halo line
+    // Handle Multi-line roads tracing
+    if (stepIdx === 4) {
+      const rawRoadLines = normalizeRoadLines(delimitations.roads || DEFAULT_DELIMITATIONS.roads);
+      const validLines = rawRoadLines.filter(l => Array.isArray(l) && l.length >= 2);
+      if (validLines.length === 0) {
+        if (roadsLayer) roadsLayer.setStyle({ opacity: 1, weight: 6, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
+        return;
+      }
+
+      setIsIntroAnimating(true);
+      setAnimProgress(0);
+
+      const resampledLines = validLines.map(line => resampleCoordinates(line, false, Math.max(25, Math.floor(120 / validLines.length))));
+
+      const glowLine = L.polyline([], {
+        color: glowColor,
+        weight: 8,
+        opacity: 0.65,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(map);
+
+      const mainLine = L.polyline([], {
+        color: mainColor,
+        weight: 4.5,
+        opacity: 1,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(map);
+
+      const leadIcon = L.divIcon({
+        className: 'custom-anim-lead-node',
+        html: `
+          <div class="relative flex items-center justify-center pointer-events-none">
+            <div class="absolute -inset-3 rounded-full animate-ping opacity-80" style="background-color: ${glowColor}"></div>
+            <div class="w-5 h-5 rounded-full border-2 border-white shadow-2xl flex items-center justify-center" style="background-color: ${mainColor}">
+              <div class="w-2 h-2 rounded-full bg-white"></div>
+            </div>
+          </div>
+        `,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+
+      const leadMarker = L.marker(resampledLines[0][0], {
+        icon: leadIcon,
+        zIndexOffset: 3000
+      }).addTo(map);
+
+      animatingGlowRef.current = glowLine;
+      animatingLayerRef.current = mainLine;
+      tracerMarkerRef.current = leadMarker;
+
+      let currentLineIdx = 0;
+      let currentStepInLine = 1;
+      const completedLines = [];
+
+      animationTimerRef.current = setInterval(() => {
+        const curLineCoords = resampledLines[currentLineIdx];
+        currentStepInLine++;
+        const currentSlice = curLineCoords.slice(0, currentStepInLine);
+
+        const allDrawn = [...completedLines, currentSlice];
+        glowLine.setLatLngs(allDrawn);
+        mainLine.setLatLngs(allDrawn);
+
+        const head = curLineCoords[Math.min(currentStepInLine - 1, curLineCoords.length - 1)];
+        leadMarker.setLatLng(head);
+
+        const totalPointsAcrossAll = resampledLines.reduce((sum, l) => sum + l.length, 0);
+        const drawnSoFar = completedLines.reduce((sum, l) => sum + l.length, 0) + currentStepInLine;
+        setAnimProgress(Math.min(100, Math.round((drawnSoFar / totalPointsAcrossAll) * 100)));
+
+        if (currentStepInLine >= curLineCoords.length) {
+          completedLines.push(curLineCoords);
+          currentLineIdx++;
+          currentStepInLine = 1;
+
+          if (currentLineIdx >= resampledLines.length) {
+            clearInterval(animationTimerRef.current);
+            animationTimerRef.current = null;
+            setTimeout(() => {
+              if (roadsLayer) roadsLayer.setStyle({ opacity: 1, weight: 6, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
+              if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
+              if (animatingLayerRef.current) map.removeLayer(animatingLayerRef.current);
+              if (tracerMarkerRef.current) map.removeLayer(tracerMarkerRef.current);
+              setIsIntroAnimating(false);
+            }, 200);
+          } else {
+            leadMarker.setLatLng(resampledLines[currentLineIdx][0]);
+          }
+        }
+      }, 20);
+
+      return;
+    }
+
+    // For single polygon/polyline (island, erosion, school, plateau)
+    let rawCoords = [];
+    if (stepIdx === 0) rawCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
+    else if (stepIdx === 1) rawCoords = delimitations.erosion || DEFAULT_DELIMITATIONS.erosion || [];
+    else if (stepIdx === 2) rawCoords = delimitations.school || DEFAULT_DELIMITATIONS.school || [];
+    else if (stepIdx === 3) rawCoords = delimitations.plateau || DEFAULT_DELIMITATIONS.plateau || [];
+
+    if (rawCoords.length < 2) return;
+
+    setIsIntroAnimating(true);
+    setAnimProgress(0);
+
+    const sampledCoords = resampleCoordinates(rawCoords, isPolygon, 120);
+
     const glowLine = L.polyline([], {
       color: glowColor,
       weight: 8,
@@ -846,7 +975,6 @@ export default function ThesisFramework({ onSelectModule }) {
       lineJoin: 'round'
     }).addTo(map);
 
-    // Core crisp neon line
     const mainLine = L.polyline([], {
       color: mainColor,
       weight: 4.5,
@@ -880,7 +1008,6 @@ export default function ThesisFramework({ onSelectModule }) {
 
     const totalSteps = sampledCoords.length;
     let stepCount = 1;
-    // Exactly 20ms per step across 120 steps = 2.4s uniform duration for EVERY card!
     const stepIntervalMs = 20;
 
     animationTimerRef.current = setInterval(() => {
@@ -901,7 +1028,6 @@ export default function ThesisFramework({ onSelectModule }) {
         animationTimerRef.current = null;
 
         setTimeout(() => {
-          // Display the final crisp contour
           if (stepIdx === 0 && islandLayer) {
             islandLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#ea580c', dashArray: '6, 6' });
           } else if (stepIdx === 1 && erosionLayer) {
@@ -910,8 +1036,6 @@ export default function ThesisFramework({ onSelectModule }) {
             schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.25, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
           } else if (stepIdx === 3 && masterplanLayer) {
             masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '6, 6' });
-          } else if (stepIdx === 4 && roadsLayer) {
-            roadsLayer.setStyle({ opacity: 1, weight: 6, color: '#f59e0b', dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' });
           }
 
           if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
@@ -1187,11 +1311,24 @@ export default function ThesisFramework({ onSelectModule }) {
       const newCoord = [Number(lat.toFixed(5)), Number(lng.toFixed(5))];
       
       setDelimitations(prev => {
-        const currentZone = prev[activeZoneKey] || [];
-        return {
-          ...prev,
-          [activeZoneKey]: [...currentZone, newCoord]
-        };
+        if (activeZoneKey === 'roads') {
+          const currentLines = normalizeRoadLines(prev.roads).map(l => [...l]);
+          const lineIdx = Math.max(0, activeRoadLineIndex);
+          while (currentLines.length <= lineIdx) {
+            currentLines.push([]);
+          }
+          currentLines[lineIdx].push(newCoord);
+          return {
+            ...prev,
+            roads: currentLines
+          };
+        } else {
+          const currentZone = prev[activeZoneKey] || [];
+          return {
+            ...prev,
+            [activeZoneKey]: [...currentZone, newCoord]
+          };
+        }
       });
     };
 
@@ -1199,7 +1336,7 @@ export default function ThesisFramework({ onSelectModule }) {
     return () => {
       map.off('click', onMapClick);
     };
-  }, [isEditMode, activeZoneKey, toolMode]);
+  }, [isEditMode, activeZoneKey, toolMode, activeRoadLineIndex]);
 
   // =========================================================================
   // 2. SYNCHRONIZE LEAFLET GEOMETRY WITH DELIMITATION STATE
@@ -1222,7 +1359,7 @@ export default function ThesisFramework({ onSelectModule }) {
       masterplanLayer.setLatLngs(delimitations.plateau);
     }
     if (roadsLayer && delimitations.roads) {
-      roadsLayer.setLatLngs(delimitations.roads);
+      roadsLayer.setLatLngs(normalizeRoadLines(delimitations.roads));
     }
     if (customLayer && delimitations.custom) {
       customLayer.setLatLngs(delimitations.custom);
@@ -1262,8 +1399,78 @@ export default function ThesisFramework({ onSelectModule }) {
 
     if (!isEditMode) return;
 
-    const currentNodes = delimitations[activeZoneKey] || [];
     const zoneCfg = ZONE_CONFIG[activeZoneKey];
+
+    // Multi-line rendering for roads
+    if (activeZoneKey === 'roads') {
+      const roadLines = normalizeRoadLines(delimitations.roads);
+      roadLines.forEach((line, lineIdx) => {
+        const isCurrentLine = lineIdx === activeRoadLineIndex;
+
+        line.forEach((coord, idx) => {
+          const isSelected = isCurrentLine && selectedNodeIndex === idx;
+
+          const nodeIcon = L.divIcon({
+            className: 'delimitation-node-handle',
+            html: `
+              <div class="relative flex items-center justify-center cursor-pointer group">
+                <div class="absolute -inset-2.5 rounded-full ${isSelected ? 'bg-amber-400/60 animate-ping' : toolMode === 'delete' ? 'bg-red-500/40 animate-pulse' : isCurrentLine ? 'bg-white/40 group-hover:bg-white/70' : 'bg-slate-400/20'} transition-all"></div>
+                <div class="w-7 h-7 rounded-full border-2 ${isCurrentLine ? 'border-white ring-2 ring-amber-400/80 shadow-2xl' : 'border-slate-300 opacity-80'} flex items-center justify-center text-white text-[10px] font-mono font-black transition-transform group-hover:scale-125" style="background-color: ${toolMode === 'delete' ? '#dc2626' : isSelected ? '#f59e0b' : isCurrentLine ? zoneCfg.color : '#64748b'}">
+                  ${toolMode === 'delete' ? '✕' : `T${lineIdx + 1}.${idx + 1}`}
+                </div>
+                <div class="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap px-2 py-0.5 rounded-md bg-slate-900 text-[10px] text-white font-mono pointer-events-none z-50 shadow-xl border border-white/20">
+                  Tramo ${lineIdx + 1} - Punto ${idx + 1}
+                </div>
+              </div>
+            `,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+          });
+
+          const marker = L.marker(coord, {
+            icon: nodeIcon,
+            draggable: toolMode !== 'delete',
+            zIndexOffset: 2000 + (lineIdx * 100) + idx
+          });
+
+          marker.on('drag', (e) => {
+            const { lat, lng } = e.target.getLatLng();
+            const updated = [Number(lat.toFixed(5)), Number(lng.toFixed(5))];
+            setDelimitations(prev => {
+              const currentLines = normalizeRoadLines(prev.roads).map(l => [...l]);
+              if (currentLines[lineIdx]) {
+                currentLines[lineIdx][idx] = updated;
+              }
+              return { ...prev, roads: currentLines };
+            });
+          });
+
+          marker.on('click', (e) => {
+            L.DomEvent.stopPropagation(e);
+            if (e.originalEvent) e.originalEvent.stopPropagation();
+
+            if (toolMode === 'delete') {
+              handleRemoveSpecificNode(idx, lineIdx);
+            } else {
+              setActiveRoadLineIndex(lineIdx);
+              setSelectedNodeIndex(isSelected ? null : idx);
+            }
+          });
+
+          marker.on('contextmenu', (e) => {
+            L.DomEvent.stopPropagation(e);
+            if (e.originalEvent) e.originalEvent.preventDefault();
+            handleRemoveSpecificNode(idx, lineIdx);
+          });
+
+          group.addLayer(marker);
+        });
+      });
+      return;
+    }
+
+    // Single list rendering for other zones (island, erosion, school, plateau, custom)
+    const currentNodes = delimitations[activeZoneKey] || [];
 
     currentNodes.forEach((coord, idx) => {
       const isSelected = selectedNodeIndex === idx;
@@ -1291,7 +1498,6 @@ export default function ThesisFramework({ onSelectModule }) {
         zIndexOffset: 2000 + idx
       });
 
-      // Drag event updates coordinate in real-time
       marker.on('drag', (e) => {
         const { lat, lng } = e.target.getLatLng();
         const updated = [Number(lat.toFixed(5)), Number(lng.toFixed(5))];
@@ -1305,45 +1511,26 @@ export default function ThesisFramework({ onSelectModule }) {
         });
       });
 
-      // Click node handler: delete or select
       marker.on('click', (e) => {
-        // Prevent map click from adding another node!
         L.DomEvent.stopPropagation(e);
         if (e.originalEvent) e.originalEvent.stopPropagation();
 
         if (toolMode === 'delete') {
-          // Direct delete
-          setDelimitations(prev => {
-            const zoneCoords = [...(prev[activeZoneKey] || [])];
-            zoneCoords.splice(idx, 1);
-            return { ...prev, [activeZoneKey]: zoneCoords };
-          });
-          setSelectedNodeIndex(null);
-          setDeleteToast(true);
-          setTimeout(() => setDeleteToast(false), 2000);
+          handleRemoveSpecificNode(idx);
         } else {
-          // Select or toggle
           setSelectedNodeIndex(isSelected ? null : idx);
         }
       });
 
-      // Right click immediately deletes node
       marker.on('contextmenu', (e) => {
         L.DomEvent.stopPropagation(e);
         if (e.originalEvent) e.originalEvent.preventDefault();
-        setDelimitations(prev => {
-          const zoneCoords = [...(prev[activeZoneKey] || [])];
-          zoneCoords.splice(idx, 1);
-          return { ...prev, [activeZoneKey]: zoneCoords };
-        });
-        setSelectedNodeIndex(null);
-        setDeleteToast(true);
-        setTimeout(() => setDeleteToast(false), 2000);
+        handleRemoveSpecificNode(idx);
       });
 
       group.addLayer(marker);
     });
-  }, [isEditMode, activeZoneKey, delimitations, selectedNodeIndex, toolMode]);
+  }, [isEditMode, activeZoneKey, delimitations, selectedNodeIndex, toolMode, activeRoadLineIndex]);
 
   // =========================================================================
   // 4. STEP NAVIGATION & AUTOPLAY (NON-EDIT MODE)
@@ -1477,20 +1664,66 @@ export default function ThesisFramework({ onSelectModule }) {
   // =========================================================================
   // 5. EDITOR ACTIONS: ADD, DELETE, CLEAR, RESET, SAVE
   // =========================================================================
+  const handleAddNewRoadLine = () => {
+    setDelimitations(prev => {
+      const currentLines = normalizeRoadLines(prev.roads).map(l => [...l]);
+      if (currentLines.length > 0 && currentLines[currentLines.length - 1].length === 0) {
+        setActiveRoadLineIndex(currentLines.length - 1);
+        return prev;
+      }
+      currentLines.push([]);
+      setActiveRoadLineIndex(currentLines.length - 1);
+      return { ...prev, roads: currentLines };
+    });
+    setToolMode('add');
+  };
+
+  const handleDeleteRoadLine = (lineIdxToDelete) => {
+    setDelimitations(prev => {
+      const currentLines = normalizeRoadLines(prev.roads).map(l => [...l]);
+      if (currentLines.length <= 1) {
+        return { ...prev, roads: [[]] };
+      }
+      const newLines = currentLines.filter((_, idx) => idx !== lineIdxToDelete);
+      return { ...prev, roads: newLines };
+    });
+    setActiveRoadLineIndex(prev => Math.max(0, prev - 1));
+    setDeleteToast(true);
+    setTimeout(() => setDeleteToast(false), 2000);
+  };
+
   const handleUndoLastNode = () => {
     setDelimitations(prev => {
-      const zoneCoords = [...(prev[activeZoneKey] || [])];
-      zoneCoords.pop();
-      return { ...prev, [activeZoneKey]: zoneCoords };
+      if (activeZoneKey === 'roads') {
+        const currentLines = normalizeRoadLines(prev.roads).map(l => [...l]);
+        const lineIdx = Math.min(activeRoadLineIndex, currentLines.length - 1);
+        if (currentLines[lineIdx] && currentLines[lineIdx].length > 0) {
+          currentLines[lineIdx].pop();
+        }
+        return { ...prev, roads: currentLines };
+      } else {
+        const zoneCoords = [...(prev[activeZoneKey] || [])];
+        zoneCoords.pop();
+        return { ...prev, [activeZoneKey]: zoneCoords };
+      }
     });
     setSelectedNodeIndex(null);
   };
 
-  const handleRemoveSpecificNode = (nodeIdx) => {
+  const handleRemoveSpecificNode = (nodeIdx, lineIdx = null) => {
     setDelimitations(prev => {
-      const zoneCoords = [...(prev[activeZoneKey] || [])];
-      zoneCoords.splice(nodeIdx, 1);
-      return { ...prev, [activeZoneKey]: zoneCoords };
+      if (activeZoneKey === 'roads') {
+        const currentLines = normalizeRoadLines(prev.roads).map(l => [...l]);
+        const targetLineIdx = lineIdx !== null ? lineIdx : activeRoadLineIndex;
+        if (currentLines[targetLineIdx]) {
+          currentLines[targetLineIdx].splice(nodeIdx, 1);
+        }
+        return { ...prev, roads: currentLines };
+      } else {
+        const zoneCoords = [...(prev[activeZoneKey] || [])];
+        zoneCoords.splice(nodeIdx, 1);
+        return { ...prev, [activeZoneKey]: zoneCoords };
+      }
     });
     if (selectedNodeIndex === nodeIdx) setSelectedNodeIndex(null);
     setDeleteToast(true);
@@ -1499,10 +1732,29 @@ export default function ThesisFramework({ onSelectModule }) {
 
   const handleClearZoneInstant = () => {
     // Immediate clear with 1 click - no blocking confirms!
-    setDelimitations(prev => ({
-      ...prev,
-      [activeZoneKey]: []
-    }));
+    setDelimitations(prev => {
+      if (activeZoneKey === 'roads') {
+        return { ...prev, roads: [[]] };
+      }
+      return {
+        ...prev,
+        [activeZoneKey]: []
+      };
+    });
+    setActiveRoadLineIndex(0);
+    setSelectedNodeIndex(null);
+    setDeleteToast(true);
+    setTimeout(() => setDeleteToast(false), 2000);
+  };
+
+  const handleClearCurrentRoadLine = () => {
+    setDelimitations(prev => {
+      const currentLines = normalizeRoadLines(prev.roads).map(l => [...l]);
+      if (currentLines[activeRoadLineIndex]) {
+        currentLines[activeRoadLineIndex] = [];
+      }
+      return { ...prev, roads: currentLines };
+    });
     setSelectedNodeIndex(null);
     setDeleteToast(true);
     setTimeout(() => setDeleteToast(false), 2000);
@@ -1513,6 +1765,7 @@ export default function ThesisFramework({ onSelectModule }) {
       ...prev,
       [activeZoneKey]: DEFAULT_DELIMITATIONS[activeZoneKey] || []
     }));
+    setActiveRoadLineIndex(0);
     setSelectedNodeIndex(null);
   };
 
@@ -1528,7 +1781,9 @@ export default function ThesisFramework({ onSelectModule }) {
   };
 
   const handleCopyCodeToClipboard = () => {
-    const jsonFormatted = JSON.stringify(delimitations[activeZoneKey] || [], null, 2);
+    const rawData = delimitations[activeZoneKey] || [];
+    const formatted = activeZoneKey === 'roads' ? normalizeRoadLines(rawData) : rawData;
+    const jsonFormatted = JSON.stringify(formatted, null, 2);
     navigator.clipboard.writeText(jsonFormatted);
     setCopyToast(true);
     setTimeout(() => setCopyToast(false), 3000);
@@ -1546,14 +1801,34 @@ export default function ThesisFramework({ onSelectModule }) {
       }
       const parsed = JSON.parse(text);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const valid = parsed.every(p => Array.isArray(p) && p.length >= 2 && !isNaN(Number(p[0])) && !isNaN(Number(p[1])));
-        if (!valid) throw new Error("Las coordenadas deben ser pares numéricos [lat, lng]");
-        
-        const cleanCoords = parsed.map(p => [Number(Number(p[0]).toFixed(5)), Number(Number(p[1]).toFixed(5))]);
-        setDelimitations(prev => ({
-          ...prev,
-          [activeZoneKey]: cleanCoords
-        }));
+        if (activeZoneKey === 'roads') {
+          // Check if parsed is [ [ [lat, lng], ... ], ... ] or [ [lat, lng], ... ]
+          let cleanRoads = [];
+          if (typeof parsed[0][0] === 'number') {
+            // single line pasted
+            cleanRoads = [parsed.map(p => [Number(Number(p[0]).toFixed(5)), Number(Number(p[1]).toFixed(5))])];
+          } else {
+            cleanRoads = parsed.map(line => 
+              Array.isArray(line) 
+                ? line.map(p => [Number(Number(p[0]).toFixed(5)), Number(Number(p[1]).toFixed(5))])
+                : []
+            );
+          }
+          setDelimitations(prev => ({
+            ...prev,
+            roads: cleanRoads
+          }));
+          setActiveRoadLineIndex(0);
+        } else {
+          const valid = parsed.every(p => Array.isArray(p) && p.length >= 2 && !isNaN(Number(p[0])) && !isNaN(Number(p[1])));
+          if (!valid) throw new Error("Las coordenadas deben ser pares numéricos [lat, lng]");
+          
+          const cleanCoords = parsed.map(p => [Number(Number(p[0]).toFixed(5)), Number(Number(p[1]).toFixed(5))]);
+          setDelimitations(prev => ({
+            ...prev,
+            [activeZoneKey]: cleanCoords
+          }));
+        }
         setPastedCoordsText('');
         setShowPasteBox(false);
         setSaveToast(true);
@@ -1562,7 +1837,7 @@ export default function ThesisFramework({ onSelectModule }) {
         throw new Error("El formato debe ser un array de coordenadas.");
       }
     } catch (e) {
-      alert("Error al importar coordenadas: " + e.message + "\nFormato esperado: [[10.368, -75.580], [10.366, -75.583]]");
+      alert("Error al importar coordenadas: " + e.message + "\nFormato esperado: [[10.368, -75.580], [10.366, -75.583]] o multi-líneas [[ [...], [...] ]]");
     }
   };
 
@@ -1570,9 +1845,23 @@ export default function ThesisFramework({ onSelectModule }) {
     const coords = delimitations[activeZoneKey] || [];
     const isPoly = activeZoneConfig.type === 'polygon';
     
-    const geoJsonCoords = coords.map(c => [c[1], c[0]]);
-    if (isPoly && geoJsonCoords.length > 0) {
-      geoJsonCoords.push([coords[0][1], coords[0][0]]);
+    let geometry = {};
+    if (activeZoneKey === 'roads') {
+      const roadLines = normalizeRoadLines(coords);
+      const multiLineCoords = roadLines.map(line => line.map(c => [c[1], c[0]]));
+      geometry = {
+        type: "MultiLineString",
+        coordinates: multiLineCoords
+      };
+    } else {
+      const geoJsonCoords = coords.map(c => [c[1], c[0]]);
+      if (isPoly && geoJsonCoords.length > 0) {
+        geoJsonCoords.push([coords[0][1], coords[0][0]]);
+      }
+      geometry = {
+        type: isPoly ? "Polygon" : "LineString",
+        coordinates: isPoly ? [geoJsonCoords] : geoJsonCoords
+      };
     }
 
     const geoJson = {
@@ -1583,15 +1872,12 @@ export default function ThesisFramework({ onSelectModule }) {
           properties: {
             zoneKey: activeZoneKey,
             zoneName: activeZoneConfig.name,
-            nodeCount: coords.length,
-            areaHa: isPoly ? calculatePolygonAreaHa(coords) : null,
-            lengthKm: calculatePolylineLengthKm(coords),
+            nodeCount: zoneStats.count,
+            areaHa: isPoly ? zoneStats.areaHa : null,
+            lengthKm: zoneStats.lengthKm,
             updatedAt: new Date().toISOString()
           },
-          geometry: {
-            type: isPoly ? "Polygon" : "LineString",
-            coordinates: isPoly ? [geoJsonCoords] : geoJsonCoords
-          }
+          geometry
         }
       ]
     };
@@ -1973,7 +2259,9 @@ export default function ThesisFramework({ onSelectModule }) {
             <div className="grid grid-cols-1 gap-1.5">
               {Object.values(ZONE_CONFIG).map((zone) => {
                 const isCur = activeZoneKey === zone.id;
-                const nodeCount = (delimitations[zone.id] || []).length;
+                const nodeCount = zone.id === 'roads' 
+                  ? countRoadPoints(delimitations.roads) 
+                  : (delimitations[zone.id] || []).length;
                 return (
                   <button
                     key={zone.id}
@@ -2002,17 +2290,76 @@ export default function ThesisFramework({ onSelectModule }) {
             </div>
           </div>
 
+          {/* Dedicated Multi-line Roads Branch Switcher (when editing roads) */}
+          {activeZoneKey === 'roads' && (
+            <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-1.5 text-amber-950 font-mono font-bold text-[11px]">
+                  <Route className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Tramos de Vías ({normalizeRoadLines(delimitations.roads).length})</span>
+                </div>
+                <button
+                  onClick={handleAddNewRoadLine}
+                  className="px-2.5 py-1 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-mono font-bold flex items-center space-x-1 shadow-xs transition-all hover:scale-105"
+                  title="Comenzar una nueva línea de vía sin unirla a la anterior"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>+ Nueva Línea</span>
+                </button>
+              </div>
+
+              {/* Branch Selector Tabs */}
+              <div className="flex flex-wrap gap-1.5">
+                {normalizeRoadLines(delimitations.roads).map((line, lIdx) => {
+                  const isCurLine = lIdx === activeRoadLineIndex;
+                  return (
+                    <button
+                      key={lIdx}
+                      onClick={() => {
+                        setActiveRoadLineIndex(lIdx);
+                        setSelectedNodeIndex(null);
+                      }}
+                      className={`px-2.5 py-1 rounded-xl text-[10px] font-mono font-bold transition-all flex items-center space-x-1 ${
+                        isCurLine
+                          ? 'bg-slate-900 text-amber-300 ring-2 ring-amber-400 shadow-xs'
+                          : 'bg-white hover:bg-slate-200 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      <span>Tramo {lIdx + 1}</span>
+                      <span className="text-[9px] opacity-75">({line.length}p)</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center justify-between pt-1 border-t border-amber-200/60 text-[10px] font-mono">
+                <span className="text-amber-900">
+                  Editando: <b className="text-slate-900">Tramo {activeRoadLineIndex + 1}</b> ({activeNodes.length} pts)
+                </span>
+                {normalizeRoadLines(delimitations.roads).length > 1 && (
+                  <button
+                    onClick={() => handleDeleteRoadLine(activeRoadLineIndex)}
+                    className="text-red-700 hover:text-red-900 font-bold underline"
+                    title="Eliminar este tramo específico de vía"
+                  >
+                    Eliminar Tramo {activeRoadLineIndex + 1}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Quick Clear Actions (NO BLOCKS) */}
           <div className="space-y-2 pt-1 border-t border-slate-200">
             <div className="grid grid-cols-2 gap-1.5">
               <button
                 onClick={handleClearZoneInstant}
-                disabled={activeNodes.length === 0}
+                disabled={activeZoneKey === 'roads' ? countRoadPoints(delimitations.roads) === 0 : activeNodes.length === 0}
                 className="px-3 py-2 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white text-xs font-mono font-bold flex items-center justify-center space-x-1.5 shadow-sm transition-all hover:scale-102"
-                title="Borra todos los puntos de esta zona para empezar de cero"
+                title={activeZoneKey === 'roads' ? "Borra todas las vías para empezar de cero" : "Borra todos los puntos de esta zona"}
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Vaciar / Borrar Todo</span>
+                <span>{activeZoneKey === 'roads' ? 'Vaciar Vías' : 'Vaciar Todo'}</span>
               </button>
 
               <button
@@ -2049,13 +2396,19 @@ export default function ThesisFramework({ onSelectModule }) {
           {/* Interactive Vertex List (Click trash on any vertex) */}
           <div className="space-y-1.5 pt-1 border-t border-slate-200">
             <div className="flex items-center justify-between text-[10px] font-mono font-bold text-slate-500 uppercase px-1">
-              <span>Lista de Vértices ({activeNodes.length}):</span>
+              <span>
+                {activeZoneKey === 'roads' 
+                  ? `Vértices Tramo ${activeRoadLineIndex + 1} (${activeNodes.length}):` 
+                  : `Lista de Vértices (${activeNodes.length}):`}
+              </span>
               <span className="text-amber-700">Clic en ✕ para quitar</span>
             </div>
 
             {activeNodes.length === 0 ? (
               <div className="p-4 rounded-2xl bg-amber-50/70 border border-dashed border-amber-300 text-center text-xs text-amber-900 font-mono">
-                Zona vacía. Haz clic en el mapa satelital para trazar tu delimitación.
+                {activeZoneKey === 'roads'
+                  ? `Tramo ${activeRoadLineIndex + 1} vacío. Haz clic en el mapa para trazar este tramo.`
+                  : 'Zona vacía. Haz clic en el mapa satelital para trazar tu delimitación.'}
               </div>
             ) : (
               <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
@@ -2066,14 +2419,14 @@ export default function ThesisFramework({ onSelectModule }) {
                   >
                     <div className="flex items-center space-x-1.5">
                       <span className="w-4 h-4 rounded-full bg-slate-900 text-white text-[9px] flex items-center justify-center font-bold">
-                        {idx + 1}
+                        {activeZoneKey === 'roads' ? `T${activeRoadLineIndex + 1}.${idx + 1}` : idx + 1}
                       </span>
                       <span className="text-slate-700">
                         [{coord[0]}, {coord[1]}]
                       </span>
                     </div>
                     <button
-                      onClick={() => handleRemoveSpecificNode(idx)}
+                      onClick={() => handleRemoveSpecificNode(idx, activeZoneKey === 'roads' ? activeRoadLineIndex : null)}
                       className="p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                       title={`Eliminar vértice #${idx + 1}`}
                     >
@@ -2116,10 +2469,63 @@ export default function ThesisFramework({ onSelectModule }) {
             </button>
           </div>
 
+          {/* Dedicated Road Line Creation in Right Panel */}
+          {activeZoneKey === 'roads' && (
+            <div className="p-3 bg-amber-500/10 border border-amber-300 rounded-2xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-mono font-black text-amber-950 uppercase flex items-center space-x-1.5">
+                  <Route className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Control de Tramos de Vía</span>
+                </span>
+                <span className="text-[10px] font-mono font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">
+                  {normalizeRoadLines(delimitations.roads).length} Tramos Totales
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  onClick={handleAddNewRoadLine}
+                  className="py-2 px-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-mono font-bold text-xs flex items-center justify-center space-x-1 shadow-sm transition-all hover:scale-102"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>➕ Iniciar Nueva Línea</span>
+                </button>
+                <button
+                  onClick={handleClearCurrentRoadLine}
+                  disabled={activeNodes.length === 0}
+                  className="py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 font-mono font-bold text-xs flex items-center justify-center space-x-1 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Vaciar Tramo {activeRoadLineIndex + 1}</span>
+                </button>
+              </div>
+
+              {/* Selector pills in right panel */}
+              <div className="flex flex-wrap gap-1 pt-1">
+                {normalizeRoadLines(delimitations.roads).map((line, lIdx) => (
+                  <button
+                    key={lIdx}
+                    onClick={() => {
+                      setActiveRoadLineIndex(lIdx);
+                      setSelectedNodeIndex(null);
+                    }}
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                      lIdx === activeRoadLineIndex
+                        ? 'bg-slate-900 text-amber-300 ring-2 ring-amber-400'
+                        : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+                    }`}
+                  >
+                    Tramo {lIdx + 1} ({line.length} pts)
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Quick Brush / Drawing Tool Activation */}
-          <div className="p-3 bg-amber-500/10 border border-amber-300/80 rounded-2xl space-y-2">
+          <div className="p-3 bg-slate-100 border border-slate-200 rounded-2xl space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono font-black text-amber-950 uppercase flex items-center space-x-1.5">
+              <span className="text-[11px] font-mono font-black text-slate-900 uppercase flex items-center space-x-1.5">
                 <PenTool className="w-3.5 h-3.5 text-amber-700" />
                 <span>Herramienta Pincel</span>
               </span>
@@ -2140,19 +2546,19 @@ export default function ThesisFramework({ onSelectModule }) {
             >
               <PenTool className="w-4 h-4" />
               <span>
-                {activeZoneKey === 'roads' ? '🖌️ Pincel: Dibujar Vías' : `🖌️ Pincel: Dibujar ${activeZoneConfig.name}`}
+                {activeZoneKey === 'roads' ? `🖌️ Pincel: Dibujar en Tramo ${activeRoadLineIndex + 1}` : `🖌️ Pincel: Dibujar ${activeZoneConfig.name}`}
               </span>
             </button>
-            <p className="text-[10px] text-amber-900/90 font-mono leading-tight">
+            <p className="text-[10px] text-slate-600 font-mono leading-tight">
               {toolMode === 'add' 
-                ? '🟢 Haz clic en el mapa satelital para ir trazando los puntos uno a uno.' 
+                ? '🟢 Haz clic en el mapa satelital para ir trazando los puntos de este tramo.' 
                 : 'Pulsa el botón superior para activar el pincel y añadir puntos con clics.'}
             </p>
           </div>
 
           {/* Big Copy Button (Pégamelas) */}
           <button
-            onClick={() => handleCopyCodeToClipboard(activeZoneKey)}
+            onClick={handleCopyCodeToClipboard}
             className="w-full py-2.5 px-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-mono font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-md hover:scale-102 border border-slate-700"
           >
             <Copy className="w-4 h-4 text-amber-400" />
@@ -2173,7 +2579,7 @@ export default function ThesisFramework({ onSelectModule }) {
                 <textarea
                   value={pastedCoordsText}
                   onChange={(e) => setPastedCoordsText(e.target.value)}
-                  placeholder="Pega aquí el arreglo [[lat, lng], [lat, lng], ...]"
+                  placeholder={activeZoneKey === 'roads' ? "Pega aquí el arreglo de vías: [[ [lat, lng], ... ], [ [lat, lng], ... ]]" : "Pega aquí el arreglo [[lat, lng], [lat, lng], ...]"}
                   className="w-full h-24 p-2 text-[10px] font-mono bg-white border border-slate-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
                 <button
@@ -2191,14 +2597,20 @@ export default function ThesisFramework({ onSelectModule }) {
           {/* Live Coordinates Code Block */}
           <div className="space-y-1.5 pt-1 border-t border-slate-200">
             <div className="flex items-center justify-between text-[10px] font-mono font-bold text-slate-600">
-              <span>Arreglo de Puntos ({activeNodes.length}):</span>
-              <span>{zoneStats.areaKm !== undefined ? `${zoneStats.areaKm} km` : `${zoneStats.areaHa} Ha`}</span>
+              <span>
+                {activeZoneKey === 'roads' 
+                  ? `Red Vial (${zoneStats.count} pts en ${normalizeRoadLines(delimitations.roads).length} tramos):` 
+                  : `Arreglo de Puntos (${activeNodes.length}):`}
+              </span>
+              <span>{zoneStats.lengthKm} km</span>
             </div>
 
             <pre className="p-2.5 bg-slate-950 text-amber-300 rounded-2xl text-[10px] font-mono max-h-48 overflow-y-auto leading-relaxed border border-slate-800 shadow-inner select-all">
-              {activeNodes.length === 0 
-                ? '// Sin puntos aún. Activa el pincel y haz clic en el mapa.' 
-                : JSON.stringify(activeNodes, null, 2)}
+              {activeZoneKey === 'roads'
+                ? JSON.stringify(normalizeRoadLines(delimitations.roads), null, 2)
+                : (activeNodes.length === 0 
+                  ? '// Sin puntos aún. Activa el pincel y haz clic en el mapa.' 
+                  : JSON.stringify(activeNodes, null, 2))}
             </pre>
           </div>
 
@@ -2448,7 +2860,7 @@ export default function ThesisFramework({ onSelectModule }) {
                 <span className="text-emerald-700 font-bold">Formato JS / JSON</span>
               </div>
               <div className="p-4 rounded-2xl bg-slate-950 text-emerald-400 font-mono text-xs max-h-52 overflow-y-auto border border-slate-800 shadow-inner">
-                <pre>{JSON.stringify(delimitations[activeZoneKey] || [], null, 2)}</pre>
+                <pre>{JSON.stringify(activeZoneKey === 'roads' ? normalizeRoadLines(delimitations.roads) : (delimitations[activeZoneKey] || []), null, 2)}</pre>
               </div>
             </div>
 
