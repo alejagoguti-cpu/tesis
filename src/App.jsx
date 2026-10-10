@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Component } from 'react';
 import DashboardSidebar from './components/DashboardSidebar';
+import DashboardHeader from './components/DashboardHeader';
 import ExecutiveControlCenter from './components/ExecutiveControlCenter';
 import ThesisFramework from './components/ThesisFramework';
 import DiagnosisMap from './components/DiagnosisMap';
@@ -86,6 +87,18 @@ export default function App() {
         }`}
       >
         {/* Dynamic Viewport Container (Full-Bleed 100vh Map Dashboard) */}
+        <DashboardHeader
+          activeModule={activeModule}
+          setActiveModule={setActiveModule}
+          sidebarCollapsed={sidebarCollapsed}
+          setMobileSidebarOpen={setMobileSidebarOpen}
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+          presentationMode={presentationMode}
+          setPresentationMode={setPresentationMode}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+        />
         <main className="flex-1 w-full h-full p-0 overflow-hidden relative">
           
           {/* 1. DASHBOARD MODULAR VIEW (Active module focused view) */}
