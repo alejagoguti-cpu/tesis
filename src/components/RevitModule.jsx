@@ -424,6 +424,7 @@ export default function RevitModule() {
           <RotateCcw className="w-3.5 h-3.5" />
           <span>Arrastra para orbitar · rueda para acercar · recarga el archivo para recentrar</span>
         </div>
+      </div>
     </div>
   );
 }
