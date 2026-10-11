@@ -45,6 +45,7 @@ import {
 import { projectInfo } from '../data/projectData';
 import calqueImage from '../assets/calque_tierrabomba.png';
 import calcoCotasImage from '../assets/calco_cotas.png';
+import calcoErosionImage from '../assets/calco_erosion.png';
 import L from 'leaflet';
 
 // Fix Leaflet marker icons safely in Vite/React
@@ -710,8 +711,10 @@ export default function ThesisFramework({ onSelectModule }) {
 
   // Reference Calque Image Overlay State (Plano para calcar con cotas de nivel y topografía)
   const [showCalque, setShowCalque] = useState(false);
-  const [calqueType, setCalqueType] = useState('cotas'); // 'cotas' (foto con curvas de nivel y casas) | 'general'
+  const [calqueType, setCalqueType] = useState('erosion'); // 'cotas' (curvas de nivel y casas) | 'general' (plano isla) | 'erosion' (foto franja erosión)
   const [hideOtherLayersOnCalque, setHideOtherLayersOnCalque] = useState(true);
+  const [showCalqueHD, setShowCalqueHD] = useState(false); // Visor HD ampliado del calco
+  const [hdZoom, setHdZoom] = useState(1);
   const [nudgeStep, setNudgeStep] = useState(0.0004); // 0.0002 (fino) | 0.0006 (normal) | 0.0015 (rápido)
   const [calqueOpacity, setCalqueOpacity] = useState(0.78);
   const [calqueBounds, setCalqueBounds] = useState(DEFAULT_CALQUE_COTAS_BOUNDS);
@@ -749,7 +752,7 @@ export default function ThesisFramework({ onSelectModule }) {
   };
 
   const handleResetCalquePosition = (type = calqueType) => {
-    if (type === 'cotas') {
+    if (type === 'cotas' || type === 'erosion') {
       setCalqueBounds(DEFAULT_CALQUE_COTAS_BOUNDS);
     } else {
       setCalqueBounds(DEFAULT_CALQUE_GENERAL_BOUNDS);
@@ -1428,7 +1431,7 @@ export default function ThesisFramework({ onSelectModule }) {
       [calqueBounds.north, calqueBounds.east]
     );
 
-    const activeImageSrc = calqueType === 'cotas' ? calcoCotasImage : calqueImage;
+    const activeImageSrc = calqueType === 'cotas' ? calcoCotasImage : calqueType === 'erosion' ? calcoErosionImage : calqueImage;
 
     if (!calqueOverlayRef.current) {
       calqueOverlayRef.current = L.imageOverlay(activeImageSrc, bounds, {
@@ -2770,7 +2773,7 @@ export default function ThesisFramework({ onSelectModule }) {
                   Acomodar Calco en Vivo
                 </span>
                 <h4 className="font-bold text-xs text-slate-900">
-                  {calqueType === 'cotas' ? 'Curvas de Nivel & Cotas' : 'Plano General'}
+                  {calqueType === 'cotas' ? 'Curvas de Nivel & Cotas' : calqueType === 'erosion' ? 'Franja de Erosión' : 'Plano General'}
                 </h4>
               </div>
             </div>
@@ -2789,34 +2792,54 @@ export default function ThesisFramework({ onSelectModule }) {
             <span className="text-[10px] font-mono font-bold text-slate-600 block">
               Imagen a Calcar:
             </span>
-            <div className="grid grid-cols-2 gap-1">
+            <div className="grid grid-cols-3 gap-1">
               <button
                 onClick={() => {
                   setCalqueType('cotas');
                   handleResetCalquePosition('cotas');
                 }}
-                className={`py-1.5 px-2 rounded-xl text-[10px] font-mono font-bold border transition-all ${
+                className={`py-1.5 px-1 rounded-xl text-[10px] font-mono font-bold border transition-all ${
                   calqueType === 'cotas'
                     ? 'bg-amber-500 text-slate-950 border-amber-400 font-black ring-2 ring-amber-400/50 shadow-sm'
                     : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
                 }`}
               >
-                ⛰️ Cotas / Casas
+                ⛰️ Cotas
               </button>
               <button
                 onClick={() => {
                   setCalqueType('general');
                   handleResetCalquePosition('general');
                 }}
-                className={`py-1.5 px-2 rounded-xl text-[10px] font-mono font-bold border transition-all ${
+                className={`py-1.5 px-1 rounded-xl text-[10px] font-mono font-bold border transition-all ${
                   calqueType === 'general'
                     ? 'bg-amber-500 text-slate-950 border-amber-400 font-black ring-2 ring-amber-400/50 shadow-sm'
                     : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
                 }`}
               >
-                🗺️ Plano Isla
+                🗺️ Isla
+              </button>
+              <button
+                onClick={() => {
+                  setCalqueType('erosion');
+                  handleResetCalquePosition('erosion');
+                }}
+                className={`py-1.5 px-1 rounded-xl text-[10px] font-mono font-bold border transition-all ${
+                  calqueType === 'erosion'
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 font-black ring-2 ring-amber-400/50 shadow-sm'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                }`}
+              >
+                🌊 Erosión
               </button>
             </div>
+            <button
+              onClick={() => { setHdZoom(1); setShowCalqueHD(true); }}
+              className="w-full py-2 px-2 rounded-xl text-[10px] font-mono font-bold bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center space-x-1.5 transition-all"
+            >
+              <Maximize2 className="w-3.5 h-3.5 text-amber-400" />
+              <span>Ampliar foto en HD</span>
+            </button>
           </div>
 
           {/* Opción para Ocultar Otras Líneas al Calcar */}
@@ -2969,6 +2992,66 @@ export default function ThesisFramework({ onSelectModule }) {
             <span>Restablecer Posición Predeterminada</span>
           </button>
 
+        </div>
+      )}
+
+      {/* Visor HD del calco activo (zoom libre) */}
+      {showCalqueHD && (
+        <div
+          onClick={() => setShowCalqueHD(false)}
+          className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl max-w-5xl w-full p-4 sm:p-6 space-y-4 animate-scale-up max-h-[92vh] overflow-hidden flex flex-col"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
+                  CALCO HD · {calqueType === 'cotas' ? 'COTAS' : calqueType === 'erosion' ? 'EROSIÓN' : 'ISLA'}
+                </span>
+                <span className="text-xs font-mono text-slate-500">Zoom {Math.round(hdZoom * 100)}%</span>
+              </div>
+              <div className="flex items-center space-x-1.5">
+                <button
+                  onClick={() => setHdZoom((z) => Math.max(1, +(z - 0.5).toFixed(2)))}
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-mono font-bold"
+                >
+                  −
+                </button>
+                <button
+                  onClick={() => setHdZoom((z) => Math.min(4, +(z + 0.5).toFixed(2)))}
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-mono font-bold"
+                >
+                  +
+                </button>
+                <button
+                  onClick={() => { setHdZoom(1); setShowCalqueHD(false); }}
+                  className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto rounded-2xl border border-slate-200 bg-slate-50 flex items-start justify-center min-h-0">
+              <img
+                src={calqueType === 'cotas' ? calcoCotasImage : calqueType === 'erosion' ? calcoErosionImage : calqueImage}
+                alt="Calco ampliado"
+                draggable={false}
+                className="max-w-none rounded-xl shadow-lg transition-transform duration-150"
+                style={{ width: `${hdZoom * 100}%` }}
+              />
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="4"
+              step="0.25"
+              value={hdZoom}
+              onChange={(e) => setHdZoom(parseFloat(e.target.value))}
+              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-600"
+            />
+          </div>
         </div>
       )}
 
