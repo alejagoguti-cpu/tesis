@@ -1,118 +1,140 @@
 // =========================================================================
 // HISTORICAL CARTOGRAPHY OF CARTAGENA DE INDIAS & TIERRABOMBA
-// Base cartográfica primaria para el análisis de evolución morfológica e insular
+// Atlas actualizado: 1589 → 1740 → 1780 → 1820 → 1831 → 1900 → actual
 // =========================================================================
 
-import map1690 from '../assets/maps/historical/map_1690_bahia_galeones.jpg';
-import map1730 from '../assets/maps/historical/map_1730_colonial_alegoria.jpg';
-import map1770 from '../assets/maps/historical/map_1770_planta_cuarteles.jpg';
-import map1780 from '../assets/maps/historical/map_1780_defensivo_manga.jpg';
-import map1915 from '../assets/maps/historical/map_1915_pearson_puerto.jpg';
+import map1589 from '../assets/maps/historical/map_1589_drake_cartagena.jpg';
+import map1740 from '../assets/maps/historical/map_1740_sitio_vernon.jpg';
+import map1780 from '../assets/maps/historical/map_1780_bahia_chastenet.jpg';
+import map1820 from '../assets/maps/historical/map_1820_paz_bahia.jpg';
+import map1831 from '../assets/maps/historical/map_1831_puerto_costa_firme.jpg';
+import map1900 from '../assets/maps/historical/map_1900_carta_rusa.jpg';
 
 export const HISTORICAL_MAPS_DATA = [
   {
-    id: "map_1690",
-    year: 1690,
-    title: "1690: Sistema Defensivo y Entrada a la Bahía de Cartagena",
-    shortTitle: "1690: Flota Naval & Baterías",
-    subtitle: "Cartografía Colonial Temprana — Archivo General de Indias",
-    image: map1690,
-    scale: "Escala en leguas y varas castellanas",
-    author: "Ingenieros Militares de la Corona Española",
-    period: "Siglo XVII Tardío",
-    orientation: "Norte indicado con Rosa de los Vientos y Flor de Lis",
-    description: "Plano estratégico que documenta la plaza fuerte amurallada, el fondeadero interior y el despliegue defensivo de la Flota de Galeones. Demuestra el rol histórico primordial de la Isla de Tierrabomba y el paso de Bocachica como escudo protector natural y llave de entrada a la bahía.",
-    urbanAnalysis: "Traza inicial del recinto intramuros (Calahorra y Santa Catalina). Getsemaní incipiente como arrabal extramuros. La franja costera y los canales interiores evidencian el flujo hidrodinámico original antes de los dragados modernos.",
+    id: "map_1589",
+    year: 1589,
+    title: "1589: Cartagena tras Drake — Primera Planta de la Ciudad",
+    shortTitle: "1589: Planta Drake",
+    subtitle: "Cartografía Isabelina — Grabado de Baptista Boazio",
+    image: map1589,
+    scale: "Planta pictórica sin escala uniforme",
+    author: "Baptista Boazio (tras el saqueo de Francis Drake, 1586)",
+    period: "Siglo XVI",
+    orientation: "Vista caballera del frente marino occidental",
+    description: "Primera imagen urbana de Cartagena: la ciudad amurallada en damero fundacional, la flota inglesa fondeada y la fauna del trópico. Documenta el momento en que la Corona entiende que Cartagena debe convertirse en plaza fuerte: de aquí nace el sistema defensivo que usará a Tierrabomba como escudo.",
+    urbanAnalysis: "Traza fundacional en cuadrícula, puerto abierto sin muralla marítima consolidada y bahía como fondeadero natural. Tierrabomba aparece como masa insular despoblada que cierra la bahía por el sur.",
     keyFeatures: [
-      "Flota de galeones españoles anclados en formación defensiva en la bahía",
-      "Rosa de los vientos policromada con flor de lis en el cuadrante superior",
-      "Delineación de las primeras baterías costeras y fosos de marea",
-      "Isla de Tierrabomba como barrera natural frente a incursiones corsarias"
+      "Flota de Francis Drake fondeada frente a la ciudad (1586)",
+      "Damero fundacional y plaza mayor con catedral incipiente",
+      "Rosa de los vientos y cartela iluminada con fauna tropical",
+      "Isla de Tierrabomba como cierre natural de la bahía"
     ],
-    cartoucheText: "Plano del Sitio y Defensas de la Plaza de Cartagena de Indias con la disposición de la Escuadra Real."
+    cartoucheText: "Planta de Cartagena de Indias tras la expedición de Francis Drake, grabada por Baptista Boazio."
   },
   {
-    id: "map_1730",
-    year: 1730,
-    title: "1730: Plano de la Plaza Fuerte de Cartagena de Indias",
-    shortTitle: "1730: Cartografía Ilustrada",
-    subtitle: "Cartografía Ilustrada Barroca con Orla Alegórica Marina",
-    image: map1730,
-    scale: "Escala de varas castellanas",
-    author: "Real Cuerpo de Ingenieros de Ultramar",
-    period: "Siglo XVIII (Época Virreinal)",
-    orientation: "Orientación hacia el frente marino occidental",
-    description: "Extraordinaria pieza cartográfica virreinal enriquecida con un frontispicio alegórico superior que representa a Neptuno y divinidades marinas sobre cuadriga. Detalla la consolidación del sistema de murallas, baluartes y cortinas del Centro Histórico y San Diego.",
-    urbanAnalysis: "Damasco ortogonal consolidado en el Centro; plazas mayores y menores delimitadas. Getsemaní amurallado con su propio frente defensivo. Se observa el cordón de ciénagas de San Lázaro y Chambacú como aislamiento hídrico defensivo.",
+    id: "map_1740",
+    year: 1740,
+    title: "1740: El Sitio Inglés — Bahía Artillada de Cartagena",
+    shortTitle: "1740: Sitio de Vernon",
+    subtitle: "Plano Alemán del Sitio — Campaña de Edward Vernon (1741)",
+    image: map1740,
+    scale: "Escala en millas alemanas",
+    author: "Grabadores alemanes contemporáneos al sitio de 1741",
+    period: "Siglo XVIII (Guerra del Asiento)",
+    orientation: "Norte con rosa de los vientos central",
+    description: "Plano del mayor ataque naval del siglo XVIII: la escuadra de Vernon frente a una bahía convertida en fortaleza. Muestra por qué Bocachica y Tierrabomba eran la llave de Indias: quien controlaba el canal controlaba el tesoro del virreinato.",
+    urbanAnalysis: "Ciudad completamente amurallada, castillos de San Luis y San José en Bocachica, baterías en Tierrabomba y líneas de navíos bloqueando la bahía. La isla ya es infraestructura militar.",
     keyFeatures: [
-      "Orla artística superior con Neptuno, tritones y escudo de armas de la ciudad",
-      "Baluartes de San Francisco Javier, San Ignacio, Santo Domingo y Santa Clara",
-      "Relación directa entre las murallas y la línea de rompiente de olas",
-      "Toponimia detallada de baluartes, puertas de tierra y puertas de mar"
+      "Escuadra inglesa de Vernon desplegada en la bahía",
+      "Castillos de Bocachica y baterías de Tierrabomba artilladas",
+      "Rosa de los vientos de 32 rumbos sobre la bahía",
+      "Cartela histórica con la relación del sitio"
     ],
-    cartoucheText: "Plano de la Ciudad de Cartagena de Indias con su explicacion de Baluartes, Puertas y Edificios Notables."
-  },
-  {
-    id: "map_1770",
-    year: 1770,
-    title: "1770: Planta de la Plaza y División por Cuarteles Militares",
-    shortTitle: "1770: Catastro & Cuarteles",
-    subtitle: "Levantamiento Topográfico y Catastral Intramuros",
-    image: map1770,
-    scale: "Escala de 100 toesas / varas",
-    author: "Ingeniero Militar Juan de Herrera y Sotomayor / Antonio de Arévalo",
-    period: "Reformas Borbónicas (Siglo XVIII)",
-    orientation: "Norte vertical con meridiana de precisión",
-    description: "Planta catastral de máxima precisión geométrica que incluye una extensa tabla explicativa en el margen izquierdo. Enumera rigurosamente las divisiones por cuarteles de policía, manzanas, conventos, iglesias, dependencias de la Real Hacienda y calles principales.",
-    urbanAnalysis: "Punto culminante de la ingeniería militar española. Muestra la densidad de ocupación del suelo, los aljibes comunales bajo plazas y conventos, y el sistema de evacuación de aguas pluviales hacia las ciénagas interiores.",
-    keyFeatures: [
-      "Índice exhaustivo de más de 60 hitos cívicos, eclesiásticos y militares",
-      "Sectorización en Quartel de la Catedral, Quartel de San Diego y Quartel de Getsemaní",
-      "Identificación de conventos: San Pedro Claver, Santo Domingo, Santa Teresa, La Merced",
-      "Trazo de las cortinas de muralla y baterías colaterales con ángulos de tiro"
-    ],
-    cartoucheText: "PLANTA de la Plaza en que se manifiestan los Quarteles que dividen su Poblacion, Calles, Yglesias y Conventos..."
+    cartoucheText: "Neu Cartagena — Plano del sitio inglés de Cartagena de Indias y su bahía."
   },
   {
     id: "map_1780",
     year: 1780,
-    title: "1780: Plano Estratégico de Fortificaciones y Entorno Insular",
-    shortTitle: "1780: Red Defensiva & Manga",
-    subtitle: "Plano Militar (Fig. 2ª) — Centro, San Lázaro, Manga y Bahía Interior",
+    title: "1780: Derrotero Científico de la Bahía (Chastenet)",
+    shortTitle: "1780: Bahía Chastenet",
+    subtitle: "Levantamiento Francés — Campaña del Conde de Chastenet (1783)",
     image: map1780,
-    scale: "Escala de 300 varas castellanas",
-    author: "Antonio de Arévalo (Mariscal de Campo e Ingeniero General)",
+    scale: "Escala en toesas francesas",
+    author: "M. le Comte de Chastenet (Marina francesa)",
     period: "Siglo XVIII Tardío",
-    orientation: "Rosa de los Vientos con Flor de Lis en la bahía de las Ánimas",
-    description: "Plano estratégico policromado con tintas al agua y carmín que articula la relación territorial entre el Centro amurallado, Getsemaní, el cerro de San Lázaro coronado por el Castillo de San Felipe de Barajas, la Isla de Manga y la bahía interior.",
-    urbanAnalysis: "Ilustra el concepto de defensa en profundidad: la ciudad no es un punto aislado sino un ecosistema territorial interconectado por cuerpos de agua, bajos marinos y fortificaciones exteriores que alcanzaban Tierrabomba y Bocachica.",
+    orientation: "Norte con flor de lis y meridiana",
+    description: "Primer levantamiento hidrográfico moderno de la bahía: sondas, bajos, canales de Bocagrande y Bocachica y derrota de entrada. La bahía deja de ser secreto español y entra a la cartografía científica europea.",
+    urbanAnalysis: "Derrota de navegación marcada con sondas en brazas, bajos de Salmedina y la isla de Tierrabomba relevada con su relieve. Base técnica de toda la defensa posterior del XIX.",
     keyFeatures: [
-      "Manzanas urbanas iluminadas en carmín para distinguir el tejido edificado",
-      "Castillo San Felipe de Barajas con su sistema de hornabeques y galerías subterráneas",
-      "Delimitación de la Isla de Manga y esteros con batimetría somera",
-      "Sector de El Cabrero y escollera submarina para disipar la fuerza del oleaje"
+      "Sondas batimétricas sistemáticas de la bahía interior",
+      "Derrota de entrada por Bocachica con marcas de enfilación",
+      "Tierrabomba relevada con toponimia de puntas y playas",
+      "Bajos y arrecifes de Salmedina y Bocagrande"
     ],
-    cartoucheText: "Plano Fig. 2a — Demostración de las Fortificaciones de Cartagena de Indias y sus avenidas terrestres y marítimas."
+    cartoucheText: "Baye de Cartagène dans le Royaume de Santa Fé — Levé par M. le Comte de Chastenet."
   },
   {
-    id: "map_1915",
-    year: 1915,
-    title: "1915: Estudios del Puerto de Cartagena (S. Pearson & Son Ltd)",
-    shortTitle: "1915: Estudios Puerto Moderno",
-    subtitle: "Levantamiento Hidrográfico y Urbano — Hoja Núm. 1 (Escala 1:2500)",
-    image: map1915,
-    scale: "Escala 1 : 2500 (Junio de 1915)",
-    author: "S. Pearson & Son Ltd (10 Victoria St, London) / Ministerio de Obras Públicas",
-    period: "Inicios del Siglo XX (República)",
-    orientation: "Norte magnético y geográfico con declinación de 1915",
-    description: "Documento fundacional del urbanismo moderno cartagenero. Levantado por la célebre firma de ingeniería británica S. Pearson & Son Ltd para la modernización del puerto comercial, la estación del Ferrocarril a Calamar y las nuevas líneas de tranvía.",
-    urbanAnalysis: "Registra la transición entre la ciudad amurallada y la expansión republicana: apertura del Camellón de los Mártires, estación del Ferrocarril de Calamar, relleno de playones y demolición parcial de murallas para dar paso a la infraestructura portuaria moderna.",
+    id: "map_1820",
+    year: 1820,
+    title: "1820: Bahía y Puerto de Cartagena (Manuel M. Paz)",
+    shortTitle: "1820: Plano Paz",
+    subtitle: "Topografía Republicana — Comisión Corográfica",
+    image: map1820,
+    scale: "Escala de 1 legua de 20 al grado",
+    author: "Manuel M. Paz (Comisión Corográfica)",
+    period: "República Temprana (Siglo XIX)",
+    orientation: "Norte vertical con meridiana",
+    description: "Plano republicano con tabla de 16 referencias (A–P): del Pastelillo a Santa Rita, pasando por la isla de Tierra Bomba (M) y el pueblo de Bocachica (N). Radiografía del momento en que la bahía pasa de plaza fuerte a puerto comercial.",
+    urbanAnalysis: "Pueblos de pescadores ya asentados (Bocagrande, Tierra Bomba, Bocachica), fuertes en ruinas tras la independencia y la isla de Barú cerrando la bahía por el sur. Base del catastro republicano.",
     keyFeatures: [
-      "Levantamiento predial milimétrico a escala 1:2500 con curvas de nivel e hidrografía",
-      "Trazado del Ferrocarril Cartagena-Calamar y muelles de La Machina",
-      "Leyenda con 45 edificios públicos: Fábricas, Teatro Municipal, Hospital, Plantas Eléctricas",
-      "Línea de costa y caños antes de las grandes transformaciones industriales de Mamonal"
+      "Tabla de 16 referencias: fuertes, pueblos e islas (A–P)",
+      "Isla de Tierra Bomba (M) y pueblo de Bocachica (N)",
+      "Huerta de Gracia y desembarco inglés de 1741 (O)",
+      "Litografía de Ayala y edición de Manuel M. Paz"
     ],
-    cartoucheText: "ESTUDIOS DEL PUERTO DE CARTAGENA — Junio de 1915. PLANO DE LA CIUDAD HOJA NUM. 1. Escala 1 : 2500. S. PEARSON & SON LTD, LONDON."
+    cartoucheText: "Plano de la Bahía y Puerto de Cartagena tomado conforme a la topografía actual por Manuel M. Paz."
+  },
+  {
+    id: "map_1831",
+    year: 1831,
+    title: "1831: Puerto de Cartagena — Costa de Tierra Firme",
+    shortTitle: "1831: Puerto & Sondas",
+    subtitle: "Carta Náutica Francesa — Côte de Terre Ferme",
+    image: map1831,
+    scale: "Escala de tres millas marinas",
+    author: "Depósito Hidrográfico Francés",
+    period: "Siglo XIX",
+    orientation: "Latitud norte 10°26' y longitud de París",
+    description: "Carta de navegación con sondas en toda la bahía: cada número es una braza medida a plomo. Muestra la isla de Tierra Bomba (Île de Tierra Bomba) con su relieve sombreado y los pasos de Bocachica balizados para el comercio del XIX.",
+    urbanAnalysis: "Batimetría completa del XIX: canal navegable, bajos interiores y costa firme de Tesca. La isla se lee como cuerpo volcánico-sedimentario con alturas que anticipan la meseta segura de la tesis (+22 m).",
+    keyFeatures: [
+      "Sondas en brazas sobre toda la bahía interior",
+      "Île de Tierra Bomba con sombreado de relieve",
+      "Paso de Bocachica (Petite Passe) balizado",
+      "Ciénaga de Tesca y marismas orientales"
+    ],
+    cartoucheText: "Port de Cartagena — Côte de l'Amérique Méridionale, carta de sondas y derrotas."
+  },
+  {
+    id: "map_1900",
+    year: 1900,
+    title: "1900: Carta de la Bahía — Tierrabomba Artillada",
+    shortTitle: "1900: Carta de la Bahía",
+    subtitle: "Carta Hidrográfica — Fuertes de San Luis y San José",
+    image: map1900,
+    scale: "Escala en leguas marinas",
+    author: "Levantamiento hidrográfico de entresiglos",
+    period: "Entre Siglos XIX–XX",
+    orientation: "Norte con rosa y canales de acceso",
+    description: "Carta de entresiglos con la bahía ya cerrada por la escollera de Bocagrande (línea punteada): la isla queda unida al sistema defensivo y nace la configuración actual. Se leen los fuertes de San Luis, San José y la batería Baradera sobre Tierrabomba.",
+    urbanAnalysis: "Escollera submarina anti-oleaje en Bocagrande, canal de Bocachica como única entrada y Tierrabomba con sus fuertes costeros. La foto fija del punto de partida del siglo XX que hereda la tesis.",
+    keyFeatures: [
+      "Escollera de Bocagrande (trazado punteado)",
+      "Fuertes de San Luis, San José y batería Baradera",
+      "Boca-Chica y Boca-Grande rotuladas con sus canales",
+      "Sondas del canal interior hasta Castillo Grande"
+    ],
+    cartoucheText: "Carta de la Bahía de Cartagena con sus fuertes, canales y la isla de Tierra Bomba."
   }
 ];

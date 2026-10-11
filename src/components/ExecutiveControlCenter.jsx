@@ -58,78 +58,93 @@ if (typeof window !== 'undefined' && L && L.Icon && L.Icon.Default && L.Icon.Def
 
 export const TIMELINE_EPOCHS = [
   {
-    year: 1690,
+    year: 1589,
     type: "historical",
-    mapId: "map_1690",
-    title: "1690: Flota Naval y Baterías de Bahía",
-    tagline: "Cartografía Colonial Temprana // Siglo XVII",
-    description: "Plaza fuerte amurallada, despliegue defensivo de la Flota de Indias y rol estratégico de Tierrabomba y Bocachica como escudo protector natural.",
-    color: "#854d0e",
+    mapId: "map_1589",
+    title: "1589: Cartagena tras Drake",
+    tagline: "Cartografía Isabelina // Siglo XVI",
+    description: "Primera planta de la ciudad: damero fundacional, flota inglesa fondeada y Tierrabomba como cierre natural de la bahía.",
+    color: "#7c4a12",
     metrics: [
-      { label: "Período", value: "Siglo XVII Tardío" },
-      { label: "Escuadra", value: "Galeones de Indias" },
-      { label: "Defensa", value: "Baterías Someras" },
-      { label: "Rol Insular", value: "Escudo de Bahía" }
+      { label: "Período", value: "Siglo XVI" },
+      { label: "Flota", value: "Expedición Drake" },
+      { label: "Traza", value: "Damero fundacional" },
+      { label: "Rol Insular", value: "Cierre de bahía" }
     ]
   },
   {
-    year: 1730,
+    year: 1740,
     type: "historical",
-    mapId: "map_1730",
-    title: "1730: Plano de la Plaza Fuerte de Cartagena",
-    tagline: "Cartografía Barroca Ilustrada // Siglo XVIII",
-    description: "Orla artística de Neptuno y divinidades marinas. Consolidación de baluartes, cortinas de murallas y relación con las rompientes oceánicas.",
+    mapId: "map_1740",
+    title: "1740: Sitio inglés de Vernon",
+    tagline: "Bahía Artillada // Guerra del Asiento",
+    description: "El mayor ataque naval del XVIII: Bocachica y Tierrabomba como llave de Indias frente a la escuadra de Vernon.",
     color: "#b45309",
     metrics: [
-      { label: "Baluartes", value: "San Ignacio & Sto Domingo" },
-      { label: "Trazado", value: "Damasco Ortogonal" },
-      { label: "Artesanía", value: "Orla Barroca Marina" },
-      { label: "Aislamiento", value: "Ciénagas Defensivas" }
-    ]
-  },
-  {
-    year: 1770,
-    type: "historical",
-    mapId: "map_1770",
-    title: "1770: Catastro y División por Cuarteles",
-    tagline: "Reformas Borbónicas // Juan de Herrera",
-    description: "Planta de máxima precisión geométrica con índice exhaustivo de más de 60 hitos cívicos, conventos, aljibes comunales y cuarteles de policía.",
-    color: "#c2410c",
-    metrics: [
-      { label: "Cuarteles", value: "Catedral, San Diego, Getsemaní" },
-      { label: "Catastro", value: ">60 Edificios Notables" },
-      { label: "Aljibes", value: "Ciclópeos Conventuales" },
-      { label: "Ingeniería", value: "Antonio de Arévalo" }
+      { label: "Escuadra", value: "Vernon 1741" },
+      { label: "Defensa", value: "S. Luis / Bocachica" },
+      { label: "Bahía", value: "Artillada" },
+      { label: "Rol", value: "Llave de Indias" }
     ]
   },
   {
     year: 1780,
     type: "historical",
     mapId: "map_1780",
-    title: "1780: Red Defensiva San Lázaro y Manga",
-    tagline: "Defensa en Profundidad // Antonio de Arévalo",
-    description: "Plano estratégico policromado en carmín. Articulación entre el Centro, Castillo San Felipe de Barajas, Isla de Manga y la bahía interior.",
-    color: "#9a3412",
+    title: "1780: Derrotero de Chastenet",
+    tagline: "Hidrografía Científica // Marina Francesa",
+    description: "Primer levantamiento moderno con sondas: canales de Bocagrande y Bocachica y derrota de entrada a la bahía.",
+    color: "#c2410c",
     metrics: [
-      { label: "Fortaleza", value: "San Felipe de Barajas" },
-      { label: "Territorio", value: "Centro, Manga, Bocachica" },
-      { label: "Escollera", value: "Submarina Anti-Oleaje" },
-      { label: "Técnica", value: "Acuarela & Tinta Carmín" }
+      { label: "Levantamiento", value: "Chastenet 1783" },
+      { label: "Técnica", value: "Sonda a plomo" },
+      { label: "Canales", value: "2 accesos" },
+      { label: "Bahía", value: "Derrotero total" }
     ]
   },
   {
-    year: 1915,
+    year: 1820,
     type: "historical",
-    mapId: "map_1915",
-    title: "1915: Estudios del Puerto Moderno (Pearson & Son)",
-    tagline: "Ingeniería Británica // República Temprana",
-    description: "Levantamiento hidrográfico y predial a escala 1:2500 para modernización portuaria, muelle de La Machina y Ferrocarril Cartagena-Calamar.",
+    mapId: "map_1820",
+    title: "1820: Bahía y puerto (M. Paz)",
+    tagline: "Topografía Republicana // Comisión Corográfica",
+    description: "Plano con 16 referencias: del Pastelillo a Santa Rita, con Tierra Bomba (M) y Bocachica (N) ya pobladas.",
+    color: "#9a3412",
+    metrics: [
+      { label: "Autor", value: "Manuel M. Paz" },
+      { label: "Referencias", value: "16 hitos (A–P)" },
+      { label: "Isla", value: "Tierra Bomba (M)" },
+      { label: "Puerto", value: "Uso comercial" }
+    ]
+  },
+  {
+    year: 1831,
+    type: "historical",
+    mapId: "map_1831",
+    title: "1831: Puerto y costa firme",
+    tagline: "Carta Náutica // Sondas en Brazas",
+    description: "Carta de navegación con batimetría completa y la isla relevada con su relieve: base de la meseta segura.",
     color: "#0369a1",
     metrics: [
-      { label: "Escala", value: "1 : 2.500 Milimétrica" },
-      { label: "Firma", value: "S. Pearson & Son (Londres)" },
-      { label: "Transporte", value: "Ferrocarril & Tranvía" },
-      { label: "Edificios", value: "45 Hitos Republicano" }
+      { label: "Costa", value: "Tierra Firme" },
+      { label: "Sonda", value: "Millas marinas" },
+      { label: "Paso", value: "Bocachica" },
+      { label: "Relieve", value: "Meseta insular" }
+    ]
+  },
+  {
+    year: 1900,
+    type: "historical",
+    mapId: "map_1900",
+    title: "1900: Carta de la bahía artillada",
+    tagline: "Entresiglos // Escollera de Bocagrande",
+    description: "Bahía cerrada por la escollera, fuertes de San Luis y San José sobre Tierrabomba: la foto fija del siglo XX.",
+    color: "#0d9488",
+    metrics: [
+      { label: "Obra", value: "Escollera total" },
+      { label: "Fuertes", value: "S. Luis / S. José" },
+      { label: "Entrada", value: "Solo Bocachica" },
+      { label: "Isla", value: "Base militar" }
     ]
   },
   {
@@ -308,12 +323,12 @@ export const URBAN_HOUSE_BLOCKS = [
 ];
 
 export default function ExecutiveControlCenter({ onSelectModule }) {
-  const [selectedYear, setSelectedYear] = useState(1690); // Default to first historical map (1690) as requested
+  const [selectedYear, setSelectedYear] = useState(1589); // Primer plano del atlas: Drake 1589
   const [canvasBgTheme, setCanvasBgTheme] = useState('warm-dark'); // 'warm-dark' | 'parchment' | 'neutral'
   const [activeHotspotModal, setActiveHotspotModal] = useState(null);
   const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
   const [showHistoricalGalleryModal, setShowHistoricalGalleryModal] = useState(false);
-  const [selectedGalleryMap, setSelectedGalleryMap] = useState(HISTORICAL_MAPS_DATA[4]); // default 1915
+  const [selectedGalleryMap, setSelectedGalleryMap] = useState(HISTORICAL_MAPS_DATA[5]); // default 1900
   const [highlightRelocationHouses, setHighlightRelocationHouses] = useState(false);
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
 
@@ -331,7 +346,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
   const markersRef = useRef([]);
   const relocationGroupRef = useRef(null);
 
-  const currentTimelineData = TIMELINE_EPOCHS.find(y => y.year === selectedYear) || TIMELINE_EPOCHS[6];
+  const currentTimelineData = TIMELINE_EPOCHS.find(y => y.year === selectedYear) || TIMELINE_EPOCHS[7];
   const isHistoricalMode = currentTimelineData.type === 'historical';
   const currentHistoricalMap = isHistoricalMode 
     ? HISTORICAL_MAPS_DATA.find(m => m.id === currentTimelineData.mapId) || HISTORICAL_MAPS_DATA[0]
@@ -638,7 +653,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
         className="absolute inset-0 w-full h-full z-0" 
       />
 
-      {/* B. High-Resolution Historical Map Viewer Canvas (for 1690, 1730, 1770, 1780, 1915) */}
+      {/* B. High-Resolution Historical Map Viewer Canvas (atlas 1589 → 1900) */}
       {isHistoricalMode && currentHistoricalMap && (
         <div 
           className={`absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing z-10 animate-fade-in transition-colors duration-300 ${
@@ -1182,7 +1197,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                       CORPUS CARTOGRÁFICO HISTÓRICO
                     </span>
                     <span className="text-[10px] font-mono text-slate-500">
-                      5 Planos Primarios (1690 - 1915)
+                      6 Planos Primarios (1589 - 1900)
                     </span>
                   </div>
                   <h3 className="font-serif font-bold text-base sm:text-lg text-slate-900">

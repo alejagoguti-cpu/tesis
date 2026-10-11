@@ -44,7 +44,6 @@ import calqueTbImg from '../assets/calque_tierrabomba.png';
 import spectralManglarImg from '../assets/spectral_manglar.png';
 import spectralNdviImg from '../assets/spectral_ndvi.png';
 import mapDefensivoImg from '../assets/maps/historical/map_1780_defensivo_manga.jpg';
-import mapPearsonImg from '../assets/maps/historical/map_1915_pearson_puerto.jpg';
 
 export const FUTURE_TIERRABOMBA_SLIDES = [
   // LÁMINA 1
