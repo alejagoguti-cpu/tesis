@@ -36,7 +36,16 @@ import {
   Info,
   BookOpen,
   Clock,
-  ShieldAlert
+  ShieldAlert,
+  Fish,
+  Flame,
+  Flag,
+  Hospital,
+  Landmark,
+  Mountain,
+  Plane,
+  Ship,
+  Users
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 import { HISTORICAL_MAPS_DATA } from '../data/historicalMaps';
@@ -64,6 +73,12 @@ export const TIMELINE_EPOCHS = [
     title: "1589: Cartagena tras Drake",
     tagline: "Cartografía Isabelina // Siglo XVI",
     description: "Primera planta de la ciudad: damero fundacional, flota inglesa fondeada y Tierrabomba como cierre natural de la bahía.",
+    story: [
+      { icon: "ShieldCheck", text: "La isla resguarda la entrada a la bahía: escudo natural de Cartagena." },
+      { icon: "Fish", text: "Isla de Cárex o Codego: del cacique Cárex y los mocanáes, pescadores concheros en canoas." },
+      { icon: "Mountain", text: "Desde 1533: canteras de coralina y hornos de cal para levantar las murallas." },
+      { icon: "Users", text: "Mano de obra esclavizada africana: primeros asentamientos forzados a la orilla del mar." }
+    ],
     color: "#7c4a12",
     metrics: [
       { label: "Período", value: "Siglo XVI" },
@@ -79,6 +94,12 @@ export const TIMELINE_EPOCHS = [
     title: "1740: Sitio inglés de Vernon",
     tagline: "Bahía Artillada // Guerra del Asiento",
     description: "El mayor ataque naval del XVIII: Bocachica y Tierrabomba como llave de Indias frente a la escuadra de Vernon.",
+    story: [
+      { icon: "Waves", text: "1640: arena y sedimento taponan Bocagrande; la “tierra abombada” que nombra a la isla." },
+      { icon: "Landmark", text: "1646: Somovilla construye el Castillo San Luis para cerrar el canal." },
+      { icon: "Flame", text: "1741: Vernon destruye San Luis; la isla sostiene el sitio como escudo militar." },
+      { icon: "Users", text: "Isla-cuartel: tropas, canteranos y esclavizados." }
+    ],
     color: "#b45309",
     metrics: [
       { label: "Escuadra", value: "Vernon 1741" },
@@ -94,6 +115,12 @@ export const TIMELINE_EPOCHS = [
     title: "1780: Derrotero de Chastenet",
     tagline: "Hidrografía Científica // Marina Francesa",
     description: "Primer levantamiento moderno con sondas: canales de Bocagrande y Bocachica y derrota de entrada a la bahía.",
+    story: [
+      { icon: "Landmark", text: "1753–1759: el Castillo San Fernando en herradura reemplaza a San Luis." },
+      { icon: "ShieldCheck", text: "Defensa en profundidad: la isla, eslabón del sistema amurallado." },
+      { icon: "Ship", text: "Derrotero científico francés: la bahía medida braza a braza." },
+      { icon: "Mountain", text: "Las canteras siguen vistiendo de piedra a la ciudad." }
+    ],
     color: "#c2410c",
     metrics: [
       { label: "Levantamiento", value: "Chastenet 1783" },
@@ -109,6 +136,12 @@ export const TIMELINE_EPOCHS = [
     title: "1820: Bahía y puerto (M. Paz)",
     tagline: "Topografía Republicana // Comisión Corográfica",
     description: "Plano con 16 referencias: del Pastelillo a Santa Rita, con Tierra Bomba (M) y Bocachica (N) ya pobladas.",
+    story: [
+      { icon: "Hospital", text: "1796: el Hospital San Lázaro se muda a la isla: nace el Lazareto de Caño de Loro." },
+      { icon: "Users", text: "Más de 600 enfermos de lepra y sus familias confinados en chozas." },
+      { icon: "Droplets", text: "Sin agua potable ni atención médica: segregación sanitaria oficial." },
+      { icon: "Flag", text: "De escudo militar a zona de aislamiento." }
+    ],
     color: "#9a3412",
     metrics: [
       { label: "Autor", value: "Manuel M. Paz" },
@@ -124,6 +157,12 @@ export const TIMELINE_EPOCHS = [
     title: "1831: Puerto y costa firme",
     tagline: "Carta Náutica // Sondas en Brazas",
     description: "Carta de navegación con batimetría completa y la isla relevada con su relieve: base de la meseta segura.",
+    story: [
+      { icon: "Home", text: "Pueblos pescadores en el plano: Bocagrande, Tierra Bomba y Bocachica." },
+      { icon: "Landmark", text: "Fuertes en ruina tras la independencia: del cañón a la cantera." },
+      { icon: "Ship", text: "La bahía se vuelve puerto comercial; la isla, su periferia rural." },
+      { icon: "Fish", text: "Pesca artesanal y cal: economía de subsistencia." }
+    ],
     color: "#0369a1",
     metrics: [
       { label: "Costa", value: "Tierra Firme" },
@@ -139,6 +178,12 @@ export const TIMELINE_EPOCHS = [
     title: "1900: Carta de la bahía artillada",
     tagline: "Entresiglos // Escollera de Bocagrande",
     description: "Bahía cerrada por la escollera, fuertes de San Luis y San José sobre Tierrabomba: la foto fija del siglo XX.",
+    story: [
+      { icon: "Home", text: "Cuatro caseríos: Tierra Bomba, Punta Arena, Caño del Oro y Bocachica." },
+      { icon: "Droplets", text: "Periferia olvidada por la República: sin acueducto ni alcantarillado." },
+      { icon: "Plane", text: "Septiembre de 1950: la FAC bombardea Caño de Loro con 14.000 lb de TNT." },
+      { icon: "Users", text: "Poblado destruido y sobrevivientes dispersos hacia las playas." }
+    ],
     color: "#0d9488",
     metrics: [
       { label: "Obra", value: "Escollera total" },
@@ -321,6 +366,12 @@ export const URBAN_HOUSE_BLOCKS = [
     [10.3558, -75.5898]
   ]
 ];
+
+// Iconos para los bullets de historia insular por época
+const STORY_ICONS = {
+  Fish, Flame, Flag, Hospital, Landmark, Mountain, Plane, Ship, Users,
+  Home, Droplets, ShieldCheck, ShieldAlert, Waves, Anchor: Compass
+};
 
 export default function ExecutiveControlCenter({ onSelectModule }) {
   const [selectedYear, setSelectedYear] = useState(1589); // Primer plano del atlas: Drake 1589
@@ -747,21 +798,21 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
           </div>
 
           {/* Historical Cartouche Annotation Box */}
-          <div className="absolute bottom-24 right-4 z-[400] max-w-sm hidden md:block pointer-events-auto bg-stone-900/95 backdrop-blur-md p-4 rounded-2xl border border-amber-500/30 text-white shadow-2xl space-y-2">
+          <div className="absolute bottom-24 right-4 z-[400] max-w-sm hidden md:block pointer-events-auto bg-[#faf5eb]/95 backdrop-blur-md p-4 rounded-2xl border border-amber-500/40 text-slate-800 shadow-2xl space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest">
+              <span className="text-[10px] font-mono font-bold text-amber-700 uppercase tracking-widest">
                 Fuente Primaria // Archivo Histórico
               </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-800 border border-amber-500/40 font-bold">
                 {currentHistoricalMap.period}
               </span>
             </div>
-            <p className="text-xs font-serif italic text-slate-300 leading-snug">
+            <p className="text-xs font-serif italic text-slate-600 leading-snug">
               "{currentHistoricalMap.cartoucheText}"
             </p>
-            <div className="text-[10px] font-mono text-slate-400 pt-1 border-t border-white/10 flex justify-between">
+            <div className="text-[10px] font-mono text-slate-500 pt-1 border-t border-amber-500/25 flex justify-between">
               <span>{currentHistoricalMap.author}</span>
-              <span className="text-amber-300 font-bold">{currentHistoricalMap.scale}</span>
+              <span className="text-amber-700 font-bold">{currentHistoricalMap.scale}</span>
             </div>
           </div>
         </div>
@@ -883,38 +934,38 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
         {isLeftPanelCollapsed ? (
           <button
             onClick={() => setIsLeftPanelCollapsed(false)}
-            className="glass-dark px-3.5 py-2 rounded-2xl pointer-events-auto flex items-center space-x-2.5 text-white border border-white/15 shadow-2xl hover:bg-stone-900/90 transition-all hover:scale-105 group"
+            className="bg-white/95 px-3.5 py-2 rounded-2xl pointer-events-auto flex items-center space-x-2.5 text-slate-900 border border-slate-200 shadow-2xl hover:bg-white transition-all hover:scale-105 group"
             title="Expandir panel de análisis"
           >
             <div className={`w-2 h-2 rounded-full animate-pulse ${isHistoricalMode ? 'bg-amber-400' : 'bg-emerald-400'}`} />
             <span className="text-xs font-mono font-bold tracking-tight truncate max-w-[210px]">
               {selectedYear} &bull; {currentTimelineData.title.split(':')[1]?.trim() || currentTimelineData.title}
             </span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-colors shrink-0" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-900 transition-colors shrink-0" />
           </button>
         ) : (
           <div 
             key={selectedYear}
-            className="glass-dark p-4 rounded-3xl pointer-events-auto space-y-3 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-2xl animate-slide-in-left-smooth text-white"
+            className="bg-white/95 p-4 rounded-3xl pointer-events-auto space-y-3 border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.25)] backdrop-blur-2xl animate-slide-in-left-smooth text-slate-900"
           >
             {/* Header Row with Era Tag, Badge & Collapse Button */}
-            <div className="flex items-center justify-between pb-1 border-b border-white/10">
+            <div className="flex items-center justify-between pb-1 border-b border-slate-200">
               <div className="flex items-center space-x-1.5 min-w-0">
                 <div className={`w-2 h-2 rounded-full ${isHistoricalMode ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400 animate-pulse'}`} />
                 <span className={`text-[10px] font-mono font-bold tracking-wider uppercase truncate ${
-                  isHistoricalMode ? 'text-amber-400' : 'text-emerald-400'
+                  isHistoricalMode ? 'text-amber-700' : 'text-emerald-700'
                 }`}>
                   {isHistoricalMode ? 'Cartografía Histórica' : 'Telemetría SIG'}
                 </span>
               </div>
 
               <div className="flex items-center space-x-1.5 shrink-0">
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-semibold border border-white/10">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold border border-slate-200">
                   {isHistoricalMode ? currentHistoricalMap?.period : `Año ${selectedYear}`}
                 </span>
                 <button
                   onClick={() => setIsLeftPanelCollapsed(true)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
                   title="Minimizar panel"
                 >
                   <ChevronUp className="w-3.5 h-3.5" />
@@ -924,43 +975,44 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
 
             {/* Subtitle / Tagline & Title */}
             <div className="space-y-0.5">
-              <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wide">
+              <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wide">
                 {currentTimelineData.tagline}
               </p>
-              <h3 className="font-serif font-bold text-sm text-white leading-snug">
+              <h3 className="font-serif font-bold text-sm text-slate-900 leading-snug">
                 {currentTimelineData.title}
               </h3>
             </div>
 
-            {/* Description text */}
-            <p className="text-xs text-slate-300 font-sans leading-relaxed font-light">
-              {currentTimelineData.description}
-            </p>
-
-            {/* Historical Morphological Analysis Box */}
-            {isHistoricalMode && currentHistoricalMap && (
-              <div className="p-3 rounded-2xl bg-amber-950/40 border-l-2 border-amber-500 border-y border-r border-amber-500/20 text-slate-200 space-y-1 backdrop-blur-sm">
-                <div className="flex items-center space-x-1.5">
-                  <Compass className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span className="font-mono font-bold text-[10px] text-amber-300 uppercase tracking-wider">
-                    Análisis Morfológico Insular
-                  </span>
-                </div>
-                <p className="text-[11px] font-sans italic text-slate-300/95 leading-relaxed pl-1">
-                  "{currentHistoricalMap.urbanAnalysis}"
-                </p>
-              </div>
+            {/* Historia insular en bullets con iconos (épocas históricas) */}
+            {isHistoricalMode && currentTimelineData.story ? (
+              <ul className="space-y-2">
+                {currentTimelineData.story.map((s, idx) => {
+                  const StoryIcon = STORY_ICONS[s.icon] || Info;
+                  return (
+                    <li key={idx} className="flex items-start space-x-2.5 p-2.5 rounded-2xl bg-amber-50/80 border border-amber-200/70">
+                      <span className="p-1.5 rounded-xl bg-white text-amber-700 border border-amber-200 shadow-xs shrink-0">
+                        <StoryIcon className="w-3.5 h-3.5" />
+                      </span>
+                      <span className="text-[11px] text-slate-700 font-sans leading-snug">{s.text}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="text-xs text-slate-600 font-sans leading-relaxed font-light">
+                {currentTimelineData.description}
+              </p>
             )}
 
             {/* 4 CAD Telemetry Metrics */}
-            <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-white/10">
+            <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-200">
               {currentTimelineData.metrics.map((m, idx) => (
                 <div 
                   key={idx} 
-                  className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-[10px] font-mono transition-colors"
+                  className="p-2 rounded-xl bg-slate-50 hover:bg-amber-50 border border-slate-200 text-[10px] font-mono transition-colors"
                 >
-                  <span className="text-slate-400 block truncate text-[9px] uppercase tracking-wider">{m.label}</span>
-                  <span className="font-bold text-white block truncate text-xs mt-0.5">{m.value}</span>
+                  <span className="text-slate-500 block truncate text-[9px] uppercase tracking-wider">{m.label}</span>
+                  <span className="font-bold text-slate-900 block truncate text-xs mt-0.5">{m.value}</span>
                 </div>
               ))}
             </div>
@@ -972,9 +1024,9 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                   setSelectedGalleryMap(currentHistoricalMap);
                   setShowHistoricalGalleryModal(true);
                 }}
-                className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-600/30 via-amber-500/30 to-amber-700/30 hover:from-amber-600/50 hover:via-amber-500/50 hover:to-amber-700/50 border border-amber-400/40 text-amber-200 hover:text-white text-xs font-mono font-bold flex items-center justify-center space-x-2 transition-all shadow-lg hover:shadow-amber-500/20 hover:scale-[1.01]"
+                className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-600/30 via-amber-500/30 to-amber-700/30 hover:from-amber-600/50 hover:via-amber-500/50 hover:to-amber-700/50 border border-amber-500/50 text-amber-900 hover:text-amber-950 text-xs font-mono font-bold flex items-center justify-center space-x-2 transition-all shadow-lg hover:shadow-amber-500/20 hover:scale-[1.01]"
               >
-                <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
+                <Maximize2 className="w-3.5 h-3.5 text-amber-700" />
                 <span>Explorar Ficha y Cartela en HD</span>
               </button>
             )}
