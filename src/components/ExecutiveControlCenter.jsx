@@ -32,6 +32,9 @@ import {
   ZoomOut,
   RotateCcw,
   RotateCw,
+  FlipHorizontal2,
+  FlipVertical2,
+  Save,
   Sliders,
   FileText,
   Info,
@@ -395,6 +398,19 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
     }
   });
   const getMapRotation = (mapId) => (mapId && mapRotation[mapId]) || 0;
+
+  // Espejo horizontal/vertical por plano (persistente en el editor)
+  const [mapMirror, setMapMirror] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('thesis_hist_mirror') || '{}');
+    } catch (e) {
+      return {};
+    }
+  });
+  const getMapMirror = (mapId) => (mapId && mapMirror[mapId]) || { h: false, v: false };
+
+  // Confirmación visual de guardado permanente
+  const [saveViewToast, setSaveViewToast] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -427,6 +443,37 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
     });
   };
   const currentRot = currentHistoricalMap ? getMapRotation(currentHistoricalMap.id) : 0;
+  const currentMirror = currentHistoricalMap ? getMapMirror(currentHistoricalMap.id) : { h: false, v: false };
+
+  // Espejo del plano actual en un eje (se guarda en el editor)
+  const flipCurrentMap = (axis) => {
+    if (!currentHistoricalMap) return;
+    const id = currentHistoricalMap.id;
+    setMapMirror((prev) => {
+      const cur = getMapMirror(id);
+      const upd = { ...prev, [id]: { ...cur, [axis]: !cur[axis] } };
+      try {
+        localStorage.setItem('thesis_hist_mirror', JSON.stringify(upd));
+      } catch (e) {}
+      return upd;
+    });
+  };
+
+  // Guardado permanente explícito de la vista actual (rotación + espejo + zoom)
+  const saveCurrentView = () => {
+    if (!currentHistoricalMap) return;
+    try {
+      const rot = JSON.parse(localStorage.getItem('thesis_hist_rotation') || '{}');
+      rot[currentHistoricalMap.id] = getMapRotation(currentHistoricalMap.id);
+      localStorage.setItem('thesis_hist_rotation', JSON.stringify(rot));
+      const mir = JSON.parse(localStorage.getItem('thesis_hist_mirror') || '{}');
+      mir[currentHistoricalMap.id] = getMapMirror(currentHistoricalMap.id);
+      localStorage.setItem('thesis_hist_mirror', JSON.stringify(mir));
+      localStorage.setItem('thesis_hist_view_' + currentHistoricalMap.id, JSON.stringify({ zoom: zoomLevel, pan: panOffset }));
+    } catch (e) {}
+    setSaveViewToast(true);
+    setTimeout(() => setSaveViewToast(false), 2500);
+  };
 
   // Year Selection Handler with Camera FlyTo
   const handleSelectYear = (targetYear) => {
@@ -514,6 +561,19 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
       };
     }
   }, [selectedYear, isHistoricalMode]);
+
+  // Restaurar vista guardada del plano (zoom + posición) al cambiar de año
+  useEffect(() => {
+    if (!isHistoricalMode || !currentHistoricalMap) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem('thesis_hist_view_' + currentHistoricalMap.id) || 'null');
+      if (saved) {
+        if (typeof saved.zoom === 'number') setZoomLevel(saved.zoom);
+        if (saved.pan && typeof saved.pan.x === 'number') setPanOffset(saved.pan);
+      }
+    } catch (e) {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedYear]);
 
   // Synchronize Relocation Houses Contour on Satellite Map
   useEffect(() => {
@@ -755,7 +815,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
             key={currentHistoricalMap.id}
             className="transition-transform duration-100 ease-out select-none animate-fade-in"
             style={{
-              transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel}) rotate(${currentRot}deg)`,
+              transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel}) rotate(${currentRot}deg) scaleX(${currentMirror.h ? -1 : 1}) scaleY(${currentMirror.v ? -1 : 1})`,
               filter: getFilterStyle()
             }}
           >
@@ -810,6 +870,27 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
             >
               <RotateCw className="w-4 h-4" />
             </button>
+            <button
+              onClick={() => flipCurrentMap('h')}
+              className={`p-2.5 rounded-xl transition-colors ${currentMirror.h ? 'bg-amber-500 text-slate-950' : 'bg-slate-100 hover:bg-slate-200 text-slate-800'}`}
+              title="Espejo horizontal (se guarda)"
+            >
+              <FlipHorizontal2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => flipCurrentMap('v')}
+              className={`p-2.5 rounded-xl transition-colors ${currentMirror.v ? 'bg-amber-500 text-slate-950' : 'bg-slate-100 hover:bg-slate-200 text-slate-800'}`}
+              title="Espejo vertical (se guarda)"
+            >
+              <FlipVertical2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={saveCurrentView}
+              className="p-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white transition-colors"
+              title="Guardar vista para siempre (rotación + espejo + zoom)"
+            >
+              <Save className="w-4 h-4" />
+            </button>
             <div className="h-px bg-slate-200 my-1" />
             <button
               onClick={() => {
@@ -836,6 +917,16 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
               <Sun className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Confirmación de guardado permanente */}
+          {saveViewToast && (
+            <div className="absolute right-4 top-[26rem] z-[400] pointer-events-none animate-fade-in">
+              <div className="bg-teal-700 text-white px-4 py-2 rounded-2xl text-xs font-mono font-bold shadow-2xl flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Vista guardada para siempre</span>
+              </div>
+            </div>
+          )}
 
           {/* Historical Cartouche Annotation Box */}
           <div className="absolute bottom-24 right-4 z-[400] max-w-sm hidden md:block pointer-events-auto bg-[#faf5eb]/95 backdrop-blur-md p-4 rounded-2xl border border-amber-500/40 text-slate-800 shadow-2xl space-y-2">
@@ -1382,7 +1473,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                   <img 
                     src={selectedGalleryMap.image} 
                     alt={selectedGalleryMap.title} 
-                    style={{ transform: `${selectedGalleryMap.flipHorizontal ? 'scaleX(-1) ' : ''}rotate(${getMapRotation(selectedGalleryMap.id)}deg)` }}
+                    style={{ transform: `${selectedGalleryMap.flipHorizontal ? 'scaleX(-1) ' : ''}rotate(${getMapRotation(selectedGalleryMap.id)}deg) scaleX(${getMapMirror(selectedGalleryMap.id).h ? -1 : 1}) scaleY(${getMapMirror(selectedGalleryMap.id).v ? -1 : 1})` }}
                     className="max-w-full max-h-full object-contain"
                   />
                   <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-xl text-white text-[10px] font-mono border border-white/20">
