@@ -6,10 +6,123 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 // Acostado (plano XY) con curvas de nivel resaltadas. Sin nada más.
 const DEFAULT_MODEL_URL = `${import.meta.env.BASE_URL}models/tierrabomba_3dview.fbx`;
 
+// Terreno = hijo directo de mayor área XZ (en coordenadas de mundo, pre-transformación)
+function findTerrain(root) {
+  const kids = root.children || [];
+  let best = null;
+  let bestArea = -1;
+  const box = new THREE.Box3();
+  kids.forEach((k) => {
+    box.setFromObject(k);
+    const sx = box.max.x - box.min.x;
+    const sz = box.max.z - box.min.z;
+    const area = sx * sz;
+    if (isFinite(area) && area > bestArea && sx > 0 && sz > 0) {
+      bestArea = area;
+      best = k;
+    }
+  });
+  return best;
+}
+
+// Curvas de nivel reales: marching squares sobre la malla del terreno.
+// Devuelve { lines: LineSegments|null, levels: number }
+function buildContours(terrain) {
+  let mesh = null;
+  terrain.traverse ? terrain.traverse((c) => {
+    if (!mesh && c.isMesh && c.geometry && c.geometry.attributes && c.geometry.attributes.position && c.geometry.attributes.position.count > 100) mesh = c;
+  }) : null;
+  if (!mesh) return { lines: null, levels: 0 };
+  const pos = mesh.geometry.attributes.position;
+  mesh.geometry.computeBoundingBox();
+  const bb = mesh.geometry.boundingBox;
+  const sx = bb.max.x - bb.min.x;
+  const sz = bb.max.z - bb.min.z;
+  if (!(sx > 0) || !(sz > 0)) return { lines: null, levels: 0 };
+
+  const NX = 150;
+  const NZ = 150;
+  const W = NX + 1;
+  const sum = new Float64Array(W * (NZ + 1));
+  const cnt = new Float64Array(W * (NZ + 1));
+  const vx = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    vx.fromBufferAttribute(pos, i);
+    const gx = Math.min(NX, Math.max(0, Math.round(((vx.x - bb.min.x) / sx) * NX)));
+    const gz = Math.min(NZ, Math.max(0, Math.round(((vx.z - bb.min.z) / sz) * NZ)));
+    const k = gz * W + gx;
+    sum[k] += vx.y;
+    cnt[k] += 1;
+  }
+  const h = new Float32Array(W * (NZ + 1));
+  let hmin = Infinity;
+  let hmax = -Infinity;
+  for (let k = 0; k < h.length; k++) {
+    if (cnt[k] > 0) {
+      h[k] = sum[k] / cnt[k];
+      if (h[k] < hmin) hmin = h[k];
+      if (h[k] > hmax) hmax = h[k];
+    } else {
+      h[k] = NaN;
+    }
+  }
+  if (!(hmax > hmin)) return { lines: null, levels: 0 };
+  const range = hmax - hmin;
+  const LEVELS = 14;
+  const step = range / LEVELS;
+  const eps = range * 0.01 + Math.max(sx, sz) * 0.0004;
+  const segs = [];
+  const Xat = (ix, t) => bb.min.x + ((ix + t) / NX) * sx;
+  const Zat = (iz, t) => bb.min.z + ((iz + t) / NZ) * sz;
+  const cross = (v0, v1, level) => (level - v0) / (v1 - v0);
+  for (let L = 1; L < LEVELS; L++) {
+    const level = hmin + step * L;
+    for (let iz = 0; iz < NZ; iz++) {
+      for (let ix = 0; ix < NX; ix++) {
+        const a = h[iz * W + ix];
+        const b = h[iz * W + ix + 1];
+        const c = h[(iz + 1) * W + ix + 1];
+        const d = h[(iz + 1) * W + ix];
+        if (!isFinite(a + b + c + d)) continue;
+        const pts = [];
+        if ((a < level) !== (b < level)) {
+          const t = cross(a, b, level);
+          pts.push([Xat(ix, t), Zat(iz, 0)]);
+        }
+        if ((b < level) !== (c < level)) {
+          const t = cross(b, c, level);
+          pts.push([Xat(ix, 1), Zat(iz, t)]);
+        }
+        if ((d < level) !== (c < level)) {
+          const t = cross(d, c, level);
+          pts.push([Xat(ix, t), Zat(iz, 1)]);
+        }
+        if ((a < level) !== (d < level)) {
+          const t = cross(a, d, level);
+          pts.push([Xat(ix, 0), Zat(iz, t)]);
+        }
+        if (pts.length === 2) {
+          segs.push(pts[0][0], level + eps, pts[0][1], pts[1][0], level + eps, pts[1][1]);
+        } else if (pts.length === 4) {
+          segs.push(pts[0][0], level + eps, pts[0][1], pts[1][0], level + eps, pts[1][1]);
+          segs.push(pts[2][0], level + eps, pts[2][1], pts[3][0], level + eps, pts[3][1]);
+        }
+      }
+    }
+  }
+  if (segs.length < 6) return { lines: null, levels: 0, segments: 0 };
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(segs), 3));
+  const lines = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: 0x93391f }));
+  mesh.add(lines); // hereda la transformación del terreno: siempre pegadas al suelo
+  return { lines, levels: LEVELS - 1, segments: segs.length / 6 };
+}
+
 function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
   const mountRef = useRef(null);
   const applyViewRef = useRef(null);
   const modelRef = useRef(null);
+  const baseRef = useRef(null);
   const fitCtl = useRef(null);
   const axisFlipRef = useRef(axisFlip);
   axisFlipRef.current = axisFlip;
@@ -119,9 +232,24 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
       const box0 = new THREE.Box3().setFromObject(obj);
       const size0 = box0.getSize(new THREE.Vector3());
       root.add(obj);
+      const nn = countMeshes(obj);
+      baseRef.current = {
+        size: box0.getSize(new THREE.Vector3()),
+        center: box0.getCenter(new THREE.Vector3())
+      };
+      const bbr = baseRef.current;
+      let contourSegs = 0;
+      try {
+        const terrain = findTerrain(obj);
+        if (terrain) contourSegs = buildContours(terrain).segments || 0;
+      } catch (e) {}
       if (onStats) {
-        const { n, lines } = countMeshes(obj);
-        onStats({ meshes: n, lines, size: [size0.x, size0.y, size0.z] });
+        onStats({
+          meshes: nn.n !== undefined ? nn.n : nn,
+          lines: contourSegs,
+          size: [bbr.size.x, bbr.size.y, bbr.size.z],
+          center: [bbr.center.x, bbr.center.y, bbr.center.z]
+        });
       }
       frameModel();
     };
