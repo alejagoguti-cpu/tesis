@@ -31,6 +31,7 @@ import {
   ZoomIn,
   ZoomOut,
   RotateCcw,
+  RotateCw,
   Sliders,
   FileText,
   Info,
@@ -385,6 +386,15 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
 
   // Historical Map Canvas Interaction State
   const [zoomLevel, setZoomLevel] = useState(1);
+  // Rotación manual de planos históricos (persistente por mapa en el editor)
+  const [mapRotation, setMapRotation] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('thesis_hist_rotation') || '{}');
+    } catch (e) {
+      return {};
+    }
+  });
+  const getMapRotation = (mapId) => (mapId && mapRotation[mapId]) || 0;
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -402,6 +412,21 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
   const currentHistoricalMap = isHistoricalMode 
     ? HISTORICAL_MAPS_DATA.find(m => m.id === currentTimelineData.mapId) || HISTORICAL_MAPS_DATA[0]
     : null;
+
+  // Gira el plano actual ±90° y lo guarda en el editor (localStorage por mapa)
+  const rotateCurrentMap = (dir) => {
+    if (!currentHistoricalMap) return;
+    const id = currentHistoricalMap.id;
+    setMapRotation((prev) => {
+      const next = ((getMapRotation(id) + dir * 90) % 360 + 360) % 360;
+      const upd = { ...prev, [id]: next };
+      try {
+        localStorage.setItem('thesis_hist_rotation', JSON.stringify(upd));
+      } catch (e) {}
+      return upd;
+    });
+  };
+  const currentRot = currentHistoricalMap ? getMapRotation(currentHistoricalMap.id) : 0;
 
   // Year Selection Handler with Camera FlyTo
   const handleSelectYear = (targetYear) => {
@@ -730,7 +755,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
             key={currentHistoricalMap.id}
             className="transition-transform duration-100 ease-out select-none animate-fade-in"
             style={{
-              transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel})`,
+              transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel}) rotate(${currentRot}deg)`,
               filter: getFilterStyle()
             }}
           >
@@ -770,6 +795,20 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
               title="Restablecer Vista"
             >
               <RotateCcw className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => rotateCurrentMap(-1)}
+              className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
+              title="Girar plano 90° a la izquierda (se guarda)"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => rotateCurrentMap(1)}
+              className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
+              title="Girar plano 90° a la derecha (se guarda)"
+            >
+              <RotateCw className="w-4 h-4" />
             </button>
             <div className="h-px bg-slate-200 my-1" />
             <button
@@ -1343,7 +1382,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                   <img 
                     src={selectedGalleryMap.image} 
                     alt={selectedGalleryMap.title} 
-                    style={selectedGalleryMap.flipHorizontal ? { transform: 'scaleX(-1)' } : undefined}
+                    style={{ transform: `${selectedGalleryMap.flipHorizontal ? 'scaleX(-1) ' : ''}rotate(${getMapRotation(selectedGalleryMap.id)}deg)` }}
                     className="max-w-full max-h-full object-contain"
                   />
                   <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-xl text-white text-[10px] font-mono border border-white/20">

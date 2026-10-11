@@ -544,6 +544,13 @@ export const FRAMEWORK_STEPS = [
   }
 ];
 
+// Helper: Build red fill polygon between erosion line & island interior (+lng offset inland)
+function buildErosionFillCoords(erosionCoords, offsetLng = 0.0035) {
+  if (!erosionCoords || erosionCoords.length < 2) return [];
+  const inland = erosionCoords.map(([lat, lng]) => [lat, Number((lng + offsetLng).toFixed(6))]);
+  return [...erosionCoords, ...inland.reverse()];
+}
+
 // Helper: Calculate polygon area in Hectáreas (Ha)
 function calculatePolygonAreaHa(coords) {
   if (!coords || coords.length < 3) return 0;
@@ -896,9 +903,10 @@ export default function ThesisFramework({ onSelectModule }) {
     }
 
     // Hide static layers during active tracing
-    const { islandLayer, erosionLayer, schoolLayer, vulnerableHousesLayer, masterplanLayer, roadsLayer } = layersRef.current;
+    const { islandLayer, erosionLayer, erosionFillLayer, schoolLayer, vulnerableHousesLayer, masterplanLayer, roadsLayer } = layersRef.current;
     if (islandLayer) islandLayer.setStyle({ opacity: stepIdx === 0 ? 0 : 0.15, fillOpacity: 0, weight: 2 });
     if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
+    if (erosionFillLayer) erosionFillLayer.setStyle({ opacity: 0, fillOpacity: 0 });
     if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
     if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
     if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
@@ -1047,6 +1055,8 @@ export default function ThesisFramework({ onSelectModule }) {
               islandLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#ea580c', dashArray: '6, 6' });
             } else if (stepIdx === 1 && erosionLayer) {
               erosionLayer.setStyle({ opacity: 1, weight: 6, color: '#dc2626', dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' });
+              const { erosionFillLayer: fillLayer } = layersRef.current || {};
+              if (fillLayer) fillLayer.setStyle({ opacity: 0.9, weight: 2, color: '#dc2626', dashArray: '6, 6', fillColor: '#dc2626', fillOpacity: 0.5 });
             } else if (stepIdx === 2 && schoolLayer) {
               schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.25, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
             } else if (stepIdx === 3 && masterplanLayer) {
@@ -1132,6 +1142,17 @@ export default function ThesisFramework({ onSelectModule }) {
       weight: 7,
       opacity: 0,
       dashArray: '10, 6',
+      interactive: false
+    }).addTo(map);
+
+    // 2B. Erosion Risk Strip (red 50% fill between erosion line & island interior)
+    const erosionFillLayer = L.polygon(buildErosionFillCoords(delimitations.erosion || []), {
+      color: '#dc2626',
+      weight: 2,
+      dashArray: '6, 6',
+      fillColor: '#dc2626',
+      fillOpacity: 0,
+      opacity: 0,
       interactive: false
     }).addTo(map);
 
@@ -1307,6 +1328,7 @@ export default function ThesisFramework({ onSelectModule }) {
     layersRef.current = {
       islandLayer,
       erosionLayer,
+      erosionFillLayer,
       schoolLayer,
       vulnerableHousesLayer,
       vulnerableHousesMarkersGroup,
@@ -1388,6 +1410,13 @@ export default function ThesisFramework({ onSelectModule }) {
         erosionLayer.setStyle({ opacity: 0 });
       }
     }
+    if (layersRef.current.erosionFillLayer && delimitations.erosion) {
+      const fill = buildErosionFillCoords(delimitations.erosion);
+      if (fill.length >= 3) layersRef.current.erosionFillLayer.setLatLngs(fill);
+      if (hideOthers && activeZoneKey !== 'erosion') {
+        layersRef.current.erosionFillLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      }
+    }
     if (schoolLayer && delimitations.school) {
       schoolLayer.setLatLngs(delimitations.school);
       if (hideOthers && activeZoneKey !== 'school') {
@@ -1420,6 +1449,17 @@ export default function ThesisFramework({ onSelectModule }) {
       }
     }
   }, [delimitations, isEditMode, activeZoneKey, currentStepIndex, showCalque, hideOtherLayersOnCalque]);
+
+  // Keep red erosion strip visible only on step 2 (Franja de Erosión Costera)
+  useEffect(() => {
+    const fillLayer = layersRef.current?.erosionFillLayer;
+    if (!fillLayer) return;
+    if (currentStepIndex === 1) {
+      fillLayer.setStyle({ opacity: 0.9, fillOpacity: 0.5, weight: 2, color: '#dc2626', dashArray: '6, 6', fillColor: '#dc2626' });
+    } else {
+      fillLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+    }
+  }, [currentStepIndex]);
 
   // Synchronize Reference Calque Image Overlay on the map
   useEffect(() => {
