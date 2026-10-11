@@ -375,7 +375,7 @@ const STORY_ICONS = {
 
 export default function ExecutiveControlCenter({ onSelectModule }) {
   const [selectedYear, setSelectedYear] = useState(1589); // Primer plano del atlas: Drake 1589
-  const [canvasBgTheme, setCanvasBgTheme] = useState('warm-dark'); // 'warm-dark' | 'parchment' | 'neutral'
+  const [canvasBgTheme, setCanvasBgTheme] = useState('parchment'); // fondo claro por defecto
   const [activeHotspotModal, setActiveHotspotModal] = useState(null);
   const [mapLayerType, setMapLayerType] = useState('satellite'); // 'satellite' | 'carto'
   const [showHistoricalGalleryModal, setShowHistoricalGalleryModal] = useState(false);
@@ -749,37 +749,37 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
           </div>
 
           {/* Historical Controls HUD (Zoom, Filters, Theme, Reset) */}
-          <div className="absolute right-4 top-24 z-[400] flex flex-col gap-2 pointer-events-auto bg-stone-900/90 backdrop-blur-md p-2 rounded-2xl border border-white/10 shadow-2xl">
+          <div className="absolute right-4 top-24 z-[400] flex flex-col gap-2 pointer-events-auto bg-white/95 backdrop-blur-md p-2 rounded-2xl border border-slate-200 shadow-2xl">
             <button
               onClick={() => setZoomLevel(prev => Math.min(prev + 0.25, 3.5))}
-              className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+              className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
               title="Acercar (Zoom In)"
             >
               <ZoomIn className="w-4 h-4" />
             </button>
             <button
               onClick={() => setZoomLevel(prev => Math.max(prev - 0.25, 0.6))}
-              className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+              className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
               title="Alejar (Zoom Out)"
             >
               <ZoomOut className="w-4 h-4" />
             </button>
             <button
               onClick={() => { setZoomLevel(1); setPanOffset({ x: 0, y: 0 }); }}
-              className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+              className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
               title="Restablecer Vista"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
-            <div className="h-px bg-white/10 my-1" />
+            <div className="h-px bg-slate-200 my-1" />
             <button
               onClick={() => {
                 const modes = ['natural', 'contrast', 'sepia', 'invert'];
                 const nextIdx = (modes.indexOf(filterMode) + 1) % modes.length;
                 setFilterMode(modes[nextIdx]);
               }}
-              className={`p-2.5 rounded-xl text-white transition-colors ${
-                filterMode !== 'natural' ? 'bg-amber-600' : 'bg-white/10 hover:bg-white/20'
+              className={`p-2.5 rounded-xl text-slate-800 transition-colors ${
+                filterMode !== 'natural' ? 'bg-amber-500 text-slate-950' : 'bg-slate-100 hover:bg-slate-200'
               }`}
               title={`Filtro de Imagen: ${filterMode.toUpperCase()}`}
             >
@@ -791,7 +791,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                 const nextIdx = (themes.indexOf(canvasBgTheme) + 1) % themes.length;
                 setCanvasBgTheme(themes[nextIdx]);
               }}
-              className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-amber-300 transition-colors"
+              className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-amber-700 transition-colors"
               title={`Tono de Fondo: ${canvasBgTheme === 'warm-dark' ? 'Grafito Cálido' : canvasBgTheme === 'parchment' ? 'Pergamino Claro' : 'Gris Neutro'}`}
             >
               <Sun className="w-4 h-4" />

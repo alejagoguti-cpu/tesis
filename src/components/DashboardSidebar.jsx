@@ -60,7 +60,7 @@ export default function DashboardSidebar({
 
       {/* Ultra-Clean Icon-Only Sidebar Rail */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col items-center justify-between w-16 bg-[#0b1a2a] text-slate-200 border-r border-white/10 shadow-deep transition-transform duration-300 ease-out ${
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col items-center justify-between w-16 bg-white text-slate-800 border-r border-slate-200 shadow-sm transition-transform duration-300 ease-out ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
@@ -107,7 +107,7 @@ export default function DashboardSidebar({
                   className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-200 relative ${
                     isActive
                       ? 'bg-terracotta-600 text-white shadow-md shadow-terracotta-600/30 scale-105'
-                      : 'bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:scale-105 hover:border-terracotta-400'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200/90 hover:scale-105 hover:border-terracotta-400'
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -116,7 +116,7 @@ export default function DashboardSidebar({
                   <span className={`absolute -bottom-1 -right-1 text-[9px] font-mono font-black px-1 rounded-md shadow-xs ${
                     isActive
                       ? 'bg-slate-900 text-white'
-                      : 'bg-white/10 text-slate-300 border border-white/15'
+                      : 'bg-white text-slate-600 border border-slate-200'
                   }`}>
                     {module.number}
                   </span>
@@ -141,7 +141,7 @@ export default function DashboardSidebar({
               });
             }}
             onMouseLeave={handleMouseLeave}
-            className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 flex items-center justify-center cursor-pointer transition-colors border border-white/10"
+            className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer transition-colors border border-slate-200"
             title="MIDAS Cartagena // Telemetría"
           >
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
