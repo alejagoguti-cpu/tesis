@@ -46,9 +46,14 @@ async function sniffFile(file) {
 }
 
 // Visor WebGL solo para modelos EXPORTADOS (.fbx/.glb/.obj). Sin maquetas inventadas.
-function ExportViewer({ fileUrl, fileExt, onError, preset, presetNonce }) {
+function ExportViewer({ fileUrl, fileExt, onError, onStats, preset, presetNonce, axisFlip, fitNonce }) {
   const mountRef = useRef(null);
   const applyViewRef = useRef(null);
+  const modelRef = useRef(null);
+  const baseRef = useRef(null);
+  const fitCtl = useRef(null);
+  const axisFlipRef = useRef(axisFlip);
+  axisFlipRef.current = axisFlip;
 
   useEffect(() => {
     const container = mountRef.current;
@@ -83,22 +88,68 @@ function ExportViewer({ fileUrl, fileExt, onError, preset, presetNonce }) {
     scene.add(root);
 
     let cancelled = false;
-    const finish = (obj) => {
-      if (cancelled) return;
+    const countMeshes = (obj) => {
+      let n = 0;
+      obj.traverse((c) => { if (c.isMesh) n += 1; });
+      return n;
+    };
+    // Encuadra el modelo real: mide, orienta, escala y centra la cámara
+    const frameModel = () => {
+      const obj = modelRef.current;
+      const base = baseRef.current;
+      if (!obj || !base) return;
+      obj.rotation.set(0, 0, 0);
+      if (axisFlipRef.current) obj.rotation.x = -Math.PI / 2;
       obj.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(obj);
       const size = box.getSize(new THREE.Vector3());
       const center = box.getCenter(new THREE.Vector3());
-      const scale = 30 / (Math.max(size.x, size.y, size.z) || 1);
-      obj.scale.setScalar(scale);
-      obj.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+      const maxDim = Math.max(size.x, size.y, size.z);
+      if (!isFinite(maxDim) || maxDim <= 0) {
+        onError('El modelo no tiene geometría medible (caja vacía).');
+        return;
+      }
+      const s = 30 / maxDim;
+      obj.scale.setScalar(s);
+      obj.position.set(-center.x * s, -box.min.y * s, -center.z * s);
+      obj.updateMatrixWorld(true);
+      const c2 = new THREE.Box3().setFromObject(obj).getCenter(new THREE.Vector3());
+      target.x = c2.x; target.y = c2.y; target.z = c2.z;
+      sph.radius = 72;
+      place();
+    };
+    const finish = (obj) => {
+      if (cancelled) return;
+      modelRef.current = obj;
       obj.traverse((c) => {
         if (c.isMesh) {
           c.castShadow = true;
           c.receiveShadow = true;
+          if (!c.material) {
+            c.material = new THREE.MeshStandardMaterial({ color: 0xc2785c, roughness: 0.8 });
+          } else if (Array.isArray(c.material)) {
+            c.material.forEach((mm) => { mm.side = THREE.DoubleSide; });
+          } else {
+            c.material.side = THREE.DoubleSide;
+          }
         }
       });
+      obj.updateMatrixWorld(true);
+      const box0 = new THREE.Box3().setFromObject(obj);
+      baseRef.current = {
+        size: box0.getSize(new THREE.Vector3()),
+        center: box0.getCenter(new THREE.Vector3())
+      };
       root.add(obj);
+      const bb = baseRef.current;
+      if (onStats) {
+        onStats({
+          meshes: countMeshes(obj),
+          size: [bb.size.x, bb.size.y, bb.size.z],
+          center: [bb.center.x, bb.center.y, bb.center.z]
+        });
+      }
+      frameModel();
     };
 
     if (fileExt === 'glb' || fileExt === 'gltf') {
@@ -128,6 +179,7 @@ function ExportViewer({ fileUrl, fileExt, onError, preset, presetNonce }) {
       else if (name === 'axon') { sph.phi = Math.PI / 3.1; sph.theta = Math.PI / 4; }
       place();
     };
+    fitCtl.current = () => frameModel();
 
     let dragging = false;
     let px = 0;
@@ -182,6 +234,10 @@ function ExportViewer({ fileUrl, fileExt, onError, preset, presetNonce }) {
     if (preset && applyViewRef.current) applyViewRef.current(preset);
   }, [preset, presetNonce]);
 
+  useEffect(() => {
+    if (fitCtl.current) fitCtl.current();
+  }, [fitNonce, axisFlip]);
+
   return <div ref={mountRef} className="w-full h-[52vh] min-h-[380px] cursor-grab active:cursor-grabbing" />;
 }
 
@@ -193,6 +249,9 @@ export default function RevitModule() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [viewPreset, setViewPreset] = useState('axon');
   const [presetNonce, setPresetNonce] = useState(0);
+  const [axisFlip, setAxisFlip] = useState(false);
+  const [fitNonce, setFitNonce] = useState(0);
+  const [modelStats, setModelStats] = useState(null);
   const pickView = (name) => { setViewPreset(name); setPresetNonce((n) => n + 1); };
   const [viewerLink, setViewerLink] = useState(() => {
     try {
@@ -407,7 +466,7 @@ export default function RevitModule() {
                 </button>
               )}
             </div>
-            <ExportViewer fileUrl={active.url} fileExt={active.ext} onError={setNotice} preset={viewPreset} presetNonce={presetNonce} />
+            <ExportViewer fileUrl={active.url} fileExt={active.ext} onError={setNotice} onStats={setModelStats} preset={viewPreset} presetNonce={presetNonce} axisFlip={axisFlip} fitNonce={fitNonce} />
             <div className="flex flex-wrap items-center gap-1.5 px-4 py-2.5 border-t border-slate-200 dark:border-deepsea-800">
               <span className="text-[10px] font-mono font-bold text-slate-500 uppercase mr-1">Vista:</span>
               {[
@@ -423,7 +482,27 @@ export default function RevitModule() {
                   {label}
                 </button>
               ))}
-              <span className="text-[10px] font-mono text-slate-400 ml-auto">Arrastra para orbitar · rueda para zoom</span>
+              <button
+                onClick={() => setFitNonce((n) => n + 1)}
+                className="px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold bg-teal-600 hover:bg-teal-500 text-white transition-all"
+                title="Reencuadrar el modelo completo"
+              >
+                Encuadrar
+              </button>
+              <button
+                onClick={() => setAxisFlip((v) => !v)}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all ${axisFlip ? 'bg-amber-500 text-slate-950' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
+                title="Girar base Z/Y (por si Revit exportó acostado)"
+              >
+                Eje Z/Y
+              </button>
+              {modelStats ? (
+                <span className="text-[10px] font-mono text-slate-400 ml-auto">
+                  {`Mallas ${modelStats.meshes} · ${modelStats.size.map((v) => (v >= 100 ? Math.round(v).toString() : v.toFixed(1))).join(' × ')} u`}
+                </span>
+              ) : (
+                <span className="text-[10px] font-mono text-slate-400 ml-auto">Arrastra para orbitar · rueda para zoom</span>
+              )}
             </div>
           </div>
           );
