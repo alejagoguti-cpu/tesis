@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+import pastoTexImg from '../assets/textura_pasto_m5.png';
+import aguaTexImg from '../assets/textura_agua_m5.jpg';
 
 // Módulo 05: solo el modelo Revit (TIERRABOMBA-3DView, FBX nativo exportado).
 // Acostado (plano XY) con curvas de nivel resaltadas. Sin nada más.
@@ -40,8 +42,8 @@ function buildContours(terrain) {
   const sz = bb.max.z - bb.min.z;
   if (!(sx > 0) || !(sz > 0)) return { lines: null, levels: 0 };
 
-  const NX = 150;
-  const NZ = 150;
+  const NX = 200;
+  const NZ = 200;
   const W = NX + 1;
   const sum = new Float64Array(W * (NZ + 1));
   const cnt = new Float64Array(W * (NZ + 1));
@@ -68,7 +70,7 @@ function buildContours(terrain) {
   }
   if (!(hmax > hmin)) return { lines: null, levels: 0 };
   const range = hmax - hmin;
-  const LEVELS = 14;
+  const LEVELS = 22;
   const step = range / LEVELS;
   const eps = range * 0.01 + Math.max(sx, sz) * 0.0004;
   const segs = [];
@@ -156,10 +158,6 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
     sun.shadow.camera.bottom = -40;
     scene.add(sun);
 
-    const grid = new THREE.GridHelper(70, 70, 0x334155, 0x94a3b8);
-    grid.position.y = -0.05;
-    scene.add(grid);
-
     const root = new THREE.Group();
     scene.add(root);
 
@@ -211,19 +209,48 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
     const finish = (obj) => {
       if (cancelled) return;
       modelRef.current = obj;
+      obj.updateMatrixWorld(true); // matrices al día antes de medir cada malla
+      // Terreno = mayor superficie; el resto se clasifica por altura y tamaño
+      let terrain = null;
+      try { terrain = findTerrain(obj); } catch (e) {}
+      const terrainMeshes = new Set();
+      if (terrain) terrain.traverse((c) => { if (c.isMesh) terrainMeshes.add(c); });
+
+      const texLoader = new THREE.TextureLoader();
+      const pastoTex = texLoader.load(pastoTexImg);
+      pastoTex.wrapS = THREE.RepeatWrapping;
+      pastoTex.wrapT = THREE.RepeatWrapping;
+      pastoTex.repeat.set(10, 10);
+      pastoTex.anisotropy = 4;
+      pastoTex.colorSpace = THREE.SRGBColorSpace;
+      const aguaTex = texLoader.load(aguaTexImg);
+      aguaTex.wrapS = THREE.RepeatWrapping;
+      aguaTex.wrapT = THREE.RepeatWrapping;
+      aguaTex.repeat.set(10, 10);
+      aguaTex.anisotropy = 4;
+      aguaTex.colorSpace = THREE.SRGBColorSpace;
+      const grassMat = new THREE.MeshStandardMaterial({ map: pastoTex, color: 0xbfe3b0, roughness: 0.95 });
+      const waterMat = new THREE.MeshStandardMaterial({ map: aguaTex, color: 0xcfeaf5, roughness: 0.35, metalness: 0.15 });
+      const houseMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
+
+      const mBox = new THREE.Box3();
       obj.traverse((c) => {
         if (c.isMesh) {
           c.castShadow = true;
           c.receiveShadow = true;
-          if (!c.material) {
-            c.material = new THREE.MeshStandardMaterial({ color: 0xd9cfbf, roughness: 0.9 });
-          } else if (Array.isArray(c.material)) {
-            c.material.forEach((mm) => { mm.side = THREE.DoubleSide; });
+          mBox.setFromObject(c);
+          const sx = mBox.max.x - mBox.min.x;
+          const sy = mBox.max.y - mBox.min.y;
+          const sz = mBox.max.z - mBox.min.z;
+          if (terrainMeshes.has(c)) {
+            c.material = grassMat; // isla: pasto verde
+          } else if (sy > 2 && sx * sz < 40000) {
+            c.material = houseMat; // casas: blanco
           } else {
-            c.material.side = THREE.DoubleSide;
+            c.material = waterMat; // lo demás: agua azul
           }
         }
-        // Curvas de nivel: siempre visibles en terracota oscuro
+        // Curvas de nivel nativas del archivo: terracota visible
         if (c.isLine || c.isLineSegments) {
           c.material = new THREE.LineBasicMaterial({ color: 0x93391f });
         }
