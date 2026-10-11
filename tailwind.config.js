@@ -65,8 +65,8 @@ export default {
       },
       fontFamily: {
         sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
-        serif: ['Fraunces', 'Georgia', 'serif'],
-        display: ['Fraunces', 'Georgia', 'serif'],
+        serif: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       transitionTimingFunction: {

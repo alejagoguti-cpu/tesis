@@ -738,6 +738,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
               src={currentHistoricalMap.image} 
               alt={currentHistoricalMap.title}
               loading="eager"
+              style={currentHistoricalMap.flipHorizontal ? { transform: 'scaleX(-1)' } : undefined}
               className={`max-w-none max-h-[88vh] rounded-lg shadow-2xl border-4 pointer-events-none transition-all duration-300 ${
                 canvasBgTheme === 'parchment'
                   ? 'border-amber-900/30 shadow-amber-950/20'
@@ -1303,6 +1304,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                         <img 
                           src={mapItem.image} 
                           alt={mapItem.title} 
+                          style={mapItem.flipHorizontal ? { transform: 'scaleX(-1)' } : undefined}
                           className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity" 
                         />
                       </div>
@@ -1341,6 +1343,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                   <img 
                     src={selectedGalleryMap.image} 
                     alt={selectedGalleryMap.title} 
+                    style={selectedGalleryMap.flipHorizontal ? { transform: 'scaleX(-1)' } : undefined}
                     className="max-w-full max-h-full object-contain"
                   />
                   <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-xl text-white text-[10px] font-mono border border-white/20">

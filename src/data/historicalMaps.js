@@ -14,6 +14,7 @@ export const HISTORICAL_MAPS_DATA = [
   {
     id: "map_1589",
     year: 1589,
+    flipHorizontal: true,
     title: "1589: Cartagena tras Drake — Primera Planta de la Ciudad",
     shortTitle: "1589: Planta Drake",
     subtitle: "Cartografía Isabelina — Grabado de Baptista Boazio",
@@ -35,6 +36,7 @@ export const HISTORICAL_MAPS_DATA = [
   {
     id: "map_1740",
     year: 1740,
+    flipHorizontal: true,
     title: "1740: El Sitio Inglés — Bahía Artillada de Cartagena",
     shortTitle: "1740: Sitio de Vernon",
     subtitle: "Plano Alemán del Sitio — Campaña de Edward Vernon (1741)",
