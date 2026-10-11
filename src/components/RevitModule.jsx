@@ -239,9 +239,10 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
       const terrainMeshes = new Set();
       if (terrain) terrain.traverse((c) => { if (c.isMesh) terrainMeshes.add(c); });
 
-      const greyMat = new THREE.MeshStandardMaterial({ color: 0x8f8b82, roughness: 1.0 });
+      const greyMat = new THREE.MeshStandardMaterial({ color: 0x8f8b82, roughness: 1.0, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 });
       const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
       const paleMat = new THREE.MeshStandardMaterial({ color: 0xc9c9c9, roughness: 0.95 });
+      const roadMat = new THREE.MeshStandardMaterial({ color: 0x333338, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 
       const mBox = new THREE.Box3();
       obj.traverse((c) => {
@@ -256,6 +257,8 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
             c.material = greyMat; // terreno gris estilo Revit
           } else if (sy > 2 && sx * sz < 40000) {
             c.material = whiteMat; // casas blancas
+          } else if (sy <= 4 && (Math.max(sx, sz) / Math.max(Math.min(sx, sz), 0.001)) > 8 && sx * sz > 200 && sx * sz < 300000) {
+            c.material = roadMat; // vías: oscuro contrastado
           } else {
             c.material = paleMat;
           }
