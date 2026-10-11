@@ -68,7 +68,31 @@ function buildContours(terrain) {
       h[k] = NaN;
     }
   }
-  if (!(hmax > hmin)) return { lines: null, levels: 0 };
+  if (!(hmax > hmin)) return { lines: null, levels: 0, segments: 0 };
+  // Relleno por difusión (40 pasadas): tapa huecos sin vértices sin invadir el mar
+  let pending = 0;
+  for (let k = 0; k < h.length; k++) if (isNaN(h[k])) pending++;
+  const tmp = new Float32Array(h.length);
+  for (let pass = 0; pass < 40 && pending > 0; pass++) {
+    tmp.set(h);
+    let filled = 0;
+    for (let iz = 0; iz <= NZ; iz++) {
+      for (let ix = 0; ix <= NX; ix++) {
+        const k = iz * W + ix;
+        if (!isNaN(h[k])) continue;
+        let s = 0;
+        let n = 0;
+        if (ix > 0 && !isNaN(h[k - 1])) { s += h[k - 1]; n++; }
+        if (ix < NX && !isNaN(h[k + 1])) { s += h[k + 1]; n++; }
+        if (iz > 0 && !isNaN(h[k - W])) { s += h[k - W]; n++; }
+        if (iz < NZ && !isNaN(h[k + W])) { s += h[k + W]; n++; }
+        if (n > 0) { tmp[k] = s / n; filled++; }
+      }
+    }
+    h.set(tmp);
+    pending -= filled;
+    if (filled === 0) break;
+  }
   const range = hmax - hmin;
   const LEVELS = 22;
   const step = range / LEVELS;
@@ -174,6 +198,7 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
     place();
 
     let cancelled = false;
+    let waterAdded = false;
     const countMeshes = (obj) => {
       let n = 0;
       let lines = 0;
@@ -279,6 +304,14 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
         });
       }
       frameModel();
+      if (!waterAdded) {
+        waterAdded = true;
+        const disc = new THREE.Mesh(new THREE.CircleGeometry(36, 48), waterMat);
+        disc.rotation.x = -Math.PI / 2;
+        disc.position.y = -0.6;
+        disc.receiveShadow = true;
+        root.add(disc);
+      }
     };
 
     new FBXLoader().load(
