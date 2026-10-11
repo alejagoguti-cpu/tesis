@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import pastoTexImg from '../assets/textura_pasto_m5.png';
-import aguaTexImg from '../assets/textura_agua_m5.jpg';
 
 // Módulo 05: solo el modelo Revit (TIERRABOMBA-3DView, FBX nativo exportado).
 // Acostado (plano XY) con curvas de nivel resaltadas. Sin nada más.
@@ -94,7 +92,7 @@ function buildContours(terrain) {
     if (filled === 0) break;
   }
   const range = hmax - hmin;
-  const LEVELS = 22;
+  const LEVELS = 30;
   const step = range / LEVELS;
   const eps = range * 0.01 + Math.max(sx, sz) * 0.0004;
   const segs = [];
@@ -139,7 +137,7 @@ function buildContours(terrain) {
   if (segs.length < 6) return { lines: null, levels: 0, segments: 0 };
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(segs), 3));
-  const lines = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: 0x93391f }));
+  const lines = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: 0x2b5fc7 }));
   mesh.add(lines); // hereda la transformación del terreno: siempre pegadas al suelo
   return { lines, levels: LEVELS - 1, segments: segs.length / 6 };
 }
@@ -158,8 +156,8 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
     if (!container) return;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xdbe8d4);
-    scene.fog = new THREE.Fog(0xdbe8d4, 150, 420);
+    scene.background = new THREE.Color(0xf5f4f0);
+    scene.fog = new THREE.Fog(0xf5f4f0, 150, 420);
 
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 2000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -241,22 +239,9 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
       const terrainMeshes = new Set();
       if (terrain) terrain.traverse((c) => { if (c.isMesh) terrainMeshes.add(c); });
 
-      const texLoader = new THREE.TextureLoader();
-      const pastoTex = texLoader.load(pastoTexImg);
-      pastoTex.wrapS = THREE.RepeatWrapping;
-      pastoTex.wrapT = THREE.RepeatWrapping;
-      pastoTex.repeat.set(10, 10);
-      pastoTex.anisotropy = 4;
-      pastoTex.colorSpace = THREE.SRGBColorSpace;
-      const aguaTex = texLoader.load(aguaTexImg);
-      aguaTex.wrapS = THREE.RepeatWrapping;
-      aguaTex.wrapT = THREE.RepeatWrapping;
-      aguaTex.repeat.set(10, 10);
-      aguaTex.anisotropy = 4;
-      aguaTex.colorSpace = THREE.SRGBColorSpace;
-      const grassMat = new THREE.MeshStandardMaterial({ map: pastoTex, color: 0xbfe3b0, roughness: 0.95 });
-      const waterMat = new THREE.MeshStandardMaterial({ map: aguaTex, color: 0xcfeaf5, roughness: 0.35, metalness: 0.15 });
-      const houseMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
+      const greyMat = new THREE.MeshStandardMaterial({ color: 0x8f8b82, roughness: 1.0 });
+      const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
+      const paleMat = new THREE.MeshStandardMaterial({ color: 0xc9c9c9, roughness: 0.95 });
 
       const mBox = new THREE.Box3();
       obj.traverse((c) => {
@@ -268,16 +253,16 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
           const sy = mBox.max.y - mBox.min.y;
           const sz = mBox.max.z - mBox.min.z;
           if (terrainMeshes.has(c)) {
-            c.material = grassMat; // isla: pasto verde
+            c.material = greyMat; // terreno gris estilo Revit
           } else if (sy > 2 && sx * sz < 40000) {
-            c.material = houseMat; // casas: blanco
+            c.material = whiteMat; // casas blancas
           } else {
-            c.material = waterMat; // lo demás: agua azul
+            c.material = paleMat;
           }
         }
-        // Curvas de nivel nativas del archivo: terracota visible
+        // Curvas de nivel nativas del archivo: azul Revit
         if (c.isLine || c.isLineSegments) {
-          c.material = new THREE.LineBasicMaterial({ color: 0x93391f });
+          c.material = new THREE.LineBasicMaterial({ color: 0x2b5fc7 });
         }
       });
       obj.updateMatrixWorld(true);
@@ -304,14 +289,6 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
         });
       }
       frameModel();
-      if (!waterAdded) {
-        waterAdded = true;
-        const disc = new THREE.Mesh(new THREE.CircleGeometry(36, 48), waterMat);
-        disc.rotation.x = -Math.PI / 2;
-        disc.position.y = -0.6;
-        disc.receiveShadow = true;
-        root.add(disc);
-      }
     };
 
     new FBXLoader().load(
