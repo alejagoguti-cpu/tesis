@@ -5,16 +5,21 @@
 @layer base {
   html {
     scroll-behavior: smooth;
-    font-family: 'Anuphan', sans-serif;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
   }
 
   body {
-    font-family: 'Anuphan', sans-serif !important;
+    font-family: 'Space Grotesk', system-ui, sans-serif !important;
     letter-spacing: -0.01em;
   }
-  
-  h1, h2, h3, h4, h5, h6, .font-display, .font-serif, .font-serif-quote, button, input, p, span {
-    font-family: 'Anuphan', sans-serif;
+
+  h1, h2, h3, h4, h5, h6, .font-display, .font-serif, .font-serif-quote {
+    font-family: 'Fraunces', Georgia, serif;
+    letter-spacing: -0.015em;
+  }
+
+  button, input, p, span {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
   }
 
   code, pre, .font-mono {

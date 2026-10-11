@@ -4,9 +4,7 @@ import DashboardHeader from './components/DashboardHeader';
 import ExecutiveControlCenter from './components/ExecutiveControlCenter';
 import ThesisFramework from './components/ThesisFramework';
 import DiagnosisMap from './components/DiagnosisMap';
-import HousingRelocation from './components/HousingRelocation';
 import ModelViewer3D from './components/ModelViewer3D';
-import BlueprintPlotter from './components/BlueprintPlotter';
 import Hero from './components/Hero';
 import Footer from './components/Footer';
 
@@ -128,27 +126,14 @@ export default function App() {
                 </SafeSection>
               )}
 
-              {/* Module 04: Viviendas & Equipamiento */}
-              {activeModule === 'programs' && (
-                <SafeSection name="Programa Arquitectónico">
-                  <HousingRelocation onSelectModule={(modId) => setActiveModule(modId)} />
-                </SafeSection>
-              )}
-
-              {/* Module 05: Visor 3D WebGL / BIM */}
+              {/* Módulo 04 (rediseño): Visor 3D WebGL / BIM */}
               {activeModule === '3dviewer' && (
                 <SafeSection name="Visor 3D BIM">
                   <ModelViewer3D onSelectModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
-              {/* Module 06: Planimetría CAD & Plotter */}
-              {activeModule === 'cad' && (
-                <SafeSection name="Planimetría Técnica CAD">
-                  <BlueprintPlotter onSelectModule={(modId) => setActiveModule(modId)} />
-                </SafeSection>
-              )}
-
+            
             </div>
           )}
 
@@ -157,8 +142,8 @@ export default function App() {
             <div className="space-y-12">
               <SafeSection name="Hero">
                 <Hero 
-                  onExplore3D={() => scrollToSection('visor3d')}
-                  onExploreBlueprints={() => scrollToSection('planos')}
+                  onExplore3D={() => { setViewMode('dashboard'); setActiveModule('3dviewer'); }}
+                  onExploreGIS={() => { setViewMode('dashboard'); setActiveModule('gis'); }}
                   onExploreDiagnosis={() => scrollToSection('marco-tesis')}
                 />
               </SafeSection>
@@ -171,16 +156,8 @@ export default function App() {
                 <DiagnosisMap />
               </SafeSection>
 
-              <SafeSection name="Programa Arquitectónico">
-                <HousingRelocation />
-              </SafeSection>
-
               <SafeSection name="Visor 3D BIM">
                 <ModelViewer3D />
-              </SafeSection>
-
-              <SafeSection name="Planimetría Técnica CAD">
-                <BlueprintPlotter />
               </SafeSection>
             </div>
           )}

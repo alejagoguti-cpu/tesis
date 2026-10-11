@@ -1,9 +1,9 @@
 import React from 'react';
-import { 
-  ArrowRight, 
-  Layers, 
-  Printer, 
-  MapPin, 
+import {
+  ArrowRight,
+  Layers,
+  Map as MapIcon,
+  MapPin,
   ShieldCheck, 
   Droplet, 
   Compass,
@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
-export default function Hero({ onExplore3D, onExploreBlueprints, onExploreDiagnosis }) {
+export default function Hero({ onExplore3D, onExploreGIS, onExploreDiagnosis }) {
   return (
     <section id="hero" className="relative min-h-[92vh] flex items-center pt-28 pb-16 overflow-hidden bg-editorial-grid">
       
@@ -83,11 +83,11 @@ export default function Hero({ onExplore3D, onExploreBlueprints, onExploreDiagno
               </button>
 
               <button
-                onClick={onExploreBlueprints}
+                onClick={onExploreGIS}
                 className="inline-flex items-center space-x-2 px-5 py-3.5 rounded-2xl bg-white dark:bg-deepsea-900 border border-sand-300 dark:border-deepsea-800 hover:border-terracotta-400 text-sand-800 dark:text-sand-200 font-semibold text-sm shadow-subtle transition-spring hover:-translate-y-0.5"
               >
-                <Printer className="w-4 h-4 text-terracotta-600" />
-                <span>Planimetría / Plotter</span>
+                <MapIcon className="w-4 h-4 text-terracotta-600" />
+                <span>Diagnóstico GIS</span>
               </button>
 
               <button

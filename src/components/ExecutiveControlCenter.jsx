@@ -993,7 +993,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
       {/* ========================================================================= */}
       {selectedYear >= 2026 && (
         <div className="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none animate-fade-in">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 max-w-7xl mx-auto pointer-events-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 max-w-7xl mx-auto pointer-events-auto">
             
             {/* KPI 1: Housing - Toggles Corregimiento Housing Contour on Satellite Map */}
             <div 
@@ -1014,7 +1014,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                 <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded transition-colors ${
                   highlightRelocationHouses ? 'bg-terracotta-600 text-white' : 'bg-terracotta-50 text-terracotta-700'
                 }`}>
-                  {highlightRelocationHouses ? 'CONTORNEADO' : 'MOD 04'}
+                  {highlightRelocationHouses ? 'CONTORNEADO' : 'MAPA'}
                 </span>
               </div>
               <p className="text-[10px] font-mono text-slate-500">Reubicación</p>
@@ -1026,7 +1026,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
 
             {/* KPI 2: School */}
             <div 
-              onClick={() => onSelectModule && onSelectModule('programs')}
+              onClick={() => onSelectModule && onSelectModule('3dviewer')}
               className="glass-card p-3 rounded-2xl hover:border-teal-500 hover:shadow-[0_12px_30px_rgba(13,148,136,0.3)] hover:-translate-y-1.5 cursor-pointer group transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-1">
@@ -1044,7 +1044,7 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
 
             {/* KPI 3: Water */}
             <div 
-              onClick={() => onSelectModule && onSelectModule('programs')}
+              onClick={() => onSelectModule && onSelectModule('3dviewer')}
               className="glass-card p-3 rounded-2xl hover:border-teal-500 hover:shadow-[0_12px_30px_rgba(13,148,136,0.3)] hover:-translate-y-1.5 cursor-pointer group transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-1">
@@ -1088,30 +1088,12 @@ export default function ExecutiveControlCenter({ onSelectModule }) {
                   <Box className="w-3.5 h-3.5" />
                 </div>
                 <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700">
-                  MOD 05
+                  MOD 04
                 </span>
               </div>
               <p className="text-[10px] font-mono text-slate-500">Visor 3D WebGL</p>
               <h4 className="font-serif font-bold text-lg text-slate-900">Modelo BIM</h4>
               <p className="text-[9px] text-slate-500 truncate">Despiece & Speckle</p>
-            </div>
-
-            {/* KPI 6: CAD & Plotter */}
-            <div 
-              onClick={() => onSelectModule && onSelectModule('cad')}
-              className="glass-card p-3 rounded-2xl hover:border-purple-500 hover:shadow-[0_12px_30px_rgba(168,85,247,0.3)] hover:-translate-y-1.5 cursor-pointer group transition-all duration-300"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600">
-                  <Printer className="w-3.5 h-3.5" />
-                </div>
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-purple-50 text-purple-700">
-                  MOD 06
-                </span>
-              </div>
-              <p className="text-[10px] font-mono text-slate-500">Planimetría CAD</p>
-              <h4 className="font-serif font-bold text-lg text-slate-900">Pliegos A1</h4>
-              <p className="text-[9px] text-slate-500 truncate">Cianotipo & Plotter</p>
             </div>
 
           </div>

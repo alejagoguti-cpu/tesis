@@ -64,9 +64,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Anuphan', 'system-ui', 'sans-serif'],
-        serif: ['Anuphan', 'sans-serif'],
-        display: ['Anuphan', 'sans-serif'],
+        sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        serif: ['Fraunces', 'Georgia', 'serif'],
+        display: ['Fraunces', 'Georgia', 'serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       transitionTimingFunction: {
