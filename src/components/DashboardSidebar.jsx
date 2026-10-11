@@ -10,7 +10,6 @@ import {
   Droplets,
   Activity,
   Building2,
-  Building2,
   Sparkles,
   Layers,
   ChevronRight
