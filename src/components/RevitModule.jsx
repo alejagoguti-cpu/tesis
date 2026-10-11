@@ -27,6 +27,9 @@ import rvtPreviewImg from '../assets/rvt_tierrabomba_preview.png';
 
 const RVT_MAGIC = [0xd0, 0xcf, 0x11, 0xe0];
 const VIEWER_LINK_KEY = 'thesis_revit_viewer_link';
+// Modelo real exportado de Revit (FBX nativo), servido con la página
+const DEFAULT_MODEL_URL = `${import.meta.env.BASE_URL}models/tierrabomba_3dview.fbx`;
+const DEFAULT_MODEL_NAME = 'TIERRABOMBA-3DView (Revit FBX · 26 MB)';
 
 async function sniffFile(file) {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
@@ -376,31 +379,35 @@ export default function RevitModule() {
               </div>
               <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-deepsea-950 border border-slate-200 dark:border-deepsea-800">
                 <p className="font-bold text-slate-900 dark:text-white">3 · Súelo aquí</p>
-                <p className="text-slate-600 dark:text-slate-300 mt-0.5">Arrastra el .glb/.obj arriba para verlo en WebGL.</p>
+                <p className="text-slate-600 dark:text-slate-300 mt-0.5">Arrastra el .fbx/.glb/.obj arriba para verlo en WebGL.</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Visor del modelo exportado (solo cuando hay archivo) */}
-        {viewFile && (
+        {/* Visor del modelo real: tu FBX por defecto, o el que subas */}
+        {(() => {
+          const active = viewFile || { url: DEFAULT_MODEL_URL, ext: 'fbx', name: DEFAULT_MODEL_NAME, sizeMB: null };
+          return (
           <div className="rounded-3xl overflow-hidden bg-white dark:bg-deepsea-900 border border-slate-200 dark:border-deepsea-800 shadow-sm">
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-deepsea-800">
               <div className="flex items-center space-x-2 min-w-0">
                 <Box className="w-4 h-4 text-terracotta-600 shrink-0" />
                 <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-100 truncate">
-                  {`${viewFile.name} · ${viewFile.sizeMB} MB`}
+                  {viewFile ? `${viewFile.name} · ${viewFile.sizeMB} MB` : DEFAULT_MODEL_NAME}
                 </span>
               </div>
-              <button
-                onClick={() => { URL.revokeObjectURL(viewFile.url); setViewFile(null); }}
-                className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
-                title="Quitar modelo"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              {viewFile && (
+                <button
+                  onClick={() => { URL.revokeObjectURL(viewFile.url); setViewFile(null); setNotice('De vuelta a tu modelo TIERRABOMBA-3DView.'); }}
+                  className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                  title="Volver a tu modelo"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
-            <ExportViewer fileUrl={viewFile.url} fileExt={viewFile.ext} onError={setNotice} preset={viewPreset} presetNonce={presetNonce} />
+            <ExportViewer fileUrl={active.url} fileExt={active.ext} onError={setNotice} preset={viewPreset} presetNonce={presetNonce} />
             <div className="flex flex-wrap items-center gap-1.5 px-4 py-2.5 border-t border-slate-200 dark:border-deepsea-800">
               <span className="text-[10px] font-mono font-bold text-slate-500 uppercase mr-1">Vista:</span>
               {[
@@ -419,7 +426,8 @@ export default function RevitModule() {
               <span className="text-[10px] font-mono text-slate-400 ml-auto">Arrastra para orbitar · rueda para zoom</span>
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* Nota formato */}
         <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 px-1">
