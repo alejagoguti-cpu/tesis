@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
   Layers,
@@ -13,13 +13,90 @@ import {
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
+// Convierte "1.850 m²"→1850, "450.000 L"→450000, "+22.00 m"→22 (2 dec), "120"→120
+function parseMetricValue(raw) {
+  const m = String(raw).match(/^([+-]?)([\d.,]+)(.*)$/);
+  if (!m) return { target: 0, decimals: 0, sign: '', suffix: String(raw) };
+  const [, sign, num, suffix] = m;
+  let target = 0;
+  let decimals = 0;
+  if (/^\d{1,3}(\.\d{3})+$/.test(num)) {
+    target = parseInt(num.replace(/\./g, ''), 10); // miles con punto
+  } else if (/\.\d{2}$/.test(num)) {
+    target = parseFloat(num);
+    decimals = 2;
+  } else {
+    target = parseFloat(num.replace(/\./g, '').replace(',', '.')) || 0;
+  }
+  return { target, decimals, sign, suffix };
+}
+
+function formatMetric(target, decimals, sign, suffix, progress) {
+  const eased = 1 - Math.pow(1 - progress, 3);
+  const val = target * eased;
+  const int = Math.floor(val);
+  const grouped = int.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  let out = grouped;
+  if (decimals > 0) {
+    const frac = Math.floor((val - int) * Math.pow(10, decimals))
+      .toString()
+      .padStart(decimals, '0');
+    out += '.' + frac;
+  }
+  return `${sign}${out}${suffix}`;
+}
+
+// Cifra con conteo animado al entrar en pantalla (respeta movimiento reducido)
+function CountUpMetric({ value }) {
+  const ref = useRef(null);
+  const [started, setStarted] = useState(false);
+  const [text, setText] = useState(value);
+  const parsed = useRef(parseMetricValue(value));
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setStarted(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.4 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!started) return;
+    const { target, decimals, sign, suffix } = parsed.current;
+    if (!target) return;
+    let raf = 0;
+    const t0 = performance.now();
+    const dur = 1400;
+    const tick = (now) => {
+      const p = Math.min(1, (now - t0) / dur);
+      setText(formatMetric(target, decimals, sign, suffix, p));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [started]);
+
+  return <span ref={ref}>{text}</span>;
+}
+
 export default function Hero({ onExplore3D, onExploreGIS, onExploreDiagnosis }) {
   return (
     <section id="hero" className="relative min-h-[92vh] flex items-center pt-28 pb-16 overflow-hidden bg-editorial-grid">
       
-      {/* Warm atmospheric glows */}
-      <div className="absolute top-10 right-10 w-[550px] h-[550px] bg-terracotta-500/10 dark:bg-terracotta-500/15 blur-[140px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-10 left-10 w-[450px] h-[450px] bg-caribbean-500/10 blur-[130px] rounded-full pointer-events-none" />
+      {/* Warm atmospheric glows (drift animation) */}
+      <div className="absolute top-10 right-10 w-[550px] h-[550px] bg-terracotta-500/10 dark:bg-terracotta-500/15 blur-[140px] rounded-full pointer-events-none animate-drift-a" />
+      <div className="absolute bottom-10 left-10 w-[450px] h-[450px] bg-caribbean-500/10 blur-[130px] rounded-full pointer-events-none animate-drift-b" />
+      <div className="absolute top-1/3 left-1/3 w-[380px] h-[380px] bg-amber-400/10 blur-[120px] rounded-full pointer-events-none animate-drift-a" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full space-y-12">
         
@@ -198,7 +275,7 @@ export default function Hero({ onExplore3D, onExploreGIS, onExploreDiagnosis }) 
               className="p-6 rounded-2xl bg-white/90 dark:bg-deepsea-900/90 backdrop-blur-md border border-sand-200 dark:border-deepsea-800 shadow-subtle hover-lift group"
             >
               <div className="font-display font-extrabold text-2xl sm:text-3xl text-terracotta-600 dark:text-terracotta-400 group-hover:scale-105 transition-transform duration-300">
-                {metric.value}
+                <CountUpMetric value={metric.value} />
               </div>
               <div className="font-bold text-xs sm:text-sm text-sand-900 dark:text-sand-100 mt-1">
                 {metric.label}
