@@ -544,11 +544,43 @@ export const FRAMEWORK_STEPS = [
   }
 ];
 
-// Helper: Build red fill polygon between erosion line & island interior (+lng offset inland)
-function buildErosionFillCoords(erosionCoords, offsetLng = 0.0035) {
-  if (!erosionCoords || erosionCoords.length < 2) return [];
-  const inland = erosionCoords.map(([lat, lng]) => [lat, Number((lng + offsetLng).toFixed(6))]);
-  return [...erosionCoords, ...inland.reverse()];
+// Helper: índice del vértice más cercano a un punto
+function nearestVertexIndex(pt, poly) {
+  let best = 0, bd = Infinity;
+  for (let i = 0; i < poly.length; i++) {
+    const d = (poly[i][0] - pt[0]) * (poly[i][0] - pt[0]) + (poly[i][1] - pt[1]) * (poly[i][1] - pt[1]);
+    if (d < bd) { bd = d; best = i; }
+  }
+  return best;
+}
+
+// Franja EXACTA entre la línea de erosión y la delimitación territorial:
+// línea de erosión + segmento costero real del borde insular (sin offsets inventados)
+function buildErosionFillCoords(erosionCoords, islandCoords) {
+  if (!erosionCoords || erosionCoords.length < 2 || !islandCoords || islandCoords.length < 3) return [];
+  const n = islandCoords.length;
+  const i0 = nearestVertexIndex(erosionCoords[0], islandCoords);
+  const i1 = nearestVertexIndex(erosionCoords[erosionCoords.length - 1], islandCoords);
+  const walk = (step) => {
+    const seg = [];
+    let k = i0, guard = 0;
+    while (guard++ <= n) {
+      seg.push(islandCoords[k]);
+      if (k === i1) break;
+      k = (k + step + n) % n;
+    }
+    return seg;
+  };
+  const fwd = walk(1);
+  const bwd = walk(-1);
+  const seg = fwd.length <= bwd.length ? fwd : bwd; // tramo costero (el más corto)
+  const same = (a, b) => Math.abs(a[0] - b[0]) < 1e-9 && Math.abs(a[1] - b[1]) < 1e-9;
+  const pts = [...erosionCoords];
+  for (let j = seg.length - 1; j >= 0; j--) {
+    if (!same(seg[j], pts[pts.length - 1])) pts.push(seg[j]);
+  }
+  if (pts.length > 2 && same(pts[0], pts[pts.length - 1])) pts.pop();
+  return pts.length >= 3 ? pts : [];
 }
 
 // Helper: Calculate polygon area in Hectáreas (Ha)
@@ -1146,7 +1178,7 @@ export default function ThesisFramework({ onSelectModule }) {
     }).addTo(map);
 
     // 2B. Erosion Risk Strip (red 50% fill between erosion line & island interior)
-    const erosionFillLayer = L.polygon(buildErosionFillCoords(delimitations.erosion || []), {
+    const erosionFillLayer = L.polygon(buildErosionFillCoords(delimitations.erosion || [], delimitations.island || []), {
       color: '#dc2626',
       weight: 2,
       dashArray: '6, 6',
@@ -1411,7 +1443,7 @@ export default function ThesisFramework({ onSelectModule }) {
       }
     }
     if (layersRef.current.erosionFillLayer && delimitations.erosion) {
-      const fill = buildErosionFillCoords(delimitations.erosion);
+      const fill = buildErosionFillCoords(delimitations.erosion, delimitations.island || []);
       if (fill.length >= 3) layersRef.current.erosionFillLayer.setLatLngs(fill);
       if (hideOthers && activeZoneKey !== 'erosion') {
         layersRef.current.erosionFillLayer.setStyle({ opacity: 0, fillOpacity: 0 });
