@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import {
   Building2,
   UploadCloud,
@@ -41,9 +42,10 @@ async function sniffFile(file) {
   return { ext, magic, isRvt };
 }
 
-// Visor WebGL solo para modelos EXPORTADOS (.glb/.obj). Sin maquetas inventadas.
-function ExportViewer({ fileUrl, fileExt, onError }) {
+// Visor WebGL solo para modelos EXPORTADOS (.fbx/.glb/.obj). Sin maquetas inventadas.
+function ExportViewer({ fileUrl, fileExt, onError, preset, presetNonce }) {
   const mountRef = useRef(null);
+  const applyViewRef = useRef(null);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -100,6 +102,8 @@ function ExportViewer({ fileUrl, fileExt, onError }) {
       new GLTFLoader().load(fileUrl, (gltf) => finish(gltf.scene), undefined, (err) => onError('No se pudo leer el GLB/GLTF: ' + (err?.message || 'formato inválido')));
     } else if (fileExt === 'obj') {
       new OBJLoader().load(fileUrl, (obj) => finish(obj), undefined, (err) => onError('No se pudo leer el OBJ: ' + (err?.message || 'formato inválido')));
+    } else if (fileExt === 'fbx') {
+      new FBXLoader().load(fileUrl, (obj) => finish(obj), undefined, (err) => onError('No se pudo leer el FBX: ' + (err?.message || 'formato inválido')));
     }
 
     const sph = { radius: 55, theta: Math.PI / 4, phi: Math.PI / 3 };
@@ -113,6 +117,14 @@ function ExportViewer({ fileUrl, fileExt, onError }) {
       camera.lookAt(target.x, target.y, target.z);
     };
     place();
+
+    // Vistas predefinidas (cenital / frente / axonométrica)
+    applyViewRef.current = (name) => {
+      if (name === 'top') sph.phi = 0.06;
+      else if (name === 'front') { sph.phi = Math.PI / 2 - 0.06; sph.theta = 0; }
+      else if (name === 'axon') { sph.phi = Math.PI / 3.1; sph.theta = Math.PI / 4; }
+      place();
+    };
 
     let dragging = false;
     let px = 0;
@@ -163,6 +175,10 @@ function ExportViewer({ fileUrl, fileExt, onError }) {
     };
   }, [fileUrl, fileExt, onError]);
 
+  useEffect(() => {
+    if (preset && applyViewRef.current) applyViewRef.current(preset);
+  }, [preset, presetNonce]);
+
   return <div ref={mountRef} className="w-full h-[52vh] min-h-[380px] cursor-grab active:cursor-grabbing" />;
 }
 
@@ -172,6 +188,9 @@ export default function RevitModule() {
   const [viewFile, setViewFile] = useState(null); // { url, ext, name, sizeMB }
   const [notice, setNotice] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
+  const [viewPreset, setViewPreset] = useState('axon');
+  const [presetNonce, setPresetNonce] = useState(0);
+  const pickView = (name) => { setViewPreset(name); setPresetNonce((n) => n + 1); };
   const [viewerLink, setViewerLink] = useState(() => {
     try {
       return localStorage.getItem(VIEWER_LINK_KEY) || '';
@@ -192,19 +211,19 @@ export default function RevitModule() {
     const { ext, isRvt } = await sniffFile(file);
     if (isRvt) {
       setRvtFile({ name: file.name, sizeMB: (file.size / (1024 * 1024)).toFixed(1) });
-      setNotice('RVT detectado: formato nativo Revit. Para verlo en 3D usa el visor Autodesk de abajo o expórtalo a GLB.');
+      setNotice('RVT detectado: formato nativo Revit. Expórtalo a FBX en Revit y súelo aquí para verlo en 3D real.');
       return;
     }
-    if (['glb', 'gltf', 'obj'].includes(ext)) {
+    if (['glb', 'gltf', 'obj', 'fbx'].includes(ext)) {
       if (viewFile?.url) URL.revokeObjectURL(viewFile.url);
       setViewFile({ url: URL.createObjectURL(file), ext, name: file.name, sizeMB: (file.size / (1024 * 1024)).toFixed(1) });
       return;
     }
     if (ext === 'ifc') {
-      setNotice('IFC recibido: ábrelo en Autodesk Viewer o expórtalo a GLB y súelo aquí para visualizarlo.');
+      setNotice('IFC recibido: expórtalo a FBX en Revit y súelo aquí, o ábrelo en Autodesk Viewer.');
       return;
     }
-    setNotice('Formato no compatible. Usa .rvt (ficha), .ifc (guía) o .glb/.obj (visor).');
+    setNotice('Formato no compatible. Usa .rvt (ficha), .fbx/.glb/.obj (visor 3D) o .ifc (guía).');
   };
 
   const saveViewerLink = () => {
@@ -314,11 +333,11 @@ export default function RevitModule() {
         >
           <UploadCloud className="w-8 h-8 mx-auto text-terracotta-600" />
           <p className="font-bold text-sm text-slate-900 dark:text-white mt-2">Suelta aquí el TIERRABOMBA.rvt o tu modelo exportado</p>
-          <p className="text-xs font-mono text-slate-500 mt-1">.rvt · .ifc · .glb · .gltf · .obj</p>
+          <p className="text-xs font-mono text-slate-500 mt-1">.rvt · .ifc · .fbx · .glb · .gltf · .obj</p>
           <input
             ref={fileInputRef}
             type="file"
-            accept=".rvt,.ifc,.glb,.gltf,.obj"
+            accept=".rvt,.ifc,.fbx,.glb,.gltf,.obj"
             className="hidden"
             onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }}
           />
@@ -348,8 +367,8 @@ export default function RevitModule() {
             </div>
             <div className="grid sm:grid-cols-3 gap-2 text-[11px] font-mono">
               <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-deepsea-950 border border-slate-200 dark:border-deepsea-800">
-                <p className="font-bold text-slate-900 dark:text-white">1 · Exporta IFC</p>
-                <p className="text-slate-600 dark:text-slate-300 mt-0.5">Revit: Archivo → Exportar → IFC (categorías + terrenos).</p>
+                <p className="font-bold text-slate-900 dark:text-white">1 · Exporta FBX</p>
+                <p className="text-slate-600 dark:text-slate-300 mt-0.5">Revit: Archivo → Exportar → CAD Formats → FBX (nativo, 1 min).</p>
               </div>
               <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-deepsea-950 border border-slate-200 dark:border-deepsea-800">
                 <p className="font-bold text-slate-900 dark:text-white">2 · Exporta GLB</p>
@@ -381,10 +400,24 @@ export default function RevitModule() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <ExportViewer fileUrl={viewFile.url} fileExt={viewFile.ext} onError={setNotice} />
-            <p className="px-4 py-2.5 text-[11px] font-mono text-slate-500 border-t border-slate-200 dark:border-deepsea-800">
-              Arrastra para orbitar · rueda para zoom
-            </p>
+            <ExportViewer fileUrl={viewFile.url} fileExt={viewFile.ext} onError={setNotice} preset={viewPreset} presetNonce={presetNonce} />
+            <div className="flex flex-wrap items-center gap-1.5 px-4 py-2.5 border-t border-slate-200 dark:border-deepsea-800">
+              <span className="text-[10px] font-mono font-bold text-slate-500 uppercase mr-1">Vista:</span>
+              {[
+                ['axon', 'Axonométrica'],
+                ['top', 'Desde arriba'],
+                ['front', 'Frente'],
+              ].map(([id, label]) => (
+                <button
+                  key={id}
+                  onClick={() => pickView(id)}
+                  className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all ${viewPreset === id ? 'bg-slate-900 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
+                >
+                  {label}
+                </button>
+              ))}
+              <span className="text-[10px] font-mono text-slate-400 ml-auto">Arrastra para orbitar · rueda para zoom</span>
+            </div>
           </div>
         )}
 
