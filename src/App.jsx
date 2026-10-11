@@ -5,6 +5,7 @@ import ExecutiveControlCenter from './components/ExecutiveControlCenter';
 import ThesisFramework from './components/ThesisFramework';
 import DiagnosisMap from './components/DiagnosisMap';
 import ModelViewer3D from './components/ModelViewer3D';
+import RevitModule from './components/RevitModule';
 import Hero from './components/Hero';
 import Footer from './components/Footer';
 
@@ -133,6 +134,13 @@ export default function App() {
                 </SafeSection>
               )}
 
+              {/* Módulo 05: Modelo Revit Tierrabomba */}
+              {activeModule === 'revit' && (
+                <SafeSection name="Modelo Revit">
+                  <RevitModule />
+                </SafeSection>
+              )}
+
             
             </div>
           )}
@@ -158,6 +166,10 @@ export default function App() {
 
               <SafeSection name="Visor 3D BIM">
                 <ModelViewer3D />
+              </SafeSection>
+
+              <SafeSection name="Modelo Revit">
+                <RevitModule />
               </SafeSection>
             </div>
           )}

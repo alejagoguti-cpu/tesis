@@ -10,6 +10,7 @@ import {
   Droplets,
   Activity,
   Building2,
+  Building2,
   Sparkles,
   Layers,
   ChevronRight
@@ -26,7 +27,8 @@ const iconMap = {
   Box,
   Printer,
   Droplets,
-  Activity
+  Activity,
+  Building2
 };
 
 export default function DashboardSidebar({
