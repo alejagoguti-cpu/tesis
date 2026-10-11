@@ -5,10 +5,10 @@
 
 import map1589 from '../assets/maps/historical/map_1589_drake_cartagena.jpg';
 import map1740 from '../assets/maps/historical/map_1740_sitio_vernon.jpg';
-import map1780 from '../assets/maps/historical/map_1780_bahia_chastenet.jpg';
-import map1820 from '../assets/maps/historical/map_1820_paz_bahia.jpg';
-import map1831 from '../assets/maps/historical/map_1831_puerto_costa_firme.jpg';
-import map1900 from '../assets/maps/historical/map_1900_carta_rusa.jpg';
+import map1780 from '../assets/maps/historical/map_1780_bahia_chastenet.png';
+import map1820 from '../assets/maps/historical/map_1820_paz_bahia.png';
+import map1831 from '../assets/maps/historical/map_1831_puerto_costa_firme.png';
+import map1900 from '../assets/maps/historical/map_1900_carta_rusa.png';
 
 export const HISTORICAL_MAPS_DATA = [
   {
