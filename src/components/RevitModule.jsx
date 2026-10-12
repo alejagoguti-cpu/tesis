@@ -258,13 +258,13 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
       const pastoTex = texLoader.load(pastoTexImg);
       pastoTex.wrapS = THREE.RepeatWrapping;
       pastoTex.wrapT = THREE.RepeatWrapping;
-      pastoTex.repeat.set(10, 10);
+      pastoTex.repeat.set(1, 1);
       pastoTex.anisotropy = 4;
       pastoTex.colorSpace = THREE.SRGBColorSpace;
       const aguaTex = texLoader.load(aguaTexImg);
       aguaTex.wrapS = THREE.RepeatWrapping;
       aguaTex.wrapT = THREE.RepeatWrapping;
-      aguaTex.repeat.set(10, 10);
+      aguaTex.repeat.set(1, 1);
       aguaTex.anisotropy = 4;
       aguaTex.colorSpace = THREE.SRGBColorSpace;
       const grassMat = new THREE.MeshStandardMaterial({ map: pastoTex, color: 0xbfe3b0, roughness: 0.95 });
@@ -273,7 +273,21 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
       const roadMat = new THREE.MeshStandardMaterial({ color: 0xd62f2f, roughness: 0.85, emissive: 0x7f1d1d, emissiveIntensity: 0.35, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
       const paleMat = new THREE.MeshStandardMaterial({ color: 0xc9c9c9, roughness: 0.95 });
 
-      // Isla partida por altura real: mar (falda baja) vs tierra, por caras
+      // UV plano cenital si la malla no trae (el FBX de Revit suele venir sin UVs útiles)
+function ensureTopUVs(geo, tile) {
+  if (!geo || !geo.attributes || !geo.attributes.position || geo.attributes.uv) return;
+  geo.computeBoundingBox();
+  const bb = geo.boundingBox;
+  const p = geo.attributes.position;
+  const uv = new Float32Array(p.count * 2);
+  for (let i = 0; i < p.count; i++) {
+    uv[i * 2] = (p.getX(i) - bb.min.x) / tile;
+    uv[i * 2 + 1] = (p.getY(i) - bb.min.y) / tile;
+  }
+  geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+}
+
+// Isla partida por altura real: mar (falda baja) vs tierra, por caras
       const splitMeshes = new Set();
       const tmpV = new THREE.Vector3();
       tMeshes.forEach((tm) => {
@@ -308,6 +322,7 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
         if (groups.length === 0) return;
         g.clearGroups();
         groups.forEach(([s, cc, mi]) => g.addGroup(s, cc, mi));
+        ensureTopUVs(tm.geometry, 120);
         tm.material = [waterMat, grassMat];
         splitMeshes.add(tm);
       });
