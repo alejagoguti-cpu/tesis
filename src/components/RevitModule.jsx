@@ -148,7 +148,7 @@ function buildContours(terrain) {
   return { lines, levels: LEVELS - 1, segments: segs.length / 6 };
 }
 
-function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
+function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce, viewClass }) {
   const mountRef = useRef(null);
   const applyViewRef = useRef(null);
   const modelRef = useRef(null);
@@ -173,7 +173,7 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.12;
     container.appendChild(renderer.domElement);
 
     // Luz de entorno (reflejos suaves tipo visor) + sol cálido lateral
@@ -185,6 +185,10 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
     scene.add(new THREE.AmbientLight(0xffffff, 0.25));
     const sun = new THREE.DirectionalLight(0xfff2df, 1.6);
     sun.position.set(70, 95, 45);
+    // Contraluz fría suave para volumen realista
+    const rim = new THREE.DirectionalLight(0xdfeaf5, 0.5);
+    rim.position.set(-60, 30, -70);
+    scene.add(rim);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.camera.left = -40;
@@ -436,7 +440,7 @@ function ensureTopUVs(geo, tile) {
     if (fitCtl.current) fitCtl.current();
   }, [fitNonce, axisFlip]);
 
-  return <div ref={mountRef} className="w-full h-[76vh] min-h-[540px] cursor-grab active:cursor-grabbing" />;
+  return <div ref={mountRef} className={viewClass || 'w-full h-[76vh] min-h-[540px] cursor-grab active:cursor-grabbing'} />;
 }
 
 export default function RevitModule() {
@@ -445,7 +449,20 @@ export default function RevitModule() {
   const [axisFlip, setAxisFlip] = useState(true); // el FBX de Revit llega parado: acostarlo por defecto
   const [fitNonce, setFitNonce] = useState(0);
   const [modelStats, setModelStats] = useState(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const pickView = (name) => { setViewPreset(name); setPresetNonce((n) => n + 1); };
+
+  useEffect(() => {
+    const t = setTimeout(() => window.dispatchEvent(new Event('resize')), 80);
+    return () => clearTimeout(t);
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const onKey = (e) => { if (e.key === 'Escape') setIsFullscreen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isFullscreen]);
 
   return (
     <div className="w-full h-full overflow-y-auto animate-fade-in bg-slate-50">
@@ -458,11 +475,20 @@ export default function RevitModule() {
           </div>
         </div>
 
-        <div className="rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-sm">
+        <div className={isFullscreen ? 'fixed inset-0 z-[900] bg-white p-2 sm:p-4 flex flex-col rounded-none overflow-hidden border-0 shadow-none' : 'rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-sm'}>
           <div className="flex items-center space-x-2 px-4 py-3 border-b border-slate-200">
             <span className="text-xs font-mono font-bold text-slate-800">TIERRABOMBA-3DView · Revit FBX</span>
+            <button
+              onClick={() => setIsFullscreen((v) => !v)}
+              className="ml-auto px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold bg-slate-900 hover:bg-slate-800 text-white transition-all"
+              title={isFullscreen ? 'Salir de pantalla completa (Esc)' : 'Ver en pantalla completa'}
+            >
+              {isFullscreen ? '✕ Salir' : '⛶ Pantalla completa'}
+            </button>
           </div>
-          <ModelViewer onStats={setModelStats} preset={viewPreset} presetNonce={presetNonce} axisFlip={axisFlip} fitNonce={fitNonce} />
+          <div className={isFullscreen ? 'flex-1 min-h-0' : ''}>
+          <ModelViewer onStats={setModelStats} preset={viewPreset} presetNonce={presetNonce} axisFlip={axisFlip} fitNonce={fitNonce} viewClass={isFullscreen ? 'w-full h-full min-h-[480px] cursor-grab active:cursor-grabbing' : undefined} />
+          </div>
           <div className="flex flex-wrap items-center gap-1.5 px-4 py-2.5 border-t border-slate-200">
             <span className="text-[10px] font-mono font-bold text-slate-500 uppercase mr-1">Vista:</span>
             {[
