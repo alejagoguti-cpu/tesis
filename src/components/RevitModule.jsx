@@ -270,7 +270,7 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
       const grassMat = new THREE.MeshStandardMaterial({ map: pastoTex, color: 0xbfe3b0, roughness: 0.95 });
       const waterMat = new THREE.MeshStandardMaterial({ map: aguaTex, color: 0xcfeaf5, roughness: 0.35, metalness: 0.15 });
       const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
-      const roadMat = new THREE.MeshStandardMaterial({ color: 0x707078, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+      const roadMat = new THREE.MeshStandardMaterial({ color: 0xd62f2f, roughness: 0.85, emissive: 0x7f1d1d, emissiveIntensity: 0.35, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
       const paleMat = new THREE.MeshStandardMaterial({ color: 0xc9c9c9, roughness: 0.95 });
 
       // Isla partida por altura real: mar (falda baja) vs tierra, por caras
@@ -326,8 +326,8 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
           const aspectXY = Math.max(sx, sy) / Math.max(Math.min(sx, sy), 0.001);
           if (sz > 2 && footprint < 150) {
             c.material = whiteMat; // casas blancas
-          } else if (footprint > 150 && footprint < 300000 && sz <= 30 && aspectXY > 3) {
-            c.material = roadMat; // vías grises (rectas o en ladera)
+          } else if (footprint > 60 && footprint < 300000 && sz <= 50 && aspectXY > 3) {
+            c.material = roadMat; // vías en rojo como en Revit
           } else if (sz > 2 && footprint < 40000) {
             c.material = whiteMat; // estructuras blancas
           } else {
