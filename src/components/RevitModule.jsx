@@ -5,6 +5,8 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 // Módulo 05: solo el modelo Revit (TIERRABOMBA-3DView, FBX nativo exportado).
 // Acostado (plano XY) con curvas de nivel resaltadas. Sin nada más.
 const DEFAULT_MODEL_URL = `${import.meta.env.BASE_URL}models/tierrabomba_3dview.fbx`;
+// Vista compartida del RVT real en Autodesk Viewer (tu enlace)
+const DEFAULT_VIEWER_LINK = 'https://viewer.autodesk.com/id/dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6YTM2MHZpZXdlci1wcm90ZWN0ZWQvdDE3OTE4MTU2ODhfMjEzYzdhNDgtM2Y0NC00YjU0LTgzZjItZmU4MzlkZWJhMTkyLnJ2dA';
 
 // Terreno = hijo directo de mayor área XZ (en coordenadas de mundo, pre-transformación)
 function findTerrain(root) {
@@ -428,6 +430,26 @@ export default function RevitModule() {
               <span className="text-[10px] font-mono text-slate-400 ml-auto">Cargando modelo… arrastra para orbitar</span>
             )}
           </div>
+        </div>
+
+        <div className="rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+            <span className="text-xs font-mono font-bold text-slate-800">Modelo RVT original · Autodesk Viewer</span>
+            <a
+              href={DEFAULT_VIEWER_LINK}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[11px] font-mono font-bold text-terracotta-700 hover:text-terracotta-600"
+            >
+              Abrir en pestaña ↗
+            </a>
+          </div>
+          <iframe
+            title="Modelo Revit Tierrabomba en Autodesk Viewer"
+            src={DEFAULT_VIEWER_LINK}
+            className="w-full h-[76vh] min-h-[540px] bg-white"
+            allowFullScreen
+          />
         </div>
       </div>
     </div>
