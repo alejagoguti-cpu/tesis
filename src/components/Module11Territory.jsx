@@ -35,16 +35,6 @@ const EVIDENCE_GALLERIES = {
         url: `${import.meta.env.BASE_URL}assets/vivienda_costa_tierrabomba.png`,
         caption: "Franja habitacional de borde en Tierrabomba frente al agua: exposición directa a pleamar, mareas de leva e impacto de trenes de olas.",
         tag: "Exposición Territorial Costera"
-      },
-      {
-        url: `${import.meta.env.BASE_URL}assets/calque_tierrabomba.png`,
-        caption: "Delimitación del borde de socavación marina y franja de 50 viviendas en peligro inminente registradas en expediente.",
-        tag: "Planimetría Territorial"
-      },
-      {
-        url: `${import.meta.env.BASE_URL}assets/boceto_vivienda_corte.png`,
-        caption: "Corte conceptual del prototipo de vivienda modular progresiva resiliente proyectado para reubicación a cota segura (+22m).",
-        tag: "Propuesta de Tesis (+22m)"
       }
     ]
   },
@@ -63,23 +53,23 @@ const EVIDENCE_GALLERIES = {
         url: `${import.meta.env.BASE_URL}assets/colegio_deterioro_2.png`,
         caption: "Viga de concreto con acero de refuerzo totalmente expuesto a la salinidad marina y fisuras en elementos portantes.",
         tag: "Falla Estructural Portante"
-      },
-      {
-        url: `${import.meta.env.BASE_URL}assets/boceto_colegio_corte.png`,
-        caption: "Propuesta arquitectónica de sustitución: equipamiento educativo bioclimático con macro-cubierta captadora.",
-        tag: "Respuesta de Tesis (+22m)"
       }
     ]
   },
   servicios: {
     id: "servicios",
-    title: "Evidencia Fotográfica: Crisis Hídrica y Abastecimiento Informal",
+    title: "Evidencia Fotográfica: Crisis Hídrica y Acarreo de Agua Potable",
     sourceName: "Reportaje Especial Publimetro & Sentencias Corte Constitucional",
     sourceUrl: "https://www.publimetro.co/noticias/2023/04/29/tierrabomba-sin-agua-muere-de-sed-tan-cerca-y-tan-lejos-de-lograr-su-verdadero-desarrollo-social/",
     images: [
       {
+        url: `${import.meta.env.BASE_URL}assets/tierrabomba_acarreo_pimpina.png`,
+        caption: "Acarreo cotidiano de pimpinas de agua dulce al hombro por las calles de Tierrabomba ante la falta absoluta de red de acueducto.",
+        tag: "Acarreo Manual de Agua"
+      },
+      {
         url: `${import.meta.env.BASE_URL}assets/tierrabomba_publimetro_agua.jpg`,
-        caption: "El diario vivir de las familias de Tierra Bomba: acarreo manual y compra de pimpinas de agua dulce frente a la bahía.",
+        caption: "El diario vivir de las familias de Tierra Bomba: compra y traslado precario de agua dulce traída en barcazas desde Cartagena.",
         tag: "0% Red Formal de Acueducto"
       }
     ]
@@ -217,7 +207,7 @@ export default function Module11Territory({ onNavigateModule }) {
                 </div>
                 <span className="px-2.5 py-1 rounded-xl bg-teal-50 text-teal-800 border border-teal-200 text-[10px] font-mono font-bold flex items-center space-x-1 group-hover:bg-teal-600 group-hover:text-white transition-colors">
                   <ImageIcon className="w-3 h-3" />
-                  <span>Ver Fotos</span>
+                  <span>Ver Fotos ({EVIDENCE_GALLERIES.servicios.images.length})</span>
                 </span>
               </div>
 
