@@ -323,10 +323,13 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
           const sy = mBox.max.y - mBox.min.y;
           const sz = mBox.max.z - mBox.min.z;
           const footprint = sx * sy;
-          if (sz > 2 && footprint < 40000) {
+          const aspectXY = Math.max(sx, sy) / Math.max(Math.min(sx, sy), 0.001);
+          if (sz > 2 && footprint < 150) {
             c.material = whiteMat; // casas blancas
-          } else if (sz <= 4 && footprint > 150 && footprint < 300000 && (Math.max(sx, sy) / Math.max(Math.min(sx, sy), 0.001)) > 3) {
-            c.material = roadMat; // vías grises
+          } else if (footprint > 150 && footprint < 300000 && sz <= 30 && aspectXY > 3) {
+            c.material = roadMat; // vías grises (rectas o en ladera)
+          } else if (sz > 2 && footprint < 40000) {
+            c.material = whiteMat; // estructuras blancas
           } else {
             c.material = paleMat;
           }
