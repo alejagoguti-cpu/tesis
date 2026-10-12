@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import rvtPreviewImg from '../assets/rvt_tierrabomba_preview.png';
 
 // Módulo 05: solo el modelo Revit (TIERRABOMBA-3DView, FBX nativo exportado).
@@ -169,12 +170,19 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
     container.appendChild(renderer.domElement);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xdbe8d4, 1.05));
-    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-    const sun = new THREE.DirectionalLight(0xfffaed, 1.6);
-    sun.position.set(60, 80, 40);
+    // Luz de entorno (reflejos suaves tipo visor) + sol cálido lateral
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    pmrem.dispose();
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xe8e4da, 0.5));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+    const sun = new THREE.DirectionalLight(0xfff2df, 1.6);
+    sun.position.set(70, 95, 45);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.camera.left = -40;
