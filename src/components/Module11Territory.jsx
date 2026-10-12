@@ -59,6 +59,11 @@ const EVIDENCE_GALLERIES = {
     metric: { label: "Índice Calidad de Vida", value: "37,3 pts (Deficiente)" },
     images: [
       {
+        url: `${import.meta.env.BASE_URL}assets/colegio_deterioro_columnas.jpg`,
+        caption: "Severa corrosión del acero estructural en columnas y voladizos, pérdida total del recubrimiento de concreto y cintas de acordonamiento por riesgo inminente de colapso.",
+        tag: "Riesgo Estructural & Acordonamiento"
+      },
+      {
         url: `${import.meta.env.BASE_URL}assets/colegio_deterioro_1.jpg`,
         caption: "Desprendimiento de mampostería, corrosión de armaduras y cerramiento provisional con madera aglomerada.",
         tag: "Deterioro Físico Crítico"
