@@ -18,18 +18,33 @@ import {
 const EVIDENCE_GALLERIES = {
   vivienda: {
     id: "vivienda",
-    title: "Evidencia Fotográfica: Viviendas en Riesgo de Socavación",
-    sourceName: "Expediente Judicial de Gestión del Riesgo (2022)",
+    title: "Evidencia Fotográfica: Viviendas en Riesgo de Socavación & Colapso",
+    sourceName: "Registro Fotográfico en Sitio & Expediente Judicial de Gestión del Riesgo (2022)",
     images: [
       {
+        url: `${import.meta.env.BASE_URL}assets/vivienda_erosion_ruinas.png`,
+        caption: "Ruinas de viviendas socavadas por el oleaje frente a la bahía de Cartagena. Estructuras fracturadas y desmanteladas por el avance marino.",
+        tag: "Colapso Estructural por Socavación"
+      },
+      {
+        url: `${import.meta.env.BASE_URL}assets/vivienda_borde_socavacion.jpg`,
+        caption: "Asentamientos en el borde costero crítico de Tierrabomba. Viviendas autoconstruidas sobre cimientos socavados y muros precarios de contención.",
+        tag: "Viviendas en Peligro Inminente"
+      },
+      {
+        url: `${import.meta.env.BASE_URL}assets/vivienda_costa_tierrabomba.png`,
+        caption: "Franja habitacional de borde en Tierrabomba frente al agua: exposición directa a pleamar, mareas de leva e impacto de trenes de olas.",
+        tag: "Exposición Territorial Costera"
+      },
+      {
         url: `${import.meta.env.BASE_URL}assets/calque_tierrabomba.png`,
-        caption: "Delimitación del borde de socavación marina y franja de 50 viviendas en peligro inminente.",
+        caption: "Delimitación del borde de socavación marina y franja de 50 viviendas en peligro inminente registradas en expediente.",
         tag: "Planimetría Territorial"
       },
       {
         url: `${import.meta.env.BASE_URL}assets/boceto_vivienda_corte.png`,
-        caption: "Corte conceptual del prototipo de vivienda resiliente proyectado para sustitución y relocalización.",
-        tag: "Solución Proyectual"
+        caption: "Corte conceptual del prototipo de vivienda modular progresiva resiliente proyectado para reubicación a cota segura (+22m).",
+        tag: "Propuesta de Tesis (+22m)"
       }
     ]
   },
@@ -126,7 +141,7 @@ export default function Module11Territory({ onNavigateModule }) {
                 </div>
                 <span className="px-2.5 py-1 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-mono font-bold flex items-center space-x-1 group-hover:bg-amber-500 group-hover:text-white transition-colors">
                   <ImageIcon className="w-3 h-3" />
-                  <span>Ver Fotos</span>
+                  <span>Ver Fotos ({EVIDENCE_GALLERIES.vivienda.images.length})</span>
                 </span>
               </div>
 
