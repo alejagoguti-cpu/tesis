@@ -18,8 +18,15 @@ import {
 const EVIDENCE_GALLERIES = {
   vivienda: {
     id: "vivienda",
-    title: "Evidencia Fotográfica: Viviendas en Riesgo de Socavación & Colapso",
-    sourceName: "Registro Fotográfico en Sitio & Expediente Judicial de Gestión del Riesgo (2022)",
+    title: "Antecedente 01: Vivienda y Gestión del Riesgo",
+    subtitle: "Expediente Judicial de Gestión del Riesgo (2022)",
+    sourceName: "Expediente Judicial (2022) & Registro Fotográfico en Sitio",
+    summary: "Propuestas judiciales de recuperación para 50 viviendas en riesgo inminente y necesidad de actualización en terreno.",
+    antecedenteParagraphs: [
+      "Un expediente judicial de 2022 recoge propuestas de recuperación de 50 viviendas en riesgo y medidas de reubicación para familias en peligro inminente.",
+      "Este antecedente demuestra que las afectaciones habitacionales han requerido atención institucional y judicial. Sin embargo, no significa que actualmente esas 50 viviendas continúen en las mismas condiciones. Por eso, necesitamos actualizar esta información y localizar los sectores afectados."
+    ],
+    metric: { label: "Expediente judicial", value: "50 Casas en riesgo (2022)" },
     images: [
       {
         url: `${import.meta.env.BASE_URL}assets/vivienda_erosion_ruinas.png`,
@@ -40,9 +47,16 @@ const EVIDENCE_GALLERIES = {
   },
   educacion: {
     id: "educacion",
-    title: "Evidencia Fotográfica: Deterioro Estructural del Colegio en Tierra Bomba",
+    title: "Antecedente 02: Infraestructura Educativa",
+    subtitle: "Informe de Calidad de Vida Cartagena (2025)",
     sourceName: "Investigación en Sitio & Reporte Publimetro Colombia (2023–2025)",
     sourceUrl: "https://www.publimetro.co/noticias/2023/04/29/tierrabomba-sin-agua-muere-de-sed-tan-cerca-y-tan-lejos-de-lograr-su-verdadero-desarrollo-social/",
+    summary: "Índice de infraestructura de 37,3 pts (deficiente). El reto radica en las condiciones físicas y capacidad de los colegios existentes.",
+    antecedenteParagraphs: [
+      "El Informe de Calidad de Vida de Cartagena de 2025 reporta un índice de infraestructura educativa de 37,3 puntos para Tierra Bomba–Punta Arena, clasificado como deficiente.",
+      "Es importante aclarar que Tierra Bomba sí cuenta con establecimientos educativos. Por tanto, el problema no es la inexistencia absoluta de colegios, sino las condiciones físicas, la capacidad y las necesidades específicas de la infraestructura disponible."
+    ],
+    metric: { label: "Índice Calidad de Vida", value: "37,3 pts (Deficiente)" },
     images: [
       {
         url: `${import.meta.env.BASE_URL}assets/colegio_deterioro_1.jpg`,
@@ -58,9 +72,16 @@ const EVIDENCE_GALLERIES = {
   },
   servicios: {
     id: "servicios",
-    title: "Evidencia Fotográfica: Crisis Hídrica y Acarreo de Agua Potable",
+    title: "Antecedente 03: Servicios Esenciales y Saneamiento",
+    subtitle: "Decisiones de la Corte Constitucional & Publimetro",
     sourceName: "Reportaje Especial Publimetro & Sentencias Corte Constitucional",
     sourceUrl: "https://www.publimetro.co/noticias/2023/04/29/tierrabomba-sin-agua-muere-de-sed-tan-cerca-y-tan-lejos-de-lograr-su-verdadero-desarrollo-social/",
+    summary: "Afectaciones críticas al acceso a agua potable y saneamiento: la habitabilidad depende de las redes que permiten el funcionamiento.",
+    antecedenteParagraphs: [
+      "Existen decisiones de la Corte Constitucional que han abordado afectaciones al acceso al agua potable y al saneamiento de comunidades de Tierra Bomba.",
+      "Esto es especialmente importante porque la habitabilidad no depende únicamente de la construcción de edificios, sino también de las infraestructuras que permiten su funcionamiento."
+    ],
+    metric: { label: "Marco Legal", value: "Decisiones Corte Const." },
     images: [
       {
         url: `${import.meta.env.BASE_URL}assets/tierrabomba_acarreo_pimpina.png`,
@@ -116,122 +137,88 @@ export default function Module11Territory({ onNavigateModule }) {
           </p>
         </div>
 
-        {/* 3 Critical Diagnosis Pillars - Cards con botón interactivo de Carrusel */}
+        {/* 3 Critical Diagnosis Pillars - Cards limpias sin contaminación visual (texto completo al entrar a la foto) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           
-          {/* Card 1: Vivienda */}
-          <div 
-            onClick={() => handleOpenGallery('vivienda')}
-            className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-amber-400 transition-all cursor-pointer group space-y-3 flex flex-col justify-between"
-          >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
-                  <Home className="w-5 h-5" />
+          {Object.values(EVIDENCE_GALLERIES).map((item) => {
+            const Icon = item.id === 'vivienda' ? Home : item.id === 'educacion' ? GraduationCap : Droplets;
+            const themeColor = item.id === 'vivienda' ? 'amber' : item.id === 'educacion' ? 'red' : 'teal';
+
+            return (
+              <div 
+                key={item.id}
+                onClick={() => handleOpenGallery(item.id)}
+                className={`p-5 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between hover:border-${themeColor}-400 space-y-4`}
+              >
+                <div className="space-y-3">
+                  {/* Top Bar with Icon & Badge */}
+                  <div className="flex items-center justify-between">
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold transition-transform group-hover:scale-110 ${
+                      item.id === 'vivienda' ? 'bg-amber-100 text-amber-800' :
+                      item.id === 'educacion' ? 'bg-red-100 text-red-600' :
+                      'bg-teal-100 text-teal-700'
+                    }`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-xl border text-[10px] font-mono font-bold flex items-center space-x-1.5 transition-colors ${
+                      item.id === 'vivienda' ? 'bg-amber-50 text-amber-900 border-amber-200 group-hover:bg-amber-500 group-hover:text-white' :
+                      item.id === 'educacion' ? 'bg-red-50 text-red-700 border-red-200 group-hover:bg-red-600 group-hover:text-white' :
+                      'bg-teal-50 text-teal-800 border-teal-200 group-hover:bg-teal-600 group-hover:text-white'
+                    }`}>
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <span>Ver Fotos ({item.images.length})</span>
+                    </span>
+                  </div>
+
+                  {/* Title & Subtitle */}
+                  <div className="space-y-0.5">
+                    <span className={`text-[10px] font-mono uppercase font-bold tracking-wider ${
+                      item.id === 'vivienda' ? 'text-amber-700' :
+                      item.id === 'educacion' ? 'text-red-600' :
+                      'text-teal-700'
+                    }`}>
+                      {item.subtitle}
+                    </span>
+                    <h3 className="font-serif font-bold text-lg text-slate-900 group-hover:text-slate-950 transition-colors">
+                      {item.title.split(':')[1]?.trim() || item.title}
+                    </h3>
+                  </div>
+
+                  {/* Compact Preview Image */}
+                  <div className="h-36 w-full rounded-2xl overflow-hidden border border-slate-100 bg-slate-950 relative shadow-inner">
+                    <img 
+                      src={item.images[0].url} 
+                      alt={item.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90 group-hover:opacity-100"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent flex items-end p-2.5">
+                      <span className="text-[10px] font-mono text-white/90 truncate flex items-center space-x-1">
+                        <ZoomIn className="w-3 h-3 text-white" />
+                        <span>Clic para ver fotografía y análisis completo</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Short 1-sentence synopsis to keep the card clean */}
+                  <p className="text-xs text-slate-600 font-sans leading-relaxed line-clamp-2">
+                    {item.summary}
+                  </p>
                 </div>
-                <span className="px-2.5 py-1 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-mono font-bold flex items-center space-x-1 group-hover:bg-amber-500 group-hover:text-white transition-colors">
-                  <ImageIcon className="w-3 h-3" />
-                  <span>Ver Fotos ({EVIDENCE_GALLERIES.vivienda.images.length})</span>
-                </span>
-              </div>
 
-              <div className="space-y-1">
-                <span className="text-[10px] font-mono uppercase text-amber-700 font-bold tracking-wider">
-                  Antecedente 01 // Habitabilidad
-                </span>
-                <h3 className="font-serif font-bold text-lg text-slate-900 group-hover:text-amber-800 transition-colors">
-                  Vivienda y Gestión del Riesgo
-                </h3>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-600 font-sans leading-relaxed text-justify">
-                Un expediente judicial de 2022 recoge propuestas de recuperación de 50 viviendas en riesgo y medidas de reubicación para familias en peligro inminente.
-              </p>
-              <p className="text-xs text-slate-500 font-sans leading-relaxed text-justify">
-                Este antecedente demuestra que las afectaciones habitacionales han requerido atención institucional y judicial. Sin embargo, no significa que actualmente esas 50 viviendas continúen en las mismas condiciones. Por eso, necesitamos actualizar esta información y localizar los sectores afectados.
-              </p>
-            </div>
-
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-500">Expediente judicial:</span>
-              <span className="font-bold text-amber-800">50 Casas en riesgo (2022)</span>
-            </div>
-          </div>
-
-          {/* Card 2: Infraestructura Educativa */}
-          <div 
-            onClick={() => handleOpenGallery('educacion')}
-            className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-red-400 transition-all cursor-pointer group space-y-3 flex flex-col justify-between"
-          >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
-                  <GraduationCap className="w-5 h-5" />
+                {/* Footer Metric */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
+                  <span className="text-slate-500">{item.metric.label}:</span>
+                  <span className={`font-bold ${
+                    item.id === 'vivienda' ? 'text-amber-800' :
+                    item.id === 'educacion' ? 'text-red-600' :
+                    'text-teal-700'
+                  }`}>
+                    {item.metric.value}
+                  </span>
                 </div>
-                <span className="px-2.5 py-1 rounded-xl bg-red-50 text-red-700 border border-red-200 text-[10px] font-mono font-bold flex items-center space-x-1 group-hover:bg-red-600 group-hover:text-white transition-colors">
-                  <ImageIcon className="w-3 h-3" />
-                  <span>Ver Fotos ({EVIDENCE_GALLERIES.educacion.images.length})</span>
-                </span>
               </div>
-
-              <div className="space-y-1">
-                <span className="text-[10px] font-mono uppercase text-red-600 font-bold tracking-wider">
-                  Antecedente 02 // Dotacional
-                </span>
-                <h3 className="font-serif font-bold text-lg text-slate-900 group-hover:text-red-700 transition-colors">
-                  Infraestructura Educativa
-                </h3>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-600 font-sans leading-relaxed text-justify">
-                El Informe de Calidad de Vida de Cartagena de 2025 reporta un índice de infraestructura educativa de <strong>37,3 puntos</strong> para Tierra Bomba–Punta Arena, clasificado como deficiente.
-              </p>
-              <p className="text-xs text-slate-500 font-sans leading-relaxed text-justify">
-                Es importante aclarar que Tierra Bomba sí cuenta con establecimientos educativos. Por tanto, el problema no es la inexistencia absoluta de colegios, sino las condiciones físicas, la capacidad y las necesidades específicas de la infraestructura disponible.
-              </p>
-            </div>
-
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-500">Índice Calidad de Vida:</span>
-              <span className="font-bold text-red-600">37,3 pts (Deficiente)</span>
-            </div>
-          </div>
-
-          {/* Card 3: Servicios Esenciales */}
-          <div 
-            onClick={() => handleOpenGallery('servicios')}
-            className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-teal-400 transition-all cursor-pointer group space-y-3 flex flex-col justify-between"
-          >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
-                  <Droplets className="w-5 h-5" />
-                </div>
-                <span className="px-2.5 py-1 rounded-xl bg-teal-50 text-teal-800 border border-teal-200 text-[10px] font-mono font-bold flex items-center space-x-1 group-hover:bg-teal-600 group-hover:text-white transition-colors">
-                  <ImageIcon className="w-3 h-3" />
-                  <span>Ver Fotos ({EVIDENCE_GALLERIES.servicios.images.length})</span>
-                </span>
-              </div>
-
-              <div className="space-y-1">
-                <span className="text-[10px] font-mono uppercase text-teal-700 font-bold tracking-wider">
-                  Antecedente 03 // Servicios
-                </span>
-                <h3 className="font-serif font-bold text-lg text-slate-900 group-hover:text-teal-800 transition-colors">
-                  Servicios Esenciales y Saneamiento
-                </h3>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-600 font-sans leading-relaxed text-justify">
-                Existen decisiones de la Corte Constitucional que han abordado afectaciones al acceso al agua potable y al saneamiento de comunidades de Tierra Bomba.
-              </p>
-              <p className="text-xs text-slate-500 font-sans leading-relaxed text-justify">
-                Esto es especialmente importante porque la habitabilidad no depende únicamente de la construcción de edificios, sino también de las infraestructuras que permiten su funcionamiento.
-              </p>
-            </div>
-
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-500">Marco Legal:</span>
-              <span className="font-bold text-teal-700">Decisiones Corte Const.</span>
-            </div>
-          </div>
+            );
+          })}
 
         </div>
 
@@ -361,12 +348,27 @@ export default function Module11Territory({ onNavigateModule }) {
               )}
             </div>
 
-            {/* Carousel Caption Footer */}
-            <div className="p-4 sm:p-6 bg-white border-t border-slate-200 space-y-2">
-              <p className="text-xs sm:text-sm font-sans text-slate-800 leading-relaxed font-medium">
-                {activeGallery.images[currentSlideIndex].caption}
-              </p>
+            {/* Carousel Caption & Complete Antecedent Text Inside Modal */}
+            <div className="p-4 sm:p-6 bg-white border-t border-slate-200 space-y-4 max-h-[35vh] overflow-y-auto">
               
+              {/* Photo Caption */}
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-sans text-slate-800 leading-relaxed font-medium">
+                {activeGallery.images[currentSlideIndex].caption}
+              </div>
+
+              {/* Complete In-depth Text of the Antecedent */}
+              <div className="space-y-2 pt-1 border-t border-slate-100">
+                <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">
+                  Fundamentación del Antecedente & Diagnóstico:
+                </span>
+                {activeGallery.antecedenteParagraphs && activeGallery.antecedenteParagraphs.map((parr, pidx) => (
+                  <p key={pidx} className="text-xs sm:text-sm font-sans text-slate-700 leading-relaxed text-justify">
+                    {parr}
+                  </p>
+                ))}
+              </div>
+              
+              {/* Source & Link */}
               <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-[11px] font-mono text-slate-500">
                 <span>Fuente: {activeGallery.sourceName}</span>
                 {activeGallery.sourceUrl && (
