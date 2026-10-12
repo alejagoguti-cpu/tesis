@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+import pastoTexImg from '../assets/textura_pasto_m5.png';
+import aguaTexImg from '../assets/textura_agua_m5.jpg';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import rvtPreviewImg from '../assets/rvt_tierrabomba_preview.png';
 
@@ -244,16 +246,48 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
       if (cancelled) return;
       modelRef.current = obj;
       obj.updateMatrixWorld(true); // matrices al día antes de medir cada malla
-      // Terreno = mayor superficie; el resto se clasifica por altura y tamaño
-      let terrain = null;
-      try { terrain = findTerrain(obj); } catch (e) {}
-      const terrainMeshes = new Set();
-      if (terrain) terrain.traverse((c) => { if (c.isMesh) terrainMeshes.add(c); });
 
-      const greyMat = new THREE.MeshStandardMaterial({ color: 0x8f8b82, roughness: 1.0, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 });
+      // Base cuadrada (agua) = superficie plana más baja y extensa;
+      // isla = superficie con relieve. Sin inventos: solo lo que trae el archivo.
+      const zoneBox = new THREE.Box3();
+      let waterBase = null;
+      let waterMinY = Infinity;
+      (obj.children || []).forEach((k) => {
+        zoneBox.setFromObject(k);
+        const sx = zoneBox.max.x - zoneBox.min.x;
+        const sy = zoneBox.max.y - zoneBox.min.y;
+        const sz = zoneBox.max.z - zoneBox.min.z;
+        if (sx * sz > 1000000 && sy < 5 && zoneBox.min.y < waterMinY) {
+          waterMinY = zoneBox.min.y;
+          waterBase = k;
+        }
+      });
+      let island = null;
+      try { island = findTerrain(obj); } catch (e) {}
+      if (island === waterBase) island = null;
+      const islandMeshes = new Set();
+      const waterMeshes = new Set();
+      if (island) island.traverse((c) => { if (c.isMesh) islandMeshes.add(c); });
+      if (waterBase) waterBase.traverse((c) => { if (c.isMesh) waterMeshes.add(c); });
+
+      const texLoader = new THREE.TextureLoader();
+      const pastoTex = texLoader.load(pastoTexImg);
+      pastoTex.wrapS = THREE.RepeatWrapping;
+      pastoTex.wrapT = THREE.RepeatWrapping;
+      pastoTex.repeat.set(10, 10);
+      pastoTex.anisotropy = 4;
+      pastoTex.colorSpace = THREE.SRGBColorSpace;
+      const aguaTex = texLoader.load(aguaTexImg);
+      aguaTex.wrapS = THREE.RepeatWrapping;
+      aguaTex.wrapT = THREE.RepeatWrapping;
+      aguaTex.repeat.set(10, 10);
+      aguaTex.anisotropy = 4;
+      aguaTex.colorSpace = THREE.SRGBColorSpace;
+      const grassMat = new THREE.MeshStandardMaterial({ map: pastoTex, color: 0xbfe3b0, roughness: 0.95 });
+      const waterMat = new THREE.MeshStandardMaterial({ map: aguaTex, color: 0xcfeaf5, roughness: 0.35, metalness: 0.15 });
       const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
+      const roadMat = new THREE.MeshStandardMaterial({ color: 0x707078, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
       const paleMat = new THREE.MeshStandardMaterial({ color: 0xc9c9c9, roughness: 0.95 });
-      const roadMat = new THREE.MeshStandardMaterial({ color: 0x333338, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 
       const mBox = new THREE.Box3();
       obj.traverse((c) => {
@@ -264,24 +298,21 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
           const sx = mBox.max.x - mBox.min.x;
           const sy = mBox.max.y - mBox.min.y;
           const sz = mBox.max.z - mBox.min.z;
-          if (terrainMeshes.has(c)) {
-            c.material = greyMat; // terreno gris estilo Revit
+          if (waterMeshes.has(c)) {
+            c.material = waterMat; // cuadrado base: agua azul
+          } else if (islandMeshes.has(c)) {
+            c.material = grassMat; // isla: pasto verde
           } else if (sy > 2 && sx * sz < 40000) {
             c.material = whiteMat; // casas blancas
           } else if (sy <= 4 && (Math.max(sx, sz) / Math.max(Math.min(sx, sz), 0.001)) > 8 && sx * sz > 200 && sx * sz < 300000) {
-            c.material = roadMat; // vías: oscuro contrastado
+            c.material = roadMat; // vías grises
           } else {
             c.material = paleMat;
           }
         }
-        // Curvas de nivel nativas del archivo: azul Revit
-        if (c.isLine || c.isLineSegments) {
-          c.material = new THREE.LineBasicMaterial({ color: 0x2b5fc7 });
-        }
       });
       obj.updateMatrixWorld(true);
       const box0 = new THREE.Box3().setFromObject(obj);
-      const size0 = box0.getSize(new THREE.Vector3());
       root.add(obj);
       const nn = countMeshes(obj);
       baseRef.current = {
@@ -289,15 +320,9 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
         center: box0.getCenter(new THREE.Vector3())
       };
       const bbr = baseRef.current;
-      let contourSegs = 0;
-      try {
-        const terrain = findTerrain(obj);
-        if (terrain) contourSegs = buildContours(terrain).segments || 0;
-      } catch (e) {}
       if (onStats) {
         onStats({
           meshes: nn.n !== undefined ? nn.n : nn,
-          lines: contourSegs,
           size: [bbr.size.x, bbr.size.y, bbr.size.z],
           center: [bbr.center.x, bbr.center.y, bbr.center.z]
         });
@@ -433,7 +458,7 @@ export default function RevitModule() {
             </button>
             {modelStats ? (
               <span className="text-[10px] font-mono text-slate-400 ml-auto">
-                {`Mallas ${modelStats.meshes} · curvas ${modelStats.lines} · ${modelStats.size.map((v) => (v >= 100 ? Math.round(v).toString() : v.toFixed(1))).join(' × ')} u`}
+                {`Mallas ${modelStats.meshes} · ${modelStats.size.map((v) => (v >= 100 ? Math.round(v).toString() : v.toFixed(1))).join(' × ')} u`}
               </span>
             ) : (
               <span className="text-[10px] font-mono text-slate-400 ml-auto">Cargando modelo… arrastra para orbitar</span>
