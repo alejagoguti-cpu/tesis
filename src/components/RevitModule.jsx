@@ -323,13 +323,8 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
           const sy = mBox.max.y - mBox.min.y;
           const sz = mBox.max.z - mBox.min.z;
           const footprint = sx * sy;
-          const aspectXY = Math.max(sx, sy) / Math.max(Math.min(sx, sy), 0.001);
-          if (sz > 2 && footprint < 150) {
-            c.material = whiteMat; // casas blancas
-          } else if (footprint > 60 && footprint < 300000 && sz <= 50 && aspectXY > 3) {
-            c.material = roadMat; // vías en rojo como en Revit
-          } else if (sz > 2 && footprint < 40000) {
-            c.material = whiteMat; // estructuras blancas
+          if (sz > 2 && footprint < 40000) {
+            c.material = whiteMat; // casas y muros blancos (las vías llegan en archivo aparte)
           } else {
             c.material = paleMat;
           }
