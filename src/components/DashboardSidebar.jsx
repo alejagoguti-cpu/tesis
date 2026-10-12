@@ -12,12 +12,14 @@ import {
   Building2,
   Sparkles,
   Layers,
-  ChevronRight
+  ChevronRight,
+  AlertTriangle
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
 const iconMap = {
   LayoutDashboard,
+  AlertTriangle,
   Compass,
   BookOpen: Compass,
   Map,

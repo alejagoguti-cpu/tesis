@@ -6,6 +6,7 @@ import ThesisFramework from './components/ThesisFramework';
 import DiagnosisMap from './components/DiagnosisMap';
 import ModelViewer3D from './components/ModelViewer3D';
 import RevitModule from './components/RevitModule';
+import Module11Territory from './components/Module11Territory';
 import Hero from './components/Hero';
 import Footer from './components/Footer';
 
@@ -110,6 +111,13 @@ export default function App() {
                   <ExecutiveControlCenter 
                     onSelectModule={(modId) => setActiveModule(modId)} 
                   />
+                </SafeSection>
+              )}
+
+              {/* Module 1.1: Pregunta Central */}
+              {activeModule === 'module11' && (
+                <SafeSection name="Módulo 1.1">
+                  <Module11Territory onNavigateModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 

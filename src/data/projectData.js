@@ -275,9 +275,10 @@ export const projectInfo = {
     }
   ],
 
-  // 11. NAVEGACIÓN DEL DASHBOARD (01 A 06 OFICIAL)
+  // 11. NAVEGACIÓN DEL DASHBOARD
   dashboardModules: [
     { id: "overview", number: "01", title: "Centro de Control & KPIs", icon: "LayoutDashboard", badge: "Ejecutivo", desc: "Monitoreo general, métricas de impacto y telemetría" },
+    { id: "module11", number: "1.1", title: "¿Qué ocurre cuando una comunidad comienza a perder las condiciones necesarias para permanecer en su propio territorio?", icon: "AlertTriangle", badge: "Pregunta Central", desc: "Diagnóstico de arraigo y habitabilidad en Tierrabomba" },
     { id: "framework", number: "02", title: "Marco de Tesis", icon: "BookOpen", badge: "Académico", desc: "Problema, Justificación y Objetivos OE-01 a OE-04" },
     { id: "gis", number: "03", title: "Teledetección & GIS Espectral", icon: "Map", badge: "Territorial", desc: "5 Bandas satelitales (NDVI, NDWI, Falso Color, Manglar, LST)" },
     { id: "3dviewer", number: "04", title: "Visor 3D WebGL / BIM", icon: "Box", badge: "Interactivo", desc: "Territorio, Colegio, Vivienda, Masterplan + Despiece & Speckle" },
