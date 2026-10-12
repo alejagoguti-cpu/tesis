@@ -247,28 +247,12 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
       modelRef.current = obj;
       obj.updateMatrixWorld(true); // matrices al día antes de medir cada malla
 
-      // Base cuadrada (agua) = superficie plana más baja y extensa;
-      // isla = superficie con relieve. Sin inventos: solo lo que trae el archivo.
-      const zoneBox = new THREE.Box3();
-      let waterBase = null;
-      let waterMinY = Infinity;
-      (obj.children || []).forEach((k) => {
-        zoneBox.setFromObject(k);
-        const sx = zoneBox.max.x - zoneBox.min.x;
-        const sy = zoneBox.max.y - zoneBox.min.y;
-        const sz = zoneBox.max.z - zoneBox.min.z;
-        if (sx * sz > 1000000 && sy < 5 && zoneBox.min.y < waterMinY) {
-          waterMinY = zoneBox.min.y;
-          waterBase = k;
-        }
-      });
+      // Ejes del archivo (Z arriba): huella = sx*sy, altura = sz.
+      // La lámina plana es la falda del propio terreno (z bajo): se parte por caras.
       let island = null;
       try { island = findTerrain(obj); } catch (e) {}
-      if (island === waterBase) island = null;
-      const islandMeshes = new Set();
-      const waterMeshes = new Set();
-      if (island) island.traverse((c) => { if (c.isMesh) islandMeshes.add(c); });
-      if (waterBase) waterBase.traverse((c) => { if (c.isMesh) waterMeshes.add(c); });
+      const tMeshes = [];
+      if (island) island.traverse((c) => { if (c.isMesh && c.geometry && c.geometry.attributes && c.geometry.attributes.position) tMeshes.push(c); });
 
       const texLoader = new THREE.TextureLoader();
       const pastoTex = texLoader.load(pastoTexImg);
@@ -289,22 +273,59 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce }) {
       const roadMat = new THREE.MeshStandardMaterial({ color: 0x707078, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
       const paleMat = new THREE.MeshStandardMaterial({ color: 0xc9c9c9, roughness: 0.95 });
 
+      // Isla partida por altura real: mar (falda baja) vs tierra, por caras
+      const splitMeshes = new Set();
+      const tmpV = new THREE.Vector3();
+      tMeshes.forEach((tm) => {
+        const g = tm.geometry;
+        g.computeBoundingBox();
+        const bb = g.boundingBox;
+        const seaZ = bb.min.z + (bb.max.z - bb.min.z) * 0.08;
+        const posA = g.attributes.position;
+        const idx = g.index ? g.index.array : null;
+        const faces = idx ? idx.length / 3 : posA.count / 3;
+        const groups = [];
+        let runMat = -1;
+        let runStart = 0;
+        let runCount = 0;
+        const hz = (fi, k) => {
+          const vi = idx ? idx[fi * 3 + k] : fi * 3 + k;
+          tmpV.fromBufferAttribute(posA, vi);
+          return tmpV.z;
+        };
+        for (let f = 0; f < faces; f++) {
+          const h = (hz(f, 0) + hz(f, 1) + hz(f, 2)) / 3;
+          const mi = h < seaZ ? 0 : 1;
+          if (mi !== runMat) {
+            if (runCount > 0) groups.push([runStart, runCount, runMat]);
+            runMat = mi;
+            runStart = f * 3;
+            runCount = 0;
+          }
+          runCount += 3;
+        }
+        if (runCount > 0) groups.push([runStart, runCount, runMat]);
+        if (groups.length === 0) return;
+        g.clearGroups();
+        groups.forEach(([s, cc, mi]) => g.addGroup(s, cc, mi));
+        tm.material = [waterMat, grassMat];
+        splitMeshes.add(tm);
+      });
+
       const mBox = new THREE.Box3();
       obj.traverse((c) => {
         if (c.isMesh) {
           c.castShadow = true;
           c.receiveShadow = true;
+          if (splitMeshes.has(c)) return; // ya lleva agua+pasto por caras
           mBox.setFromObject(c);
           const sx = mBox.max.x - mBox.min.x;
           const sy = mBox.max.y - mBox.min.y;
           const sz = mBox.max.z - mBox.min.z;
-          if (waterMeshes.has(c)) {
-            c.material = waterMat; // cuadrado base: agua azul
-          } else if (islandMeshes.has(c)) {
-            c.material = grassMat; // isla: pasto verde
-          } else if (sy > 2 && sx * sz < 40000) {
+          const footprint = sx * sy;
+          if (sz > 2 && footprint < 40000) {
             c.material = whiteMat; // casas blancas
-          } else if (sy <= 4 && (Math.max(sx, sz) / Math.max(Math.min(sx, sz), 0.001)) > 8 && sx * sz > 200 && sx * sz < 300000) {
+          } else if (sz <= 4 && footprint > 150 && footprint < 300000 && (Math.max(sx, sy) / Math.max(Math.min(sx, sy), 0.001)) > 3) {
             c.material = roadMat; // vías grises
           } else {
             c.material = paleMat;
