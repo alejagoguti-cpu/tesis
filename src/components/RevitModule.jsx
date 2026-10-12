@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+import rvtPreviewImg from '../assets/rvt_tierrabomba_preview.png';
 
 // Módulo 05: solo el modelo Revit (TIERRABOMBA-3DView, FBX nativo exportado).
 // Acostado (plano XY) con curvas de nivel resaltadas. Sin nada más.
@@ -435,21 +436,30 @@ export default function RevitModule() {
         <div className="rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
             <span className="text-xs font-mono font-bold text-slate-800">Modelo RVT original · Autodesk Viewer</span>
-            <a
-              href={DEFAULT_VIEWER_LINK}
-              target="_blank"
-              rel="noreferrer"
-              className="text-[11px] font-mono font-bold text-terracotta-700 hover:text-terracotta-600"
-            >
-              Abrir en pestaña ↗
-            </a>
           </div>
-          <iframe
-            title="Modelo Revit Tierrabomba en Autodesk Viewer"
-            src={DEFAULT_VIEWER_LINK}
-            className="w-full h-[76vh] min-h-[540px] bg-white"
-            allowFullScreen
-          />
+          <div className="flex flex-col sm:flex-row items-center gap-5 p-6">
+            <img
+              src={rvtPreviewImg}
+              alt="Vista previa real del modelo TIERRABOMBA.rvt"
+              draggable={false}
+              className="w-40 rounded-2xl shadow-lg border border-slate-200"
+            />
+            <div className="space-y-2 text-center sm:text-left">
+              <p className="text-sm font-bold text-slate-900">Tu modelo RVT tal cual, en 3D interactivo</p>
+              <p className="text-[11px] font-mono text-slate-500 leading-relaxed">
+                Autodesk no permite incrustarlo dentro de otra página: se abre en su visor oficial con órbita, zoom, cortes y medidas.
+              </p>
+              <a
+                href={DEFAULT_VIEWER_LINK}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-all"
+              >
+                <span>Abrir modelo 3D</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
