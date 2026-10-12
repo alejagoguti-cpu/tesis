@@ -2,12 +2,12 @@ import React from 'react';
 import { 
   AlertTriangle, 
   Droplets, 
-  Waves, 
   Home, 
+  GraduationCap, 
   ShieldCheck, 
-  Users, 
-  HeartHandshake,
-  CheckCircle2
+  CheckCircle2,
+  FileText,
+  Activity
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
@@ -16,7 +16,7 @@ export default function Module11Territory({ onNavigateModule }) {
     <div className="w-full h-full overflow-y-auto bg-gradient-to-b from-stone-50 via-white to-stone-100 text-slate-800 p-4 sm:p-8 lg:p-12 animate-fade-in">
       <div className="max-w-5xl mx-auto space-y-8 pb-16">
         
-        {/* Big Highlight Box: Central Question DIRECTAMENTE SIN TITULO ARRIBA */}
+        {/* Big Highlight Box: Central Question */}
         <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-amber-500/15 via-red-500/10 to-transparent border-2 border-amber-500/40 shadow-xl space-y-3 relative overflow-hidden">
           <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 rounded-full bg-amber-500/10 blur-2xl pointer-events-none" />
           <div className="flex items-center space-x-2 text-red-700 font-mono text-xs font-bold uppercase tracking-wider">
@@ -27,115 +27,105 @@ export default function Module11Territory({ onNavigateModule }) {
             "¿Qué ocurre cuando una comunidad comienza a perder las condiciones necesarias para permanecer en su propio territorio?"
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 font-sans leading-relaxed pt-1">
-            Caso de estudio aplicado a la <strong>Isla de Tierrabomba, Bahía de Cartagena de Indias</strong> (Población: 4.300 habitantes expuestos a socavación costera y estrés hídrico crónico).
+            Caso de estudio aplicado a la <strong>Isla de Tierrabomba, Bahía de Cartagena de Indias</strong>.
           </p>
         </div>
 
-        {/* 3 Critical Diagnosis Pillars */}
+        {/* 3 Critical Diagnosis Pillars - Actualizados con los antecedentes */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           
-          {/* Card 1: Pérdida Física */}
-          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center font-bold">
-              <Waves className="w-5 h-5" />
+          {/* Card 1: Vivienda */}
+          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow space-y-3 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                <Home className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono uppercase text-amber-700 font-bold tracking-wider">
+                  Antecedente 01 // Habitabilidad
+                </span>
+                <h3 className="font-serif font-bold text-lg text-slate-900">
+                  Vivienda y Gestión del Riesgo
+                </h3>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 font-sans leading-relaxed text-justify">
+                Un expediente judicial de 2022 recoge propuestas de recuperación de 50 viviendas en riesgo y medidas de reubicación para familias en peligro inminente.
+              </p>
+              <p className="text-xs text-slate-500 font-sans leading-relaxed text-justify">
+                Este antecedente demuestra que las afectaciones habitacionales han requerido atención institucional y judicial. Sin embargo, no significa que actualmente esas 50 viviendas continúen en las mismas condiciones. Por eso, necesitamos actualizar esta información y localizar los sectores afectados.
+              </p>
             </div>
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono uppercase text-red-600 font-bold tracking-wider">
-                01. Socavación Frecuente
-              </span>
-              <h3 className="font-serif font-bold text-lg text-slate-900">
-                Pérdida Física del Suelo
-              </h3>
-            </div>
-            <p className="text-xs text-slate-600 font-sans leading-relaxed text-justify">
-              Con un retroceso costero de hasta <strong>1.8 metros por año</strong>, las mareas de leva desestabilizan los cimientos de más de <strong>120 viviendas</strong> y el colegio en cota +1.5m, empujando a las familias a un colapso estructural inminente.
-            </p>
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-500">Tasa de erosión:</span>
-              <span className="font-bold text-red-600">1.8 m/año</span>
-            </div>
-          </div>
-
-          {/* Card 2: Inseguridad Hídrica */}
-          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
-              <Droplets className="w-5 h-5" />
-            </div>
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono uppercase text-amber-700 font-bold tracking-wider">
-                02. Aislamiento Básico
-              </span>
-              <h3 className="font-serif font-bold text-lg text-slate-900">
-                Inseguridad Hídrica Absoluta
-              </h3>
-            </div>
-            <p className="text-xs text-slate-600 font-sans leading-relaxed text-justify">
-              Sin un solo kilómetro de red de acueducto pública (<strong>0% de cobertura formal</strong>), la supervivencia depende del suministro especulativo de barcazas marítimas y compra de pimpinas a costos desproporcionados para la economía insular.
-            </p>
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-500">Red formal:</span>
-              <span className="font-bold text-amber-700">0% Acueducto</span>
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-500">Expediente judicial:</span>
+              <span className="font-bold text-amber-800">50 Casas en riesgo (2022)</span>
             </div>
           </div>
 
-          {/* Card 3: Ruptura Social */}
-          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold">
-              <Users className="w-5 h-5" />
+          {/* Card 2: Infraestructura Educativa */}
+          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow space-y-3 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center font-bold">
+                <GraduationCap className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono uppercase text-red-600 font-bold tracking-wider">
+                  Antecedente 02 // Dotacional
+                </span>
+                <h3 className="font-serif font-bold text-lg text-slate-900">
+                  Infraestructura Educativa
+                </h3>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 font-sans leading-relaxed text-justify">
+                El Informe de Calidad de Vida de Cartagena de 2025 reporta un índice de infraestructura educativa de <strong>37,3 puntos</strong> para Tierra Bomba–Punta Arena, clasificado como deficiente.
+              </p>
+              <p className="text-xs text-slate-500 font-sans leading-relaxed text-justify">
+                Es importante aclarar que Tierra Bomba sí cuenta con establecimientos educativos. Por tanto, el problema no es la inexistencia absoluta de colegios, sino las condiciones físicas, la capacidad y las necesidades específicas de la infraestructura disponible.
+              </p>
             </div>
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono uppercase text-teal-700 font-bold tracking-wider">
-                03. Desarraigo Forzado
-              </span>
-              <h3 className="font-serif font-bold text-lg text-slate-900">
-                Fractura del Tejido Social
-              </h3>
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-500">Índice Calidad de Vida:</span>
+              <span className="font-bold text-red-600">37,3 pts (Deficiente)</span>
             </div>
-            <p className="text-xs text-slate-600 font-sans leading-relaxed text-justify">
-              Cuando el territorio deja de ser habitable, la comunidad enfrenta la dispersión involuntaria hacia las periferias de Cartagena, diluyendo su memoria conchera, saberes de pesca tradicional y la cohesión comunitaria ancestral.
-            </p>
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-500">Hogares en riesgo:</span>
-              <span className="font-bold text-teal-700">120 Familias</span>
+          </div>
+
+          {/* Card 3: Servicios Esenciales */}
+          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow space-y-3 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold">
+                <Droplets className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono uppercase text-teal-700 font-bold tracking-wider">
+                  Antecedente 03 // Servicios
+                </span>
+                <h3 className="font-serif font-bold text-lg text-slate-900">
+                  Servicios Esenciales y Saneamiento
+                </h3>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 font-sans leading-relaxed text-justify">
+                Existen decisiones de la Corte Constitucional que han abordado afectaciones al acceso al agua potable y al saneamiento de comunidades de Tierra Bomba.
+              </p>
+              <p className="text-xs text-slate-500 font-sans leading-relaxed text-justify">
+                Esto es especialmente importante porque la habitabilidad no depende únicamente de la construcción de edificios, sino también de las infraestructuras que permiten su funcionamiento.
+              </p>
+            </div>
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-500">Marco Legal:</span>
+              <span className="font-bold text-teal-700">Decisiones Corte Const.</span>
             </div>
           </div>
 
         </div>
 
-        {/* Detailed Conceptual Analysis Block */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-5">
-          <div className="space-y-1">
-            <span className="text-[10px] font-mono text-terracotta-600 font-bold uppercase tracking-wider">
-              Análisis Teórico // Hábitat Resiliente
-            </span>
-            <h3 className="font-serif font-bold text-xl text-slate-900">
-              Las Fases del Desarraigo Territorial
-            </h3>
+        {/* Conclusión y Justificación Metodológica */}
+        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-3">
+          <div className="flex items-center space-x-2 text-terracotta-600 font-mono text-xs font-bold uppercase tracking-wider">
+            <Activity className="w-4 h-4" />
+            <span>Fundamentación del Objeto de Estudio</span>
           </div>
-
-          <div className="space-y-4 text-xs sm:text-sm text-slate-700 font-sans leading-relaxed text-justify">
-            <p>
-              La pérdida de condiciones para permanecer en el territorio no es un suceso instantáneo, sino un proceso acumulativo de desgaste. Inicialmente, las familias despliegan estrategias reactivas de adaptación precaria: levantan muros provisionales de escombros, racionan el agua recolectada en tanques plásticos y alteran sus ritmos de vida según la marea.
-            </p>
-            <p>
-              Sin embargo, al alcanzarse el <strong>umbral crítico de no retorno</strong> —marcado por la socavación física irreversible y el encarecimiento desmedido de los insumos vitales—, la permanencia deja de ser viable. Si la respuesta estatal o proyectual es el abandono, el desenlace es el <em>desplazamiento forzado por causas climáticas y abandono institucional</em>.
-            </p>
-          </div>
-
-          {/* Testimonio */}
-          <div className="p-4 rounded-2xl bg-slate-900 text-white flex items-start space-x-3 shadow-md">
-            <div className="p-2 rounded-xl bg-terracotta-600/30 text-terracotta-400 shrink-0">
-              <HeartHandshake className="w-5 h-5" />
-            </div>
-            <div className="space-y-1">
-              <p className="font-serif italic text-xs sm:text-sm text-slate-200">
-                "{projectInfo.communityVoice.quote}"
-              </p>
-              <span className="text-[10px] font-mono text-terracotta-300 block">
-                — {projectInfo.communityVoice.author} &bull; {projectInfo.communityVoice.context}
-              </span>
-            </div>
-          </div>
+          <p className="font-serif font-bold text-base sm:text-lg text-slate-900 leading-snug">
+            Estas tres evidencias no significan que toda la isla presente los mismos problemas. Sin embargo, justifican investigar cómo las condiciones residenciales, educativas y de servicios afectan la posibilidad de permanecer en el territorio.
+          </p>
         </div>
 
         {/* Thesis Proposed Answer (Masterplan) */}
@@ -166,7 +156,7 @@ export default function Module11Territory({ onNavigateModule }) {
                 <span>Célula Hídrica Autónoma (450kL)</span>
               </div>
               <p className="text-justify text-xs text-stone-300">
-                Captación pluvial en la cubierta del colegio comunitario y en los techos de 120 módulos de vivienda progresiva, garantizando 90 días de autonomía de reserva continua.
+                Captación pluvial en la cubierta del colegio comunitario y en los techos de los módulos de vivienda progresiva, garantizando 90 días de autonomía de reserva continua.
               </p>
             </div>
           </div>
