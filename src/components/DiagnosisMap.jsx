@@ -46,11 +46,11 @@ if (typeof window !== 'undefined' && L && L.Icon && L.Icon.Default && L.Icon.Def
 export const SPECTRAL_LAYERS = [
   {
     id: 'ndvi',
-    name: '🌿 NDVI • Biomasa & Vegetación',
+    name: '🌿 NDVI – Biomasa y vegetación',
     shortName: '🌿 NDVI Biomasa',
     badge: 'Vegetación & Biomasa',
     sensor: 'Sentinel-2 (NIR - Red) / (NIR + Red)',
-    utility: 'Muestra la alta densidad de biomasa en la meseta (+22m) frente al suelo erosionado de la costa.',
+    utility: 'Con Sentinel-2 medimos cuánta vegetación sana hay y vemos que la meseta (+22 m) concentra unas 65 hectáreas de biomasa, mientras el borde costero casi no tiene. Esto nos indica dónde proteger la cobertura y dónde se puede intervenir.',
     color: '#16a34a',
     accentBg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800',
     cssFilter: 'hue-rotate(55deg) saturate(3.8) contrast(1.4) brightness(0.96)',
@@ -70,11 +70,11 @@ export const SPECTRAL_LAYERS = [
   },
   {
     id: 'ndwi',
-    name: '💧 NDWI • Hidrografía & Humedad',
+    name: '💧 NDWI – Humedad',
     shortName: '💧 NDWI Humedad',
-    badge: 'Cuerpos de Agua',
+    badge: 'Cuerpos de Agua & Humedad',
     sensor: 'Sentinel-2 (Green - NIR) / (Green + NIR)',
-    utility: 'Delinea la franja de marea activa y la socavación marina (cota < +1.5m).',
+    utility: 'Este índice detecta agua y humedad en el suelo y la vegetación usando el verde y el infrarrojo cercano. Nos muestra las zonas inundables y de acumulación de agua para ubicar drenajes y espacios de amortiguación.',
     color: '#0284c7',
     accentBg: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-800',
     cssFilter: 'hue-rotate(185deg) saturate(4.2) contrast(1.65) brightness(1.1)',
@@ -94,11 +94,11 @@ export const SPECTRAL_LAYERS = [
   },
   {
     id: 'mercurio',
-    name: '☣️ Mercurio • Presencia en la Bahía',
+    name: '☣️ Mercurio en Tierra Bomba',
     shortName: '☣️ Mercurio',
     badge: 'Contaminación por Mercurio (Hg)',
     sensor: 'Monitoreo Químico & Sedimentos (Hg) / Invemar',
-    utility: 'Mapeo de la concentración y dispersión de mercurio (Hg) en la Bahía de Cartagena y su afectación al borde costero de Tierrabomba.',
+    utility: 'El satélite no ve el mercurio, pero sí el camino que lo transporta: las plumas de sedimento de la bahía y del Canal del Dique. Sobre eso ubicamos los puntos de muestreo reales para mostrar dónde se concentra y dónde hay mayor exposición para las comunidades.',
     color: '#f97316',
     accentBg: 'bg-orange-500/10 border-orange-500/30 text-orange-800',
     cssFilter: 'hue-rotate(305deg) saturate(3.4) contrast(1.5) brightness(1.0)',
@@ -118,11 +118,11 @@ export const SPECTRAL_LAYERS = [
   },
   {
     id: 'manglar',
-    name: '🌳 Bosque Seco & Manglares',
+    name: '🌳 Bosque y manglar',
     shortName: '🌳 Bosque & Manglar',
     badge: 'Barrera Ecológica',
-    sensor: 'Clasificación RedEdge',
-    utility: 'Mapeo de las 14.2 Ha de manglares que sirven de barrera biológica frente al oleaje de buques.',
+    sensor: 'Clasificación RedEdge & Cobertura',
+    utility: 'El manglar protege la costa de la erosión y retiene sedimentos, y con ellos contaminantes como el mercurio. Por eso definimos franjas de no intervención que cumplen una función de protección costera y de barrera ambiental.',
     color: '#15803d',
     accentBg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-900',
     cssFilter: 'hue-rotate(85deg) saturate(4.6) contrast(1.8) brightness(0.88)',
@@ -142,11 +142,11 @@ export const SPECTRAL_LAYERS = [
   },
   {
     id: 'termico',
-    name: '🌡️ LST • Temperatura Superficial',
+    name: '🌡️ LST – Temperatura superficial',
     shortName: '🌡️ LST Térmico',
     badge: 'Infrarrojo Térmico',
     sensor: 'Landsat-8 TIRS Banda 10',
-    utility: 'Evidencia que la meseta registra hasta -3.8°C respecto al concreto continental gracias al viento alisio.',
+    utility: 'La banda térmica muestra dónde el suelo se sobrecalienta, sobre todo en zonas sin vegetación o con superficies duras. Esto orienta las decisiones de sombra, ventilación y materiales del proyecto.',
     color: '#eab308',
     accentBg: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-900',
     cssFilter: 'hue-rotate(240deg) saturate(4.8) contrast(1.8) brightness(1.2) invert(0.06)',
@@ -576,7 +576,10 @@ export default function DiagnosisMap({ onNavigateModule }) {
             return (
               <button
                 key={band.id}
-                onClick={() => setSelectedBandId(band.id)}
+                onClick={() => {
+                  setSelectedBandId(band.id);
+                  setShowLegendCard(true);
+                }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center space-x-1.5 ${
                   isSelected
                     ? 'bg-slate-900 text-white shadow-md ring-2 ring-cyan-400/50 scale-102'
@@ -656,10 +659,10 @@ export default function DiagnosisMap({ onNavigateModule }) {
             {/* Territorial Utility */}
             <div className="space-y-1">
               <span className="text-[10px] font-mono font-bold text-slate-500 uppercase block">
-                Utilidad Arquitectónica & Territorial:
+                Diagnóstico & Utilidad Territorial:
               </span>
               <p className="text-xs text-slate-800 leading-relaxed font-sans font-medium bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
-                "{activeBand.utility}"
+                {activeBand.utility}
               </p>
             </div>
 
