@@ -786,92 +786,50 @@ export async function buildCartagenaTerritoryScene({
   // -------------------------------------------------------------
   // -------------------------------------------------------------
   // 8. ÁRBOLES REALES DE SKETCHUP EN TIERRA BOMBA (C:\sketch\tree+300.skp)
-  // Distribución densa directamente sobre los vértices interiores de la isla de Tierra Bomba
-  // con diferentes tamaños (pequeños, medianos y grandes) para un aspecto natural y exuberante.
+  // Ubicados ESTRICTAMENTE al CENTRO de la isla dentro de la zona verde protegida
+  // (Meseta Segura +22m y Parque Ecológico Central), SIN tocar el agua ni la orilla,
+  // y fuera del corregimiento en la punta (Punta Arenas).
   // -------------------------------------------------------------
   const treesGroup = new THREE.Group();
   treesGroup.name = "Vegetation";
 
-  // Recolectar puntos 3D reales situados dentro de la masa insular de Tierra Bomba
+  // Recolectar puntos 3D situados exclusivamente en el interior verde elevado (centro de la isla)
   const tierrabombaTreePoints = [];
 
-  // A. Extraer vértices de las masas de tierra oficiales de Tierra Bomba
-  if (catastroData.landmasses && Array.isArray(catastroData.landmasses)) {
-    catastroData.landmasses.forEach((ring) => {
-      if (!ring || ring.length < 3) return;
-      // Verificar si el anillo pertenece a Tierra Bomba
-      const xs = ring.map(p => p[0]);
-      const ys = ring.map(p => p[1]);
-      const minX = Math.min(...xs), maxX = Math.max(...xs);
-      const minY = Math.min(...ys), maxY = Math.max(...ys);
-
-      if (minX >= -95 && maxX <= 38 && minY >= -135 && maxY <= 25) {
-        // Muestrear vértices de la isla
-        const step = Math.max(1, Math.floor(ring.length / 45));
-        for (let i = 0; i < ring.length; i += step) {
-          tierrabombaTreePoints.push({
-            x: ring[i][0] + (Math.random() - 0.5) * 1.8,
-            y: 0.08,
-            z: ring[i][1] + (Math.random() - 0.5) * 1.8
-          });
-        }
-      }
-    });
-  }
-
-  // B. Extraer vértices interiores de manzanas y áreas abiertas de Tierra Bomba
-  if (catastroData.manzanas && Array.isArray(catastroData.manzanas)) {
-    catastroData.manzanas.forEach((m) => {
-      const ring = m.r;
-      if (!ring || ring.length < 3) return;
-      const cX = ring[0][0], cY = ring[0][1];
-      if (cX >= -90 && cX <= 35 && cY >= -130 && cY <= 20) {
-        if (Math.random() > 0.40) {
-          tierrabombaTreePoints.push({
-            x: cX + (Math.random() - 0.5) * 1.5,
-            y: 0.08,
-            z: cY + (Math.random() - 0.5) * 1.5
-          });
-        }
-      }
-    });
-  }
-
-  // C. Puntos adicionales en las zonas estratégicas insulares (Punta Arenas, Meseta +22m, Caño de Oro, Bocachica)
-  const keyAreas = [
-    [-75.5760, 10.3815], [-75.5775, 10.3820], [-75.5750, 10.3810], [-75.5785, 10.3805], [-75.5738, 10.3822],
-    [-75.5792, 10.3795], [-75.5765, 10.3802], [-75.5755, 10.3828], [-75.5742, 10.3798], [-75.5780, 10.3788],
-    [-75.5750, 10.3800], [-75.5768, 10.3792], [-75.5735, 10.3790], [-75.5782, 10.3782], [-75.5720, 10.3785],
-    [-75.5760, 10.3775], [-75.5740, 10.3770], [-75.5775, 10.3765], [-75.5728, 10.3768], [-75.5790, 10.3772],
-    [-75.5745, 10.3745], [-75.5760, 10.3735], [-75.5730, 10.3752], [-75.5770, 10.3725], [-75.5750, 10.3715],
-    [-75.5725, 10.3738], [-75.5765, 10.3755], [-75.5740, 10.3728], [-75.5755, 10.3748], [-75.5735, 10.3718],
-    [-75.5768, 10.3712], [-75.5748, 10.3732], [-75.5722, 10.3722], [-75.5758, 10.3762], [-75.5732, 10.3742],
-    [-75.5685, 10.3730], [-75.5672, 10.3718], [-75.5698, 10.3745], [-75.5668, 10.3690], [-75.5682, 10.3665],
-    [-75.5690, 10.3710], [-75.5702, 10.3735], [-75.5678, 10.3725], [-75.5710, 10.3740], [-75.5695, 10.3680],
-    [-75.5815, 10.3740], [-75.5828, 10.3715], [-75.5802, 10.3685], [-75.5812, 10.3655], [-75.5798, 10.3625],
-    [-75.5822, 10.3730], [-75.5808, 10.3700], [-75.5832, 10.3670], [-75.5818, 10.3640], [-75.5805, 10.3610],
-    [-75.5735, 10.3655], [-75.5752, 10.3625], [-75.5715, 10.3605], [-75.5745, 10.3585], [-75.5765, 10.3565],
-    [-75.5728, 10.3635], [-75.5748, 10.3610], [-75.5710, 10.3590], [-75.5738, 10.3570], [-75.5758, 10.3550],
-    [-75.5710, 10.3520], [-75.5692, 10.3505], [-75.5732, 10.3485], [-75.5702, 10.3465], [-75.5742, 10.3445],
-    [-75.5718, 10.3510], [-75.5698, 10.3490], [-75.5725, 10.3470], [-75.5708, 10.3450], [-75.5735, 10.3430],
-    [-75.5800, 10.3385], [-75.5822, 10.3365], [-75.5812, 10.3345], [-75.5832, 10.3355], [-75.5792, 10.3335],
-    [-75.5808, 10.3375], [-75.5828, 10.3350], [-75.5798, 10.3360], [-75.5818, 10.3338], [-75.5838, 10.3342]
+  // Centros de distribución en el corazón y espina central de la isla de Tierra Bomba
+  // (Lat: 10.3600 a 10.3745, Lon: -75.5765 a -75.5720 - Zona núcleo protegida, a más de 1km del mar)
+  const centralIslandAnchors = [
+    // Núcleo Parque Ecológico Central y Meseta Segura (+22m)
+    [-75.5748, 10.3742], [-75.5755, 10.3738], [-75.5740, 10.3735], [-75.5762, 10.3730],
+    [-75.5750, 10.3725], [-75.5738, 10.3722], [-75.5758, 10.3718], [-75.5745, 10.3712],
+    [-75.5735, 10.3710], [-75.5752, 10.3705], [-75.5742, 10.3700], [-75.5760, 10.3695],
+    // Corredor Ambiental Centro - Bosque Seco Tropical Interior
+    [-75.5748, 10.3688], [-75.5738, 10.3682], [-75.5755, 10.3675], [-75.5742, 10.3670],
+    [-75.5732, 10.3665], [-75.5750, 10.3658], [-75.5740, 10.3652], [-75.5758, 10.3645],
+    [-75.5735, 10.3640], [-75.5748, 10.3632], [-75.5738, 10.3625], [-75.5745, 10.3618],
+    [-75.5732, 10.3610], [-75.5742, 10.3602], [-75.5735, 10.3595]
   ];
-  keyAreas.forEach(([lon, lat]) => {
-    const p = lonLatToVector3(lon, lat, 0.08);
-    tierrabombaTreePoints.push({ x: p.x, y: p.y, z: -p.z });
-    // Agregar un clúster de árboles alrededor de cada punto clave
-    for (let k = 0; k < 3; k++) {
-      tierrabombaTreePoints.push({
-        x: p.x + (Math.random() - 0.5) * 4.0,
-        y: p.y,
-        z: -p.z + (Math.random() - 0.5) * 4.0
-      });
+
+  centralIslandAnchors.forEach(([cLon, cLat]) => {
+    // Árbol en el centro del clúster
+    const pCenter = lonLatToVector3(cLon, cLat, 0.22 + Math.random() * 0.06);
+    tierrabombaTreePoints.push({ x: pCenter.x, y: pCenter.y, z: pCenter.z });
+
+    // Grupo denso orgánico alrededor de cada ancla interior (sin salirse del centro verde)
+    const clusterCount = 14 + Math.floor(Math.random() * 4);
+    for (let k = 0; k < clusterCount; k++) {
+      const radius = 0.00015 + Math.random() * 0.00055;
+      const angle = Math.random() * Math.PI * 2;
+      const lon = cLon + Math.cos(angle) * radius;
+      const lat = cLat + Math.sin(angle) * radius * 0.85;
+      const h = 0.20 + Math.random() * 0.08;
+      const pt = lonLatToVector3(lon, lat, h);
+      tierrabombaTreePoints.push({ x: pt.x, y: pt.y, z: pt.z });
     }
   });
 
-  // Limitar a una cantidad abundante y de alto rendimiento (450 árboles)
-  const finalTreePoints = tierrabombaTreePoints.slice(0, 480);
+  // Limitar a una cantidad abundante y de alto rendimiento (420 árboles)
+  const finalTreePoints = tierrabombaTreePoints.slice(0, 430);
 
   try {
     const gltfLoader = new GLTFLoader();

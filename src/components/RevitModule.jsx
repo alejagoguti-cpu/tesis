@@ -365,7 +365,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
 
       frameModel(obj);
 
-      // Cargar y distribuir los árboles reales de SketchUp (C:\sketch\tree+300.skp) por toda la isla
+      // Cargar y distribuir los árboles reales de SketchUp (C:\sketch\tree+300.skp) exclusivamente al centro de la isla
       if (terrainMesh && terrainMesh.geometry && terrainMesh.geometry.attributes.position) {
         const posAttr = terrainMesh.geometry.attributes.position;
         const normAttr = terrainMesh.geometry.attributes.normal;
@@ -373,19 +373,47 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
         const oldVeg = root.getObjectByName('VegetationRevit');
         if (oldVeg) root.remove(oldVeg);
 
+        // Centro geométrico horizontal de la isla de Revit
+        const tBox = new THREE.Box3().setFromObject(terrainMesh);
+        const tCenter = tBox.getCenter(new THREE.Vector3());
+
         const islandPoints = [];
         const v = new THREE.Vector3();
-        const n = new THREE.Vector3();
-        // Muestrear vértices de la isla de Revit con alta densidad
-        const step = Math.max(1, Math.floor(posAttr.count / 480));
 
-        for (let i = 0; i < posAttr.count; i += step) {
+        // 1. Filtrar vértices del interior elevado (centro verde de la isla)
+        // El mar está en y = 0.08. Exigir v.y >= 0.26 garantiza cero árboles en el agua o la orilla.
+        // Limitar la distancia al centro garantiza que no haya árboles en la punta ni en asentamientos costeros.
+        const allCandidates = [];
+        for (let i = 0; i < posAttr.count; i++) {
           v.set(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
           terrainMesh.localToWorld(v);
-          // Vértices dentro del cuerpo de la isla por encima del nivel del mar
-          if (v.y > 0.08 && v.y < 3.2) {
-            islandPoints.push(v.clone());
+          const dx = v.x - tCenter.x;
+          const dz = v.z - tCenter.z;
+          const distFromCenter = Math.sqrt(dx * dx + dz * dz);
+
+          if (v.y >= 0.26 && distFromCenter <= 9.2) {
+            allCandidates.push({ pos: v.clone(), dist: distFromCenter, y: v.y });
           }
+        }
+
+        // Si la densidad de la malla en ese rango fuera muy baja, respaldo seguro con cota sobre el agua
+        if (allCandidates.length < 80) {
+          for (let i = 0; i < posAttr.count; i++) {
+            v.set(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
+            terrainMesh.localToWorld(v);
+            const dx = v.x - tCenter.x;
+            const dz = v.z - tCenter.z;
+            const distFromCenter = Math.sqrt(dx * dx + dz * dz);
+            if (v.y >= 0.22 && distFromCenter <= 10.5) {
+              allCandidates.push({ pos: v.clone(), dist: distFromCenter, y: v.y });
+            }
+          }
+        }
+
+        // Distribuir homogéneamente hasta 420 árboles en el centro
+        const step = Math.max(1, Math.floor(allCandidates.length / 420));
+        for (let i = 0; i < allCandidates.length && islandPoints.length < 420; i += step) {
+          islandPoints.push(allCandidates[i].pos);
         }
 
         if (islandPoints.length > 0) {
