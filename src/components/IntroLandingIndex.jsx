@@ -228,94 +228,9 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       <div className="absolute -bottom-40 left-1/3 w-[550px] h-[550px] intro-hero-aura-c rounded-full pointer-events-none" />
 
       {/* ========================================================= */}
-      {/* 1. TOP NAVBAR (CLEAN WHITE ARCHITECTURAL HEADER)         */}
+      {/* HERO SPLIT SECTION (WHITE EDITORIAL COPY + NETWORK)       */}
       {/* ========================================================= */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-8 py-3.5 transition-all shadow-xs">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          
-          {/* Brand Logo with Pulsing Node */}
-          <div className="flex items-center space-x-3.5">
-            <div className="relative w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center p-1 shadow-md">
-              <svg className="w-6 h-6" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="17" cy="17" r="15" stroke="rgba(255,255,255,0.4)" strokeWidth="1.4" />
-                <circle cx="17" cy="8" r="3.2" fill="#14b8a6" className="animate-pulse" />
-                <circle cx="9" cy="22" r="3.2" fill="#e06248" />
-                <circle cx="25" cy="22" r="3.2" fill="#f59e0b" />
-                <circle cx="17" cy="17" r="2.2" fill="#3b82f6" />
-              </svg>
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="font-extrabold text-base sm:text-lg tracking-tight text-slate-950 font-display">
-                  TIERRABOMBA
-                </h1>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
-                  TESIS 2026
-                </span>
-              </div>
-              <p className="text-[11px] font-mono text-slate-500">
-                Hábitat Resiliente &bull; Arquitectura & Urbanismo
-              </p>
-            </div>
-          </div>
-
-          {/* Center Navigation Pills */}
-          <nav className="hidden lg:flex items-center p-1 rounded-full bg-slate-100/90 border border-slate-200 text-xs font-medium">
-            <button 
-              className="px-3.5 py-1.5 rounded-full bg-white text-slate-950 font-bold shadow-xs transition-all"
-            >
-              PORTADA
-            </button>
-            <button 
-              onClick={() => onNavigateModule('module11')}
-              className="px-3.5 py-1.5 rounded-full text-slate-600 hover:text-slate-950 hover:bg-white/60 transition-colors"
-            >
-              PREGUNTA CENTRAL
-            </button>
-            <button 
-              onClick={() => onNavigateModule('framework')}
-              className="px-3.5 py-1.5 rounded-full text-slate-600 hover:text-slate-950 hover:bg-white/60 transition-colors"
-            >
-              MARCO DE OBJETIVOS
-            </button>
-            <button 
-              onClick={() => onNavigateModule('gis')}
-              className="px-3.5 py-1.5 rounded-full text-slate-600 hover:text-slate-950 hover:bg-white/60 transition-colors"
-            >
-              DIAGNÓSTICO GIS
-            </button>
-            <button 
-              onClick={() => onNavigateModule('3dviewer')}
-              className="px-3.5 py-1.5 rounded-full text-slate-600 hover:text-slate-950 hover:bg-white/60 transition-colors"
-            >
-              VISOR 3D BIM
-            </button>
-            <button 
-              onClick={() => onNavigateModule('revit')}
-              className="px-3.5 py-1.5 rounded-full text-slate-600 hover:text-slate-950 hover:bg-white/60 transition-colors"
-            >
-              MODELO REVIT
-            </button>
-          </nav>
-
-          {/* Right Action CTA */}
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => triggerShatterAndNavigate('3dviewer')}
-              className="inline-flex items-center space-x-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-slate-950 hover:bg-teal-700 text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-teal-700/20 hover:scale-[1.02] transition-all duration-200 active:scale-95"
-            >
-              <span>EXPLORAR MODELO 3D</span>
-              <ArrowRight className="w-4 h-4 ml-0.5" />
-            </button>
-          </div>
-
-        </div>
-      </header>
-
-      {/* ========================================================= */}
-      {/* 2. HERO SPLIT SECTION (WHITE EDITORIAL COPY + NETWORK)    */}
-      {/* ========================================================= */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 lg:py-14">
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 pb-16 lg:py-16">
         
         <div className="grid lg:grid-cols-12 gap-10 xl:gap-14 items-center">
           
@@ -356,11 +271,6 @@ export default function IntroLandingIndex({ onNavigateModule }) {
             <h2 className="text-lg sm:text-xl font-medium text-slate-800 leading-snug border-l-4 border-teal-600 pl-3.5">
               ¿Qué ocurre cuando una comunidad comienza a perder las condiciones necesarias para permanecer en su propio territorio?
             </h2>
-
-            {/* Lead Narrative Description */}
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
-              Investigación y propuesta proyectual frente a la erosión costera de hasta <b>1.8 m/año</b> en la <b>Isla de Tierrabomba</b> (Cartagena de Indias): reubicación comunitaria de <b>120 familias</b> hacia la meseta segura (+22.00 m.s.n.m.), equipamiento educativo bioclimático y macro-aljibe de <b>450.000 L</b> para soberanía hídrica continua.
-            </p>
 
             {/* 3 Dimensional Action Blocks (Reflecting the Objectives) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
