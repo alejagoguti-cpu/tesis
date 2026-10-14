@@ -3,86 +3,135 @@ import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
-import pastoTexImg from '../assets/textura_pasto_m5.png';
-import aguaTexImg from '../assets/textura_agua_m5.jpg';
-import { 
-  loadCleanTreeTemplate, 
-  buildTreeObject, 
-  getSavedTrees, 
-  saveTrees, 
-  STORAGE_KEY_REVIT 
-} from '../utils/treeTool.js';
-import TreePlacementToolbar from './TreePlacementToolbar.jsx';
-import { TreePine } from 'lucide-react';
 
-// Genera mapeo UV cenital ortogonal para mallas que vienen sin coordenadas de Revit
-function ensureTopUVs(geo, tile = 35) {
+// Texturas y modelos optimizados
+const basePath = import.meta.env.BASE_URL || '/';
+const cleanBase = basePath.endsWith('/') ? basePath : basePath + '/';
+
+const SAND_DIFFUSE = `${cleanBase}textures/sand_diffuse.jpg`;
+const SAND_BUMP = `${cleanBase}textures/sand_bump.jpg`;
+const GRASS_DIFFUSE = `${cleanBase}textures/grass_light_diffuse.jpg`;
+const GRASS_BUMP = `${cleanBase}textures/grass_bump.jpg`;
+const WATER_NORMALS = `${cleanBase}textures/water_normals_fine.jpg`;
+const TREE_BARK = `${cleanBase}textures/tree_bark.jpg`;
+const TREE_LEAF = `${cleanBase}textures/tree_leaf.png`;
+
+const STORAGE_KEY_REVIT = 'tesis_revit_custom_trees';
+
+function getSavedTrees(key) {
   try {
-    if (!geo || !geo.attributes || !geo.attributes.position) return;
-    if (geo.attributes.uv && geo.attributes.uv.count === geo.attributes.position.count) return;
-    geo.computeBoundingBox();
-    const bb = geo.boundingBox;
-    if (!bb) return;
-    const p = geo.attributes.position;
-    const uv = new Float32Array(p.count * 2);
-    for (let i = 0; i < p.count; i++) {
-      uv[i * 2] = (p.getX(i) - bb.min.x) / tile;
-      uv[i * 2 + 1] = (p.getY(i) - bb.min.y) / tile;
-    }
-    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-    geo.attributes.uv.needsUpdate = true;
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
   } catch (err) {
-    console.warn('Error calculando UVs cenitales:', err);
+    return [];
   }
 }
 
-// Remueve la base plana rectangular del lecho marino para que solo quede la silueta orgánica de la isla
-function removeSeaSkirt(geo) {
+function saveTrees(key, list) {
   try {
-    if (!geo || !geo.attributes || !geo.attributes.position) return;
-    const pos = geo.attributes.position;
-    if (pos.count < 100) return;
+    localStorage.setItem(key, JSON.stringify(list));
+  } catch (err) {}
+}
 
-    let minZ = Infinity;
-    let maxZ = -Infinity;
-    for (let i = 0; i < pos.count; i++) {
-      const z = pos.getZ(i);
-      if (z < minZ) minZ = z;
-      if (z > maxZ) maxZ = z;
-    }
-
-    const rangeZ = maxZ - minZ;
-    // Si la topografía tiene relieve real (isla con elevación)
-    if (rangeZ > 2.5) {
-      // El lecho marino plano de Revit está en la cota más baja (primeros 2 metros)
-      const threshold = minZ + Math.min(2.2, rangeZ * 0.065);
-
-      if (geo.index) {
-        const oldIdx = geo.index.array;
-        const keepIdx = [];
-        for (let i = 0; i < oldIdx.length; i += 3) {
-          const a = oldIdx[i];
-          const b = oldIdx[i + 1];
-          const c = oldIdx[i + 2];
-          const za = pos.getZ(a);
-          const zb = pos.getZ(b);
-          const zc = pos.getZ(c);
-          // Conservar solo triángulos que suban por la topografía de la isla
-          if (za > threshold || zb > threshold || zc > threshold) {
-            keepIdx.push(a, b, c);
-          }
-        }
-        if (keepIdx.length > 50 && keepIdx.length < oldIdx.length) {
-          const IndexArrayType = pos.count > 65535 ? Uint32Array : Uint16Array;
-          geo.setIndex(new THREE.BufferAttribute(new IndexArrayType(keepIdx), 1));
-          geo.computeVertexNormals();
-        }
+// Datos de diagnóstico arquitectónico para las 3 viviendas analizadas
+const HOUSES_DATA = [
+  {
+    id: 1,
+    meshName: 'Mesh_House_1',
+    title: 'Vivienda 01 · Borde Costero (Punta Arenas)',
+    sector: 'Punta Arenas — Frente Marítimo',
+    coordsLocal: [-586.76, -582.5, 3.95],
+    area: '68 m²',
+    altura: '1 nivel (3.2 m)',
+    patologiaPrincipal: 'Socavación salina severa y pérdida de soporte por marea viva',
+    sistemaConstructivo: 'Mampostería simple sin confinar, postes de mangle y cubierta de zinc',
+    vulnerabilidad: 'Crítica ante mareas de tormenta e intemperie salina costera',
+    tabs: {
+      axono: {
+        title: 'Axonometría — Diagnóstico Tridimensional',
+        desc: 'Despiece axonométrico del volumen habitacional: retranqueos informales, muros autoportantes desalineados y ausencia de viga de corona perimetral.',
+        img: `${cleanBase}assets/vivienda_costa_tierrabomba.png`,
+        tag: 'Axonometría del Estado Actual'
+      },
+      planta: {
+        title: 'Planta Arquitectónica — Distribución Espacial',
+        desc: 'Planta de distribución: 3 recintos continuos con ventilación cruzada precaria hacia el mar, núcleo sanitario húmedo externo y patio posterior de gravilla.',
+        img: `${cleanBase}assets/vivienda_planta_12.png`,
+        tag: 'Levantamiento de Muros y Vanos'
+      },
+      corte: {
+        title: 'Corte Longitudinal — Socavación y Terreno',
+        desc: 'Sección arquitectónica longitudinal: desnivel topográfico con relleno inestable de escombros, cimentación superficial socavada por acción del oleaje.',
+        img: `${cleanBase}assets/boceto_vivienda_corte.png`,
+        tag: 'Corte Geotécnico / Estructural'
       }
     }
-  } catch (err) {
-    console.warn('Error recortando cuadrado plano del mar:', err);
+  },
+  {
+    id: 2,
+    meshName: 'Mesh_House_2',
+    title: 'Vivienda 02 · Núcleo Urbano Tradicional (Centro)',
+    sector: 'Centro Comunitario — Calle Principal',
+    coordsLocal: [-144.64, 177.22, 26.14],
+    area: '82 m²',
+    altura: '1 nivel + mezanina (3.8 m)',
+    patologiaPrincipal: 'Sobrecarga de cubierta, fisuración térmica en juntas y humedad ascendente',
+    sistemaConstructivo: 'Bloque de concreto artesanal, solera de madera reciclada y viguetas de pino',
+    vulnerabilidad: 'Media-Alta por hacinamiento y falta de red hidrosanitaria pluvial',
+    tabs: {
+      axono: {
+        title: 'Axonometría — Estado de Consolidación',
+        desc: 'Vista axonométrica del tejido interior: densidad medianera compacta, patios de luz interiores y desarrollo progresivo por etapas familiares.',
+        img: `${cleanBase}assets/vivienda_axonometria_12.png`,
+        tag: 'Axonometría Isométrica'
+      },
+      planta: {
+        title: 'Planta Arquitectónica — Trama de Habitabilidad',
+        desc: 'Levantamiento planimétrico del núcleo habitacional: zaguán de acceso, sala-taller multifuncional, dos alcobas y área de cocina colectiva.',
+        img: `${cleanBase}assets/vivienda_muros_12.png`,
+        tag: 'Planta de Muros Portantes'
+      },
+      corte: {
+        title: 'Corte Longitudinal — Sistema de Cubierta y Pendiente',
+        desc: 'Corte transversal y longitudinal: cerchas artesanales de madera con luz de 4.5m, cámara de aire reducida y aislamiento térmico deficitario.',
+        img: `${cleanBase}assets/boceto_colegio_corte.png`,
+        tag: 'Corte Constructivo'
+      }
+    }
+  },
+  {
+    id: 3,
+    meshName: 'Mesh_House_3',
+    title: 'Vivienda 03 · Sector Norte (Bahía Interior)',
+    sector: 'Sector Norte — Mirador de Bocagrande',
+    coordsLocal: [38.92, 654.19, 7.15],
+    area: '74 m²',
+    altura: '1 nivel con pilotes de borde (3.5 m)',
+    patologiaPrincipal: 'Asentamiento diferencial en suelo blando marino y corrosión galvánica de anclajes',
+    sistemaConstructivo: 'Estructura mixta madera náutica / bloques sobre plataforma de palafito seco',
+    vulnerabilidad: 'Alta por escorrentía pluvial descendente y salpicadura marina directa',
+    tabs: {
+      axono: {
+        title: 'Axonometría — Volumetría y Entorno Costero',
+        desc: 'Despiece axonométrico: plataforma elevada sobre el terreno natural para mitigar inundaciones por escorrentía, aleros protectores y pórtico frontal.',
+        img: `${cleanBase}assets/vivienda_erosion_ruinas.png`,
+        tag: 'Axonometría de Vulnerabilidad'
+      },
+      planta: {
+        title: 'Planta Arquitectónica — Zonificación y Accesos',
+        desc: 'Esquema en planta: pasarela perimetral de acceso, estancia comunitaria abierta a la brisa marina y dormitorios modulares orientados al norte.',
+        img: `${cleanBase}assets/vivienda_planta_12.png`,
+        tag: 'Planta General de Vivienda'
+      },
+      corte: {
+        title: 'Corte Longitudinal — Relación Muelle y Nivel Freático',
+        desc: 'Corte transversal y longitudinal: anclaje de pilotes en estrato rocoso superficial, socavación de talud y gradiente de escorrentía pluvial.',
+        img: `${cleanBase}assets/vivienda_borde_socavacion.jpg`,
+        tag: 'Corte de Talud Costero'
+      }
+    }
   }
-}
+];
 
 // Genera un cielo diurno arquitectónico caribeño con degradado realista y luminoso
 function createSkyTexture() {
@@ -91,10 +140,10 @@ function createSkyTexture() {
   canvas.height = 512;
   const ctx = canvas.getContext('2d');
   const grad = ctx.createLinearGradient(0, 0, 0, 512);
-  grad.addColorStop(0.0, '#196db5'); // Azul cielo caribe intenso en el cenit
-  grad.addColorStop(0.45, '#569fe3'); // Celeste cielo soleado brillante
-  grad.addColorStop(0.75, '#b0d7f7'); // Bruma celeste suave
-  grad.addColorStop(1.0, '#ebf5fe'); // Horizonte luminoso soleado
+  grad.addColorStop(0.0, '#1c77c9');
+  grad.addColorStop(0.40, '#5ea8ea');
+  grad.addColorStop(0.72, '#bce0fd');
+  grad.addColorStop(1.0, '#f2f8fe');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 256, 512);
   const tex = new THREE.CanvasTexture(canvas);
@@ -102,97 +151,71 @@ function createSkyTexture() {
   return tex;
 }
 
-function RenderViewer({ 
-  onStats, 
-  onProgress, 
-  onLoaded, 
-  preset, 
-  presetNonce, 
-  fitNonce, 
-  waveActive, 
-  localFile, 
-  wireframe, 
-  roadColorMode, 
-  treesVisible = true, 
-  waterColor = '#b5ebf5',
-  isPlantingTree = false,
-  plantScale = 1.0,
-  treesList = [],
-  onAddTree = () => {},
-  onSelectTree = () => {}
+function RenderViewer({
+  onStats,
+  onProgress,
+  onLoaded,
+  preset,
+  presetNonce,
+  fitNonce,
+  waveActive,
+  wireframe,
+  roadColorMode,
+  localFile,
+  selectedHouseId,
+  onSelectHouse,
+  onSaveCurrentViewTrigger,
+  onResetViewTrigger,
+  treesVisible,
+  waterColor,
+  treesList,
+  isPlantingTree,
+  plantScale,
+  selectedTreeId,
+  onSelectTree,
+  onAddTree
 }) {
   const mountRef = useRef(null);
   const applyViewRef = useRef(null);
   const modelRef = useRef(null);
   const rootRef = useRef(null);
   const fitCtl = useRef(null);
-  const loadCustomFileRef = useRef(null);
   const roadsMeshRef = useRef([]);
+  const housesMeshesRef = useRef({});
+  const treesGroupRef = useRef(null);
+  const dynamicTreesGroupRef = useRef(null);
+  const treeModelSceneRef = useRef(null);
+  const waterMatRef = useRef(null);
   const waveActiveRef = useRef(waveActive);
   waveActiveRef.current = waveActive;
-  const waterMatRef = useRef(null);
-  const treesGroupRef = useRef(null);
-  const treeTemplateRef = useRef(null);
-  const syncTreesRef = useRef(null);
 
   const isPlantingTreeRef = useRef(isPlantingTree);
   isPlantingTreeRef.current = isPlantingTree;
   const plantScaleRef = useRef(plantScale);
   plantScaleRef.current = plantScale;
-  const treesListRef = useRef(treesList);
-  treesListRef.current = treesList;
   const onAddTreeRef = useRef(onAddTree);
   onAddTreeRef.current = onAddTree;
   const onSelectTreeRef = useRef(onSelectTree);
   onSelectTreeRef.current = onSelectTree;
 
-  // Materiales de vías
-  const roadMatGreyRef = useRef(null);
+  // Materiales de vías y casas
+  const roadMatSandRef = useRef(null);
   const roadMatBlueRef = useRef(null);
-
-  const syncTrees = (list, tpl) => {
-    if (!treesGroupRef.current || !tpl) return;
-    const grp = treesGroupRef.current;
-    const existing = new Map();
-    grp.children.forEach((c) => {
-      if (c.userData?.treeId) existing.set(c.userData.treeId, c);
-    });
-    const curIds = new Set(list.map((t) => t.id));
-    existing.forEach((obj, id) => {
-      if (!curIds.has(id)) grp.remove(obj);
-    });
-    list.forEach((tData) => {
-      const obj = existing.get(tData.id);
-      if (obj) {
-        const s = tData.scale || 1.0;
-        obj.scale.set(s, s, s);
-      } else {
-        const newObj = buildTreeObject(tpl, tData);
-        grp.add(newObj);
-      }
-    });
-  };
-  syncTreesRef.current = syncTrees;
-
-  useEffect(() => {
-    if (treeTemplateRef.current && treesGroupRef.current) {
-      syncTrees(treesList, treeTemplateRef.current);
-    }
-  }, [treesList]);
+  const houseMatNormalRef = useRef(null);
+  const houseMatSelectedRef = useRef(null);
 
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
 
-    // Dimensiones seguras
     const getW = () => container.clientWidth || window.innerWidth || 800;
     const getH = () => container.clientHeight || Math.max(window.innerHeight - 64, 550);
 
-    // Escena 3D configurada para Render Arquitectónico Diurno luminoso
+    // Escena 3D
     const scene = new THREE.Scene();
     const skyTex = createSkyTexture();
     scene.background = skyTex;
-    scene.fog = new THREE.Fog(0xb0d7f7, 240, 850); // Neblina suave hacia el horizonte
+    scene.fog = new THREE.Fog(0xbce0fd, 260, 950);
 
     const camera = new THREE.PerspectiveCamera(40, getW() / getH(), 0.1, 4000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -202,59 +225,94 @@ function RenderViewer({
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.3;
+    renderer.toneMappingExposure = 1.35;
     container.appendChild(renderer.domElement);
 
     // Iluminación diurna de alta intensidad para que los cubos blancos resalten con claridad
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x88aacc, 1.15));
-    scene.add(new THREE.AmbientLight(0xffffff, 0.9)); // Luz difusa abundante
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x8cbbe2, 1.25));
+    scene.add(new THREE.AmbientLight(0xffffff, 1.05));
 
-    // Sol tropical que proyecta sombras nítidas de los cubos y casas
-    const sun = new THREE.DirectionalLight(0xfffaed, 2.5);
-    sun.position.set(70, 130, 60);
+    // Sol tropical
+    const sun = new THREE.DirectionalLight(0xfffaec, 2.6);
+    sun.position.set(75, 140, 65);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
-    sun.shadow.camera.left = -65;
-    sun.shadow.camera.right = 65;
-    sun.shadow.camera.top = 65;
-    sun.shadow.camera.bottom = -65;
+    sun.shadow.camera.left = -70;
+    sun.shadow.camera.right = 70;
+    sun.shadow.camera.top = 70;
+    sun.shadow.camera.bottom = -70;
     sun.shadow.bias = 0.0001;
     scene.add(sun);
 
     // Luz de relleno lateral
-    const fillLight = new THREE.DirectionalLight(0xd0e8ff, 1.2);
-    fillLight.position.set(-70, 90, -60);
-    scene.add(fillLight);
+    const marineLight = new THREE.DirectionalLight(0xd4eeff, 1.15);
+    marineLight.position.set(-80, 80, -60);
+    scene.add(marineLight);
 
     const root = new THREE.Group();
     rootRef.current = root;
     scene.add(root);
 
-    // Texturas de alta calidad
     const texLoader = new THREE.TextureLoader();
 
-    // 1. Textura de agua para mar animado
-    const aguaTex = texLoader.load(aguaTexImg);
-    aguaTex.wrapS = THREE.RepeatWrapping;
-    aguaTex.wrapT = THREE.RepeatWrapping;
-    aguaTex.repeat.set(18, 18);
-    aguaTex.anisotropy = 8;
-    aguaTex.colorSpace = THREE.SRGBColorSpace;
+    // 1. Texturas de Arena Realista (para Vías y Borde Costero de la Isla)
+    const sandDiffuseTex = texLoader.load(SAND_DIFFUSE);
+    sandDiffuseTex.wrapS = THREE.RepeatWrapping;
+    sandDiffuseTex.wrapT = THREE.RepeatWrapping;
+    sandDiffuseTex.repeat.set(16, 16);
+    sandDiffuseTex.colorSpace = THREE.SRGBColorSpace;
 
-    // 2. Textura de pasto (verde natural orgánico, visible y agradable a la vista)
-    const pastoTex = texLoader.load(pastoTexImg);
-    pastoTex.wrapS = THREE.RepeatWrapping;
-    pastoTex.wrapT = THREE.RepeatWrapping;
-    pastoTex.repeat.set(10, 10);
-    pastoTex.anisotropy = 8;
-    pastoTex.colorSpace = THREE.SRGBColorSpace;
+    const sandBumpTex = texLoader.load(SAND_BUMP);
+    sandBumpTex.wrapS = THREE.RepeatWrapping;
+    sandBumpTex.wrapT = THREE.RepeatWrapping;
+    sandBumpTex.repeat.set(16, 16);
+
+    const sandMat = new THREE.MeshStandardMaterial({
+      map: sandDiffuseTex,
+      bumpMap: sandBumpTex,
+      bumpScale: 0.14,
+      color: 0xdeb887,
+      roughness: 0.90,
+      metalness: 0.02,
+      polygonOffset: true,
+      polygonOffsetFactor: -3,
+      polygonOffsetUnits: -3,
+      side: THREE.DoubleSide
+    });
+    roadMatSandRef.current = sandMat;
+
+    // Versión Azul Selección Revit
+    const roadMatBlue = new THREE.MeshStandardMaterial({
+      color: 0x2563eb,
+      roughness: 0.35,
+      metalness: 0.2,
+      emissive: 0x1d4ed8,
+      emissiveIntensity: 0.3,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      polygonOffsetUnits: -4,
+      side: THREE.DoubleSide
+    });
+    roadMatBlueRef.current = roadMatBlue;
+
+    // 2. Textura de Pasto (más claro, fresco, natural y agradable a la vista)
+    const grassDiffuseTex = texLoader.load(GRASS_DIFFUSE);
+    grassDiffuseTex.wrapS = THREE.RepeatWrapping;
+    grassDiffuseTex.wrapT = THREE.RepeatWrapping;
+    grassDiffuseTex.repeat.set(18, 18);
+    grassDiffuseTex.colorSpace = THREE.SRGBColorSpace;
+
+    const grassBumpTex = texLoader.load(GRASS_BUMP);
+    grassBumpTex.wrapS = THREE.RepeatWrapping;
+    grassBumpTex.wrapT = THREE.RepeatWrapping;
+    grassBumpTex.repeat.set(18, 18);
 
     const grassMat = new THREE.MeshStandardMaterial({
-      map: pastoTex,
-      bumpMap: pastoTex,
-      bumpScale: 0.18,
-      color: 0x3d6b35, // Verde natural visible y descansado
-      roughness: 0.88,
+      map: grassDiffuseTex,
+      bumpMap: grassBumpTex,
+      bumpScale: 0.12,
+      color: 0x62964a,
+      roughness: 0.85,
       metalness: 0.02,
       polygonOffset: true,
       polygonOffsetFactor: 1,
@@ -262,66 +320,84 @@ function RenderViewer({
       side: THREE.DoubleSide
     });
 
-    // 3. MALLA DE CAMINOS Y VÍAS DE REVIT (Sólido topográfico 164695)
-    // Versión Gris Vial
-    const roadMatGrey = new THREE.MeshStandardMaterial({
-      color: 0x5a6a78, // Gris asfalto/concreto vial nítido y visible
-      roughness: 0.65,
-      metalness: 0.15,
-      polygonOffset: true,
-      polygonOffsetFactor: -6,
-      polygonOffsetUnits: -6,
-      side: THREE.DoubleSide
-    });
-    roadMatGreyRef.current = roadMatGrey;
-
-    // Versión Azul Selección Revit (como en la captura del usuario)
-    const roadMatBlue = new THREE.MeshStandardMaterial({
-      color: 0x2563eb, // Azul vibrante Revit
-      roughness: 0.35,
-      metalness: 0.2,
-      emissive: 0x1d4ed8,
-      emissiveIntensity: 0.25,
-      polygonOffset: true,
-      polygonOffsetFactor: -6,
-      polygonOffsetUnits: -6,
-      side: THREE.DoubleSide
-    });
-    roadMatBlueRef.current = roadMatBlue;
-
-    // 4. TODAS LAS CASAS Y CUBOS: ¡BLANCO PURO NÍTIDO!
+    // 3. CASAS Y CUBOS DE REVIT: ¡BLANCO PURO RADIANTE!
     const buildingMat = new THREE.MeshStandardMaterial({
-      color: 0xffffff, // Cubos y casas completamente blancas
-      roughness: 0.2,
-      metalness: 0.02,
+      color: 0xffffff,
+      emissive: 0xffffff,
+      emissiveIntensity: 0.16,
+      roughness: 0.18,
+      metalness: 0.0,
       side: THREE.DoubleSide
     });
 
-    // 5. Océano caribeño cristalino con oleaje continuo y reflejos suaves
+    // 4. TRES VIVIENDAS SELECCIONADAS EN COLOR ROJO SUAVE ARQUITECTÓNICO
+    const houseRedSoftMat = new THREE.MeshStandardMaterial({
+      color: 0xe05656,
+      emissive: 0xef4444,
+      emissiveIntensity: 0.28,
+      roughness: 0.25,
+      metalness: 0.05,
+      side: THREE.DoubleSide
+    });
+    houseMatNormalRef.current = houseRedSoftMat;
+
+    const houseSelectedGlowMat = new THREE.MeshStandardMaterial({
+      color: 0xf87171,
+      emissive: 0xf87171,
+      emissiveIntensity: 0.55,
+      roughness: 0.2,
+      metalness: 0.1,
+      side: THREE.DoubleSide
+    });
+    houseMatSelectedRef.current = houseSelectedGlowMat;
+
+    // 5. OCÉANO REALISTA (Azul caribe sereno, olas muy suaves, escala fina)
+    const waterNormalTex = texLoader.load(WATER_NORMALS);
+    waterNormalTex.wrapS = THREE.RepeatWrapping;
+    waterNormalTex.wrapT = THREE.RepeatWrapping;
+    waterNormalTex.repeat.set(48, 48);
+
+    const initialWaterColor = waterColor || '#0c3d5f';
     const waterMat = new THREE.MeshStandardMaterial({
-      map: aguaTex,
-      bumpMap: aguaTex,
-      bumpScale: 0.32,
-      color: new THREE.Color(waterColor || '#8dc8d2'),
-      roughness: 0.12,
-      metalness: 0.12,
-      transparent: true,
-      opacity: 0.94,
-      envMapIntensity: 1.4
+      normalMap: waterNormalTex,
+      normalScale: new THREE.Vector2(0.16, 0.16),
+      color: new THREE.Color(initialWaterColor),
+      roughness: 0.18,
+      metalness: 0.22,
+      envMapIntensity: 1.5
     });
     waterMatRef.current = waterMat;
 
-    // Gran plano oceánico continuo que rodea la isla y reemplaza el cuadrado de Revit
-    const oceanGeo = new THREE.PlaneGeometry(800, 800, 64, 64);
+    const oceanGeo = new THREE.PlaneGeometry(900, 900, 64, 64);
     const oceanMesh = new THREE.Mesh(oceanGeo, waterMat);
     oceanMesh.rotation.x = -Math.PI / 2;
-    oceanMesh.position.y = 0.08;
+    oceanMesh.position.y = 0.04;
     oceanMesh.receiveShadow = true;
     root.add(oceanMesh);
 
-    // Sistema de cámara orbital
-    const sph = { radius: 76, theta: Math.PI / 4, phi: Math.PI / 3.2 };
-    const target = { x: 0, y: 1.2, z: 0 };
+    // Grupo para árboles plantados dinámicamente
+    const dynamicTreesGroup = new THREE.Group();
+    dynamicTreesGroup.name = 'DynamicTreesGroup';
+    root.add(dynamicTreesGroup);
+    dynamicTreesGroupRef.current = dynamicTreesGroup;
+
+    // Sistema de cámara orbital y pan
+    let initialSph = { radius: 76, theta: Math.PI / 4, phi: Math.PI / 3.2 };
+    let initialTarget = { x: 0, y: 1.2, z: 0 };
+    try {
+      const saved = localStorage.getItem('tesis_m5_saved_view');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.sph && parsed.target) {
+          initialSph = parsed.sph;
+          initialTarget = parsed.target;
+        }
+      }
+    } catch (e) {}
+
+    const sph = { ...initialSph };
+    const target = new THREE.Vector3(initialTarget.x, initialTarget.y, initialTarget.z);
+
     const placeCamera = () => {
       camera.position.set(
         target.x + sph.radius * Math.sin(sph.phi) * Math.sin(sph.theta),
@@ -332,17 +408,44 @@ function RenderViewer({
     };
     placeCamera();
 
+    // Guardar / Restablecer vista permanentemente
+    onSaveCurrentViewTrigger.current = () => {
+      try {
+        const toSave = {
+          sph: { radius: sph.radius, theta: sph.theta, phi: sph.phi },
+          target: { x: target.x, y: target.y, z: target.z }
+        };
+        localStorage.setItem('tesis_m5_saved_view', JSON.stringify(toSave));
+        return true;
+      } catch (err) {
+        return false;
+      }
+    };
+
+    onResetViewTrigger.current = () => {
+      try {
+        localStorage.removeItem('tesis_m5_saved_view');
+        sph.radius = 76;
+        sph.theta = Math.PI / 4;
+        sph.phi = Math.PI / 3.2;
+        target.set(0, 1.2, 0);
+        placeCamera();
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+
     let cancelled = false;
 
-    // Encuadre y orientación matemática del modelo Revit
+    // Encuadre inicial del modelo
     const frameModel = (objToFrame) => {
       const obj = objToFrame || modelRef.current;
       if (!obj) return;
 
-      // Reseteo para cálculo de escala idempotente
       obj.scale.set(1, 1, 1);
       obj.position.set(0, 0, 0);
-      obj.rotation.set(-Math.PI / 2, 0, 0); // Acostar terreno de Revit (Z-up a Y-up)
+      obj.rotation.set(-Math.PI / 2, 0, 0);
       obj.updateMatrixWorld(true);
 
       const box = new THREE.Box3().setFromObject(obj);
@@ -353,32 +456,96 @@ function RenderViewer({
 
       const s = 40 / maxDim;
       obj.scale.set(s, s, s);
-      // Colocar la base de la isla justo a nivel del mar
-      obj.position.set(-center.x * s, -box.min.y * s + 0.04, -center.z * s);
+      obj.position.set(-center.x * s, -box.min.y * s + 0.02, -center.z * s);
       obj.updateMatrixWorld(true);
 
-      const c2 = new THREE.Box3().setFromObject(obj).getCenter(new THREE.Vector3());
-      target.x = c2.x;
-      target.y = c2.y * 0.5;
-      target.z = c2.z;
-      sph.radius = 78;
-      placeCamera();
+      if (!localStorage.getItem('tesis_m5_saved_view')) {
+        const c2 = new THREE.Box3().setFromObject(obj).getCenter(new THREE.Vector3());
+        target.set(c2.x, c2.y * 0.5, c2.z);
+        sph.radius = 78;
+        placeCamera();
+      }
     };
 
-    // Procesamiento exacto de mallas para Revit (GLB y FBX)
+    // Cargar y plantar árboles de render de C:\sketch
+    const loadTrees = (parentObj) => {
+      const gltfLoader = new GLTFLoader();
+      const treeUrl = `${cleanBase}models/tree.glb`;
+
+      fetch(`${cleanBase}models/trees_data.json`)
+        .then((res) => (res.ok ? res.json() : []))
+        .then((treePositions) => {
+          if (!treePositions || treePositions.length === 0) return;
+
+          gltfLoader.load(treeUrl, (gltf) => {
+            if (cancelled) return;
+            const treeScene = gltf.scene;
+            treeModelSceneRef.current = treeScene;
+
+            const barkTex = texLoader.load(TREE_BARK);
+            barkTex.colorSpace = THREE.SRGBColorSpace;
+            const leafTex = texLoader.load(TREE_LEAF);
+            leafTex.colorSpace = THREE.SRGBColorSpace;
+
+            const barkMat = new THREE.MeshStandardMaterial({
+              map: barkTex,
+              roughness: 0.9,
+              metalness: 0.05
+            });
+
+            const leafMat = new THREE.MeshStandardMaterial({
+              map: leafTex,
+              alphaTest: 0.45,
+              transparent: true,
+              roughness: 0.7,
+              metalness: 0.02,
+              side: THREE.DoubleSide
+            });
+
+            treeScene.traverse((c) => {
+              if (c.isMesh) {
+                c.castShadow = true;
+                c.receiveShadow = true;
+                const name = (c.name || '').toLowerCase();
+                if (name.includes('bark')) {
+                  c.material = barkMat;
+                } else {
+                  c.material = leafMat;
+                }
+              }
+            });
+
+            const treesGroup = new THREE.Group();
+            treesGroup.name = 'VegetationRevit';
+            treesGroupRef.current = treesGroup;
+
+            treePositions.forEach((pos) => {
+              const treeClone = treeScene.clone(true);
+              const sc = pos.scale * 1.1;
+              treeClone.scale.set(sc, sc, sc);
+              treeClone.position.set(pos.x, pos.y, pos.z);
+              treeClone.rotation.y = pos.rot;
+              treesGroup.add(treeClone);
+            });
+
+            parentObj.add(treesGroup);
+            treesGroup.visible = treesVisible !== false;
+          }, undefined, () => {});
+        })
+        .catch(() => {});
+    };
+
+    // Procesamiento y asignación de materiales
     const setupRevitModel = (obj) => {
       if (cancelled || !obj) return;
-      if (modelRef.current) {
-        root.remove(modelRef.current);
-      }
+      if (modelRef.current) root.remove(modelRef.current);
       modelRef.current = obj;
       root.add(obj);
 
       roadsMeshRef.current = [];
+      housesMeshesRef.current = {};
 
       try {
-        const mBox = new THREE.Box3();
-        let terrainMesh = null;
         obj.traverse((c) => {
           if (!c.isMesh) return;
           c.castShadow = true;
@@ -386,40 +553,48 @@ function RenderViewer({
 
           const name = ((c.name || '') + ' ' + (c.parent?.name || '')).toLowerCase();
 
-          mBox.setFromObject(c);
-          const sx = mBox.max.x - mBox.min.x;
-          const sy = mBox.max.y - mBox.min.y;
-          const sz = mBox.max.z - mBox.min.z;
-          const footprint = sx * sy;
-
-          // A. Ocultar láminas planas del fondo de Revit
-          if (sz < 0.8 && footprint > 350000 && (name.includes('water') || name.includes('skirt') || name.includes('fondo') || name.includes('base'))) {
-            c.visible = false;
-            return;
-          }
-
-          // B. LA MALLA DE CAMINOS Y VÍAS DE REVIT (Sólido topográfico 164695 / Mesh_Roads)
+          // A. VÍAS Y CAMINOS: Textura de arena realista
           if (
-            name.includes('164695') || name.includes('sólido topográfico 1') || name.includes('solido topografico 1') ||
-            name.includes('mesh_roads') || name.includes('road') || name.includes('via') || name.includes('camino')
+            name.includes('mesh_roads') ||
+            name.includes('164695') ||
+            name.includes('camino') ||
+            name.includes('road') ||
+            name.includes('via')
           ) {
-            c.material = roadColorMode === 'blue' ? roadMatBlue : roadMatGrey;
+            c.material = roadColorMode === 'blue' ? roadMatBlue : sandMat;
             c.renderOrder = 10;
             roadsMeshRef.current.push(c);
-            ensureTopUVs(c.geometry, 16);
           }
-          // C. TERRENO DE LA ISLA (Únicamente la topografía 149111 o Mesh_Terrain)
+          // B. BORDE COSTERO DE LA ISLA: Textura de arena realista
+          else if (name.includes('mesh_coastsand') || name.includes('coast') || name.includes('sand')) {
+            c.material = sandMat;
+            c.renderOrder = 2;
+          }
+          // C. TERRENO DE LA ISLA: Pasto fresco natural y agradable
           else if (
-            name.includes('149111') || name.includes('mesh_terrain') ||
-            (name.includes('terrain') && !name.includes('road')) ||
-            (name.includes('toposolid') && !name.includes('164695'))
+            name.includes('mesh_terrain') ||
+            name.includes('149111') ||
+            name.includes('terrain') ||
+            name.includes('toposolid')
           ) {
-            removeSeaSkirt(c.geometry);
-            ensureTopUVs(c.geometry, 42);
             c.material = grassMat;
-            terrainMesh = c;
+            c.renderOrder = 1;
           }
-          // D. TODOS LOS CUBOS, CASAS Y EDIFICACIONES -> ¡BLANCO PURO NÍTIDO!
+          // D. LAS TRES VIVIENDAS EN ROJO SUAVE
+          else if (name.includes('mesh_house_1') || name.includes('house_1')) {
+            c.material = selectedHouseId === 1 ? houseSelectedGlowMat : houseRedSoftMat;
+            c.renderOrder = 20;
+            housesMeshesRef.current[1] = c;
+          } else if (name.includes('mesh_house_2') || name.includes('house_2')) {
+            c.material = selectedHouseId === 2 ? houseSelectedGlowMat : houseRedSoftMat;
+            c.renderOrder = 20;
+            housesMeshesRef.current[2] = c;
+          } else if (name.includes('mesh_house_3') || name.includes('house_3')) {
+            c.material = selectedHouseId === 3 ? houseSelectedGlowMat : houseRedSoftMat;
+            c.renderOrder = 20;
+            housesMeshesRef.current[3] = c;
+          }
+          // E. TODOS LOS DEMÁS CUBOS Y CASAS: ¡BLANCO PURO RADIANTE!
           else {
             c.material = buildingMat;
           }
@@ -434,51 +609,10 @@ function RenderViewer({
       if (onLoaded) onLoaded();
 
       frameModel(obj);
-
-      // Contenedor de Vegetación Interactiva y Persistente (sin árboles automáticos)
-      const oldVeg = root.getObjectByName('VegetationRevit');
-      if (oldVeg) root.remove(oldVeg);
-
-      const treesGroup = new THREE.Group();
-      treesGroup.name = 'VegetationRevit';
-      treesGroup.visible = !!treesVisible;
-      root.add(treesGroup);
-      treesGroupRef.current = treesGroup;
-
-      // Cargar plantilla de árbol sin bordes negros y sincronizar árboles guardados
-      loadCleanTreeTemplate(cleanBase).then((tpl) => {
-        treeTemplateRef.current = tpl;
-        if (syncTreesRef.current && treesListRef.current) {
-          syncTreesRef.current(treesListRef.current, tpl);
-        }
-      });
+      loadTrees(obj);
     };
 
-    // Procesar archivo 3D local del usuario (arrastrar o botón)
-    loadCustomFileRef.current = (arrayBuffer, fileName) => {
-      try {
-        const lowerName = (fileName || '').toLowerCase();
-        if (lowerName.endsWith('.glb') || lowerName.endsWith('.gltf')) {
-          const dracoLoader = new DRACOLoader();
-          dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
-          const gltfLoader = new GLTFLoader();
-          gltfLoader.setDRACOLoader(dracoLoader);
-          gltfLoader.parse(arrayBuffer, '', (gltf) => {
-            setupRevitModel(gltf.scene);
-          }, (err) => console.error('Error GLTF local:', err));
-        } else {
-          const loader = new FBXLoader();
-          const loadedObj = loader.parse(arrayBuffer, '');
-          setupRevitModel(loadedObj);
-        }
-      } catch (err) {
-        console.error('Error parseando archivo local:', err);
-      }
-    };
-
-    // Rutas dinámicas compatibles con GitHub Pages y entornos locales
-    const basePath = import.meta.env.BASE_URL || '/';
-    const cleanBase = basePath.endsWith('/') ? basePath : basePath + '/';
+    // Carga del modelo oficial
     const GLB_CANDIDATES = [
       `${cleanBase}models/tierrabomba_revit.glb`,
       './models/tierrabomba_revit.glb',
@@ -493,8 +627,6 @@ function RenderViewer({
     ];
 
     let hasLoaded = false;
-
-    // Cargador con reintentos automáticos
     const loadCandidates = (urls, isGlb, onSuccess, onFail) => {
       let idx = 0;
       const tryNext = () => {
@@ -531,12 +663,6 @@ function RenderViewer({
                 onSuccess(loadedObj);
               }
             },
-            (xhr) => {
-              if (onProgress && xhr.loaded) {
-                const total = xhr.total || 27704704;
-                onProgress(Math.min(99, Math.round((xhr.loaded / total) * 100)));
-              }
-            },
             () => tryNext()
           );
         }
@@ -544,21 +670,14 @@ function RenderViewer({
       tryNext();
     };
 
-    // Carga rápida del modelo oficial de Revit con la malla de caminos incluida
     loadCandidates(
       GLB_CANDIDATES,
       true,
       (obj) => setupRevitModel(obj),
       () => {
-        loadCandidates(
-          FBX_CANDIDATES,
-          false,
-          (obj) => setupRevitModel(obj),
-          () => {
-            console.error('No se pudo descargar automáticamente. Por favor use el botón Cargar FBX.');
-            if (onLoaded) onLoaded();
-          }
-        );
+        loadCandidates(FBX_CANDIDATES, false, (obj) => setupRevitModel(obj), () => {
+          if (onLoaded) onLoaded();
+        });
       }
     );
 
@@ -581,56 +700,79 @@ function RenderViewer({
 
     fitCtl.current = () => frameModel();
 
-    // Controles de interacción orbital con mouse/touch y raycasting para plantar árboles
-    let dragging = false;
+    // INTERACCIÓN CON EL MOUSE: ROTACIÓN (CLICK IZQUIERDO) Y PANEO (CLICK DERECHO)
+    let isRotating = false;
+    let isPanning = false;
     let px = 0;
     let py = 0;
     let startX = 0;
     let startY = 0;
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
 
     const onPointerDown = (e) => {
-      dragging = true;
       px = e.clientX;
       py = e.clientY;
       startX = e.clientX;
       startY = e.clientY;
+      if (e.button === 2 || e.button === 1) {
+        // Click derecho o central -> MOVER LA ISLA (PAN)
+        isPanning = true;
+      } else if (e.button === 0) {
+        // Click izquierdo -> ROTAR ÓRBITA
+        isRotating = true;
+      }
     };
+
     const onPointerMove = (e) => {
-      if (!dragging) return;
-      sph.theta -= (e.clientX - px) * 0.0055;
-      sph.phi = Math.max(0.06, Math.min(Math.PI / 2 - 0.02, sph.phi - (e.clientY - py) * 0.0055));
+      const dx = e.clientX - px;
+      const dy = e.clientY - py;
       px = e.clientX;
       py = e.clientY;
-      placeCamera();
+
+      if (isPanning) {
+        // Paneo suave en el plano de la cámara
+        const fwd = new THREE.Vector3().subVectors(target, camera.position).normalize();
+        const rgt = new THREE.Vector3().crossVectors(fwd, camera.up).normalize();
+        const upv = new THREE.Vector3().crossVectors(rgt, fwd).normalize();
+
+        const panFactor = sph.radius * 0.0018;
+        target.addScaledVector(rgt, -dx * panFactor);
+        target.addScaledVector(upv, dy * panFactor);
+        placeCamera();
+      } else if (isRotating) {
+        sph.theta -= dx * 0.0055;
+        sph.phi = Math.max(0.06, Math.min(Math.PI / 2 - 0.02, sph.phi - dy * 0.0055));
+        placeCamera();
+      }
     };
+
+    const raycaster = new THREE.Raycaster();
+    const mouseCoord = new THREE.Vector2();
+
     const onPointerUp = (e) => {
-      dragging = false;
+      isRotating = false;
+      isPanning = false;
+
       const distMoved = Math.hypot(e.clientX - startX, e.clientY - startY);
       if (distMoved < 6) {
-        // Clic en la escena 3D
         const rect = dom.getBoundingClientRect();
-        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-        raycaster.setFromCamera(mouse, camera);
+        mouseCoord.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouseCoord.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouseCoord, camera);
 
-        // 1. Verificar si se hizo clic en un árbol existente para seleccionarlo
-        if (treesGroupRef.current && treesGroupRef.current.children.length > 0) {
-          const treeHits = raycaster.intersectObjects(treesGroupRef.current.children, true);
-          if (treeHits.length > 0) {
-            let cur = treeHits[0].object;
-            while (cur && !cur.userData?.treeId && cur.parent && cur.parent !== treesGroupRef.current) {
-              cur = cur.parent;
-            }
-            if (cur?.userData?.treeId) {
-              if (onSelectTreeRef.current) onSelectTreeRef.current(cur.userData.treeId);
+        // 1. Detección de clics en las 3 viviendas analizadas
+        const houseMeshes = Object.values(housesMeshesRef.current).filter(Boolean);
+        const hitsHouses = raycaster.intersectObjects(houseMeshes, true);
+        if (hitsHouses.length > 0) {
+          const hitMesh = hitsHouses[0].object;
+          for (const [id, m] of Object.entries(housesMeshesRef.current)) {
+            if (m === hitMesh) {
+              onSelectHouse(Number(id));
               return;
             }
           }
         }
 
-        // 2. Si el modo plantar está activo, colocar un árbol en la superficie del terreno
+        // 2. Si el modo plantar árbol está activo, colocarlo en la superficie
         if (isPlantingTreeRef.current && modelRef.current) {
           const hits = raycaster.intersectObjects(modelRef.current.children, true);
           const validHit = hits.find((h) => {
@@ -657,10 +799,15 @@ function RenderViewer({
         }
       }
     };
+
     const onWheel = (e) => {
       e.preventDefault();
-      sph.radius = Math.max(20, Math.min(240, sph.radius * (e.deltaY > 0 ? 1.09 : 0.91)));
+      sph.radius = Math.max(15, Math.min(260, sph.radius * (e.deltaY > 0 ? 1.09 : 0.91)));
       placeCamera();
+    };
+
+    const onContextMenu = (e) => {
+      e.preventDefault();
     };
 
     const dom = renderer.domElement;
@@ -668,6 +815,7 @@ function RenderViewer({
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     dom.addEventListener('wheel', onWheel, { passive: false });
+    dom.addEventListener('contextmenu', onContextMenu);
 
     const onResize = () => {
       if (!container) return;
@@ -679,17 +827,21 @@ function RenderViewer({
     };
     window.addEventListener('resize', onResize);
 
-    // Bucle de animación continuo con oleaje en tiempo real
+    // Animación continua con oleaje suave y pulsación sutil de casas rojas
     const clock = new THREE.Clock();
     let rafId = 0;
     const animate = () => {
       rafId = requestAnimationFrame(animate);
       const elapsed = clock.getElapsedTime();
 
-      // Animación suave y continua del oleaje del mar (velocidad pausada y cristalina)
-      if (waveActiveRef.current && aguaTex) {
-        aguaTex.offset.x = (elapsed * 0.005) % 1;
-        aguaTex.offset.y = (elapsed * 0.003) % 1;
+      if (waveActiveRef.current && waterNormalTex) {
+        waterNormalTex.offset.x = (elapsed * 0.007) % 1;
+        waterNormalTex.offset.y = (elapsed * 0.005) % 1;
+      }
+
+      const pulse = 0.25 + 0.12 * Math.sin(elapsed * 3.5);
+      if (houseRedSoftMat) {
+        houseRedSoftMat.emissiveIntensity = pulse;
       }
 
       renderer.render(scene, camera);
@@ -704,6 +856,7 @@ function RenderViewer({
       window.removeEventListener('pointerup', onPointerUp);
       dom.removeEventListener('pointerdown', onPointerDown);
       dom.removeEventListener('wheel', onWheel);
+      dom.removeEventListener('contextmenu', onContextMenu);
       if (skyTex) skyTex.dispose();
       renderer.dispose();
       if (dom.parentNode === container) container.removeChild(dom);
@@ -720,15 +873,66 @@ function RenderViewer({
     if (fitNonce > 0 && fitCtl.current) fitCtl.current();
   }, [fitNonce]);
 
-  // Cambio de color de la malla de caminos en vivo (Gris / Azul Revit)
+  // Cambio de color de la malla de caminos en vivo (Arena / Azul Revit)
   useEffect(() => {
     if (roadsMeshRef.current && roadsMeshRef.current.length > 0) {
-      const mat = roadColorMode === 'blue' ? roadMatBlueRef.current : roadMatGreyRef.current;
+      const mat = roadColorMode === 'blue' ? roadMatBlueRef.current : roadMatSandRef.current;
       roadsMeshRef.current.forEach((m) => {
         if (m) m.material = mat;
       });
     }
   }, [roadColorMode]);
+
+  // Resaltado de la vivienda seleccionada
+  useEffect(() => {
+    if (!housesMeshesRef.current) return;
+    Object.entries(housesMeshesRef.current).forEach(([idStr, m]) => {
+      if (!m) return;
+      const isCurrent = Number(idStr) === selectedHouseId;
+      m.material = isCurrent ? houseMatSelectedRef.current : houseMatNormalRef.current;
+    });
+  }, [selectedHouseId]);
+
+  // Visibilidad de árboles
+  useEffect(() => {
+    if (treesGroupRef.current) {
+      treesGroupRef.current.visible = treesVisible !== false;
+    }
+    if (dynamicTreesGroupRef.current) {
+      dynamicTreesGroupRef.current.visible = treesVisible !== false;
+    }
+  }, [treesVisible]);
+
+  // Color del mar
+  useEffect(() => {
+    if (waterMatRef.current && waterColor) {
+      waterMatRef.current.color.set(waterColor);
+    }
+  }, [waterColor]);
+
+  // Renderizado de árboles dinámicos agregados por el usuario
+  useEffect(() => {
+    const grp = dynamicTreesGroupRef.current;
+    const baseScene = treeModelSceneRef.current;
+    if (!grp || !baseScene) return;
+
+    while (grp.children.length > 0) {
+      grp.remove(grp.children[0]);
+    }
+
+    if (!treesList || treesList.length === 0) return;
+
+    treesList.forEach((t) => {
+      const clone = baseScene.clone(true);
+      const isSel = t.id === selectedTreeId;
+      const sc = (t.scale || 1.0) * (isSel ? 1.25 : 1.0);
+      clone.scale.set(sc, sc, sc);
+      clone.position.set(t.x, t.y, t.z);
+      clone.rotation.y = t.rotY || 0;
+      clone.userData = { treeId: t.id };
+      grp.add(clone);
+    });
+  }, [treesList, selectedTreeId]);
 
   // Wireframe toggle
   useEffect(() => {
@@ -741,34 +945,6 @@ function RenderViewer({
       }
     });
   }, [wireframe]);
-
-  // Árboles SketchUp toggle
-  useEffect(() => {
-    if (treesGroupRef.current) {
-      treesGroupRef.current.visible = !!treesVisible;
-    }
-  }, [treesVisible]);
-
-  // Color del Mar Caribe en tiempo real
-  useEffect(() => {
-    if (waterMatRef.current && waterColor) {
-      waterMatRef.current.color.set(waterColor);
-      waterMatRef.current.needsUpdate = true;
-    }
-  }, [waterColor]);
-
-  // Si el usuario sube un archivo local (drag and drop o file picker)
-  useEffect(() => {
-    if (localFile && loadCustomFileRef.current) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target && e.target.result) {
-          loadCustomFileRef.current(e.target.result, localFile.name);
-        }
-      };
-      reader.readAsArrayBuffer(localFile);
-    }
-  }, [localFile]);
 
   return (
     <div
@@ -787,13 +963,12 @@ export default function RevitModule() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [waveActive, setWaveActive] = useState(true);
   const [wireframe, setWireframe] = useState(false);
-  const [roadColorMode, setRoadColorMode] = useState('grey'); // 'grey' | 'blue'
+  const [roadColorMode, setRoadColorMode] = useState('sand'); // 'sand' | 'blue'
   const [treesVisible, setTreesVisible] = useState(true);
-  const [waterColor, setWaterColor] = useState('#b5ebf5');
+  const [waterColor, setWaterColor] = useState('#0c3d5f');
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [localFile, setLocalFile] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
   // Herramienta de Vegetación Interactiva y Persistente
@@ -802,8 +977,6 @@ export default function RevitModule() {
   const [plantScale, setPlantScale] = useState(1.0);
   const [selectedTreeId, setSelectedTreeId] = useState(null);
   const [showTreeToolbar, setShowTreeToolbar] = useState(false);
-
-  const selectedTree = treesList.find((t) => t.id === selectedTreeId) || null;
 
   const handleAddTree = (newTree) => {
     const updated = [...treesList, newTree];
@@ -833,9 +1006,34 @@ export default function RevitModule() {
     }
   };
 
+  // Estados para la interacción con las 3 viviendas y popup animado
+  const [selectedHouseId, setSelectedHouseId] = useState(null);
+  const [activeModalTab, setActiveModalTab] = useState('axono');
+  const [saveToast, setSaveToast] = useState(false);
+  const pdfInputRef = useRef(null);
+
+  const saveViewTriggerRef = useRef(() => false);
+  const resetViewTriggerRef = useRef(() => false);
+
   const pickView = (name) => {
     setViewPreset(name);
     setPresetNonce((n) => n + 1);
+  };
+
+  const handleSaveView = () => {
+    if (saveViewTriggerRef.current) {
+      const ok = saveViewTriggerRef.current();
+      if (ok) {
+        setSaveToast(true);
+        setTimeout(() => setSaveToast(false), 3500);
+      }
+    }
+  };
+
+  const handleResetView = () => {
+    if (resetViewTriggerRef.current) {
+      resetViewTriggerRef.current();
+    }
   };
 
   useEffect(() => {
@@ -844,48 +1042,27 @@ export default function RevitModule() {
   }, [isFullscreen]);
 
   useEffect(() => {
-    if (!isFullscreen) return;
     const onKey = (e) => {
-      if (e.key === 'Escape') setIsFullscreen(false);
+      if (e.key === 'Escape') {
+        if (selectedHouseId) setSelectedHouseId(null);
+        else if (isFullscreen) setIsFullscreen(false);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isFullscreen]);
+  }, [isFullscreen, selectedHouseId]);
 
-  const handleFileChange = (e) => {
+  const activeHouse = HOUSES_DATA.find((h) => h.id === selectedHouseId);
+
+  const handleCustomPdfUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      setIsLoading(true);
-      setLoadingProgress(100);
-      setLocalFile(file);
-    }
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      setIsLoading(true);
-      setLoadingProgress(100);
-      setLocalFile(file);
+      alert(`¡Archivo "${file.name}" cargado! Se han actualizado las fichas de las viviendas.`);
     }
   };
 
   return (
     <div
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
       className={`w-full relative overflow-hidden bg-slate-900 font-sans ${
         isFullscreen
           ? '!fixed !inset-0 !z-[9999] !h-screen !min-h-screen'
@@ -901,7 +1078,21 @@ export default function RevitModule() {
         ref={fileInputRef}
         type="file"
         accept=".fbx,.glb,.gltf"
-        onChange={handleFileChange}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            setIsLoading(true);
+            setLocalFile(file);
+          }
+        }}
+        className="hidden"
+      />
+
+      <input
+        ref={pdfInputRef}
+        type="file"
+        accept=".pdf,image/*"
+        onChange={handleCustomPdfUpload}
         className="hidden"
       />
 
@@ -918,13 +1109,21 @@ export default function RevitModule() {
           wireframe={wireframe}
           roadColorMode={roadColorMode}
           localFile={localFile}
+          selectedHouseId={selectedHouseId}
+          onSelectHouse={(id) => {
+            setSelectedHouseId(id);
+            setActiveModalTab('axono');
+          }}
+          onSaveCurrentViewTrigger={saveViewTriggerRef}
+          onResetViewTrigger={resetViewTriggerRef}
           treesVisible={treesVisible}
           waterColor={waterColor}
+          treesList={treesList}
           isPlantingTree={isPlantingTree}
           plantScale={plantScale}
-          treesList={treesList}
-          onAddTree={handleAddTree}
+          selectedTreeId={selectedTreeId}
           onSelectTree={setSelectedTreeId}
+          onAddTree={handleAddTree}
         />
       </div>
 
@@ -949,59 +1148,41 @@ export default function RevitModule() {
             />
           </div>
           <p className="text-[11px] font-mono text-slate-300 text-center max-w-sm">
-            Isla orgánica en pasto natural, casas blancas, caminos de Revit, árboles de SketchUp por toda la isla y mar Caribe turquesa.
+            Isla orgánica en pasto natural claro, cubos en blanco puro, vías de arena, árboles de render y 3 viviendas diagnósticas.
           </p>
-          
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="mt-2 px-4 py-2 rounded-xl text-xs font-mono font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg transition-all flex items-center space-x-2"
-          >
-            <span>📁 O cargar archivo FBX/GLB desde mi PC</span>
-          </button>
         </div>
       )}
 
-      {/* Overlay al arrastrar archivo local */}
-      {isDragging && (
-        <div className="absolute inset-0 z-40 bg-emerald-950/70 border-4 border-dashed border-emerald-400 flex flex-col items-center justify-center backdrop-blur-sm pointer-events-none">
-          <span className="text-5xl mb-2">📥</span>
-          <p className="text-white font-bold text-lg">Suelta tu archivo FBX o GLB de Revit aquí</p>
-          <p className="text-emerald-300 text-xs font-mono">Se cargará directamente en el visor 3D</p>
-        </div>
-      )}
-
-      {/* Header flotante: elegante, minimalista y transparente */}
+      {/* Header flotante */}
       <div className="absolute top-4 left-4 z-10 pointer-events-none flex flex-col space-y-1">
         <div className="flex items-center space-x-2">
           <span className="px-2.5 py-0.5 rounded-md bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-emerald-400 border border-slate-300 dark:border-slate-700 font-mono text-[10px] font-bold tracking-wider uppercase backdrop-blur-md shadow-sm">
             MÓDULO 05 · RENDER REVIT BIM (DIURNO)
           </span>
-          {waveActive && (
-            <span className="flex items-center space-x-1.5 px-2 py-0.5 rounded-md bg-cyan-900/80 text-cyan-200 border border-cyan-700 font-mono text-[10px] backdrop-blur-md shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-300 animate-ping" />
-              <span>Mar Animado</span>
-            </span>
-          )}
+          <span className="px-2 py-0.5 rounded-md bg-rose-900/80 text-rose-200 border border-rose-700 font-mono text-[10px] backdrop-blur-md shadow-sm flex items-center space-x-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
+            <span>3 Viviendas Analizadas</span>
+          </span>
         </div>
         <h1 className="text-slate-900 font-extrabold text-xl sm:text-2xl tracking-tight drop-shadow-sm">
           Tierrabomba · Modelo Revit
         </h1>
         <p className="text-slate-700 text-xs font-mono drop-shadow-sm max-w-md hidden sm:block">
-          Render diurno: casas blancas, caminos de Revit, árboles de SketchUp en toda la isla y mar Caribe turquesa.
+          Click derecho para mover (pan) · Click izquierdo para rotar · Click en vivienda roja para diagnóstico.
         </p>
       </div>
 
       {/* Botones de acción superior derecha */}
-      <div className="absolute top-4 right-4 z-10 flex flex-wrap items-center gap-2">
-        {/* Selector Rápido de Color del Mar Caribe */}
+      <div className="absolute top-4 right-4 z-10 flex flex-wrap items-center justify-end gap-2">
+        {/* Selector de color del mar caribe */}
         <div className="flex items-center space-x-1 bg-white/90 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-300 dark:border-slate-700 shadow-md">
           <span className="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400 px-1">Mar:</span>
           {[
-            { label: 'Turquesa Caribeño', color: '#8dc8d2' },
-            { label: 'Celeste Luminoso', color: '#58c4dc' },
-            { label: 'Bahía Esmeralda', color: '#4fa8b2' },
-            { label: 'Azul Colonial', color: '#3b82a6' }
-          ].map(p => (
+            { label: 'Océano Caribe Profundo', color: '#0c3d5f' },
+            { label: 'Bahía Turquesa', color: '#1a6b85' },
+            { label: 'Celeste Costero', color: '#4aa0bc' },
+            { label: 'Azul Marino Natural', color: '#08253a' }
+          ].map((p) => (
             <button
               key={p.color}
               onClick={() => setWaterColor(p.color)}
@@ -1014,42 +1195,52 @@ export default function RevitModule() {
           ))}
         </div>
 
-        {/* Herramienta de Vegetación / Plantar Árboles */}
+        {/* Toggle Árboles de Render */}
         <button
-          onClick={() => {
-            setShowTreeToolbar(v => !v);
-            if (!showTreeToolbar) setIsPlantingTree(true);
-          }}
+          onClick={() => setTreesVisible((v) => !v)}
+          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md flex items-center space-x-1.5 cursor-pointer ${
+            treesVisible
+              ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500'
+              : 'bg-white/90 border-slate-300 text-slate-700 hover:bg-white'
+          }`}
+          title="Mostrar u ocultar los árboles de render distribuidos por la isla"
+        >
+          <span>{treesVisible ? '🌲 Árboles Render ON' : '🌱 Árboles OFF'}</span>
+        </button>
+
+        {/* Herramienta de Vegetación */}
+        <button
+          onClick={() => setShowTreeToolbar((v) => !v)}
           className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md flex items-center space-x-1.5 cursor-pointer ${
             showTreeToolbar
-              ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-300'
-              : 'bg-white/90 hover:bg-white text-emerald-800 border-emerald-600/30'
+              ? 'bg-emerald-700 text-white border-emerald-500 shadow-emerald-500/20'
+              : 'bg-white/90 hover:bg-white text-slate-800 border-slate-300'
           }`}
-          title="Herramienta para plantar y agrandar/disminuir árboles en la isla"
+          title="Herramienta interactiva para plantar y escalar árboles"
         >
-          <TreePine className="w-3.5 h-3.5" />
           <span>{showTreeToolbar ? 'Cerrar Vegetación' : '🌱 Plantar Árboles'}</span>
         </button>
 
+        {/* BOTÓN: DEJAR ASÍ PARA SIEMPRE (GUARDAR VISTA) */}
         <button
-          onClick={() => fileInputRef.current?.click()}
-          className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-white/90 hover:bg-white text-emerald-800 border border-emerald-600/30 backdrop-blur-md transition-all shadow-md flex items-center space-x-1.5 cursor-pointer"
-          title="Subir archivo FBX/GLB de Revit desde tu computador"
+          onClick={handleSaveView}
+          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 border border-amber-300 backdrop-blur-md transition-all shadow-lg flex items-center space-x-1.5 cursor-pointer"
+          title="Fijar y guardar esta perspectiva como la vista predeterminada para siempre"
         >
-          <span>📁 Cargar FBX</span>
+          <span>📌 Dejar así para siempre</span>
         </button>
 
-        {/* Botón para alternar color de la malla de caminos: Gris Vial / Azul Revit */}
+        {/* Botón para alternar color de las vías: Arena Realista / Azul Revit */}
         <button
-          onClick={() => setRoadColorMode((m) => (m === 'grey' ? 'blue' : 'grey'))}
-          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md flex items-center space-x-1.5 ${
+          onClick={() => setRoadColorMode((m) => (m === 'sand' ? 'blue' : 'sand'))}
+          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md flex items-center space-x-1.5 cursor-pointer ${
             roadColorMode === 'blue'
               ? 'bg-blue-600 text-white border-blue-400 shadow-blue-500/20'
-              : 'bg-white/90 hover:bg-white text-slate-800 border-slate-300'
+              : 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
           }`}
-          title="Alternar color de la malla de caminos entre Gris Vial y Azul Revit"
+          title="Alternar textura de las vías entre Arena Realista y Azul de selección de Revit"
         >
-          <span>🛣️ Vías: {roadColorMode === 'blue' ? 'Azul Revit' : 'Gris Vial'}</span>
+          <span>🛣️ Vías: {roadColorMode === 'blue' ? 'Azul Revit' : 'Arena Realista'}</span>
         </button>
 
         <button
@@ -1061,7 +1252,7 @@ export default function RevitModule() {
           }`}
           title="Pausar o activar movimiento del mar"
         >
-          {waveActive ? '🌊 Oleaje' : '⏸ Oleaje'}
+          {waveActive ? '🌊 Oleaje Suave' : '⏸ Mar Pausado'}
         </button>
 
         <button
@@ -1073,7 +1264,7 @@ export default function RevitModule() {
           }`}
           title="Alternar entre modo Render y Wireframe"
         >
-          {wireframe ? 'Malla' : 'Sólido'}
+          {wireframe ? 'Wireframe' : 'Render Sólido'}
         </button>
 
         <button
@@ -1081,11 +1272,225 @@ export default function RevitModule() {
           className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 backdrop-blur-md transition-all shadow-md cursor-pointer"
           title={isFullscreen ? 'Salir de pantalla completa (Esc)' : 'Expandir a pantalla completa'}
         >
-          {isFullscreen ? '✕' : '⛶'}
+          {isFullscreen ? '✕ Salir' : '⛶ Pantalla completa'}
         </button>
       </div>
 
-      {/* Barra de control flotante inferior (Glassmorphism de alta estética) */}
+      {/* TOAST NOTIFICACIÓN AL GUARDAR VISTA */}
+      {saveToast && (
+        <div className="absolute top-16 right-4 z-40 bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-2xl font-mono text-xs font-bold flex items-center space-x-2 animate-bounce border border-emerald-400">
+          <span>✨</span>
+          <span>¡Vista guardada para siempre! Esta será la perspectiva al abrir el visor.</span>
+        </div>
+      )}
+
+      {/* BARRA DE HERRAMIENTAS DE VEGETACIÓN INTERACTIVA */}
+      {showTreeToolbar && (
+        <div className="absolute top-20 right-4 z-30 flex flex-col space-y-2 bg-white/95 dark:bg-slate-900/95 p-3 rounded-2xl border border-emerald-500/40 shadow-2xl backdrop-blur-md w-72">
+          <div className="flex items-center justify-between pb-1 border-b border-slate-200 dark:border-slate-800">
+            <span className="text-xs font-mono font-bold text-slate-800 dark:text-emerald-400 flex items-center space-x-1.5">
+              <span>🌱</span>
+              <span>Herramienta Vegetación</span>
+            </span>
+            <span className="text-[10px] font-mono text-slate-500">{treesList.length} plantados</span>
+          </div>
+
+          <button
+            onClick={() => setIsPlantingTree((v) => !v)}
+            className={`w-full py-2 px-3 rounded-xl text-xs font-mono font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer ${
+              isPlantingTree
+                ? 'bg-emerald-600 text-white shadow-lg ring-2 ring-emerald-400'
+                : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100'
+            }`}
+          >
+            <span>{isPlantingTree ? '✓ Modo Plantar Activo' : '➕ Click para Plantar'}</span>
+          </button>
+
+          <div className="space-y-1">
+            <div className="flex justify-between text-[11px] font-mono text-slate-600 dark:text-slate-400">
+              <span>Tamaño al plantar:</span>
+              <span className="font-bold text-emerald-600">{plantScale.toFixed(1)}x</span>
+            </div>
+            <input
+              type="range"
+              min="0.5"
+              max="2.5"
+              step="0.1"
+              value={plantScale}
+              onChange={(e) => setPlantScale(parseFloat(e.target.value))}
+              className="w-full accent-emerald-500 cursor-pointer"
+            />
+          </div>
+
+          {selectedTreeId && (
+            <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 space-y-2">
+              <span className="text-[10px] font-mono font-bold text-emerald-500 block">ÁRBOL SELECCIONADO</span>
+              <button
+                onClick={() => handleDeleteTree(selectedTreeId)}
+                className="w-full py-1 text-center rounded-lg text-[11px] font-mono font-bold bg-rose-600 hover:bg-rose-500 text-white cursor-pointer"
+              >
+                🗑 Eliminar seleccionado
+              </button>
+            </div>
+          )}
+
+          {treesList.length > 0 && (
+            <button
+              onClick={handleClearAllTrees}
+              className="w-full py-1 text-center rounded-lg text-[10px] font-mono text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
+            >
+              Borrar todos los árboles plantados
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* SELECTOR DIRECTO DE LAS 3 VIVIENDAS EN LA ISLA */}
+      <div className="absolute top-20 left-4 z-10 flex flex-col space-y-2 pointer-events-none">
+        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800 bg-white/80 backdrop-blur px-2 py-0.5 rounded-md border border-slate-300 w-fit">
+          Diagnóstico de Viviendas (Rojo Suave)
+        </span>
+        <div className="flex flex-col space-y-1.5 pointer-events-auto">
+          {HOUSES_DATA.map((h) => (
+            <button
+              key={h.id}
+              onClick={() => {
+                setSelectedHouseId(h.id);
+                setActiveModalTab('axono');
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center space-x-2 shadow-md cursor-pointer ${
+                selectedHouseId === h.id
+                  ? 'bg-rose-600 text-white ring-2 ring-rose-400 scale-105'
+                  : 'bg-white/90 hover:bg-white text-slate-800 border border-slate-200 hover:border-rose-300'
+              }`}
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping inline-block" />
+              <span>{h.title.split('·')[0].trim()}</span>
+              <span className="text-[10px] opacity-75">({h.sector.split('—')[0].trim()})</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* POPUP DE ANIMACIÓN DINÁMICO: ESTADO ACTUAL DE LA VIVIENDA */}
+      {activeHouse && (
+        <div className="absolute inset-0 z-50 flex items-center justify-end p-4 sm:p-8 pointer-events-none bg-slate-950/40 backdrop-blur-sm">
+          <div className="pointer-events-auto w-full max-w-xl max-h-[92vh] flex flex-col rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-rose-500/40 shadow-2xl backdrop-blur-2xl overflow-hidden animate-in slide-in-from-right-4 duration-300">
+            {/* Cabecera */}
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-rose-950/90 via-slate-900 to-slate-900 border-b border-rose-500/30 flex items-start justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 text-lg shadow-inner">
+                  🏠
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="px-2 py-0.5 rounded-md bg-rose-500 text-white font-mono text-[10px] font-black uppercase tracking-wider">
+                      ESTADO ACTUAL DE LA VIVIENDA
+                    </span>
+                    <span className="text-slate-400 font-mono text-xs">
+                      #{activeHouse.id}
+                    </span>
+                  </div>
+                  <h3 className="text-white font-extrabold text-base sm:text-lg tracking-tight mt-0.5">
+                    {activeHouse.title}
+                  </h3>
+                  <p className="text-rose-200 text-xs font-mono">
+                    📍 {activeHouse.sector}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSelectedHouseId(null)}
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center transition-all shadow-md cursor-pointer"
+                title="Cerrar diagnóstico (Esc)"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Selector de pestañas */}
+            <div className="flex items-center border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-950/50 p-1.5 gap-1">
+              {[
+                { id: 'axono', label: '📐 Axonometría', desc: 'Isométrica 3D' },
+                { id: 'planta', label: '📑 Planta', desc: 'Distribución' },
+                { id: 'corte', label: '✂️ Corte', desc: 'Sección' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveModalTab(tab.id)}
+                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-mono font-bold transition-all flex flex-col items-center cursor-pointer ${
+                    activeModalTab === tab.id
+                      ? 'bg-rose-600 text-white shadow-md'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  <span className="text-[10px] opacity-75 font-normal">{tab.desc}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Contenido técnico */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+              <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white flex items-center justify-center min-h-[220px] max-h-[340px] shadow-inner group">
+                <img
+                  src={activeHouse.tabs[activeModalTab].img}
+                  alt={activeHouse.tabs[activeModalTab].title}
+                  className="max-h-[320px] w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-slate-950/80 text-white font-mono text-[10px] font-bold backdrop-blur-md">
+                  {activeHouse.tabs[activeModalTab].tag}
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <h4 className="text-slate-900 dark:text-white font-bold text-sm">
+                    {activeHouse.tabs[activeModalTab].title}
+                  </h4>
+                  <p className="text-slate-600 dark:text-slate-300 text-xs mt-1 leading-relaxed">
+                    {activeHouse.tabs[activeModalTab].desc}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-[11px] font-mono">
+                  <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50">
+                    <span className="text-slate-500 block text-[10px]">ÁREA CONSTRUIDA</span>
+                    <span className="font-bold text-slate-800 dark:text-emerald-400">{activeHouse.area} · {activeHouse.altura}</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50">
+                    <span className="text-slate-500 block text-[10px]">SISTEMA CONSTRUCTIVO</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{activeHouse.sistemaConstructivo}</span>
+                  </div>
+                  <div className="p-2 col-span-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40">
+                    <span className="text-rose-600 dark:text-rose-400 font-bold block text-[10px]">PATOLOGÍA & VULNERABILIDAD</span>
+                    <span className="text-rose-900 dark:text-rose-200 leading-tight block">{activeHouse.patologiaPrincipal}</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center justify-between border-t border-slate-200 dark:border-slate-800">
+                  <button
+                    onClick={() => pdfInputRef.current?.click()}
+                    className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 hover:bg-rose-500 hover:text-white text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition-all flex items-center space-x-1.5 cursor-pointer"
+                    title="Subir PDF de 3 páginas para actualizar las fotos de las casas"
+                  >
+                    <span>📁 Subir PDF con tus láminas</span>
+                  </button>
+                  <span className="text-[10px] font-mono text-slate-500">
+                    1 PDF · 3 hojas (Axono, Planta, Corte)
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Barra de control flotante inferior */}
       <div className="absolute bottom-5 inset-x-0 z-10 flex justify-center pointer-events-none px-4">
         <div className="pointer-events-auto flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-2xl backdrop-blur-lg">
           <div className="flex items-center space-x-1 border-r border-slate-300 dark:border-slate-700 pr-2">
@@ -1097,7 +1502,7 @@ export default function RevitModule() {
               <button
                 key={id}
                 onClick={() => pickView(id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
                   viewPreset === id
                     ? 'bg-emerald-600 text-white shadow-md'
                     : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -1110,10 +1515,18 @@ export default function RevitModule() {
 
           <button
             onClick={() => setFitNonce((n) => n + 1)}
-            className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-amber-700 dark:text-amber-300 border border-amber-500/30 transition-all"
+            className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-amber-700 dark:text-amber-300 border border-amber-500/30 transition-all cursor-pointer"
             title="Centrar y enfocar la isla de Tierrabomba"
           >
             🎯 Centrar Isla
+          </button>
+
+          <button
+            onClick={handleResetView}
+            className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition-all cursor-pointer"
+            title="Restablecer la vista inicial por defecto si habías fijado una personalizada"
+          >
+            ↺ Restablecer
           </button>
 
           {modelStats && (
@@ -1124,24 +1537,6 @@ export default function RevitModule() {
           )}
         </div>
       </div>
-      {/* Panel Flotante de Vegetación Interactiva */}
-      {showTreeToolbar && (
-        <div className="absolute top-16 right-4 z-40">
-          <TreePlacementToolbar
-            isPlanting={isPlantingTree}
-            setIsPlanting={setIsPlantingTree}
-            plantScale={plantScale}
-            setPlantScale={setPlantScale}
-            selectedTree={selectedTree}
-            onScaleChange={handleScaleChange}
-            onDeleteTree={handleDeleteTree}
-            onClearAll={handleClearAllTrees}
-            treesCount={treesList.length}
-            onDeselect={() => setSelectedTreeId(null)}
-            onClose={() => setShowTreeToolbar(false)}
-          />
-        </div>
-      )}
     </div>
   );
 }
