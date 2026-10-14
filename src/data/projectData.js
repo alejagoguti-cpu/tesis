@@ -298,10 +298,16 @@ export const projectInfo = {
         gradientStart: "#14b8a6",
         gradientEnd: "#0f766e",
         title: "OE-01: Dinámicas Comunitarias y Espaciales",
-        shortLines: ["OE-01", "Dinámicas", "Comunitarias", "& Espaciales"],
+        shortLines: [
+          "OE-01",
+          "Analizar las dinámicas",
+          "comunitarias y espaciales",
+          "de la vivienda y el colegio",
+          "en Tierrabomba."
+        ],
         cx: 310,
-        cy: 110,
-        r: 66,
+        cy: 98,
+        r: 80,
         badge: "Diagnóstico Comunitario",
         metric: "Vivienda & Colegio",
         area: "Dinámicas Locales",
@@ -321,10 +327,16 @@ export const projectInfo = {
         gradientStart: "#f59e0b",
         gradientEnd: "#b45309",
         title: "OE-02: Patrones de Crecimiento y Autoconstrucción",
-        shortLines: ["OE-02", "Crecimiento", "Progresivo &", "Autoconstrucción"],
-        cx: 480,
-        cy: 300,
-        r: 64,
+        shortLines: [
+          "OE-02",
+          "Identificar los patrones",
+          "de crecimiento progresivo",
+          "y autoconstrucción",
+          "locales."
+        ],
+        cx: 505,
+        cy: 295,
+        r: 80,
         badge: "Patrones Locales",
         metric: "Crecimiento Progresivo",
         area: "Autoconstrucción",
@@ -344,10 +356,16 @@ export const projectInfo = {
         gradientStart: "#3b82f6",
         gradientEnd: "#1d4ed8",
         title: "OE-03: Criterios de Diseño e Identidad Local",
-        shortLines: ["OE-03", "Criterios de", "Diseño & Identidad", "Ambos Proyectos"],
+        shortLines: [
+          "OE-03",
+          "Definir criterios",
+          "de diseño e identidad",
+          "local para orientar",
+          "ambos proyectos."
+        ],
         cx: 310,
-        cy: 480,
-        r: 66,
+        cy: 470,
+        r: 80,
         badge: "Criterios Proyectuales",
         metric: "Identidad Insular",
         area: "Ambos Proyectos",
@@ -367,10 +385,17 @@ export const projectInfo = {
         gradientStart: "#e06248",
         gradientEnd: "#b85438",
         title: "OE-04: Propuesta Arquitectónica Modular",
-        shortLines: ["OE-04", "Propuesta", "Modular &", "Expansión"],
-        cx: 140,
-        cy: 300,
-        r: 64,
+        shortLines: [
+          "OE-04",
+          "Diseñar una propuesta",
+          "arquitectónica modular",
+          "que permita la expansión",
+          "progresiva de",
+          "ambos proyectos."
+        ],
+        cx: 115,
+        cy: 295,
+        r: 80,
         badge: "Propuesta Proyectual",
         metric: "Expansión Progresiva",
         area: "Ambos Proyectos",
@@ -390,8 +415,8 @@ export const projectInfo = {
         to: "oe02",
         name: "Articulación OE-01 → OE-02: Dinámicas a Crecimiento",
         type: "directed",
-        pathD: "M368,145 Q465,185 470,240",
-        arrowTransform: "translate(470,240) rotate(78)",
+        pathD: "M375,138 Q475,175 488,225",
+        arrowTransform: "translate(488,225) rotate(75)",
         desc: "El análisis de dinámicas comunitarias fundamenta la comprensión de los patrones de autoconstrucción y crecimiento progresivo."
       },
       {
@@ -400,8 +425,8 @@ export const projectInfo = {
         to: "oe03",
         name: "Articulación OE-02 → OE-03: Patrones a Criterios",
         type: "directed",
-        pathD: "M460,358 Q425,435 365,455",
-        arrowTransform: "translate(365,455) rotate(162)",
+        pathD: "M490,365 Q450,440 375,448",
+        arrowTransform: "translate(375,448) rotate(174)",
         desc: "Los patrones de crecimiento progresivo y autoconstrucción informan los criterios de diseño e identidad para ambos proyectos."
       },
       {
@@ -410,8 +435,8 @@ export const projectInfo = {
         to: "oe04",
         name: "Articulación OE-03 → OE-04: Criterios a Propuesta Modular",
         type: "directed",
-        pathD: "M255,455 Q195,435 160,358",
-        arrowTransform: "translate(160,358) rotate(198)",
+        pathD: "M245,448 Q170,440 130,365",
+        arrowTransform: "translate(130,365) rotate(-118)",
         desc: "Los criterios de diseño e identidad local orientan la concepción modular y la expansión progresiva de ambos proyectos."
       },
       {
@@ -420,8 +445,8 @@ export const projectInfo = {
         to: "oe01",
         name: "Articulación OE-04 ↔ OE-01: Respuesta a Dinámicas Locales",
         type: "bidirectional",
-        pathD: "M150,240 Q155,185 252,145",
-        arrowTransform: "translate(252,145) rotate(-35)",
+        pathD: "M130,225 Q165,150 245,138",
+        arrowTransform: "translate(245,138) rotate(-10)",
         desc: "La propuesta modular responde directamente a las dinámicas comunitarias y espaciales analizadas en el territorio."
       },
       {
@@ -430,8 +455,8 @@ export const projectInfo = {
         to: "oe03",
         name: "Articulación OE-01 → OE-03: Diagnóstico a Identidad",
         type: "directed",
-        pathD: "M310,176 Q275,295 310,414",
-        arrowTransform: "translate(310,414) rotate(90)",
+        pathD: "M310,180 Q275,295 310,388",
+        arrowTransform: "translate(310,388) rotate(90)",
         desc: "Las dinámicas espaciales de la vivienda y el colegio nutren los criterios de identidad local para orientar ambos proyectos."
       },
       {
@@ -440,8 +465,8 @@ export const projectInfo = {
         to: "oe02",
         name: "Articulación OE-04 ↔ OE-02: Modulación y Autoconstrucción",
         type: "bidirectional",
-        pathD: "M202,300 Q310,250 418,300",
-        arrowTransform: "translate(418,300) rotate(22)",
+        pathD: "M197,295 Q310,255 423,295",
+        arrowTransform: "translate(423,295) rotate(20)",
         desc: "La propuesta arquitectónica modular integra y potencia los patrones de crecimiento progresivo y autoconstrucción comunitarios."
       }
     ]

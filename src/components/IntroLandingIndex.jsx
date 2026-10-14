@@ -533,10 +533,8 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                           {/* Node Text Label (Multi-line) with drop shadow */}
                           <text
                             textAnchor="middle"
-                            y={-node.shortLines.length * 6.5 + 4}
+                            y={-(node.shortLines.length - 1) * 5.5 - 2}
                             fill="#ffffff"
-                            fontSize="11"
-                            fontWeight="700"
                             fontFamily="Space Grotesk, sans-serif"
                             className="pointer-events-none select-none drop-shadow-md"
                           >
@@ -544,9 +542,10 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                               <tspan 
                                 key={idx} 
                                 x="0" 
-                                dy={idx === 0 ? 0 : 13.5}
+                                dy={idx === 0 ? 0 : (idx === 1 ? 13.5 : 10.5)}
                                 fontWeight={idx === 0 ? "800" : "600"}
-                                fontSize={idx === 0 ? "12" : "10"}
+                                fontSize={idx === 0 ? "12" : "8"}
+                                letterSpacing={idx === 0 ? "0.8" : "0"}
                               >
                                 {line}
                               </tspan>
