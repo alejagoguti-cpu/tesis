@@ -260,7 +260,7 @@ function triangulateDraped(points, maxEdge, heightAt, lift) {
   return g;
 }
 
-function labelSprite(text, color) {
+function labelSprite(text, color, k = 1) {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 128;
   const ctx = c.getContext('2d');
@@ -284,12 +284,12 @@ function labelSprite(text, color) {
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
-  sp.scale.set(3.2, 0.8, 1);
+  sp.scale.set(3.2 * k, 0.8 * k, 1);
   sp.renderOrder = 40;
   return sp;
 }
 
-export function buildZoneObject(item, heightAt) {
+export function buildZoneObject(item, heightAt, k = 1) {
   const group = new THREE.Group();
   group.userData = { planId: item.id, kind: 'zone' };
   const type = ZONE_TYPES.find((z) => z.id === item.type) || ZONE_TYPES[0];
@@ -303,7 +303,7 @@ export function buildZoneObject(item, heightAt) {
   fill.renderOrder = 20;
   group.add(fill);
 
-  const edge = ribbon(item.points.concat(item.points[0]), 0.06, heightAt, 0.07, false);
+  const edge = ribbon(item.points.concat(item.points[0]), 0.06 * k, heightAt, 0.07, false);
   if (edge) {
     const em = new THREE.Mesh(edge, new THREE.MeshBasicMaterial({
       color: color.clone().multiplyScalar(0.7), polygonOffset: true, polygonOffsetFactor: -10, polygonOffsetUnits: -10
@@ -315,8 +315,8 @@ export function buildZoneObject(item, heightAt) {
   const cx = item.points.reduce((s, p) => s + p.x, 0) / item.points.length;
   const cz = item.points.reduce((s, p) => s + p.z, 0) / item.points.length;
   const ch = heightAt(cx, cz);
-  const sp = labelSprite(item.name || type.name, type.color);
-  sp.position.set(cx, (ch === null ? 0.1 : ch) + 1.1, cz);
+  const sp = labelSprite(item.name || type.name, type.color, k);
+  sp.position.set(cx, (ch === null ? 0.1 : ch) + 1.1 * k, cz);
   group.add(sp);
   return group;
 }
@@ -324,19 +324,19 @@ export function buildZoneObject(item, heightAt) {
 // -----------------------------------------------------------------------------
 // Borrador (mientras el usuario dibuja)
 // -----------------------------------------------------------------------------
-export function buildDraftObject(mode, points, opts, heightAt) {
+export function buildDraftObject(mode, points, opts, heightAt, k = 1) {
   const group = new THREE.Group();
   const color = new THREE.Color(mode === 'zone' ? opts.color : '#f59e0b');
   points.forEach((p, i) => {
     const m = new THREE.Mesh(
-      new THREE.SphereGeometry(i === 0 ? 0.11 : 0.08, 16, 12),
+      new THREE.SphereGeometry((i === 0 ? 0.11 : 0.08) * k, 16, 12),
       new THREE.MeshBasicMaterial({ color: i === 0 ? 0xffffff : color, depthTest: false })
     );
     m.position.set(p.x, p.y + 0.12, p.z);
     m.renderOrder = 50;
     group.add(m);
     const ring = new THREE.Mesh(
-      new THREE.RingGeometry(0.1, 0.14, 24),
+      new THREE.RingGeometry(0.1 * k, 0.14 * k, 24),
       new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, depthTest: false, transparent: true, opacity: 0.9 })
     );
     ring.rotation.x = -Math.PI / 2;
@@ -346,7 +346,7 @@ export function buildDraftObject(mode, points, opts, heightAt) {
   });
   if (points.length >= 2) {
     const pts = mode === 'zone' && points.length >= 3 ? points.concat(points[0]) : points;
-    const g = ribbon(pts, mode === 'road' ? Math.max(0.08, opts.width || 0.2) : 0.06, heightAt, 0.09, false);
+    const g = ribbon(pts, mode === 'road' ? Math.max(0.08, opts.width || 0.2) : 0.06 * k, heightAt, 0.09, false);
     if (g) {
       const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({
         color, transparent: true, opacity: 0.75, depthTest: false, side: THREE.DoubleSide

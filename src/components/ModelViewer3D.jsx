@@ -5,7 +5,13 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { buildCartagenaTerritoryScene } from '../utils/cartagena3D.js';
-import { createSkyEnvironment } from '../utils/realTerritory.js';
+import { createSkyEnvironment, BASE as TB_BASE } from '../utils/realTerritory.js';
+import PlanningToolbar from './PlanningToolbar.jsx';
+import DiagnosticoColegio from './DiagnosticoColegio.jsx';
+import {
+  ZONE_TYPES, loadList as loadPlanList, saveList as savePlanList, createRoadMaterials,
+  buildRoadObject, buildZoneObject, buildDraftObject, disposeObject
+} from '../utils/planningTools.js';
 import { createSkyDome } from '../utils/caribeWater.js';
 import TierrabombaFutureModal from './TierrabombaFutureModal.jsx';
 import pastoTextureImg from '../assets/textura_pasto_m5.png';
@@ -170,6 +176,25 @@ export default function ModelViewer3D({ onSelectModule }) {
   const [rutas, setRutas] = useState(() => loadRutasList(STORAGE_RUTAS));
   const [puntosHg, setPuntosHg] = useState(() => loadRutasList(STORAGE_PUNTOS));
   const [routesNonce, setRoutesNonce] = useState(0);
+
+  // Zonificación y vías dibujadas (mismo panel que el módulo 03)
+  const M2_ROADS = 'tesis_m2_roads_v1', M2_ZONES = 'tesis_m2_zones_v1';
+  const [showPlan, setShowPlan] = useState(false);
+  const [showDiagColegio, setShowDiagColegio] = useState(false);
+  const [planMode, setPlanMode] = useState('none'); // 'none' | 'road' | 'zone'
+  const [zoneType, setZoneType] = useState('vivienda');
+  const [zoneName, setZoneName] = useState('');
+  const [roadWidth, setRoadWidth] = useState(0.6);
+  const [planDraft, setPlanDraft] = useState([]);
+  const [planRoads, setPlanRoads] = useState(() => loadPlanList(M2_ROADS));
+  const [planZones, setPlanZones] = useState(() => loadPlanList(M2_ZONES));
+  const planGroupRef = useRef(null);
+  const planDraftGroupRef = useRef(null);
+  const planMatsRef = useRef(null);
+  const planRef = useRef({});
+  planRef.current = { mode: planMode, draft: planDraft, zoneType, zoneName, roadWidth, roads: planRoads, zones: planZones };
+  const planHandlerRef = useRef(null);
+  const planFinishRef = useRef(null);
   const routesLayerRef = useRef(null);
   const rutasRef = useRef({});
   rutasRef.current = { mode: rutasMode, draft: rutaDraft, routeType, pointType, name: rutaName, rutas, puntosHg };
@@ -927,6 +952,18 @@ export default function ModelViewer3D({ onSelectModule }) {
         mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
 
+        // 0a. Modo vías y zonas: marcar un punto sobre el plano del mapa
+        if (planRef.current.mode !== 'none' && currentModelGroupRef.current && planHandlerRef.current) {
+          const root = currentModelGroupRef.current;
+          const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(root.position.y + 0.05));
+          const hit = new THREE.Vector3();
+          if (raycaster.ray.intersectPlane(plane, hit)) {
+            root.worldToLocal(hit);
+            planHandlerRef.current(hit.x, hit.z);
+          }
+          return;
+        }
+
         // 0. Modo recorridos de lanchas: marcar un punto sobre el plano del mapa
         if (rutasRef.current.mode !== 'none' && currentModelGroupRef.current && rutasHandlerRef.current) {
           const root = currentModelGroupRef.current;
@@ -1005,6 +1042,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     const domElem = renderer.domElement;
     const onDblClick = () => {
       if (rutasRef.current.mode === 'ruta' && rutasFinishRef.current) rutasFinishRef.current();
+      if (planRef.current.mode !== 'none' && planFinishRef.current) planFinishRef.current();
     };
     domElem.addEventListener('dblclick', onDblClick);
     domElem.addEventListener('mousedown', onMouseDown);
@@ -1101,6 +1139,74 @@ export default function ModelViewer3D({ onSelectModule }) {
       if (rutasRef.current.mode === 'none') return;
       if (e.key === 'Enter') finishRuta();
       if (e.key === 'Escape') setRutaDraft([]);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // ---- Zonificación y vías: manejadores ----
+  const finishPlan = () => {
+    const { mode, draft, zoneType: zt, zoneName: zn, roadWidth: rw, roads, zones } = planRef.current;
+    if (mode === 'road' && draft.length >= 2) {
+      const next = [...roads, { id: 'road_' + Date.now(), width: rw, points: draft.map(({ x, z }) => ({ x, z })) }];
+      setPlanRoads(next);
+      savePlanList(M2_ROADS, next);
+    } else if (mode === 'zone' && draft.length >= 3) {
+      const t = ZONE_TYPES.find((z) => z.id === zt) || ZONE_TYPES[0];
+      const next = [...zones, { id: 'zone_' + Date.now(), type: zt, name: (zn || '').trim() || t.name, points: draft.map(({ x, z }) => ({ x, z })) }];
+      setPlanZones(next);
+      savePlanList(M2_ZONES, next);
+      setZoneName('');
+    } else {
+      return;
+    }
+    setPlanDraft([]);
+  };
+  planFinishRef.current = finishPlan;
+  planHandlerRef.current = (x, z) => {
+    setPlanDraft((prev) => {
+      const last = prev[prev.length - 1];
+      if (last && Math.hypot(last.x - x, last.z - z) < 0.5) return prev;
+      return [...prev, { x, y: 0.05, z }];
+    });
+  };
+
+  // reconstruir zonas y vías sobre el mapa
+  useEffect(() => {
+    const root = currentModelGroupRef.current;
+    if (!root) return;
+    if (!planGroupRef.current || planGroupRef.current.parent !== root) {
+      const g = new THREE.Group();
+      g.name = 'PlanM2';
+      root.add(g);
+      planGroupRef.current = g;
+      const d = new THREE.Group();
+      d.name = 'PlanM2Draft';
+      root.add(d);
+      planDraftGroupRef.current = d;
+      if (!planMatsRef.current) planMatsRef.current = createRoadMaterials(new THREE.TextureLoader(), `${TB_BASE}textures/sand_diffuse.jpg`, `${TB_BASE}textures/sand_bump.jpg`);
+    }
+    const g = planGroupRef.current;
+    while (g.children.length) { const o = g.children[0]; g.remove(o); disposeObject(o); }
+    const flat = () => 0.05;
+    planZones.forEach((z) => g.add(buildZoneObject(z, flat, 4)));
+    planRoads.forEach((r) => g.add(buildRoadObject(r, flat, planMatsRef.current)));
+  }, [planRoads, planZones, routesNonce]);
+
+  useEffect(() => {
+    const d = planDraftGroupRef.current;
+    if (!d) return;
+    while (d.children.length) { const o = d.children[0]; d.remove(o); disposeObject(o); }
+    if (planMode === 'none' || planDraft.length === 0) return;
+    const zt = ZONE_TYPES.find((z) => z.id === zoneType) || ZONE_TYPES[0];
+    d.add(buildDraftObject(planMode, planDraft, { color: zt.color, width: roadWidth }, () => 0.05, 4));
+  }, [planDraft, planMode, zoneType, roadWidth, routesNonce]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (planRef.current.mode === 'none') return;
+      if (e.key === 'Enter') finishPlan();
+      if (e.key === 'Escape') setPlanDraft([]);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -1792,6 +1898,38 @@ export default function ModelViewer3D({ onSelectModule }) {
               </span>
             )}
           </button>
+          <button
+            onClick={() => setShowDiagColegio((v) => !v)}
+            className={`px-3.5 py-2 rounded-2xl text-xs font-sans font-semibold backdrop-blur-xl border transition-all shadow-md flex items-center space-x-2 cursor-pointer ${
+              showDiagColegio
+                ? 'bg-slate-900 text-white border-slate-900 ring-2 ring-amber-300'
+                : 'bg-white/95 hover:bg-slate-50 text-slate-800 border-slate-200/90'
+            }`}
+            title="Registro fotográfico y diagnóstico del colegio"
+          >
+            <span>{showDiagColegio ? 'Cerrar Diagnóstico' : '🏫 Diagnóstico del colegio'}</span>
+          </button>
+          <button
+            onClick={() => {
+              const v = !showPlan;
+              setShowPlan(v);
+              if (!v) { setPlanMode('none'); setPlanDraft([]); }
+              else { setRutasMode('none'); setRutaDraft([]); }
+            }}
+            className={`px-3.5 py-2 rounded-2xl text-xs font-sans font-semibold backdrop-blur-xl border transition-all shadow-md flex items-center space-x-2 cursor-pointer ${
+              showPlan
+                ? 'bg-amber-600 text-white border-amber-600 ring-2 ring-amber-300'
+                : 'bg-white/95 hover:bg-slate-50 text-slate-800 border-slate-200/90'
+            }`}
+            title="Dibujar la zonificación y las vías propuestas sobre el mapa"
+          >
+            <span>{showPlan ? 'Cerrar Zonificación' : '🗺️ Vías y Zonas'}</span>
+            {(planRoads.length + planZones.length) > 0 && (
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-1 ${showPlan ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'}`}>
+                {planRoads.length + planZones.length}
+              </span>
+            )}
+          </button>
         </div>
 
         {/* Panel Flotante de Vegetación Interactiva */}
@@ -1819,10 +1957,42 @@ export default function ModelViewer3D({ onSelectModule }) {
       {/* ========================================================================= */}
       {/* 3. TARJETA EDITORIAL BLANCA: PROPUESTA TERRITORIAL & PLAN MAESTRO 2026      */}
       {/* ========================================================================= */}
+      {showDiagColegio && <DiagnosticoColegio onClose={() => setShowDiagColegio(false)} />}
+
+      {showPlan && (
+        <PlanningToolbar
+          mode={planMode}
+          setMode={(m) => { setPlanMode(m); setPlanDraft([]); if (m !== 'none') { setRutasMode('none'); setRutaDraft([]); setIsPlantingTree(false); } }}
+          zoneType={zoneType}
+          setZoneType={setZoneType}
+          zoneName={zoneName}
+          setZoneName={setZoneName}
+          roadWidth={roadWidth}
+          setRoadWidth={setRoadWidth}
+          draftCount={planDraft.length}
+          onFinish={finishPlan}
+          onUndo={() => setPlanDraft((d) => d.slice(0, -1))}
+          onCancel={() => setPlanDraft([])}
+          roads={planRoads}
+          zones={planZones}
+          onDeleteRoad={(id) => { const n = planRoads.filter((r) => r.id !== id); setPlanRoads(n); savePlanList(M2_ROADS, n); }}
+          onDeleteZone={(id) => { const n = planZones.filter((r) => r.id !== id); setPlanZones(n); savePlanList(M2_ZONES, n); }}
+          onClearPlan={() => {
+            if (!window.confirm('¿Eliminar todas las vías y zonas dibujadas?')) return;
+            setPlanRoads([]); setPlanZones([]); savePlanList(M2_ROADS, []); savePlanList(M2_ZONES, []);
+          }}
+          onClose={() => { setShowPlan(false); setPlanMode('none'); setPlanDraft([]); }}
+          metersPerUnit={50}
+          widthMin={0.2}
+          widthMax={1.6}
+          posClass="top-20 right-4 z-[460]"
+        />
+      )}
+
       {showRutas && (
         <RutasLanchasPanel
           mode={rutasMode}
-          setMode={(m) => { setRutasMode(m); setRutaDraft([]); if (m !== 'none') { setIsPlantingTree(false); } }}
+          setMode={(m) => { setRutasMode(m); setRutaDraft([]); if (m !== 'none') { setIsPlantingTree(false); setPlanMode('none'); setPlanDraft([]); } }}
           routeType={routeType}
           setRouteType={setRouteType}
           pointType={pointType}

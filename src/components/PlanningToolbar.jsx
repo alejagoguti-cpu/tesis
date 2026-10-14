@@ -19,13 +19,14 @@ export default function PlanningToolbar({
   zoneType, setZoneType, zoneName, setZoneName,
   roadWidth, setRoadWidth,
   draftCount, onFinish, onUndo, onCancel,
-  roads, zones, onDeleteRoad, onDeleteZone, onClearPlan, onClose
+  roads, zones, onDeleteRoad, onDeleteZone, onClearPlan, onClose,
+  metersPerUnit = 35, widthMin = 0.08, widthMax = 0.45, posClass = 'top-32 right-4 z-30'
 }) {
   const drawing = mode === 'road' || mode === 'zone';
   const minPts = mode === 'zone' ? 3 : 2;
 
   return (
-    <div className="absolute top-32 right-4 z-30 w-80 max-h-[calc(100%-11rem)] overflow-y-auto rounded-2xl bg-white/95 border border-slate-200 shadow-2xl backdrop-blur-md p-3 space-y-3">
+    <div className={'absolute ' + posClass + ' w-80 max-h-[calc(100%-11rem)] overflow-y-auto rounded-2xl bg-white/95 border border-slate-200 shadow-2xl backdrop-blur-md p-3 space-y-3'}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[10px] font-mono font-bold tracking-widest text-amber-600 uppercase">Planeación</p>
@@ -43,9 +44,9 @@ export default function PlanningToolbar({
         <div className="space-y-1.5 p-2.5 rounded-xl bg-amber-50 border border-amber-200">
           <div className="flex justify-between text-[11px] font-mono text-slate-700">
             <span>Ancho de la vía</span>
-            <span className="font-bold">{(roadWidth * 35).toFixed(0)} m</span>
+            <span className="font-bold">{(roadWidth * metersPerUnit).toFixed(0)} m</span>
           </div>
-          <input type="range" min="0.08" max="0.45" step="0.01" value={roadWidth}
+          <input type="range" min={widthMin} max={widthMax} step="0.01" value={roadWidth}
             onChange={(e) => setRoadWidth(parseFloat(e.target.value))} className="w-full accent-amber-500" />
         </div>
       )}
@@ -117,7 +118,7 @@ export default function PlanningToolbar({
         {roads.map((r, i) => (
           <div key={r.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
             <span className="w-3 h-1.5 rounded-full shrink-0 bg-amber-500" />
-            <span className="flex-1 text-xs font-medium text-slate-800 truncate">Vía {i + 1} · {(r.width * 35).toFixed(0)} m</span>
+            <span className="flex-1 text-xs font-medium text-slate-800 truncate">Vía {i + 1} · {(r.width * metersPerUnit).toFixed(0)} m</span>
             <button onClick={() => onDeleteRoad(r.id)} className="text-rose-600 hover:text-rose-800 text-xs cursor-pointer" title="Eliminar vía">🗑</button>
           </div>
         ))}

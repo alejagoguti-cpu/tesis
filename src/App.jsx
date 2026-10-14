@@ -8,6 +8,7 @@ import RevitModule from './components/RevitModule';
 import Module11Territory from './components/Module11Territory';
 import RedColaborativa from './components/RedColaborativa';
 import RedRizoma from './components/RedRizoma';
+import RedTerritorio from './components/RedTerritorio';
 import IntroLandingIndex from './components/IntroLandingIndex';
 import Hero from './components/Hero';
 import Footer from './components/Footer';
@@ -145,6 +146,12 @@ export default function App() {
               {activeModule === 'red' && (
                 <SafeSection name="Módulo 1.3: Red Diseño Colaborativo">
                   <RedColaborativa />
+                </SafeSection>
+              )}
+
+              {activeModule === 'territorio' && (
+                <SafeSection name="Módulo 1.5: Tierra Bomba, territorio habitado">
+                  <RedTerritorio />
                 </SafeSection>
               )}
 

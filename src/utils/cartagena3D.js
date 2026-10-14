@@ -860,7 +860,7 @@ export async function buildCartagenaTerritoryScene({
     masterplanGroup.add(spotGroup);
   });
 
-  masterplanGroup.visible = true;
+  masterplanGroup.visible = false; // sin flechas ni pines: la zonificación la dibuja el usuario con el panel
   territoryGroup.add(masterplanGroup);
   animatedObjects.masterplanGroup = masterplanGroup;
   animatedObjects.hotspotRings = hotspotRings;
