@@ -24,12 +24,12 @@ export async function buildCartagenaTerritoryScene({
     grid: false,
   },
   colors = {
-    water: '#ffffff',
-    roads: '#334155',
-    terrain: '#ffffff',
+    water: '#bfc4c5',
+    roads: '#94a3b8',
+    terrain: '#c2c4b5',
     buildings: '#ffffff',
-    roofs: '#b45309',
-    manzanas: '#ffffff',
+    roofs: '#ffffff',
+    manzanas: '#c8b9a6',
     vehicles: '#e2635a',
     boats: '#24c8bd',
   },
@@ -63,80 +63,30 @@ export async function buildCartagenaTerritoryScene({
     catastroData = generateSyntheticFallback();
   }
 
-  // Load real textures with direct Three.js TextureLoader for maximum fidelity and crispness
-  const texLoader = new THREE.TextureLoader();
-
-  // 1. Pasto / Grass (Seamless Mottled Green from user upload)
-  const pastoTex = texLoader.load(pastoTextureImg);
-  pastoTex.wrapS = THREE.RepeatWrapping;
-  pastoTex.wrapT = THREE.RepeatWrapping;
-  pastoTex.repeat.set(1, 1);
-  pastoTex.colorSpace = THREE.SRGBColorSpace;
-  pastoTex.anisotropy = 16;
-
-  // 2. Agua / Water (Seamless Fine Caribbean Aqua Texture)
-  const waterTex = texLoader.load(waterTextureImg);
-  waterTex.wrapS = THREE.RepeatWrapping;
-  waterTex.wrapT = THREE.RepeatWrapping;
-  waterTex.repeat.set(120, 120);
-  waterTex.colorSpace = THREE.SRGBColorSpace;
-  waterTex.anisotropy = 16;
-
-  const bumpTex = texLoader.load(waterTextureImg);
-  bumpTex.wrapS = THREE.RepeatWrapping;
-  bumpTex.wrapT = THREE.RepeatWrapping;
-  bumpTex.repeat.set(120, 120);
-  bumpTex.anisotropy = 16;
-
-  // 3. Piso / Manzanas / Urban Ground (Light Limestone Pavement from user upload)
-  const pisoTex = texLoader.load(pisoTextureImg);
-  pisoTex.wrapS = THREE.RepeatWrapping;
-  pisoTex.wrapT = THREE.RepeatWrapping;
-  pisoTex.repeat.set(1, 1);
-  pisoTex.colorSpace = THREE.SRGBColorSpace;
-  pisoTex.anisotropy = 16;
-
-  // 4. Vías / Roads (Gray asphalt texture)
-  const viaTex = texLoader.load(viaTextureImg);
-  viaTex.wrapS = THREE.RepeatWrapping;
-  viaTex.wrapT = THREE.RepeatWrapping;
-  viaTex.repeat.set(4, 4);
-  viaTex.colorSpace = THREE.SRGBColorSpace;
-
-  // Animated Water Shader Uniforms (GPU vertex displacement and normal caustics)
-  const waterUniforms = {
-    uTime: { value: 0.0 },
-  };
-
+  // Pure architectural standard materials with instantaneous color loading & clean shading
   const waterMat = new THREE.MeshStandardMaterial({
-    map: waterTex,
-    bumpMap: bumpTex,
-    bumpScale: 0.02,
-    color: new THREE.Color(colors.water || '#ffffff'),
-    roughness: 0.12,
-    metalness: 0.10,
+    color: new THREE.Color(colors.water || '#bfc4c5'),
+    roughness: 0.18,
+    metalness: 0.05,
     transparent: true,
-    opacity: 0.94,
+    opacity: 0.95,
     side: THREE.DoubleSide,
     clippingPlanes,
   });
 
-  // Pure architectural standard materials (Museum Masterplan Standard)
   const mats = {
     water: waterMat,
     terrain: new THREE.MeshStandardMaterial({
-      map: pastoTex,
-      color: new THREE.Color(colors.terrain || '#ffffff'),
-      roughness: 0.88,
+      color: new THREE.Color(colors.terrain || '#c2c4b5'),
+      roughness: 0.85,
       metalness: 0.0,
       side: THREE.DoubleSide,
       clippingPlanes,
     }),
     manzanas: new THREE.MeshStandardMaterial({
-      map: pisoTex,
-      color: new THREE.Color(colors.manzanas || '#ffffff'),
+      color: new THREE.Color(colors.manzanas || '#c8b9a6'),
       roughness: 0.85,
-      metalness: 0.02,
+      metalness: 0.0,
       polygonOffset: true,
       polygonOffsetFactor: -1.0,
       polygonOffsetUnits: -2.0,
@@ -144,10 +94,9 @@ export async function buildCartagenaTerritoryScene({
       clippingPlanes,
     }),
     roads: new THREE.MeshStandardMaterial({
-      map: viaTex,
-      color: new THREE.Color('#64748b'),
+      color: new THREE.Color(colors.roads || '#94a3b8'),
       roughness: 0.70,
-      metalness: 0.08,
+      metalness: 0.05,
       polygonOffset: true,
       polygonOffsetFactor: -2.0,
       polygonOffsetUnits: -4.0,
@@ -155,33 +104,33 @@ export async function buildCartagenaTerritoryScene({
       clippingPlanes,
     }),
     buildingsModern: new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#ffffff'),
-      roughness: 0.25,
-      metalness: 0.12,
+      color: new THREE.Color(colors.buildings || '#ffffff'),
+      roughness: 0.35,
+      metalness: 0.05,
       clippingPlanes,
     }),
     buildingsResidential: new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#f1f5f9'),
+      color: new THREE.Color(colors.buildings || '#ffffff'),
       roughness: 0.40,
       metalness: 0.05,
       clippingPlanes,
     }),
     buildingsUrban: new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#e2e8f0'),
-      roughness: 0.60,
+      color: new THREE.Color(colors.buildings || '#ffffff'),
+      roughness: 0.45,
       metalness: 0.05,
       clippingPlanes,
     }),
     buildingsVernacular: new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#fef3c7'),
-      roughness: 0.75,
-      metalness: 0.02,
+      color: new THREE.Color(colors.buildings || '#ffffff'),
+      roughness: 0.50,
+      metalness: 0.05,
       clippingPlanes,
     }),
     colonialRoof: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.roofs || '#b45309'),
-      roughness: 0.65,
-      metalness: 0.08,
+      color: new THREE.Color(colors.roofs || '#ffffff'),
+      roughness: 0.45,
+      metalness: 0.05,
       clippingPlanes,
     }),
     noiseHeatmap: new THREE.MeshBasicMaterial({
@@ -241,6 +190,13 @@ export async function buildCartagenaTerritoryScene({
     }
     mergedLand.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
     mergedLand.computeVertexNormals();
+    const normAttr = mergedLand.getAttribute('normal');
+    if (normAttr) {
+      for (let i = 0; i < normAttr.count; i++) {
+        normAttr.setXYZ(i, 0, 1, 0);
+      }
+      normAttr.needsUpdate = true;
+    }
 
     const landMesh = new THREE.Mesh(mergedLand, mats.terrain);
     landMesh.name = "Landmasses";
@@ -284,6 +240,13 @@ export async function buildCartagenaTerritoryScene({
     }
     mergedManzanas.setAttribute('uv', new THREE.BufferAttribute(pisoUvs, 2));
     mergedManzanas.computeVertexNormals();
+    const posNormM = mergedManzanas.getAttribute('normal');
+    if (posNormM) {
+      for (let i = 0; i < posNormM.count; i++) {
+        posNormM.setXYZ(i, 0, 1, 0);
+      }
+      posNormM.needsUpdate = true;
+    }
 
     const manzanasMesh = new THREE.Mesh(mergedManzanas, mats.manzanas);
     manzanasMesh.name = "Manzanas";
@@ -336,6 +299,13 @@ export async function buildCartagenaTerritoryScene({
     }
     mergedRoads.setAttribute('uv', new THREE.BufferAttribute(roadUvs, 2));
     mergedRoads.computeVertexNormals();
+    const posNormR = mergedRoads.getAttribute('normal');
+    if (posNormR) {
+      for (let i = 0; i < posNormR.count; i++) {
+        posNormR.setXYZ(i, 0, 1, 0);
+      }
+      posNormR.needsUpdate = true;
+    }
 
     const roadsMesh = new THREE.Mesh(mergedRoads, mats.roads);
     roadsMesh.name = "RoadNetwork";

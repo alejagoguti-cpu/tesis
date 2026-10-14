@@ -48,80 +48,15 @@ import {
 } from 'lucide-react';
 
 export const DEFAULT_M5_PALETTE = {
-  grass: '#ffffff',
-  water: '#ffffff',
-  pavement: '#ffffff',
+  grass: '#c2c4b5',
+  water: '#bfc4c5',
+  pavement: '#c8b9a6',
   building: '#ffffff',
-  roof: '#b5714a',
-  road: '#64748b'
+  roof: '#ffffff',
+  road: '#94a3b8'
 };
 
-export const NATIVE_TREE_SPECIES = [
-  {
-    id: "guayacan",
-    name: "Guayacán Polvillo",
-    scientific: "Handroanthus chrysanthus",
-    badge: "Bosque Seco Tropical // Flor Amarilla",
-    height: "12 - 15 metros",
-    crown: "Diámetro 8.5 m",
-    tempDrop: "-4.2 °C en Suelo",
-    soilFunction: "Raíz pivotante profunda para anclaje en suelo calcáreo",
-    description: "Árbol nativo emblemático del Caribe. Produce una densa floración amarilla estacional, aporta sombra refrescante en senderos peatonales y estabiliza pendientes de la meseta.",
-    photo: "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&w=600&q=80",
-    color: "#eab308",
-    screenPos: { top: '38%', left: '46%' }
-  },
-  {
-    id: "ceiba",
-    name: "Ceiba Bonga",
-    scientific: "Ceiba pentandra",
-    badge: "Árbol Hito // Cortaviento Mayor",
-    height: "25 - 35 metros",
-    crown: "Diámetro 18 m",
-    tempDrop: "-5.8 °C en Suelo",
-    soilFunction: "Raíces tabulares gigantes // Máxima cohesión del terreno",
-    description: "Hito visual monumental del masterplan. Su gran copa actúa como cortaviento natural frente a los alisios y su tronco almacena agua durante la época seca.",
-    photo: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=600&q=80",
-    color: "#10b981",
-    screenPos: { top: '34%', left: '55%' }
-  },
-  {
-    id: "campano",
-    name: "Campano / Samán",
-    scientific: "Samanea saman",
-    badge: "Cúpula Bioclimática Paragüera",
-    height: "15 - 20 metros",
-    crown: "Diámetro 22 m",
-    tempDrop: "-6.1 °C en Suelo",
-    soilFunction: "Fijación de nitrógeno y retención de humedad",
-    description: "Proporciona una amplia sombrilla vegetal para las plazas cívicas y el equipamiento educativo, reduciendo drásticamente la radiación solar sobre el pavimento.",
-    photo: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80",
-    color: "#059669",
-    screenPos: { top: '48%', left: '43%' }
-  },
-  {
-    id: "matarraton",
-    name: "Matarratón",
-    scientific: "Gliricidia sepium",
-    badge: "Cerca Viva & Regenerador",
-    height: "6 - 10 metros",
-    crown: "Diámetro 5 m",
-    tempDrop: "-2.8 °C en Suelo",
-    soilFunction: "Crecimiento rápido y enriquecimiento orgánico",
-    description: "Especie arbórea de rápido desarrollo para cercas vivas en los linderos de viviendas, cortinas de amortiguación y microclimas de sombra fresca.",
-    photo: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=600&q=80",
-    color: "#14b8a6",
-    screenPos: { top: '53%', left: '56%' }
-  }
-];
-
 export const getSavedM5Palette = () => {
-  try {
-    const saved = localStorage.getItem('thesis_m5_custom_colors');
-    if (saved) {
-      return { ...DEFAULT_M5_PALETTE, ...JSON.parse(saved) };
-    }
-  } catch (e) {}
   return DEFAULT_M5_PALETTE;
 };
 
@@ -234,9 +169,9 @@ export default function ModelViewer3D({ onSelectModule }) {
       setLoadProgress(15);
       setLoadPhase(modelType === 'masterplan' ? 'Cargando Masterplan Territorial Tierrabomba (+22m)...' : 'Cargando Catastro Oficial AMB Cartagena (MAGNA-SIRGAS)...');
 
-      const bgColor = 0xdbe8d4;
+      const bgColor = 0xbfc4c5;
       scene.background = new THREE.Color(bgColor);
-      scene.fog = new THREE.Fog(bgColor, 300, 1200);
+      scene.fog = new THREE.Fog(bgColor, 350, 1500);
 
       const rootContainer = new THREE.Group();
       
@@ -597,8 +532,9 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     // Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xdbe8d4);
-    scene.fog = new THREE.Fog(0xdbe8d4, 300, 1200);
+    const bgColor = 0xbfc4c5;
+    scene.background = new THREE.Color(bgColor);
+    scene.fog = new THREE.Fog(bgColor, 350, 1500);
     sceneRef.current = scene;
 
     // Cámara Ortográfica para Proyección Axonométrica Paralela a 35° (sin distorsión de perspectiva)
@@ -616,7 +552,7 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     // Renderer con soporte para sombras suaves y sRGB
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
-    renderer.setClearColor(0xdbe8d4, 1);
+    renderer.setClearColor(bgColor, 1);
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
@@ -632,10 +568,10 @@ export default function ModelViewer3D({ onSelectModule }) {
     container.appendChild(renderer.domElement);
 
     // Iluminación Solar & Ambiental Equilibrada (Sin sombras negras en pasto)
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xdbe8d4, 1.1);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xc2c4b5, 1.25);
     scene.add(hemiLight);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.90);
     scene.add(ambientLight);
 
     const dirLight = new THREE.DirectionalLight(0xfffaed, sunIntensity);
@@ -1399,299 +1335,39 @@ export default function ModelViewer3D({ onSelectModule }) {
       <div ref={mountRef} className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing z-0" />
 
       {/* ========================================================================= */}
-      {/* 2. FLOATING HUD OVERLAYS ON TOP OF 3D VIEWPORT (Ultra-Clean Axonometry)   */}
+      {/* 2. CONTROLES MINIMALISTAS: ESTUDIO SOLAR & AXONOMETRÍA                    */}
       {/* ========================================================================= */}
 
-      {/* Top Floating Control Bar (Clean, Minimalist & Responsive) */}
-      <div className="absolute top-3 left-3 right-3 z-[400] flex items-center justify-between gap-2 pointer-events-none flex-wrap">
-        
-        {/* Left: Minimalist Module Badge & Model Selector */}
-        <div className="flex items-center gap-2 pointer-events-auto flex-wrap">
-          <div className="glass-dark px-3 py-1.5 rounded-xl flex items-center space-x-2 text-white shadow-md">
-            <div className="w-6 h-6 rounded-lg bg-[#24c8bd] text-slate-950 flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-sm">
-              05
-            </div>
-            <span className="text-xs font-mono font-bold text-white tracking-wide">
-              {selected3DModel === 'revit'
-                ? 'Cartagena + Tierra Bomba (3D)'
-                : selected3DModel === 'masterplan'
-                ? 'Masterplan Tierrabomba'
-                : selected3DModel === 'colegio'
-                ? 'Equipamiento Educativo'
-                : 'Prototipo Vivienda'}
-            </span>
-          </div>
-
-          <div className="glass-dark p-1 rounded-2xl flex items-center gap-1 text-white flex-wrap shadow-xl">
-            <button
-              onClick={() => {
-                setSelected3DModel('revit');
-                buildModel('revit');
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-                selected3DModel === 'revit'
-                  ? 'bg-[#24c8bd] text-slate-950 shadow-sm ring-2 ring-[#24c8bd]/50'
-                  : 'text-teal-300 hover:text-white bg-teal-500/10'
-              }`}
-            >
-              <Ship className="w-3.5 h-3.5" />
-              <span>Cartagena + Tierra Bomba</span>
-            </button>
-            <button
-              onClick={() => {
-                setSelected3DModel('masterplan');
-                buildModel('masterplan');
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-                selected3DModel === 'masterplan'
-                  ? 'bg-amber-500 text-slate-950 shadow-sm ring-2 ring-amber-400/50'
-                  : 'text-amber-300 hover:text-white bg-amber-500/10'
-              }`}
-            >
-              <Compass className="w-3.5 h-3.5" />
-              <span>Masterplan Tierrabomba</span>
-            </button>
-            <button
-              onClick={() => {
-                setSelected3DModel('colegio');
-                buildModel('colegio');
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-                selected3DModel === 'colegio'
-                  ? 'bg-teal-500 text-slate-950 shadow-sm'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <GraduationCap className="w-3.5 h-3.5" />
-              <span>Colegio</span>
-            </button>
-            <button
-              onClick={() => {
-                setSelected3DModel('vivienda');
-                buildModel('vivienda');
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-                selected3DModel === 'vivienda'
-                  ? 'bg-terracotta-500 text-white shadow-sm'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <Home className="w-3.5 h-3.5" />
-              <span>Vivienda</span>
-            </button>
-
-            {customModel && (
-              <button
-                onClick={() => {
-                  setSelected3DModel('custom');
-                  if (sceneRef.current && customModel.group) {
-                    if (currentModelGroupRef.current) sceneRef.current.remove(currentModelGroupRef.current);
-                    sceneRef.current.add(customModel.group);
-                    currentModelGroupRef.current = customModel.group;
-                  }
-                }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
-                  selected3DModel === 'custom'
-                    ? 'bg-amber-500 text-slate-950 shadow-sm ring-2 ring-amber-400/50'
-                    : 'text-amber-300 hover:text-white bg-amber-500/10'
-                }`}
-              >
-                <FileCode className="w-3.5 h-3.5" />
-                <span className="truncate max-w-[120px]">{customModel.name}</span>
-              </button>
-            )}
-
-            <div className="w-px h-4 bg-white/20 mx-0.5" />
-
-            <button
-              onClick={() => setShowUploadModal(true)}
-              className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 bg-gradient-to-r from-amber-600/30 to-amber-500/30 hover:from-amber-600/50 hover:to-amber-500/50 text-amber-200 border border-amber-400/40 transition-all shadow-sm hover:scale-[1.02]"
-              title="Importar archivo exportado desde Revit (.glb, .gltf, .obj)"
-            >
-              <UploadCloud className="w-3.5 h-3.5 text-amber-300" />
-              <span>Cargar</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Right: Actions, Futuro de Tierrabomba & View Controls */}
-        <div className="flex items-center gap-2 pointer-events-auto flex-wrap">
-          {/* Botón Principal: Ver Futuro de Tierrabomba (Láminas Estratégicas 1 a 8) */}
-          <button
-            onClick={() => setShowFutureModal(true)}
-            className="px-4 py-2 rounded-2xl text-xs font-mono font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white border-2 border-emerald-300 transition-all flex items-center space-x-2 shadow-2xl hover:scale-[1.04] active:scale-95 ring-2 ring-emerald-400/50 cursor-pointer animate-pulse hover:animate-none"
-            title="Abrir las 8 Láminas del Futuro y Plan Maestro de Tierrabomba"
-          >
-            <Sparkles className="w-4 h-4 text-amber-300" />
-            <span>Ver Futuro de Tierrabomba</span>
-            <span className="px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-300 text-[10px] font-bold">8 LÁMINAS</span>
-          </button>
-
-          {/* Botón Editor de Materiales */}
-          <button
-            onClick={() => setShowRightControls(!showRightControls)}
-            className={`px-3 py-2 rounded-2xl text-xs font-mono font-bold border transition-all flex items-center space-x-1.5 shadow-xl hover:scale-[1.02] active:scale-95 ${
-              showRightControls 
-                ? 'bg-teal-500 text-slate-950 border-teal-400 font-black ring-2 ring-teal-400/50'
-                : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
-            }`}
-            title="Abrir/Cerrar Editor de Materiales y Sol"
-          >
-            <Palette className="w-3.5 h-3.5" />
-            <span>{showRightControls ? 'Cerrar Editor' : 'Editar Colores'}</span>
-          </button>
-
-          {/* Botón Ficha Técnica Catastral */}
-          <button
-            onClick={() => setShowInfoModal(true)}
-            className="px-3 py-2 rounded-2xl text-xs font-mono font-bold bg-[#24c8bd]/20 hover:bg-[#24c8bd]/30 text-[#24c8bd] border border-[#24c8bd]/40 transition-all flex items-center space-x-1.5 shadow-xl hover:scale-[1.02] active:scale-95"
-            title="Ver Ficha Técnica y Metadatos Catastrales AMB"
-          >
-            <Info className="w-3.5 h-3.5" />
-            <span>Ficha Técnica</span>
-          </button>
-
-          {/* Botón Vista Panorámica Aérea (Cartagena) */}
-          {selected3DModel === 'revit' && (
-            <button
-              onClick={setBirdEyeView}
-              className="px-3 py-2 rounded-2xl text-xs font-mono font-bold bg-gradient-to-r from-blue-600/30 to-teal-500/30 hover:from-blue-600/50 hover:to-teal-500/50 text-blue-200 border border-blue-400/40 transition-all flex items-center space-x-1.5 shadow-xl hover:scale-[1.02] active:scale-95"
-              title="Encuadre aéreo panorámico de toda Cartagena y la Bahía"
-            >
-              <Maximize2 className="w-3.5 h-3.5 text-blue-300" />
-              <span>Vista Panorámica</span>
-            </button>
-          )}
-
-          {/* Botón Principal: Restablecer Vista Axonométrica (a 35°) */}
-          <button
-            onClick={resetAxonometricView}
-            className="px-3.5 py-2 rounded-2xl text-xs font-mono font-bold bg-slate-900/90 hover:bg-slate-800 text-slate-100 border border-white/20 transition-all flex items-center space-x-1.5 shadow-xl hover:scale-[1.02] active:scale-95 text-white"
-            title="Restablecer orientación isométrica a 35°"
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-[#24c8bd]" />
-            <span>Restablecer vista</span>
-          </button>
-        </div>
-
-      </div>
-
-      {/* Botón Flotante Central Permanente: VER FUTURO DE TIERRABOMBA */}
-      <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[350] pointer-events-auto">
-        <button
-          onClick={() => setShowFutureModal(true)}
-          className="group px-6 py-2.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-mono font-black text-xs shadow-2xl hover:shadow-teal-500/50 border-2 border-emerald-300 transition-all transform hover:scale-105 active:scale-95 flex items-center space-x-2.5 ring-4 ring-emerald-500/20 backdrop-blur-md cursor-pointer animate-pulse hover:animate-none"
-        >
-          <Sparkles className="w-4 h-4 text-amber-300" />
-          <span>Ver Futuro de Tierrabomba</span>
-          <span className="px-2 py-0.5 rounded-full bg-black/40 text-emerald-300 text-[10px] font-bold border border-emerald-400/40">
-            8 LÁMINAS
-          </span>
-        </button>
-      </div>
-
-      {/* Leyenda Territorial Flotante cuando Masterplan está Activo */}
-      {selected3DModel === 'masterplan' && (
-        <div className="absolute bottom-12 left-4 z-[350] glass-dark p-3.5 rounded-2xl text-white font-mono text-xs max-w-sm space-y-2 border border-white/10 shadow-2xl pointer-events-auto backdrop-blur-xl animate-fade-in">
-          <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
-            <span className="font-bold text-[#24c8bd] flex items-center gap-1.5">
-              <Compass className="w-4 h-4" />
-              Masterplan Territorial (+22m)
-            </span>
-            <span className="text-[10px] text-amber-300 font-bold">Censo MIDAS</span>
-          </div>
-          <div className="space-y-1.5 text-[11px] text-slate-300">
-            <div className="flex items-center gap-2">
-              <div className="w-3.5 h-3.5 rounded bg-teal-500/40 border border-teal-400 shrink-0" />
-              <span><strong>Meseta Segura (+22m):</strong> Área de implantación de Colegio y Viviendas</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3.5 h-1 bg-sky-400 shrink-0" />
-              <span><strong>Línea Divisoria (Lat 10.3725):</strong> Límite de intervención (Sector Norte)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3.5 h-3.5 rounded bg-red-500/40 border border-red-400 shrink-0" />
-              <span><strong>Franja 500m Erosión:</strong> 800 familias en riesgo con puntos rojos</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3.5 h-1 bg-emerald-400 shrink-0" />
-              <span><strong>Corredores Ecológicos:</strong> Ejes biológicos hacia el mar Caribe</span>
-            </div>
-          </div>
+      {/* Loading Indicator */}
+      {isLoadingFile && (
+        <div className="absolute top-4 left-4 z-[400] glass-dark px-4 py-2.5 rounded-2xl text-xs font-mono text-white flex items-center space-x-2.5 border border-white/10 shadow-2xl pointer-events-none animate-fade-in backdrop-blur-xl">
+          <div className="w-3.5 h-3.5 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
+          <span>{loadPhase || 'Cargando axonometría territorial...'}</span>
         </div>
       )}
 
-      {/* Botón Flotante Lateral de Acceso Rápido al Editor de Colores */}
-      <div className="absolute top-24 right-4 z-[350] pointer-events-auto">
-        <button
-          onClick={() => setShowRightControls(prev => !prev)}
-          className={`px-3.5 py-2 rounded-2xl text-xs font-mono font-bold border transition-all flex items-center space-x-2 shadow-2xl backdrop-blur-xl cursor-pointer ${
-            showRightControls
-              ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-400/50'
-              : 'glass-dark text-white hover:bg-white/20 border-white/20'
-          }`}
-          title="Abrir Editor de Colores de Materiales (Pasto, Agua, Pavimento, Edificios, Vías)"
-        >
-          <Palette className="w-4 h-4 text-emerald-400" />
-          <span>{showRightControls ? 'Ocultar Paleta' : '🎨 Cambiar Colores'}</span>
-        </button>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 2B. RED BIÓTICA: BOLITAS DISCRETAS CON FOTO DE ÁRBOLES EN EL TERRITORIO   */}
-      {/* ========================================================================= */}
-      {(selected3DModel === 'masterplan' || selected3DModel === 'revit') && (
-        <div className="absolute inset-0 pointer-events-none z-[300]">
-          {NATIVE_TREE_SPECIES.map((tree) => (
-            <div
-              key={tree.id}
-              style={{ top: tree.screenPos.top, left: tree.screenPos.left }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
-            >
-              <button
-                onClick={() => setSelectedTreeSpecies(tree)}
-                className="relative group flex items-center justify-center cursor-pointer transition-transform hover:scale-125 focus:outline-none"
-                title={`Árbol Nativo: ${tree.name} (${tree.scientific})`}
-              >
-                {/* Sutil halo pulsante */}
-                <div 
-                  className="absolute -inset-1.5 rounded-full opacity-60 animate-ping"
-                  style={{ backgroundColor: tree.color }}
-                />
-                {/* Bolita limpia con la foto miniatura del árbol */}
-                <div 
-                  className="w-8 h-8 rounded-full border-2 border-white shadow-xl overflow-hidden relative z-10 bg-slate-900 ring-2"
-                  style={{ ringColor: tree.color }}
-                >
-                  <img 
-                    src={tree.photo} 
-                    alt={tree.name} 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {/* Nombre conciso al pasar el mouse */}
-                <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap px-2 py-0.5 rounded-md bg-slate-900/95 text-white text-[9px] font-mono font-bold pointer-events-none shadow-xl border border-white/20 z-20">
-                  {tree.name}
-                </div>
-              </button>
+      {/* Floating Sun Study Panel (Top-Right) */}
+      <div className="absolute top-4 right-4 z-[400] pointer-events-auto animate-fade-in">
+        <div className="glass-dark p-3.5 rounded-2xl space-y-3 text-white w-64 shadow-2xl border border-white/10 backdrop-blur-xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2">
+            <div className="flex items-center space-x-2">
+              <Sun className="w-4 h-4 text-amber-400" />
+              <span className="text-xs font-mono font-bold tracking-wide text-white">Estudio Solar</span>
             </div>
-          ))}
-        </div>
-      )}
+            <button
+              onClick={resetAxonometricView}
+              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              title="Restablecer vista axonométrica (35°)"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
+            </button>
+          </div>
 
-      {/* Floating Right: Axonometric Controls Panel (Sun, Colors, Noise, Climate & Section Box) */}
-      {showRightControls && (
-      <div className="absolute top-20 right-4 z-[400] glass-dark p-4 rounded-2xl space-y-3.5 pointer-events-auto text-white w-72 max-h-[calc(100vh-100px)] overflow-y-auto shadow-2xl border border-white/10 backdrop-blur-xl animate-fade-in">
-        
-        {/* Sol — Acimut & Altura */}
-        <div className="space-y-2.5">
+          {/* Acimut solar */}
           <div className="space-y-1">
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300 font-bold flex items-center gap-1.5">
-                <Sun className="w-3.5 h-3.5 text-amber-400" />
-                <span>Sol — acimut</span>
-              </span>
-              <span className="text-amber-400 font-bold">{sunAzimuth}°</span>
+              <span className="text-slate-300 text-[11px]">Acimut</span>
+              <span className="text-amber-400 font-bold text-[11px]">{sunAzimuth}°</span>
             </div>
             <input
               type="range"
@@ -1703,13 +1379,11 @@ export default function ModelViewer3D({ onSelectModule }) {
             />
           </div>
 
+          {/* Altura solar */}
           <div className="space-y-1">
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300 font-bold flex items-center gap-1.5">
-                <Sun className="w-3.5 h-3.5 text-amber-400" />
-                <span>Sol — altura</span>
-              </span>
-              <span className="text-amber-400 font-bold">{sunElevation}°</span>
+              <span className="text-slate-300 text-[11px]">Altura</span>
+              <span className="text-amber-400 font-bold text-[11px]">{sunElevation}°</span>
             </div>
             <input
               type="range"
@@ -1720,13 +1394,12 @@ export default function ModelViewer3D({ onSelectModule }) {
               className="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
             />
           </div>
+
+          {/* Intensidad solar */}
           <div className="space-y-1">
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300 font-bold flex items-center gap-1.5">
-                <Sun className="w-3.5 h-3.5 text-amber-400" />
-                <span>Intensidad solar</span>
-              </span>
-              <span className="text-amber-400 font-bold">{sunIntensity.toFixed(1)}x</span>
+              <span className="text-slate-300 text-[11px]">Intensidad</span>
+              <span className="text-amber-400 font-bold text-[11px]">{sunIntensity.toFixed(1)}x</span>
             </div>
             <input
               type="range"
@@ -1739,685 +1412,18 @@ export default function ModelViewer3D({ onSelectModule }) {
             />
           </div>
         </div>
-
-        {/* Tonos de Color Personalizables (Mar, Pasto, Pavimento, Edificios, Cubiertas, Vías) */}
-        <div className="pt-2.5 border-t border-white/10 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono font-bold text-[#24c8bd] uppercase tracking-wider block">
-              Editor de Materiales
-            </span>
-            <span className="text-[9px] font-mono text-slate-400">Tiempo Real</span>
-          </div>
-
-          {/* 1. Color del Pasto (Verde amarillento café atenuado) */}
-          <div className="space-y-1.5 p-2 rounded-xl bg-white/5 border border-white/5">
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300 flex items-center gap-1.5">
-                <Palette className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Pasto / Vegetación:</span>
-              </span>
-              <div className="flex items-center space-x-1.5">
-                <input
-                  type="color"
-                  value={grassColor}
-                  onChange={(e) => setGrassColor(e.target.value)}
-                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
-                  title="Seleccionar color personalizado"
-                />
-                <span className="text-emerald-400 font-bold text-[10px]">{grassColor}</span>
-              </div>
-            </div>
-            {/* Presets verde amarillento café equilibrados */}
-            <div className="grid grid-cols-2 gap-1">
-              {[
-                { name: 'Oliva Suave', hex: '#65763e' },
-                { name: 'Verde Mate', hex: '#5b6c37' },
-                { name: 'Verde Amarillento', hex: '#778847' },
-                { name: 'Sabana Insular', hex: '#838e55' }
-              ].map(preset => (
-                <button
-                  key={preset.hex}
-                  onClick={() => setGrassColor(preset.hex)}
-                  className={`py-1 px-1 rounded-lg text-[10px] font-mono border transition-all ${
-                    grassColor.toLowerCase() === preset.hex.toLowerCase()
-                      ? 'border-white ring-1 ring-emerald-400 font-bold text-white bg-white/20'
-                      : 'border-white/10 text-slate-300 hover:bg-white/10'
-                  }`}
-                  style={{ backgroundColor: `${preset.hex}33` }}
-                >
-                  {preset.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 2. Color del Mar / Agua */}
-          <div className="space-y-1.5 p-2 rounded-xl bg-white/5 border border-white/5">
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300 flex items-center gap-1.5">
-                <Droplets className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Mar / Agua Marina:</span>
-              </span>
-              <div className="flex items-center space-x-1.5">
-                <input
-                  type="color"
-                  value={waterColor}
-                  onChange={(e) => setWaterColor(e.target.value)}
-                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
-                  title="Seleccionar color del agua"
-                />
-                <span className="text-cyan-400 font-bold text-[10px]">{waterColor}</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-1">
-              {[
-                { name: 'Turquesa Caribe', hex: '#8dc8d2' },
-                { name: 'Azul Bahía', hex: '#7ba9c2' },
-                { name: 'Azul Claro', hex: '#9ed4dc' },
-                { name: 'Marino Profundo', hex: '#58839d' }
-              ].map(preset => (
-                <button
-                  key={preset.hex}
-                  onClick={() => setWaterColor(preset.hex)}
-                  className={`py-1 px-1 rounded-lg text-[10px] font-mono border transition-all ${
-                    waterColor.toLowerCase() === preset.hex.toLowerCase()
-                      ? 'border-white ring-1 ring-cyan-400 font-bold text-white bg-white/20'
-                      : 'border-white/10 text-slate-300 hover:bg-white/10'
-                  }`}
-                  style={{ backgroundColor: `${preset.hex}33` }}
-                >
-                  {preset.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 3. Color del Pavimento / Piso */}
-          <div className="space-y-1.5 p-2 rounded-xl bg-white/5 border border-white/5">
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300 flex items-center gap-1.5">
-                <Palette className="w-3.5 h-3.5 text-amber-300" />
-                <span>Piso / Pavimento:</span>
-              </span>
-              <div className="flex items-center space-x-1.5">
-                <input
-                  type="color"
-                  value={pavementColor}
-                  onChange={(e) => setPavementColor(e.target.value)}
-                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
-                  title="Seleccionar color del pavimento"
-                />
-                <span className="text-amber-300 font-bold text-[10px]">{pavementColor}</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-1">
-              {[
-                { name: 'Travertino', hex: '#d4c5b3' },
-                { name: 'Arena Cálida', hex: '#c8b9a6' },
-                { name: 'Piedra Coral', hex: '#e2d5c3' },
-                { name: 'Gris Cemento', hex: '#a8a29e' }
-              ].map(preset => (
-                <button
-                  key={preset.hex}
-                  onClick={() => setPavementColor(preset.hex)}
-                  className={`py-1 px-1 rounded-lg text-[10px] font-mono border transition-all ${
-                    pavementColor.toLowerCase() === preset.hex.toLowerCase()
-                      ? 'border-white ring-1 ring-amber-400 font-bold text-white bg-white/20'
-                      : 'border-white/10 text-slate-300 hover:bg-white/10'
-                  }`}
-                  style={{ backgroundColor: `${preset.hex}33` }}
-                >
-                  {preset.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 4. Color de Edificaciones & Cubiertas */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="p-2 rounded-xl bg-white/5 border border-white/5 space-y-1">
-              <span className="text-[10px] font-mono text-slate-300 block">Edificaciones</span>
-              <div className="flex items-center justify-between">
-                <input
-                  type="color"
-                  value={buildingColor}
-                  onChange={(e) => setBuildingColor(e.target.value)}
-                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
-                />
-                <span className="text-[10px] font-mono text-white font-bold">{buildingColor}</span>
-              </div>
-            </div>
-
-            <div className="p-2 rounded-xl bg-white/5 border border-white/5 space-y-1">
-              <span className="text-[10px] font-mono text-slate-300 block">Cubiertas</span>
-              <div className="flex items-center justify-between">
-                <input
-                  type="color"
-                  value={roofColor}
-                  onChange={(e) => setRoofColor(e.target.value)}
-                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
-                />
-                <span className="text-[10px] font-mono text-terracotta-300 font-bold">{roofColor}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* 5. Color de Vías / Asfalto */}
-          <div className="space-y-1.5 p-2 rounded-xl bg-white/5 border border-white/5">
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300 flex items-center gap-1.5">
-                <Sliders className="w-3.5 h-3.5 text-slate-400" />
-                <span>Vías / Red Vial:</span>
-              </span>
-              <div className="flex items-center space-x-1.5">
-                <input
-                  type="color"
-                  value={roadColor}
-                  onChange={(e) => setRoadColor(e.target.value)}
-                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
-                  title="Seleccionar color de las vías"
-                />
-                <span className="text-slate-300 font-bold text-[10px]">{roadColor}</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-1">
-              {[
-                { name: 'Asfalto Oscuro', hex: '#334155' },
-                { name: 'Gris Neutro', hex: '#64748b' },
-                { name: 'Asfalto Claro', hex: '#94a3b8' }
-              ].map(preset => (
-                <button
-                  key={preset.hex}
-                  onClick={() => setRoadColor(preset.hex)}
-                  className={`py-1 px-1 rounded-lg text-[10px] font-mono border transition-all ${
-                    roadColor.toLowerCase() === preset.hex.toLowerCase()
-                      ? 'border-white ring-1 ring-slate-300 font-bold text-white bg-white/20'
-                      : 'border-white/10 text-slate-300 hover:bg-white/10'
-                  }`}
-                  style={{ backgroundColor: `${preset.hex}33` }}
-                >
-                  {preset.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 6. BOTONES DE GUARDADO PERMANENTE & SUBIR CAMBIOS */}
-          <div className="pt-2 border-t border-white/10 space-y-2">
-            <button
-              onClick={handleSavePermanentColors}
-              className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-mono font-bold text-xs flex items-center justify-center space-x-2 shadow-lg hover:shadow-teal-500/25 transition-all transform hover:scale-[1.02] active:scale-[0.98] border border-white/20"
-              title="Guarda esta configuración de colores para que se mantenga siempre"
-            >
-              <Save className="w-4 h-4 text-white animate-bounce" />
-              <span>Guardar Colores para Siempre</span>
-            </button>
-
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={handleResetDefaultColors}
-                className="py-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white font-mono text-[10px] flex items-center justify-center space-x-1.5 transition-colors"
-                title="Restablecer a la paleta predeterminada"
-              >
-                <RotateCcw className="w-3 h-3 text-slate-400" />
-                <span>Restablecer</span>
-              </button>
-
-              <button
-                onClick={handleCopyPaletteCode}
-                className="py-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white font-mono text-[10px] flex items-center justify-center space-x-1.5 transition-colors"
-                title="Copiar configuración en formato JSON"
-              >
-                <Copy className="w-3 h-3 text-slate-400" />
-                <span>Copiar HEX</span>
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
-      )}
-
-      {/* TOASTS NOTIFICATIONS */}
-      {saveColorsToast && (
-        <div className="fixed top-6 right-6 z-[9999] bg-slate-900/95 border-2 border-emerald-500 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 animate-fade-in backdrop-blur-md">
-          <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-400 flex items-center justify-center">
-            <Check className="w-4 h-4 text-emerald-400" />
-          </div>
-          <div>
-            <div className="text-xs font-mono font-bold text-emerald-400">¡Paleta Guardada Permanentemente!</div>
-            <div className="text-[11px] text-slate-300">Tus tonos personalizados se cargarán automáticamente.</div>
-          </div>
-        </div>
-      )}
-
-      {copyColorsToast && (
-        <div className="fixed top-6 right-6 z-[9999] bg-slate-900/95 border-2 border-cyan-500 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 animate-fade-in backdrop-blur-md">
-          <div className="w-7 h-7 rounded-full bg-cyan-500/20 border border-cyan-400 flex items-center justify-center">
-            <Check className="w-4 h-4 text-cyan-400" />
-          </div>
-          <div>
-            <div className="text-xs font-mono font-bold text-cyan-400">¡Códigos HEX Copiados!</div>
-            <div className="text-[11px] text-slate-300">Valores de la paleta copiados al portapapeles.</div>
-          </div>
-        </div>
-      )}
-
-
-
-
-
-
-      {/* ========================================================================= */}
-      {/* 2C. FICHA BOTÁNICA DETALLADA AL HACER CLIC EN LA BOLITA DEL ÁRBOL        */}
-      {/* ========================================================================= */}
-      {selectedTreeSpecies && (
-        <div 
-          onClick={() => setSelectedTreeSpecies(null)}
-          className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-fade-in"
-        >
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl border border-slate-200 overflow-hidden max-w-lg w-full shadow-2xl relative text-slate-900 animate-scale-up"
-          >
-            {/* Foto de cabecera del árbol */}
-            <div className="relative h-48 w-full bg-slate-900 overflow-hidden">
-              <img 
-                src={selectedTreeSpecies.photo} 
-                alt={selectedTreeSpecies.name} 
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
-              
-              <button
-                onClick={() => setSelectedTreeSpecies(null)}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              <div className="absolute bottom-3 left-5 right-5 text-white">
-                <span 
-                  className="text-[10px] font-mono font-bold px-2 py-0.5 rounded text-white shadow-sm inline-block"
-                  style={{ backgroundColor: selectedTreeSpecies.color }}
-                >
-                  {selectedTreeSpecies.badge}
-                </span>
-                <h3 className="font-bold text-xl text-white mt-1">
-                  {selectedTreeSpecies.name}
-                </h3>
-                <p className="text-xs text-slate-300 font-mono italic">
-                  {selectedTreeSpecies.scientific}
-                </p>
-              </div>
-            </div>
-
-            {/* Ficha técnica y propiedades bioambientales */}
-            <div className="p-5 space-y-4">
-              <p className="text-xs text-slate-600 leading-relaxed font-sans">
-                {selectedTreeSpecies.description}
-              </p>
-
-              <div className="grid grid-cols-2 gap-2.5">
-                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] font-mono text-slate-500 uppercase block">Altura Promedio</span>
-                  <span className="font-bold text-xs text-slate-900 mt-0.5 block">{selectedTreeSpecies.height}</span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] font-mono text-slate-500 uppercase block">Copa y Sombra</span>
-                  <span className="font-bold text-xs text-slate-900 mt-0.5 block">{selectedTreeSpecies.crown}</span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200">
-                  <span className="text-[10px] font-mono text-emerald-700 uppercase block font-bold">Confort Térmico</span>
-                  <span className="font-bold text-xs text-emerald-900 mt-0.5 block">{selectedTreeSpecies.tempDrop}</span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-teal-50/80 border border-teal-200">
-                  <span className="text-[10px] font-mono text-teal-700 uppercase block font-bold">Aporte Ecosistémico</span>
-                  <span className="font-medium text-[11px] text-teal-950 mt-0.5 block line-clamp-2">{selectedTreeSpecies.soilFunction}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end pt-2">
-                <button
-                  onClick={() => setSelectedTreeSpecies(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-900 text-white font-mono text-xs font-bold hover:bg-slate-800 transition-colors"
-                >
-                  Cerrar Ficha
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 2D. MASTERPLAN TIERRA BOMBA: PANEL ESTRATÉGICO FLOTANTE & NODOS 3D       */}
-      {/* ========================================================================= */}
-      {selected3DModel === 'masterplan' && (
-        <div className="absolute bottom-6 left-6 z-[400] max-w-md w-full glass-dark p-4 rounded-3xl border border-teal-500/30 text-white shadow-2xl backdrop-blur-xl animate-fade-in pointer-events-auto space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-7 h-7 rounded-xl bg-teal-500/20 border border-teal-400 flex items-center justify-center text-teal-300">
-                <Compass className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="text-xs font-mono font-bold text-white tracking-wide">
-                  Masterplan Tierrabomba (+22m)
-                </h4>
-                <p className="text-[10px] text-teal-300 font-sans">
-                  Polígono de Meseta Segura &amp; Corredores Ecológicos
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowFutureModal(true)}
-              className="px-2.5 py-1 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-mono font-black shadow-md hover:scale-105 active:scale-95 transition-all flex items-center space-x-1"
-            >
-              <Sparkles className="w-3 h-3" />
-              <span>Ver Láminas</span>
-            </button>
-          </div>
-
-          {/* Quick interactive node focus buttons */}
-          <div className="grid grid-cols-2 gap-1.5 pt-1">
-            <button
-              onClick={() => focusMasterplanNode('colegio')}
-              className="p-2 rounded-xl bg-teal-950/60 hover:bg-teal-900/80 border border-teal-500/30 text-left transition-all hover:scale-[1.02] flex items-center space-x-2"
-            >
-              <span className="w-2.5 h-2.5 rounded-full bg-teal-400 shrink-0 shadow-sm" />
-              <div className="truncate">
-                <span className="text-[11px] font-bold block text-teal-200">Colegio &amp; Cisterna</span>
-                <span className="text-[9px] text-slate-400 block">450.000 L reserva</span>
-              </div>
-            </button>
-
-            <button
-              onClick={() => focusMasterplanNode('viviendas')}
-              className="p-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/30 text-left transition-all hover:scale-[1.02] flex items-center space-x-2"
-            >
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-400 shrink-0 shadow-sm" />
-              <div className="truncate">
-                <span className="text-[11px] font-bold block text-rose-200">120 Viviendas</span>
-                <span className="text-[9px] text-slate-400 block">Reasentamiento seguro</span>
-              </div>
-            </button>
-
-            <button
-              onClick={() => focusMasterplanNode('reserva')}
-              className="p-2 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/30 text-left transition-all hover:scale-[1.02] flex items-center space-x-2"
-            >
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0 shadow-sm" />
-              <div className="truncate">
-                <span className="text-[11px] font-bold block text-emerald-200">Parque Ecológico</span>
-                <span className="text-[9px] text-slate-400 block">Reserva bosque seco</span>
-              </div>
-            </button>
-
-            <button
-              onClick={() => focusMasterplanNode('erosion')}
-              className="p-2 rounded-xl bg-amber-950/60 hover:bg-amber-900/80 border border-amber-500/30 text-left transition-all hover:scale-[1.02] flex items-center space-x-2"
-            >
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 shadow-sm" />
-              <div className="truncate">
-                <span className="text-[11px] font-bold block text-amber-200">Franja 500m Riesgo</span>
-                <span className="text-[9px] text-slate-400 block">Erosión costera norte</span>
-              </div>
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 pt-1 border-t border-white/10">
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-0.5 bg-sky-400 inline-block rounded" />
-              Línea Divisoria Norte (Lat 10.3725)
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-0.5 bg-emerald-400 inline-block rounded" />
-              Corredores Bióticos 3D
-            </span>
-          </div>
-        </div>
-      )}
 
       {/* Floating Bottom Center: Orbit & Zoom Instruction Pill */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[400] pointer-events-none hidden md:block">
-        <div className="glass-dark px-4 py-2 rounded-2xl text-xs font-mono text-slate-300 flex items-center space-x-4 shadow-xl">
-          <span className="flex items-center space-x-1.5"><RotateCcw className="w-3.5 h-3.5 text-[#24c8bd]" /><span><b>Arrastrar:</b> Girar</span></span>
+        <div className="glass-dark px-4 py-2 rounded-2xl text-xs font-mono text-slate-300 flex items-center space-x-4 shadow-xl border border-white/10 backdrop-blur-xl">
+          <span className="flex items-center space-x-1.5"><RotateCcw className="w-3.5 h-3.5 text-amber-300" /><span><b>Arrastrar:</b> Girar</span></span>
           <span className="text-slate-600">|</span>
-          <span className="flex items-center space-x-1.5"><Maximize2 className="w-3.5 h-3.5 text-[#24c8bd]" /><span><b>Scroll:</b> Zoom</span></span>
+          <span className="flex items-center space-x-1.5"><Maximize2 className="w-3.5 h-3.5 text-amber-300" /><span><b>Scroll:</b> Zoom</span></span>
           <span className="text-slate-600">|</span>
-          <span className="flex items-center space-x-1.5"><Sliders className="w-3.5 h-3.5 text-[#24c8bd]" /><span><b>Clic Derecho:</b> Mover</span></span>
+          <span className="flex items-center space-x-1.5"><Sliders className="w-3.5 h-3.5 text-amber-300" /><span><b>Clic Derecho:</b> Mover</span></span>
         </div>
       </div>
-
-      {/* Floating Action Button permanente: Ver Futuro de Tierrabomba */}
-      <div className="fixed bottom-6 right-6 z-[450] pointer-events-auto">
-        <button
-          onClick={() => setShowFutureModal(true)}
-          className="group px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-mono text-xs font-black shadow-2xl border-2 border-emerald-300/60 transition-all flex items-center space-x-2.5 hover:scale-105 active:scale-95 ring-4 ring-emerald-500/20 cursor-pointer"
-        >
-          <Sparkles className="w-4 h-4 text-amber-300 animate-spin" style={{ animationDuration: '6s' }} />
-          <span className="tracking-wide">VER FUTURO DE TIERRABOMBA</span>
-          <span className="px-1.5 py-0.5 rounded bg-emerald-950/70 text-emerald-300 text-[10px] font-bold">8 LÁMINAS</span>
-        </button>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 3. INTERACTIVE TECHNICAL POPUP MODAL (Zero Text Walls on Screen)          */}
-      {/* ========================================================================= */}
-      {showInfoModal && (
-        <div 
-          onClick={() => setShowInfoModal(false)}
-          className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-fade-in"
-        >
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative text-slate-900 space-y-6 max-h-[90vh] overflow-y-auto"
-          >
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-200">
-                  {selected3DModel === 'revit' ? 'CARTOGRAFÍA OFICIAL // CATASTRO AMB CARTAGENA' : 'FICHA TÉCNICA 3D BIM // ARQUITECTURA'}
-                </span>
-                <h3 className="font-bold text-xl text-slate-900 mt-2">
-                  {modelDetails[selected3DModel].title}
-                </h3>
-                <p className="text-xs text-slate-500 font-mono mt-0.5">
-                  {modelDetails[selected3DModel].capacity} &bull; {modelDetails[selected3DModel].area}
-                </p>
-              </div>
-
-              <button
-                onClick={() => setShowInfoModal(false)}
-                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <p className="text-sm text-slate-700 leading-relaxed font-light">
-              {modelDetails[selected3DModel].desc}
-            </p>
-
-            {/* Ficha Catastral AMB Detallada */}
-            {selected3DModel === 'revit' && (
-              <div className="p-4 rounded-2xl bg-teal-50/80 border border-teal-200 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-teal-800 flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-teal-600" />
-                    Capas del Catastro Multipropósito AMB Cartagena
-                  </span>
-                  <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-teal-200/60 text-teal-900">
-                    MAGNA-SIRGAS EPSG:9377
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-mono">
-                  <div className="bg-white/90 p-2.5 rounded-xl border border-teal-200 shadow-sm">
-                    <span className="font-bold block text-teal-900 text-[11px]">Construccion.shp</span>
-                    <span className="text-[10px] text-slate-500 font-sans">Huellas 1:1 de edificios</span>
-                  </div>
-                  <div className="bg-white/90 p-2.5 rounded-xl border border-teal-200 shadow-sm">
-                    <span className="font-bold block text-teal-900 text-[11px]">Manzana.shp</span>
-                    <span className="text-[10px] text-slate-500 font-sans">Trazado y parcelario</span>
-                  </div>
-                  <div className="bg-white/90 p-2.5 rounded-xl border border-teal-200 shadow-sm">
-                    <span className="font-bold block text-teal-900 text-[11px]">Nomenclaturavial.shp</span>
-                    <span className="text-[10px] text-slate-500 font-sans">Ejes y vías oficiales</span>
-                  </div>
-                  <div className="bg-white/90 p-2.5 rounded-xl border border-teal-200 shadow-sm">
-                    <span className="font-bold block text-teal-900 text-[11px]">Corregimiento.shp</span>
-                    <span className="text-[10px] text-slate-500 font-sans">Límites Tierra Bomba</span>
-                  </div>
-                  <div className="bg-white/90 p-2.5 rounded-xl border border-teal-200 shadow-sm">
-                    <span className="font-bold block text-teal-900 text-[11px]">GDB_Catastro.gdb</span>
-                    <span className="text-[10px] text-slate-500 font-sans">Geodatabase Esri</span>
-                  </div>
-                  <div className="bg-white/90 p-2.5 rounded-xl border border-teal-200 shadow-sm">
-                    <span className="font-bold block text-teal-900 text-[11px]">Terreno.shp</span>
-                    <span className="text-[10px] text-slate-500 font-sans">Predios y lotes</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {modelDetails[selected3DModel].specs.map((spec, i) => (
-                <div key={i} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-center">
-                  <span className="text-[10px] font-mono text-slate-500 block uppercase">
-                    {spec.label}
-                  </span>
-                  <span className="font-bold text-sm text-slate-900 mt-1 block">
-                    {spec.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-end space-x-3 pt-2">
-              <button
-                onClick={() => setShowInfoModal(false)}
-                className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-mono text-xs font-bold hover:bg-slate-800 transition-colors"
-              >
-                Cerrar y Continuar Orbitando
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 4. REVIT / 3D MODEL UPLOAD & INTEGRATION MODAL                            */}
-      {/* ========================================================================= */}
-      {showUploadModal && (
-        <div 
-          onClick={() => setShowUploadModal(false)}
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-fade-in"
-        >
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative text-slate-900 space-y-6 animate-scale-up"
-          >
-            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-600 text-white flex items-center justify-center shadow-md">
-                  <UploadCloud className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
-                    INTEGRACIÓN AUTODESK REVIT / BIM
-                  </span>
-                  <h3 className="font-bold text-xl text-slate-900 mt-0.5">
-                    Cargar Modelo 3D de la Tesis
-                  </h3>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setShowUploadModal(false)}
-                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {loadError && (
-              <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-mono flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{loadError}</span>
-              </div>
-            )}
-
-            {/* Dropzone Container */}
-            <div 
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-amber-300 hover:border-amber-500 rounded-3xl p-8 bg-amber-50/40 hover:bg-amber-50/80 transition-all cursor-pointer flex flex-col items-center justify-center text-center space-y-3 group"
-            >
-              <div className="w-16 h-16 rounded-2xl bg-white shadow-md border border-amber-200 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
-                <FolderUp className="w-8 h-8" />
-              </div>
-              <div>
-                <h4 className="font-bold text-base text-slate-900">
-                  Haz clic aquí para seleccionar tu archivo 3D
-                </h4>
-                <p className="text-xs text-slate-500 font-sans mt-1">
-                  o arrastra y suelta directamente tu archivo en esta ventana
-                </p>
-              </div>
-              <div className="flex items-center space-x-2 pt-1">
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  .GLB (Recomendado)
-                </span>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-300">
-                  .GLTF
-                </span>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
-                  .OBJ
-                </span>
-              </div>
-            </div>
-
-            {/* Step by Step Guide from Revit */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 block">
-                💡 ¿Cómo exportarlo desde Revit?
-              </span>
-              <ul className="text-xs text-slate-700 space-y-1.5 font-sans">
-                <li className="flex items-start space-x-2">
-                  <span className="w-4 h-4 rounded-full bg-slate-900 text-white font-mono text-[9px] flex items-center justify-center shrink-0 mt-0.5">1</span>
-                  <span><b>Exportar a .GLB/.GLTF:</b> Usa el plugin gratuito <i>Revit to glTF</i> o exporta vía Datasmith / Blender / Enscape.</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="w-4 h-4 rounded-full bg-slate-900 text-white font-mono text-[9px] flex items-center justify-center shrink-0 mt-0.5">2</span>
-                  <span><b>Exportar a FBX/OBJ:</b> En Revit: <i>Archivo &gt; Exportar &gt; FBX</i> (o convertirlo a GLB).</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="w-4 h-4 rounded-full bg-slate-900 text-white font-mono text-[9px] flex items-center justify-center shrink-0 mt-0.5">3</span>
-                  <span><b>Ubicación local directa:</b> También puedes guardar el archivo en la carpeta <code>public/models/</code> de este proyecto.</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-[11px] font-mono text-slate-400">
-                Soporte WebGL Three.js // Sombras & Órbita en tiempo real
-              </span>
-              <button
-                onClick={() => setShowUploadModal(false)}
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-xs font-bold transition-colors"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 5. PRESENTACIÓN ESTRATÉGICA: EL FUTURO DE TIERRABOMBA (8 LÁMINAS)         */}
-      {/* ========================================================================= */}
-      <TierrabombaFutureModal
-        isOpen={showFutureModal}
-        onClose={() => setShowFutureModal(false)}
-      />
 
     </div>
   );
