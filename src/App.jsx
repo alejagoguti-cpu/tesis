@@ -25,13 +25,19 @@ class SafeSection extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-8 my-6 max-w-4xl mx-auto rounded-3xl bg-amber-500/10 border border-amber-500/30 text-center space-y-2 font-mono">
-          <p className="font-bold text-amber-600 dark:text-amber-400 text-sm">
+        <div className="p-8 my-6 max-w-4xl mx-auto rounded-3xl bg-amber-500/10 border border-amber-500/30 text-center space-y-3 font-sans">
+          <p className="font-bold text-amber-700 dark:text-amber-400 text-sm">
             Módulo en optimización: {this.props.name || 'Sección'}
           </p>
-          <p className="text-xs text-sand-500">
+          <p className="text-xs text-slate-600 dark:text-slate-400 bg-white/70 dark:bg-slate-900/70 p-2.5 rounded-xl border border-amber-200 font-mono">
             {this.state.error?.message || 'Cargando datos del módulo...'}
           </p>
+          <button
+            onClick={() => this.setState({ hasError: false, error: null })}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
+          >
+            ↻ Reintentar Cargar Módulo
+          </button>
         </div>
       );
     }

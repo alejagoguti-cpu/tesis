@@ -57,18 +57,22 @@ const ResetIcon = ({ className = "w-3 h-3" }) => (
 );
 
 export default function TreePlacementToolbar({
-  isPlanting,
-  setIsPlanting,
-  plantScale,
-  setPlantScale,
-  selectedTree,
-  onScaleChange,
-  onDeleteTree,
-  onClearAll,
-  treesCount,
-  onDeselect,
-  onClose
+  isPlanting = false,
+  setIsPlanting = () => {},
+  plantScale = 1.0,
+  setPlantScale = () => {},
+  selectedTree = null,
+  onScaleChange = () => {},
+  onDeleteTree = () => {},
+  onClearAll = () => {},
+  treesCount = 0,
+  onDeselect = () => {},
+  onClose = () => {}
 }) {
+  const numPlantScale = typeof plantScale === 'number' && !isNaN(plantScale) ? plantScale : 1.0;
+  const numSelectedScale = selectedTree && typeof selectedTree.scale === 'number' && !isNaN(selectedTree.scale) ? selectedTree.scale : 1.0;
+  const count = typeof treesCount === 'number' && !isNaN(treesCount) ? treesCount : 0;
+
   return (
     <div className="bg-white/95 border border-slate-200/90 rounded-3xl p-4 shadow-2xl backdrop-blur-xl text-slate-800 font-sans w-80 max-w-[92vw] animate-fade-in select-none">
       
@@ -85,7 +89,7 @@ export default function TreePlacementToolbar({
         </div>
         <div className="flex items-center space-x-1.5">
           <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">
-            {treesCount} {treesCount === 1 ? 'árbol' : 'árboles'}
+            {count} {count === 1 ? 'árbol' : 'árboles'}
           </span>
           {onClose && (
             <button 
@@ -127,7 +131,7 @@ export default function TreePlacementToolbar({
             Tamaño al plantar:
           </span>
           <span className="font-bold text-emerald-700 text-[11px] bg-emerald-100/80 px-2 py-0.5 rounded border border-emerald-200">
-            {plantScale.toFixed(2)}x
+            {numPlantScale.toFixed(2)}x
           </span>
         </div>
         <input 
@@ -135,8 +139,11 @@ export default function TreePlacementToolbar({
           min="0.25"
           max="3.0"
           step="0.05"
-          value={plantScale}
-          onChange={(e) => setPlantScale(parseFloat(e.target.value))}
+          value={numPlantScale}
+          onChange={(e) => {
+            const v = parseFloat(e.target.value);
+            if (!isNaN(v)) setPlantScale(v);
+          }}
           className="w-full accent-emerald-600 cursor-pointer h-1.5 bg-slate-200 rounded-lg mb-2.5"
         />
         <div className="flex gap-1.5">
@@ -149,7 +156,7 @@ export default function TreePlacementToolbar({
               key={p.val}
               onClick={() => setPlantScale(p.val)}
               className={`flex-1 py-1 text-[10px] rounded-lg border transition-all cursor-pointer font-medium ${
-                Math.abs(plantScale - p.val) < 0.08
+                Math.abs(numPlantScale - p.val) < 0.08
                   ? 'bg-emerald-600 border-emerald-600 text-white font-bold'
                   : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
               }`}
@@ -179,7 +186,7 @@ export default function TreePlacementToolbar({
           <div className="flex items-center justify-between text-xs mb-1">
             <span className="text-slate-600 text-[11px]">Ajustar Tamaño:</span>
             <span className="font-bold text-amber-800 text-[11px]">
-              {(selectedTree.scale || 1.0).toFixed(2)}x
+              {numSelectedScale.toFixed(2)}x
             </span>
           </div>
 
@@ -188,14 +195,17 @@ export default function TreePlacementToolbar({
             min="0.2"
             max="3.5"
             step="0.05"
-            value={selectedTree.scale || 1.0}
-            onChange={(e) => onScaleChange(selectedTree.id, parseFloat(e.target.value))}
+            value={numSelectedScale}
+            onChange={(e) => {
+              const v = parseFloat(e.target.value);
+              if (!isNaN(v)) onScaleChange(selectedTree.id, v);
+            }}
             className="w-full accent-amber-600 cursor-pointer h-1.5 bg-amber-200 rounded-lg mb-2"
           />
 
           <div className="flex gap-2 mb-2">
             <button
-              onClick={() => onScaleChange(selectedTree.id, Math.max(0.2, (selectedTree.scale || 1.0) - 0.2))}
+              onClick={() => onScaleChange(selectedTree.id, Math.max(0.2, numSelectedScale - 0.2))}
               className="flex-1 py-1.5 px-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-medium flex items-center justify-center gap-1 cursor-pointer shadow-sm"
               title="Disminuir tamaño"
             >
@@ -203,7 +213,7 @@ export default function TreePlacementToolbar({
               <span>Reducir</span>
             </button>
             <button
-              onClick={() => onScaleChange(selectedTree.id, Math.min(3.5, (selectedTree.scale || 1.0) + 0.2))}
+              onClick={() => onScaleChange(selectedTree.id, Math.min(3.5, numSelectedScale + 0.2))}
               className="flex-1 py-1.5 px-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-medium flex items-center justify-center gap-1 cursor-pointer shadow-sm"
               title="Agrandar tamaño"
             >
@@ -232,7 +242,7 @@ export default function TreePlacementToolbar({
           <SaveIcon className="w-3 h-3" />
           Guardado permanente
         </span>
-        {treesCount > 0 && (
+        {count > 0 && (
           <button
             onClick={onClearAll}
             className="text-rose-600 hover:text-rose-700 hover:underline cursor-pointer flex items-center gap-1 font-medium"

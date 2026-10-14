@@ -569,14 +569,25 @@ export async function buildCartagenaTerritoryScene({
   masterplanGroup.add(divLineMesh);
 
   // C. VÍAS AMARILLAS DEL PLAN MAESTRO (PASO 5: RED VIAL ESTRUCTURANTE Y ARTICULACIÓN)
-  // Sin zona roja (eliminada a solicitud). Se trazan las vías amarillas estructurantes.
+  // Vías planas (NO tubos) con textura rugosa de arena en tono amarillo cálido
+  const sandViaTex = texLoader.load(viaTextureImg);
+  sandViaTex.wrapS = THREE.RepeatWrapping;
+  sandViaTex.wrapT = THREE.RepeatWrapping;
+  sandViaTex.repeat.set(1, 4);
+
   const yellowRoadMat = new THREE.MeshStandardMaterial({
-    color: 0xf59e0b,
-    emissive: 0xd97706,
-    emissiveIntensity: 0.85,
-    roughness: 0.35,
-    metalness: 0.1
+    color: 0xf59e0b, // Amarillo arena cálido
+    map: sandViaTex,
+    bumpMap: sandViaTex,
+    bumpScale: 0.05,
+    roughness: 0.94, // Mate arenoso realista
+    metalness: 0.02,
+    side: THREE.DoubleSide,
+    depthWrite: true,
   });
+
+  const ROAD_WIDTH = 0.52; // Ancho plano de la vía (cinta horizontal)
+  const halfW = ROAD_WIDTH / 2;
 
   // 1. Vías por defecto que articulan Punta Arenas, la Meseta (+22m) y el Corredor Oriental
   const defaultMasterplanRoads = [
@@ -617,12 +628,10 @@ export async function buildCartagenaTerritoryScene({
     if (rawDelims) {
       const parsed = JSON.parse(rawDelims);
       if (parsed.roads && Array.isArray(parsed.roads) && parsed.roads.length > 0) {
-        // Formato de roads en ThesisFramework: [ [ [lat, lng], ... ], ... ]
         parsed.roads.forEach(line => {
           if (Array.isArray(line) && line.length >= 2) {
             const converted = line.map(pt => {
               if (Array.isArray(pt) && pt.length >= 2) {
-                // Verificar si es [lat, lng] o [lng, lat]
                 const lat = pt[0] > 0 ? pt[0] : pt[1];
                 const lng = pt[1] < 0 ? pt[1] : pt[0];
                 return [lng, lat];
@@ -640,25 +649,65 @@ export async function buildCartagenaTerritoryScene({
 
   allMasterRoads.forEach(roadLine => {
     for (let i = 0; i < roadLine.length - 1; i++) {
-      const p1 = lonLatToVector3(roadLine[i][0], roadLine[i][1], 0.42);
-      const p2 = lonLatToVector3(roadLine[i + 1][0], roadLine[i + 1][1], 0.42);
+      const p1 = lonLatToVector3(roadLine[i][0], roadLine[i][1], 0.38);
+      const p2 = lonLatToVector3(roadLine[i + 1][0], roadLine[i + 1][1], 0.38);
       const segDist = p1.distanceTo(p2);
       if (segDist < 0.05) continue;
 
-      const segGeo = new THREE.CylinderGeometry(0.18, 0.18, segDist, 8);
-      segGeo.translate(0, segDist / 2, 0);
-      segGeo.rotateX(Math.PI / 2);
+      // Dirección y normal horizontal perpendicular en X-Z
+      const dir = new THREE.Vector3().subVectors(p2, p1).normalize();
+      const norm = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(halfW);
 
-      const segMesh = new THREE.Mesh(segGeo, yellowRoadMat);
-      segMesh.position.copy(p1);
-      segMesh.lookAt(p2);
-      segMesh.name = "MasterplanYellowRoad";
-      masterplanGroup.add(segMesh);
+      // Quad plano horizontal rasante al terreno
+      const v0 = new THREE.Vector3().addVectors(p1, norm);
+      const v1 = new THREE.Vector3().subVectors(p1, norm);
+      const v2 = new THREE.Vector3().subVectors(p2, norm);
+      const v3 = new THREE.Vector3().addVectors(p2, norm);
 
-      // Pequeño marcador en el nodo de intersección
-      const jointGeo = new THREE.SphereGeometry(0.22, 8, 8);
+      const geom = new THREE.BufferGeometry();
+      const positions = new Float32Array([
+        v0.x, v0.y, v0.z,
+        v1.x, v1.y, v1.z,
+        v2.x, v2.y, v2.z,
+
+        v0.x, v0.y, v0.z,
+        v2.x, v2.y, v2.z,
+        v3.x, v3.y, v3.z
+      ]);
+
+      const uvs = new Float32Array([
+        0, 0,
+        1, 0,
+        1, segDist * 0.4,
+
+        0, 0,
+        1, segDist * 0.4,
+        0, segDist * 0.4
+      ]);
+
+      const normals = new Float32Array([
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0
+      ]);
+
+      geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geom.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      geom.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+
+      const ribbonMesh = new THREE.Mesh(geom, yellowRoadMat);
+      ribbonMesh.name = "MasterplanYellowRoadFlat";
+      ribbonMesh.receiveShadow = true;
+      masterplanGroup.add(ribbonMesh);
+
+      // Disco plano circular de empalme en los nodos (no esfera)
+      const jointGeo = new THREE.CircleGeometry(halfW, 14);
+      jointGeo.rotateX(-Math.PI / 2);
+      jointGeo.translate(p1.x, p1.y + 0.001, p1.z);
       const jointMesh = new THREE.Mesh(jointGeo, yellowRoadMat);
-      jointMesh.position.copy(p1);
       masterplanGroup.add(jointMesh);
     }
   });
@@ -811,13 +860,102 @@ export async function buildCartagenaTerritoryScene({
   animatedObjects.hotspotRings = hotspotRings;
 
   // -------------------------------------------------------------
-  // 8. GRUPO DE VEGETACIÓN PERSONALIZABLE
-  // Se eliminaron todos los árboles automáticos para dar control total al usuario.
-  // Los árboles se plantan, escalan y administran de forma interactiva y persistente.
+  // 8. VEGETACIÓN & ARBOLADO NATIVO 3D (CENTRO VERDE DE LA ISLA)
+  // Árboles verdes vivos sin bordes negros, de diferentes tamaños,
+  // distribuidos en el centro de la isla y la meseta protegida.
   // -------------------------------------------------------------
   const treesGroup = new THREE.Group();
   treesGroup.name = "Vegetation";
   treesGroup.visible = activeLayers.trees !== false;
+
+  // Constructor de árbol con doble follaje verde vivo y tronco cálido sin halo negro
+  function buildIslandTree(scale = 1.0) {
+    const group = new THREE.Group();
+    const trunkMat = new THREE.MeshStandardMaterial({
+      color: 0x6d4c41,
+      roughness: 0.85,
+      metalness: 0.05
+    });
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.20, 1.2, 8), trunkMat);
+    trunk.position.y = 0.6;
+    trunk.castShadow = true;
+    trunk.receiveShadow = true;
+    group.add(trunk);
+
+    const folMat1 = new THREE.MeshStandardMaterial({
+      color: 0x4ade80, // Verde esmeralda vivo
+      emissive: 0x14532d,
+      emissiveIntensity: 0.22,
+      roughness: 0.55
+    });
+    const fol1 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.85, 1), folMat1);
+    fol1.position.set(0, 1.45, 0);
+    fol1.scale.set(1.1, 0.95, 1.1);
+    fol1.castShadow = true;
+    fol1.receiveShadow = true;
+    group.add(fol1);
+
+    const folMat2 = new THREE.MeshStandardMaterial({
+      color: 0x22c55e, // Verde bosque medio
+      emissive: 0x0f3f22,
+      emissiveIntensity: 0.18,
+      roughness: 0.55
+    });
+    const fol2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.65, 1), folMat2);
+    fol2.position.set(0.12, 1.95, 0.08);
+    fol2.scale.set(0.9, 0.85, 0.9);
+    fol2.castShadow = true;
+    fol2.receiveShadow = true;
+    group.add(fol2);
+
+    group.scale.set(scale, scale, scale);
+    return group;
+  }
+
+  // 52 coordenadas estrictamente dentro del centro verde de la isla (meseta y parque ecológico, lejos del mar)
+  const defaultCenterTreesCoords = [
+    [-75.5752, 10.3742, 1.25], [-75.5758, 10.3738, 0.70], [-75.5748, 10.3735, 1.45],
+    [-75.5762, 10.3745, 0.60], [-75.5755, 10.3728, 1.10], [-75.5766, 10.3732, 0.90],
+    [-75.5742, 10.3740, 1.35], [-75.5750, 10.3748, 0.75], [-75.5760, 10.3722, 1.55],
+    [-75.5753, 10.3718, 1.05], [-75.5768, 10.3725, 0.85], [-75.5745, 10.3725, 1.20],
+    [-75.5757, 10.3752, 0.65], [-75.5764, 10.3750, 1.15], [-75.5740, 10.3732, 0.95],
+    [-75.5772, 10.3728, 1.30], [-75.5759, 10.3712, 0.70], [-75.5765, 10.3718, 1.00],
+    [-75.5746, 10.3746, 1.40], [-75.5752, 10.3758, 0.80], [-75.5760, 10.3762, 1.25],
+    [-75.5754, 10.3766, 0.60], [-75.5748, 10.3754, 1.10], [-75.5768, 10.3738, 1.35],
+    [-75.5736, 10.3736, 0.85], [-75.5738, 10.3744, 1.15], [-75.5744, 10.3750, 0.70],
+    [-75.5770, 10.3746, 1.45], [-75.5775, 10.3735, 0.90], [-75.5762, 10.3756, 1.20],
+    [-75.5750, 10.3762, 0.65], [-75.5743, 10.3756, 1.30], [-75.5735, 10.3748, 0.75],
+    [-75.5766, 10.3712, 1.10], [-75.5771, 10.3720, 0.85], [-75.5758, 10.3708, 1.40],
+    [-75.5763, 10.3705, 0.95], [-75.5752, 10.3710, 1.25], [-75.5747, 10.3715, 0.70],
+    [-75.5742, 10.3720, 1.15], [-75.5738, 10.3726, 0.80], [-75.5734, 10.3730, 1.35],
+    [-75.5774, 10.3740, 0.65], [-75.5778, 10.3730, 1.10], [-75.5776, 10.3722, 0.90],
+    [-75.5770, 10.3715, 1.25], [-75.5765, 10.3760, 0.75], [-75.5758, 10.3768, 1.05],
+    [-75.5750, 10.3770, 1.30], [-75.5745, 10.3764, 0.85], [-75.5740, 10.3758, 1.15],
+    [-75.5735, 10.3752, 0.60]
+  ];
+
+  defaultCenterTreesCoords.forEach(([lon, lat, scale], idx) => {
+    const pos = lonLatToVector3(lon, lat, 0.36);
+    const treeMesh = buildIslandTree(scale);
+    treeMesh.position.copy(pos);
+    treeMesh.rotation.y = (idx * 1.37) % (Math.PI * 2);
+    treeMesh.name = `Tree_Center_${idx + 1}`;
+    treeMesh.userData = {
+      isCustomTree: true,
+      treeId: `init_tree_${idx + 1}`,
+      scale
+    };
+    treeMesh.traverse(ch => {
+      if (ch.isMesh) {
+        ch.userData.isCustomTree = true;
+        ch.userData.treeId = `init_tree_${idx + 1}`;
+        ch.castShadow = true;
+        ch.receiveShadow = true;
+      }
+    });
+    treesGroup.add(treeMesh);
+  });
+
   territoryGroup.add(treesGroup);
 
   // Add all to root scene

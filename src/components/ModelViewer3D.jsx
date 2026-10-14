@@ -66,6 +66,30 @@ const TreeIcon = ({ className = "w-4 h-4" }) => (
   </svg>
 );
 
+class LocalSafeComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(err) {
+    console.warn("Local widget error caught:", err);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="bg-white/95 border border-slate-200 p-3.5 rounded-2xl text-xs text-slate-700 shadow-xl font-sans w-72">
+          <p className="font-semibold text-emerald-800 flex items-center gap-1">🌱 Modo Vegetación Activo</p>
+          <p className="text-[11px] text-slate-600 mt-1">Haz clic en el terreno verde de la isla para colocar árboles.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export const DEFAULT_M5_PALETTE = {
   grass: '#ffffff',
   water: '#b5ebf5', // Celeste cristalino más clarito y luminoso
@@ -121,7 +145,14 @@ export default function ModelViewer3D({ onSelectModule }) {
   const cartagenaTerritoryRef = useRef(null);
 
   // Herramienta de Vegetación Interactiva y Persistente (Tierra Bomba & Catastro)
-  const [catastroTreesList, setCatastroTreesList] = useState(() => getSavedTrees(STORAGE_KEY_CATASTRO));
+  const [catastroTreesList, setCatastroTreesList] = useState(() => {
+    try {
+      const saved = getSavedTrees(STORAGE_KEY_CATASTRO);
+      return Array.isArray(saved) ? saved : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [isPlantingTree, setIsPlantingTree] = useState(false);
   const [treePlantScale, setTreePlantScale] = useState(1.0);
   const [selectedCatastroTreeId, setSelectedCatastroTreeId] = useState(null);
@@ -135,7 +166,8 @@ export default function ModelViewer3D({ onSelectModule }) {
   const onSelectCatastroTreeRef = useRef(null);
   const treeTemplateRef = useRef(null);
 
-  const selectedCatastroTree = catastroTreesList.find((t) => t.id === selectedCatastroTreeId) || null;
+  const safeCatastroList = Array.isArray(catastroTreesList) ? catastroTreesList : [];
+  const selectedCatastroTree = safeCatastroList.find((t) => t && t.id === selectedCatastroTreeId) || null;
 
   const handleAddCatastroTree = (newTree) => {
     const updated = [...catastroTreesList, newTree];
@@ -1570,11 +1602,11 @@ export default function ModelViewer3D({ onSelectModule }) {
           >
             <TreeIcon className={`w-4 h-4 ${showTreePlacementToolbar ? 'text-white' : 'text-emerald-600'}`} />
             <span>{showTreePlacementToolbar ? 'Cerrar Vegetación' : '🌱 Plantar Árboles'}</span>
-            {catastroTreesList.length > 0 && (
+            {safeCatastroList.length > 0 && (
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-1 ${
                 showTreePlacementToolbar ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
               }`}>
-                {catastroTreesList.length}
+                {safeCatastroList.length}
               </span>
             )}
           </button>
@@ -1583,19 +1615,21 @@ export default function ModelViewer3D({ onSelectModule }) {
         {/* Panel Flotante de Vegetación Interactiva */}
         {showTreePlacementToolbar && (
           <div className="pt-1">
-            <TreePlacementToolbar
-              isPlanting={isPlantingTree}
-              setIsPlanting={setIsPlantingTree}
-              plantScale={treePlantScale}
-              setPlantScale={setTreePlantScale}
-              selectedTree={selectedCatastroTree}
-              onScaleChange={handleCatastroTreeScaleChange}
-              onDeleteTree={handleCatastroTreeDelete}
-              onClearAll={handleCatastroTreeClearAll}
-              treesCount={catastroTreesList.length}
-              onDeselect={() => setSelectedCatastroTreeId(null)}
-              onClose={() => setShowTreePlacementToolbar(false)}
-            />
+            <LocalSafeComponent>
+              <TreePlacementToolbar
+                isPlanting={isPlantingTree}
+                setIsPlanting={setIsPlantingTree}
+                plantScale={treePlantScale}
+                setPlantScale={setTreePlantScale}
+                selectedTree={selectedCatastroTree}
+                onScaleChange={handleCatastroTreeScaleChange}
+                onDeleteTree={handleCatastroTreeDelete}
+                onClearAll={handleCatastroTreeClearAll}
+                treesCount={safeCatastroList.length}
+                onDeselect={() => setSelectedCatastroTreeId(null)}
+                onClose={() => setShowTreePlacementToolbar(false)}
+              />
+            </LocalSafeComponent>
           </div>
         )}
       </div>

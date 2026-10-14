@@ -895,8 +895,8 @@ export default function ThesisFramework({ onSelectModule }) {
       isPolygon = true;
       mainColor = currentSubTab === 'houses' ? '#dc2626' : '#ef4444';
       glowColor = currentSubTab === 'houses' ? '#ef4444' : '#fb7185';
-      cameraCenter = currentSubTab === 'houses' ? [10.3765, -75.5780] : [10.3805, -75.5761];
-      cameraZoom = currentSubTab === 'houses' ? 16.5 : 18.2;
+      cameraCenter = currentSubTab === 'houses' ? [10.3774, -75.5743] : [10.3805, -75.5761];
+      cameraZoom = currentSubTab === 'houses' ? 16.6 : 18.2;
     } else if (stepIdx === 3) {
       isPolygon = true;
       mainColor = '#0d9488';
@@ -1091,8 +1091,8 @@ export default function ThesisFramework({ onSelectModule }) {
           map.removeLayer(vulnerableHousesCallout);
         }
 
-        const housesTarget = [10.3765, -75.5780];
-        const housesZoom = 16.5;
+        const housesTarget = [10.3774, -75.5743];
+        const housesZoom = 16.6;
 
         let hasDrawnHouses = false;
         const drawHousesWhenStill = () => {
