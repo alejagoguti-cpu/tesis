@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import pastoTextureImg from '../assets/textura_pasto_m5.png';
 import waterTextureImg from '../assets/textura_agua_m5.jpg';
@@ -25,7 +26,7 @@ export async function buildCartagenaTerritoryScene({
     grid: false,
   },
   colors = {
-    water: '#257f96',
+    water: '#8dc8d2',
     roads: '#334155',
     terrain: '#ffffff',
     buildings: '#ffffff',
@@ -114,7 +115,7 @@ export async function buildCartagenaTerritoryScene({
     map: waterTex,
     bumpMap: bumpTex,
     bumpScale: 0.025,
-    color: new THREE.Color(colors.water || '#257f96'),
+    color: new THREE.Color(colors.water || '#8dc8d2'),
     roughness: 0.15,
     metalness: 0.10,
     transparent: true,
@@ -769,6 +770,123 @@ export async function buildCartagenaTerritoryScene({
   territoryGroup.add(masterplanGroup);
   animatedObjects.masterplanGroup = masterplanGroup;
   animatedObjects.hotspotRings = hotspotRings;
+
+  // -------------------------------------------------------------
+  // 8. ÁRBOLES REALES DE SKETCHUP EN TIERRA BOMBA (C:\sketch\tree+300.skp)
+  // -------------------------------------------------------------
+  const treesGroup = new THREE.Group();
+  treesGroup.name = "Vegetation";
+
+  const tierrabombaTreeCoords = [
+    // Punta Arenas y Borde Norte Costero
+    [-75.5760, 10.3815], [-75.5775, 10.3820], [-75.5750, 10.3810], [-75.5785, 10.3805], [-75.5738, 10.3822],
+    [-75.5792, 10.3795], [-75.5765, 10.3802], [-75.5755, 10.3828], [-75.5742, 10.3798], [-75.5780, 10.3788],
+    // Franja de Amortiguación y Reforestación (500m)
+    [-75.5750, 10.3800], [-75.5768, 10.3792], [-75.5735, 10.3790], [-75.5782, 10.3782], [-75.5720, 10.3785],
+    [-75.5760, 10.3775], [-75.5740, 10.3770], [-75.5775, 10.3765], [-75.5728, 10.3768], [-75.5790, 10.3772],
+    // Meseta Central Resiliente (+22m) y Parque Ecológico Central
+    [-75.5745, 10.3745], [-75.5760, 10.3735], [-75.5730, 10.3752], [-75.5770, 10.3725], [-75.5750, 10.3715],
+    [-75.5725, 10.3738], [-75.5765, 10.3755], [-75.5740, 10.3728], [-75.5755, 10.3748], [-75.5735, 10.3718],
+    [-75.5768, 10.3712], [-75.5748, 10.3732], [-75.5722, 10.3722], [-75.5758, 10.3762], [-75.5732, 10.3742],
+    // Corredores Ecológicos y Caño de Oro (Ladera Este / Bahía)
+    [-75.5685, 10.3730], [-75.5672, 10.3718], [-75.5698, 10.3745], [-75.5668, 10.3690], [-75.5682, 10.3665],
+    [-75.5690, 10.3710], [-75.5702, 10.3735], [-75.5678, 10.3725], [-75.5710, 10.3740], [-75.5695, 10.3680],
+    // Costa Occidental Balneario y Laderas Abiertas al Mar Caribe
+    [-75.5815, 10.3740], [-75.5828, 10.3715], [-75.5802, 10.3685], [-75.5812, 10.3655], [-75.5798, 10.3625],
+    [-75.5822, 10.3730], [-75.5808, 10.3700], [-75.5832, 10.3670], [-75.5818, 10.3640], [-75.5805, 10.3610],
+    // Zona Central Interior y Colinas de Tierra Bomba
+    [-75.5735, 10.3655], [-75.5752, 10.3625], [-75.5715, 10.3605], [-75.5745, 10.3585], [-75.5765, 10.3565],
+    [-75.5728, 10.3635], [-75.5748, 10.3610], [-75.5710, 10.3590], [-75.5738, 10.3570], [-75.5758, 10.3550],
+    // Tierra Bomba Pueblo (Sureste) y Laderas Circundantes
+    [-75.5710, 10.3520], [-75.5692, 10.3505], [-75.5732, 10.3485], [-75.5702, 10.3465], [-75.5742, 10.3445],
+    [-75.5718, 10.3510], [-75.5698, 10.3490], [-75.5725, 10.3470], [-75.5708, 10.3450], [-75.5735, 10.3430],
+    // Bocachica, Bosque Seco Tropical y Fuerte San Fernando (Sur)
+    [-75.5800, 10.3385], [-75.5822, 10.3365], [-75.5812, 10.3345], [-75.5832, 10.3355], [-75.5792, 10.3335],
+    [-75.5808, 10.3375], [-75.5828, 10.3350], [-75.5798, 10.3360], [-75.5818, 10.3338], [-75.5838, 10.3342],
+    // Parques continentales (Parque Centenario, Laderas Popa)
+    [-75.5460, 10.4225], [-75.5470, 10.4215], [-75.5380, 10.4240], [-75.5390, 10.4230], [-75.5370, 10.4250]
+  ];
+
+  try {
+    const gltfLoader = new GLTFLoader();
+    const treeUrl = `${basePath.endsWith('/') ? basePath : basePath + '/'}models/tree.glb`;
+    gltfLoader.load(
+      treeUrl,
+      (gltf) => {
+        const treeScene = gltf.scene;
+        const meshes = [];
+        treeScene.traverse((c) => {
+          if (c.isMesh) {
+            c.castShadow = true;
+            c.receiveShadow = true;
+            if (c.material) {
+              c.material.side = THREE.DoubleSide;
+              c.material.alphaTest = 0.35;
+              c.material.depthWrite = true;
+              c.material.shadowSide = THREE.DoubleSide;
+            }
+            meshes.push(c);
+          }
+        });
+
+        if (meshes.length > 0) {
+          const count = tierrabombaTreeCoords.length;
+          const instancedList = meshes.map((m) => {
+            const inst = new THREE.InstancedMesh(m.geometry, m.material, count);
+            inst.castShadow = true;
+            inst.receiveShadow = true;
+            return inst;
+          });
+
+          const dummy = new THREE.Object3D();
+          const TREE_SCALE = 0.038; // Escala proporcional arquitectónica
+
+          tierrabombaTreeCoords.forEach(([lon, lat], idx) => {
+            const pos = lonLatToVector3(lon, lat, 0.06);
+            const s = TREE_SCALE * (0.8 + Math.random() * 0.4);
+            dummy.position.set(pos.x, pos.y, pos.z);
+            dummy.rotation.y = Math.random() * Math.PI * 2;
+            dummy.rotation.x = (Math.random() - 0.5) * 0.06;
+            dummy.scale.set(s, s, s);
+            dummy.updateMatrix();
+
+            instancedList.forEach((inst) => {
+              inst.setMatrixAt(idx, dummy.matrix);
+            });
+          });
+
+          instancedList.forEach((inst) => {
+            inst.instanceMatrix.needsUpdate = true;
+            treesGroup.add(inst);
+          });
+        }
+      },
+      undefined,
+      (err) => {
+        console.warn("Could not load tree.glb, using procedural fallback:", err);
+        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.9 });
+        const foliageMat = new THREE.MeshStandardMaterial({ color: 0x3d7a42, roughness: 0.6 });
+        tierrabombaTreeCoords.forEach(([lon, lat], i) => {
+          const pos = lonLatToVector3(lon, lat, 0.06);
+          const t = new THREE.Group();
+          const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.35, 6), trunkMat);
+          tr.position.y = 0.175;
+          const fol = new THREE.Mesh(new THREE.DodecahedronGeometry(0.24 + (i % 3) * 0.05), foliageMat);
+          fol.position.y = 0.42;
+          fol.castShadow = true;
+          t.add(tr);
+          t.add(fol);
+          t.position.copy(pos);
+          treesGroup.add(t);
+        });
+      }
+    );
+  } catch (e) {
+    console.error("Error setting up trees:", e);
+  }
+
+  treesGroup.visible = activeLayers.trees !== false;
+  territoryGroup.add(treesGroup);
 
   // Add all to root scene
   sceneRoot.add(territoryGroup);

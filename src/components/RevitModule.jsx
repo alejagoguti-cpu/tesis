@@ -93,7 +93,7 @@ function createSkyTexture() {
   return tex;
 }
 
-function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitNonce, waveActive, localFile, wireframe, roadColorMode }) {
+function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitNonce, waveActive, localFile, wireframe, roadColorMode, treesVisible = true, waterColor = '#8dc8d2' }) {
   const mountRef = useRef(null);
   const applyViewRef = useRef(null);
   const modelRef = useRef(null);
@@ -103,6 +103,8 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
   const roadsMeshRef = useRef([]);
   const waveActiveRef = useRef(waveActive);
   waveActiveRef.current = waveActive;
+  const waterMatRef = useRef(null);
+  const treesGroupRef = useRef(null);
 
   // Materiales de vías
   const roadMatGreyRef = useRef(null);
@@ -225,16 +227,19 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       side: THREE.DoubleSide
     });
 
-    // 5. Océano profundo con oleaje continuo y reflejos
+    // 5. Océano caribeño cristalino con oleaje continuo y reflejos suaves
     const waterMat = new THREE.MeshStandardMaterial({
       map: aguaTex,
       bumpMap: aguaTex,
-      bumpScale: 0.65,
-      color: 0x0a2d48, // Azul caribe profundo
+      bumpScale: 0.32,
+      color: new THREE.Color(waterColor || '#8dc8d2'),
       roughness: 0.12,
-      metalness: 0.35,
-      envMapIntensity: 1.8
+      metalness: 0.12,
+      transparent: true,
+      opacity: 0.94,
+      envMapIntensity: 1.4
     });
+    waterMatRef.current = waterMat;
 
     // Gran plano oceánico continuo que rodea la isla y reemplaza el cuadrado de Revit
     const oceanGeo = new THREE.PlaneGeometry(800, 800, 64, 64);
@@ -303,6 +308,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
 
       try {
         const mBox = new THREE.Box3();
+        let terrainMesh = null;
         obj.traverse((c) => {
           if (!c.isMesh) return;
           c.castShadow = true;
@@ -341,6 +347,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
             removeSeaSkirt(c.geometry);
             ensureTopUVs(c.geometry, 42);
             c.material = grassMat;
+            terrainMesh = c;
           }
           // D. TODOS LOS CUBOS, CASAS Y EDIFICACIONES -> ¡BLANCO PURO NÍTIDO!
           else {
@@ -357,6 +364,100 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       if (onLoaded) onLoaded();
 
       frameModel(obj);
+
+      // Cargar y distribuir los árboles reales de SketchUp (C:\sketch\tree+300.skp) por toda la isla
+      if (terrainMesh && terrainMesh.geometry && terrainMesh.geometry.attributes.position) {
+        const posAttr = terrainMesh.geometry.attributes.position;
+        const normAttr = terrainMesh.geometry.attributes.normal;
+
+        const oldVeg = root.getObjectByName('VegetationRevit');
+        if (oldVeg) root.remove(oldVeg);
+
+        const islandPoints = [];
+        const v = new THREE.Vector3();
+        const n = new THREE.Vector3();
+        const step = Math.max(1, Math.floor(posAttr.count / 260));
+
+        for (let i = 0; i < posAttr.count; i += step) {
+          v.set(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
+          terrainMesh.localToWorld(v);
+          if (v.y > 0.12 && v.y < 3.2) {
+            if (normAttr) {
+              n.set(normAttr.getX(i), normAttr.getY(i), normAttr.getZ(i));
+              if (Math.abs(n.z) > 0.35 || Math.abs(n.y) > 0.35) {
+                islandPoints.push(v.clone());
+              }
+            } else {
+              islandPoints.push(v.clone());
+            }
+          }
+        }
+
+        if (islandPoints.length > 0) {
+          const treesGroup = new THREE.Group();
+          treesGroup.name = 'VegetationRevit';
+          treesGroupRef.current = treesGroup;
+
+          const gLoader = new GLTFLoader();
+          const treeUrl = `${cleanBase}models/tree.glb`;
+          gLoader.load(
+            treeUrl,
+            (tGltf) => {
+              const meshes = [];
+              tGltf.scene.traverse((tc) => {
+                if (tc.isMesh) {
+                  tc.castShadow = true;
+                  tc.receiveShadow = true;
+                  if (tc.material) {
+                    tc.material.side = THREE.DoubleSide;
+                    tc.material.alphaTest = 0.35;
+                    tc.material.depthWrite = true;
+                    tc.material.shadowSide = THREE.DoubleSide;
+                  }
+                  meshes.push(tc);
+                }
+              });
+
+              if (meshes.length > 0) {
+                const count = Math.min(islandPoints.length, 220);
+                const instancedList = meshes.map((m) => {
+                  const inst = new THREE.InstancedMesh(m.geometry, m.material, count);
+                  inst.castShadow = true;
+                  inst.receiveShadow = true;
+                  return inst;
+                });
+
+                const dummy = new THREE.Object3D();
+                const TREE_SCALE = 0.024; // Escala proporcional arquitectónica
+
+                for (let i = 0; i < count; i++) {
+                  const pt = islandPoints[i];
+                  const s = TREE_SCALE * (0.8 + Math.random() * 0.4);
+                  dummy.position.set(pt.x, pt.y, pt.z);
+                  dummy.rotation.y = Math.random() * Math.PI * 2;
+                  dummy.rotation.x = (Math.random() - 0.5) * 0.06;
+                  dummy.scale.set(s, s, s);
+                  dummy.updateMatrix();
+
+                  instancedList.forEach((inst) => {
+                    inst.setMatrixAt(i, dummy.matrix);
+                  });
+                }
+
+                instancedList.forEach((inst) => {
+                  inst.instanceMatrix.needsUpdate = true;
+                  treesGroup.add(inst);
+                });
+              }
+            },
+            undefined,
+            (err) => console.warn('Could not load tree.glb for Revit model:', err)
+          );
+
+          treesGroup.visible = !!treesVisible;
+          root.add(treesGroup);
+        }
+      }
     };
 
     // Procesar archivo 3D local del usuario (arrastrar o botón)
@@ -589,6 +690,21 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     });
   }, [wireframe]);
 
+  // Árboles SketchUp toggle
+  useEffect(() => {
+    if (treesGroupRef.current) {
+      treesGroupRef.current.visible = !!treesVisible;
+    }
+  }, [treesVisible]);
+
+  // Color del Mar Caribe en tiempo real
+  useEffect(() => {
+    if (waterMatRef.current && waterColor) {
+      waterMatRef.current.color.set(waterColor);
+      waterMatRef.current.needsUpdate = true;
+    }
+  }, [waterColor]);
+
   // Si el usuario sube un archivo local (drag and drop o file picker)
   useEffect(() => {
     if (localFile && loadCustomFileRef.current) {
@@ -620,6 +736,8 @@ export default function RevitModule() {
   const [waveActive, setWaveActive] = useState(true);
   const [wireframe, setWireframe] = useState(false);
   const [roadColorMode, setRoadColorMode] = useState('grey'); // 'grey' | 'blue'
+  const [treesVisible, setTreesVisible] = useState(true);
+  const [waterColor, setWaterColor] = useState('#8dc8d2');
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [localFile, setLocalFile] = useState(null);
@@ -711,6 +829,8 @@ export default function RevitModule() {
           wireframe={wireframe}
           roadColorMode={roadColorMode}
           localFile={localFile}
+          treesVisible={treesVisible}
+          waterColor={waterColor}
         />
       </div>
 
@@ -735,7 +855,7 @@ export default function RevitModule() {
             />
           </div>
           <p className="text-[11px] font-mono text-slate-300 text-center max-w-sm">
-            Isla orgánica en pasto natural, cubos en blanco puro, malla de caminos de Revit y mar Caribe animado.
+            Isla orgánica en pasto natural, casas blancas, caminos de Revit, árboles de SketchUp por toda la isla y mar Caribe turquesa.
           </p>
           
           <button
@@ -773,15 +893,49 @@ export default function RevitModule() {
           Tierrabomba · Modelo Revit
         </h1>
         <p className="text-slate-700 text-xs font-mono drop-shadow-sm max-w-md hidden sm:block">
-          Render diurno: cubos blancos, malla de caminos de Revit, isla en pasto natural y océano dinámico.
+          Render diurno: casas blancas, caminos de Revit, árboles de SketchUp en toda la isla y mar Caribe turquesa.
         </p>
       </div>
 
       {/* Botones de acción superior derecha */}
-      <div className="absolute top-4 right-4 z-10 flex items-center space-x-2">
+      <div className="absolute top-4 right-4 z-10 flex flex-wrap items-center gap-2">
+        {/* Selector Rápido de Color del Mar Caribe */}
+        <div className="flex items-center space-x-1 bg-white/90 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-300 dark:border-slate-700 shadow-md">
+          <span className="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400 px-1">Mar:</span>
+          {[
+            { label: 'Turquesa Caribeño', color: '#8dc8d2' },
+            { label: 'Celeste Luminoso', color: '#58c4dc' },
+            { label: 'Bahía Esmeralda', color: '#4fa8b2' },
+            { label: 'Azul Colonial', color: '#3b82a6' }
+          ].map(p => (
+            <button
+              key={p.color}
+              onClick={() => setWaterColor(p.color)}
+              style={{ backgroundColor: p.color }}
+              className={`w-5 h-5 rounded-lg border-2 transition-transform hover:scale-110 cursor-pointer ${
+                waterColor === p.color ? 'border-slate-900 dark:border-white ring-2 ring-emerald-400 scale-105' : 'border-white/50'
+              }`}
+              title={`Mar Caribe: ${p.label}`}
+            />
+          ))}
+        </div>
+
+        {/* Toggle Árboles SketchUp */}
+        <button
+          onClick={() => setTreesVisible(v => !v)}
+          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md flex items-center space-x-1.5 cursor-pointer ${
+            treesVisible
+              ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500'
+              : 'bg-white/90 border-slate-300 text-slate-700 hover:bg-white'
+          }`}
+          title="Mostrar u ocultar los árboles de SketchUp (tree+300.skp) distribuidos por toda la isla"
+        >
+          <span>{treesVisible ? '🌲 Árboles SketchUp ON' : '🌱 Árboles OFF'}</span>
+        </button>
+
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-white/90 hover:bg-white text-emerald-800 border border-emerald-600/30 backdrop-blur-md transition-all shadow-md flex items-center space-x-1.5"
+          className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-white/90 hover:bg-white text-emerald-800 border border-emerald-600/30 backdrop-blur-md transition-all shadow-md flex items-center space-x-1.5 cursor-pointer"
           title="Subir archivo FBX/GLB de Revit desde tu computador"
         >
           <span>📁 Cargar FBX</span>
@@ -802,34 +956,34 @@ export default function RevitModule() {
 
         <button
           onClick={() => setWaveActive((w) => !w)}
-          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md cursor-pointer ${
             waveActive
               ? 'bg-cyan-900/90 border-cyan-600 text-cyan-100 hover:bg-cyan-800'
               : 'bg-white/90 border-slate-300 text-slate-700 hover:bg-white'
           }`}
           title="Pausar o activar movimiento del mar"
         >
-          {waveActive ? '🌊 Oleaje Activo' : '⏸ Oleaje Pausado'}
+          {waveActive ? '🌊 Oleaje' : '⏸ Oleaje'}
         </button>
 
         <button
           onClick={() => setWireframe((v) => !v)}
-          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md cursor-pointer ${
             wireframe
               ? 'bg-amber-500 text-slate-950 border-amber-400'
               : 'bg-white/90 border-slate-300 text-slate-700 hover:bg-white'
           }`}
           title="Alternar entre modo Render y Wireframe"
         >
-          {wireframe ? 'Malla Wireframe' : 'Render Sólido'}
+          {wireframe ? 'Malla' : 'Sólido'}
         </button>
 
         <button
           onClick={() => setIsFullscreen((v) => !v)}
-          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 backdrop-blur-md transition-all shadow-md"
+          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 backdrop-blur-md transition-all shadow-md cursor-pointer"
           title={isFullscreen ? 'Salir de pantalla completa (Esc)' : 'Expandir a pantalla completa'}
         >
-          {isFullscreen ? '✕ Salir' : '⛶ Pantalla completa'}
+          {isFullscreen ? '✕' : '⛶'}
         </button>
       </div>
 

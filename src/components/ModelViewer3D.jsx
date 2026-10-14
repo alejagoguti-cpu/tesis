@@ -49,7 +49,7 @@ import {
 
 export const DEFAULT_M5_PALETTE = {
   grass: '#ffffff',
-  water: '#257f96',
+  water: '#8dc8d2', // Azul turquesa caribeño suave y luminoso
   pavement: '#f8fafc',
   building: '#ffffff',
   roof: '#b45309',
@@ -57,6 +57,17 @@ export const DEFAULT_M5_PALETTE = {
 };
 
 export const getSavedM5Palette = () => {
+  try {
+    const saved = localStorage.getItem('thesis_m5_custom_colors');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Actualizar si tenía guardado el tono azul anterior no deseado
+      if (parsed.water === '#257f96' || parsed.water === '#0a2d48' || parsed.water === '#bfc4c5') {
+        parsed.water = '#8dc8d2';
+      }
+      return { ...DEFAULT_M5_PALETTE, ...parsed };
+    }
+  } catch (e) {}
   return DEFAULT_M5_PALETTE;
 };
 
@@ -1349,6 +1360,188 @@ export default function ModelViewer3D({ onSelectModule }) {
           <span>{loadPhase || 'Cargando axonometría territorial...'}</span>
         </div>
       )}
+
+      {/* Floating Top-Left Controls: Color Editor & Layer Toggles */}
+      <div className="absolute top-4 left-4 z-[400] flex flex-col space-y-2 pointer-events-auto animate-fade-in">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Botón Paleta de Materiales & Mar */}
+          <button
+            onClick={() => setShowRightControls(v => !v)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-xl border transition-all shadow-xl flex items-center space-x-1.5 cursor-pointer ${
+              showRightControls
+                ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-400/50'
+                : 'glass-dark text-white hover:bg-white/20 border-white/20'
+            }`}
+            title="Abrir Editor de Colores de Materiales (Pasto, Mar Caribe, Pavimento, Edificios, Vías)"
+          >
+            <Palette className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{showRightControls ? 'Ocultar Paleta' : '🎨 Cambiar Colores'}</span>
+          </button>
+
+          {/* Quick Mar Caribe Presets */}
+          <div className="flex items-center space-x-1 glass-dark px-2 py-1 rounded-xl border border-white/10 shadow-xl backdrop-blur-xl">
+            <span className="text-[10px] font-mono text-slate-300 font-bold pr-1">Mar:</span>
+            {[
+              { label: 'Turquesa Caribeño', color: '#8dc8d2' },
+              { label: 'Celeste Luminoso', color: '#58c4dc' },
+              { label: 'Bahía Esmeralda', color: '#4fa8b2' },
+              { label: 'Azul Colonial', color: '#3b82a6' }
+            ].map(p => (
+              <button
+                key={p.color}
+                onClick={() => setWaterColor(p.color)}
+                style={{ backgroundColor: p.color }}
+                className={`w-5 h-5 rounded-lg border-2 transition-transform hover:scale-110 cursor-pointer ${
+                  waterColor === p.color ? 'border-white ring-2 ring-emerald-400 scale-105' : 'border-white/40'
+                }`}
+                title={`Cambiar mar a ${p.label}`}
+              />
+            ))}
+          </div>
+
+          {/* Toggle Árboles SketchUp */}
+          <button
+            onClick={() => setActiveLayers(prev => ({ ...prev, trees: !prev.trees }))}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-xl border transition-all shadow-xl flex items-center space-x-1.5 cursor-pointer ${
+              activeLayers.trees
+                ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-400'
+                : 'glass-dark text-slate-400 hover:text-white border-white/10'
+            }`}
+            title="Mostrar u ocultar los árboles de SketchUp en toda la isla"
+          >
+            <span>{activeLayers.trees ? '🌲 Árboles ON' : '🌱 Árboles OFF'}</span>
+          </button>
+
+          {/* Toggle Rutas Marítimas */}
+          <button
+            onClick={() => setActiveLayers(prev => ({ ...prev, boats: !prev.boats }))}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-xl border transition-all shadow-xl flex items-center space-x-1.5 cursor-pointer ${
+              activeLayers.boats
+                ? 'bg-cyan-600 hover:bg-cyan-500 text-white border-cyan-400'
+                : 'glass-dark text-slate-400 hover:text-white border-white/10'
+            }`}
+            title="Mostrar u ocultar lanchas y rutas náuticas"
+          >
+            <Ship className="w-3.5 h-3.5" />
+            <span>{activeLayers.boats ? 'Lanchas ON' : 'Lanchas OFF'}</span>
+          </button>
+        </div>
+
+        {/* Panel Editor de Colores Flotante */}
+        {showRightControls && (
+          <div className="glass-dark p-3.5 rounded-2xl space-y-3 text-white w-72 shadow-2xl border border-white/15 backdrop-blur-2xl animate-fade-in">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <span className="text-xs font-mono font-bold flex items-center gap-1.5 text-emerald-400">
+                <Palette className="w-3.5 h-3.5" />
+                <span>Paleta de Materialidad 3D</span>
+              </span>
+              <button
+                onClick={() => setShowRightControls(false)}
+                className="text-slate-400 hover:text-white text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Mar Caribe */}
+            <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-300">Mar Caribe / Agua:</span>
+                <input
+                  type="color"
+                  value={waterColor}
+                  onChange={(e) => setWaterColor(e.target.value)}
+                  className="w-7 h-6 rounded cursor-pointer border border-white/20 bg-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Pasto / Vegetación */}
+            <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-300">Pasto / Terreno Isla:</span>
+                <input
+                  type="color"
+                  value={grassColor}
+                  onChange={(e) => setGrassColor(e.target.value)}
+                  className="w-7 h-6 rounded cursor-pointer border border-white/20 bg-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Manzanas / Pavimento */}
+            <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-300">Piso / Manzanas:</span>
+                <input
+                  type="color"
+                  value={pavementColor}
+                  onChange={(e) => setPavementColor(e.target.value)}
+                  className="w-7 h-6 rounded cursor-pointer border border-white/20 bg-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Vías / Caminos */}
+            <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-300">Vías / Asfalto:</span>
+                <input
+                  type="color"
+                  value={roadColor}
+                  onChange={(e) => setRoadColor(e.target.value)}
+                  className="w-7 h-6 rounded cursor-pointer border border-white/20 bg-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Edificios */}
+            <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-300">Casas / Edificios:</span>
+                <input
+                  type="color"
+                  value={buildingColor}
+                  onChange={(e) => setBuildingColor(e.target.value)}
+                  className="w-7 h-6 rounded cursor-pointer border border-white/20 bg-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Cubiertas */}
+            <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-300">Tejas / Cubiertas:</span>
+                <input
+                  type="color"
+                  value={roofColor}
+                  onChange={(e) => setRoofColor(e.target.value)}
+                  className="w-7 h-6 rounded cursor-pointer border border-white/20 bg-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Botones de acción */}
+            <div className="flex items-center space-x-2 pt-1 border-t border-white/10">
+              <button
+                onClick={handleSavePermanentColors}
+                className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-[11px] font-bold flex items-center justify-center space-x-1 cursor-pointer transition-all shadow-md"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>{saveColorsToast ? '✓ Guardado' : 'Guardar'}</span>
+              </button>
+              <button
+                onClick={handleResetDefaultColors}
+                className="py-1.5 px-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white font-mono text-[11px] flex items-center justify-center space-x-1 cursor-pointer transition-all"
+                title="Restablecer colores predeterminados"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Restablecer</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Floating Sun Study Panel (Top-Right) */}
       <div className="absolute top-4 right-4 z-[400] pointer-events-auto animate-fade-in">
