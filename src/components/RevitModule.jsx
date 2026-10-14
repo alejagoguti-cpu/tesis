@@ -93,15 +93,20 @@ function createSkyTexture() {
   return tex;
 }
 
-function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitNonce, waveActive, localFile, wireframe }) {
+function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitNonce, waveActive, localFile, wireframe, roadColorMode }) {
   const mountRef = useRef(null);
   const applyViewRef = useRef(null);
   const modelRef = useRef(null);
   const rootRef = useRef(null);
   const fitCtl = useRef(null);
   const loadCustomFileRef = useRef(null);
+  const roadsMeshRef = useRef([]);
   const waveActiveRef = useRef(waveActive);
   waveActiveRef.current = waveActive;
+
+  // Materiales de vías
+  const roadMatGreyRef = useRef(null);
+  const roadMatBlueRef = useRef(null);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -185,16 +190,32 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       side: THREE.DoubleSide
     });
 
-    // 3. MALLA DE CAMINOS Y VÍAS EN GRIS (Asfalto / concreto vial limpio para la traza del archivo)
-    const roadMat = new THREE.MeshStandardMaterial({
-      color: 0x758594, // Gris vial contrastado y definido
-      roughness: 0.72,
-      metalness: 0.12,
+    // 3. MALLA DE CAMINOS Y VÍAS DE REVIT (Sólido topográfico 164695)
+    // Versión Gris Vial
+    const roadMatGrey = new THREE.MeshStandardMaterial({
+      color: 0x5a6a78, // Gris asfalto/concreto vial nítido y visible
+      roughness: 0.65,
+      metalness: 0.15,
       polygonOffset: true,
-      polygonOffsetFactor: -4,
-      polygonOffsetUnits: -4,
+      polygonOffsetFactor: -6,
+      polygonOffsetUnits: -6,
       side: THREE.DoubleSide
     });
+    roadMatGreyRef.current = roadMatGrey;
+
+    // Versión Azul Selección Revit (como en la captura del usuario)
+    const roadMatBlue = new THREE.MeshStandardMaterial({
+      color: 0x2563eb, // Azul vibrante Revit
+      roughness: 0.35,
+      metalness: 0.2,
+      emissive: 0x1d4ed8,
+      emissiveIntensity: 0.25,
+      polygonOffset: true,
+      polygonOffsetFactor: -6,
+      polygonOffsetUnits: -6,
+      side: THREE.DoubleSide
+    });
+    roadMatBlueRef.current = roadMatBlue;
 
     // 4. TODAS LAS CASAS Y CUBOS: ¡BLANCO PURO NÍTIDO!
     const buildingMat = new THREE.MeshStandardMaterial({
@@ -278,6 +299,8 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       modelRef.current = obj;
       root.add(obj);
 
+      roadsMeshRef.current = [];
+
       try {
         const mBox = new THREE.Box3();
         obj.traverse((c) => {
@@ -286,39 +309,34 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
           c.receiveShadow = true;
 
           const name = ((c.name || '') + ' ' + (c.parent?.name || '')).toLowerCase();
-          const matName = ((c.material?.name || '')).toLowerCase();
 
           mBox.setFromObject(c);
           const sx = mBox.max.x - mBox.min.x;
           const sy = mBox.max.y - mBox.min.y;
           const sz = mBox.max.z - mBox.min.z;
           const footprint = sx * sy;
-          const wide = Math.max(sx, sy);
-          const narrow = Math.max(Math.min(sx, sy), 0.001);
 
-          // A. Ocultar láminas planas del mar de Revit
-          if (sz < 0.8 && footprint > 350000 && (name.includes('water') || name.includes('agua') || name.includes('skirt') || name.includes('fondo') || name.includes('base'))) {
+          // A. Ocultar láminas planas del fondo de Revit
+          if (sz < 0.8 && footprint > 350000 && (name.includes('water') || name.includes('skirt') || name.includes('fondo') || name.includes('base'))) {
             c.visible = false;
             return;
           }
 
-          // B. LA MALLA DE CAMINOS Y VÍAS (Sólido topográfico 164695, trazados viales, o mallas alargadas de caminos)
+          // B. LA MALLA DE CAMINOS Y VÍAS DE REVIT (Sólido topográfico 164695 / Mesh_Roads)
           if (
-            name.includes('164695') || name.includes('sólido topográfico') || name.includes('solido topografico') ||
-            name.includes('sólido 1') || name.includes('solido 1') ||
-            name.includes('via') || name.includes('camino') || name.includes('road') || name.includes('pista') ||
-            name.includes('mesh_walls') || name.includes('layer_walls') ||
-            (wide > 25 && narrow >= 1.5 && narrow <= 25 && wide / narrow > 2.5 && sz <= 10)
+            name.includes('164695') || name.includes('sólido topográfico 1') || name.includes('solido topografico 1') ||
+            name.includes('mesh_roads') || name.includes('road') || name.includes('via') || name.includes('camino')
           ) {
-            c.material = roadMat;
+            c.material = roadColorMode === 'blue' ? roadMatBlue : roadMatGrey;
             c.renderOrder = 10;
+            roadsMeshRef.current.push(c);
             ensureTopUVs(c.geometry, 16);
           }
-          // C. TERRENO DE LA ISLA (Únicamente la topografía 149111 o terrain)
+          // C. TERRENO DE LA ISLA (Únicamente la topografía 149111 o Mesh_Terrain)
           else if (
-            name.includes('149111') || name.includes('terrain') ||
-            (name.includes('toposolid') && !name.includes('164695') && !name.includes('sólido')) ||
-            (name.includes('terreno') && !name.includes('164695'))
+            name.includes('149111') || name.includes('mesh_terrain') ||
+            (name.includes('terrain') && !name.includes('road')) ||
+            (name.includes('toposolid') && !name.includes('164695'))
           ) {
             removeSeaSkirt(c.geometry);
             ensureTopUVs(c.geometry, 42);
@@ -392,10 +410,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
         }
         const url = urls[idx++];
         if (isGlb) {
-          const dLoader = new DRACOLoader();
-          dLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
           const gLoader = new GLTFLoader();
-          gLoader.setDRACOLoader(dLoader);
           gLoader.load(
             url,
             (gltf) => {
@@ -434,7 +449,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       tryNext();
     };
 
-    // Carga del modelo oficial de Revit
+    // Carga rápida del modelo oficial de Revit con la malla de caminos incluida
     loadCandidates(
       GLB_CANDIDATES,
       true,
@@ -552,6 +567,16 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     if (fitNonce > 0 && fitCtl.current) fitCtl.current();
   }, [fitNonce]);
 
+  // Cambio de color de la malla de caminos en vivo (Gris / Azul Revit)
+  useEffect(() => {
+    if (roadsMeshRef.current && roadsMeshRef.current.length > 0) {
+      const mat = roadColorMode === 'blue' ? roadMatBlueRef.current : roadMatGreyRef.current;
+      roadsMeshRef.current.forEach((m) => {
+        if (m) m.material = mat;
+      });
+    }
+  }, [roadColorMode]);
+
   // Wireframe toggle
   useEffect(() => {
     const root = rootRef.current;
@@ -594,6 +619,7 @@ export default function RevitModule() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [waveActive, setWaveActive] = useState(true);
   const [wireframe, setWireframe] = useState(false);
+  const [roadColorMode, setRoadColorMode] = useState('grey'); // 'grey' | 'blue'
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [localFile, setLocalFile] = useState(null);
@@ -683,6 +709,7 @@ export default function RevitModule() {
           fitNonce={fitNonce}
           waveActive={waveActive}
           wireframe={wireframe}
+          roadColorMode={roadColorMode}
           localFile={localFile}
         />
       </div>
@@ -708,7 +735,7 @@ export default function RevitModule() {
             />
           </div>
           <p className="text-[11px] font-mono text-slate-300 text-center max-w-sm">
-            Isla orgánica en pasto natural, cubos y casas en blanco puro, malla de caminos y vías grises, y mar Caribe animado.
+            Isla orgánica en pasto natural, cubos en blanco puro, malla de caminos de Revit y mar Caribe animado.
           </p>
           
           <button
@@ -746,7 +773,7 @@ export default function RevitModule() {
           Tierrabomba · Modelo Revit
         </h1>
         <p className="text-slate-700 text-xs font-mono drop-shadow-sm max-w-md hidden sm:block">
-          Render diurno: cubos y casas blancas, malla de caminos en gris vial, isla en pasto natural y océano dinámico.
+          Render diurno: cubos blancos, malla de caminos de Revit, isla en pasto natural y océano dinámico.
         </p>
       </div>
 
@@ -758,6 +785,19 @@ export default function RevitModule() {
           title="Subir archivo FBX/GLB de Revit desde tu computador"
         >
           <span>📁 Cargar FBX</span>
+        </button>
+
+        {/* Botón para alternar color de la malla de caminos: Gris Vial / Azul Revit */}
+        <button
+          onClick={() => setRoadColorMode((m) => (m === 'grey' ? 'blue' : 'grey'))}
+          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md flex items-center space-x-1.5 ${
+            roadColorMode === 'blue'
+              ? 'bg-blue-600 text-white border-blue-400 shadow-blue-500/20'
+              : 'bg-white/90 hover:bg-white text-slate-800 border-slate-300'
+          }`}
+          title="Alternar color de la malla de caminos entre Gris Vial y Azul Revit"
+        >
+          <span>🛣️ Vías: {roadColorMode === 'blue' ? 'Azul Revit' : 'Gris Vial'}</span>
         </button>
 
         <button
