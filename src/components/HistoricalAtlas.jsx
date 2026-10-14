@@ -76,7 +76,7 @@ export const TIMELINE_EPOCHS = [
     mapId: "map_1589",
     title: "1589: Ocupación militar y ausencia de planificación urbana",
     tagline: "Años 1500 a 1700 // Ocupación Defensiva",
-    description: "Durante este periodo, España ocupó la isla únicamente con fines defensivos militares, construyendo fortalezas como los Fuertes de San Fernando y San Luis. Al ser una plataforma de piedra coralina que no tiene ríos ni manantiales, las tropas militares dependían exclusivamente de juntar agua de lluvia en aljibes de piedra o de traerla en barcos desde el continente. Como el territorio solo albergaba soldados de forma temporal, nunca se planificó un pueblo ni una infraestructura para la vida civil.",
+    description: "Durante este periodo, España ocupó la isla únicamente con fines defensivos militares, construyendo fortalezas como los Fuertes de San Fernando y San Luis.\n\nAl ser una plataforma de piedra coralina que no tiene ríos ni manantiales, las tropas militares dependían exclusivamente de juntar agua de lluvia en aljibes de piedra o de traerla en barcos desde el continente.\n\nComo el territorio solo albergaba soldados de forma temporal, nunca se planificó un pueblo ni una infraestructura para la vida civil.",
     color: "#7c4a12",
     metrics: [
       { label: "Período", value: "Años 1500–1700" },
@@ -91,7 +91,7 @@ export const TIMELINE_EPOCHS = [
     mapId: "map_1740",
     title: "1740: Ocupación militar y ausencia de planificación urbana",
     tagline: "Años 1500 a 1700 // Fortificaciones Defensivas",
-    description: "Durante este periodo, España ocupó la isla únicamente con fines defensivos militares, construyendo fortalezas como los Fuertes de San Fernando y San Luis. Al ser una plataforma de piedra coralina que no tiene ríos ni manantiales, las tropas militares dependían exclusivamente de juntar agua de lluvia en aljibes de piedra o de traerla en barcos desde el continente. Como el territorio solo albergaba soldados de forma temporal, nunca se planificó un pueblo ni una infraestructura para la vida civil.",
+    description: "Durante este periodo, España ocupó la isla únicamente con fines defensivos militares, construyendo fortalezas como los Fuertes de San Fernando y San Luis.\n\nAl ser una plataforma de piedra coralina que no tiene ríos ni manantiales, las tropas militares dependían exclusivamente de juntar agua de lluvia en aljibes de piedra o de traerla en barcos desde el continente.\n\nComo el territorio solo albergaba soldados de forma temporal, nunca se planificó un pueblo ni una infraestructura para la vida civil.",
     color: "#b45309",
     metrics: [
       { label: "Período", value: "Años 1500–1700" },
@@ -106,7 +106,7 @@ export const TIMELINE_EPOCHS = [
     mapId: "map_1780",
     title: "1780: El origen de la erosión costera",
     tagline: "Años 1755 a 1758 // Escollera Submarina de Bocagrande",
-    description: "Entre los años 1755 y 1758, el ingeniero Antonio de Arévalo construyó la Escollera Submarina de Bocagrande, un muro sumergido de piedra que cerró el paso del agua para impedir la entrada de barcos enemigos a la bahía. Esta obra cambió las corrientes del mar y desvió la fuerza del oleaje del Caribe directamente contra la orilla de Tierrabomba, dando inicio al fenómeno de erosión costera que comenzó a carcomer sus playas.",
+    description: "Entre los años 1755 y 1758, el ingeniero Antonio de Arévalo construyó la Escollera Submarina de Bocagrande, un muro sumergido de piedra que cerró el paso del agua para impedir la entrada de barcos enemigos a la bahía.\n\nEsta obra cambió las corrientes del mar y desvió la fuerza del oleaje del Caribe directamente contra la orilla de Tierrabomba, dando inicio al fenómeno de erosión costera que comenzó a carcomer sus playas.",
     color: "#c2410c",
     metrics: [
       { label: "Período", value: "Años 1755–1758" },
@@ -121,7 +121,7 @@ export const TIMELINE_EPOCHS = [
     mapId: "map_1820",
     title: "1820: El asentamiento de la comunidad raizal",
     tagline: "Años 1800 // Poblamiento Orgánico Post-Independencia",
-    description: "Tras la independencia, familias afrodescendientes y pescadores nativos poblaron la isla de forma orgánica, estableciéndose alrededor de las ruinas de las antiguas fortalezas por su cercanía al mar y su vocación pesquera. Los caseríos crecieron adaptándose al territorio de manera espontánea.",
+    description: "Tras la independencia, familias afrodescendientes y pescadores nativos poblaron la isla de forma orgánica, estableciéndose alrededor de las ruinas de las antiguas fortalezas por su cercanía al mar y su vocación pesquera.\n\nLos caseríos crecieron adaptándose al territorio de manera espontánea.",
     color: "#9a3412",
     metrics: [
       { label: "Período", value: "Años 1800" },
@@ -136,7 +136,7 @@ export const TIMELINE_EPOCHS = [
     mapId: "map_1831",
     title: "1831: El asentamiento de la comunidad raizal",
     tagline: "Años 1800 // Crecimiento Espontáneo de Caseríos",
-    description: "Tras la independencia, familias afrodescendientes y pescadores nativos poblaron la isla de forma orgánica, estableciéndose alrededor de las ruinas de las antiguas fortalezas por su cercanía al mar y su vocación pesquera. Los caseríos crecieron adaptándose al territorio de manera espontánea.",
+    description: "Tras la independencia, familias afrodescendientes y pescadores nativos poblaron la isla de forma orgánica, estableciéndose alrededor de las ruinas de las antiguas fortalezas por su cercanía al mar y su vocación pesquera.\n\nLos caseríos crecieron adaptándose al territorio de manera espontánea.",
     color: "#0369a1",
     metrics: [
       { label: "Período", value: "Años 1800" },
@@ -151,7 +151,7 @@ export const TIMELINE_EPOCHS = [
     mapId: "map_1900",
     title: "1900: La brecha del agua potable",
     tagline: "Años 1900 // Desconexión de Redes & Pimpinas",
-    description: "A lo largo de los años 1900, la falta de agua se convirtió en una brecha de infraestructura: mientras la Cartagena continental construía su red de acueducto trayendo agua desde el Canal del Dique, el Estado no instaló la tubería submarina hacia la isla. Esto obligó a los pobladores a abastecerse comprando agua traída en pimpinas y lanchas desde el continente.",
+    description: "A lo largo de los años 1900, la falta de agua se convirtió en una brecha de infraestructura: mientras la Cartagena continental construía su red de acueducto trayendo agua desde el Canal del Dique, el Estado no instaló la tubería submarina hacia la isla.\n\nEsto obligó a los pobladores a abastecerse comprando agua traída en pimpinas y lanchas desde el continente.",
     color: "#0d9488",
     metrics: [
       { label: "Período", value: "Años 1900" },
@@ -165,7 +165,7 @@ export const TIMELINE_EPOCHS = [
     type: "modern",
     title: "1980: La brecha del agua potable",
     tagline: "Años 1900 // Subsistencia sin Red Submarina",
-    description: "A lo largo de los años 1900, la falta de agua se convirtió en una brecha de infraestructura: mientras la Cartagena continental construía su red de acueducto trayendo agua desde el Canal del Dique, el Estado no instaló la tubería submarina hacia la isla. Esto obligó a los pobladores a abastecerse comprando agua traída en pimpinas y lanchas desde el continente.",
+    description: "A lo largo de los años 1900, la falta de agua se convirtió en una brecha de infraestructura: mientras la Cartagena continental construía su red de acueducto trayendo agua desde el Canal del Dique, el Estado no instaló la tubería submarina hacia la isla.\n\nEsto obligó a los pobladores a abastecerse comprando agua traída en pimpinas y lanchas desde el continente.",
     color: "#0284c7",
     metrics: [
       { label: "Período", value: "Años 1900" },
@@ -179,7 +179,7 @@ export const TIMELINE_EPOCHS = [
     type: "modern",
     title: "2026: La aceleración del colapso costero",
     tagline: "Años 2000 a la actualidad // Dragado, Oleaje & Crisis Hídrica",
-    description: "En los años 2000 y hasta el presente, las obras de profundización y dragado en el mar para el paso de grandes buques comerciales, sumadas al ascenso del nivel del mar por el cambio climático, aumentaron la fuerza de las olas sobre la orilla. Esto aceleró la pérdida de playa y la destrucción de las primeras manzanas de viviendas, llevando a la crisis actual donde más de 10.000 habitantes sufren el avance del mar sobre sus casas y la falta de agua potable y red sanitaria.",
+    description: "En los años 2000 y hasta el presente, las obras de profundización y dragado en el mar para el paso de grandes buques comerciales, sumadas al ascenso del nivel del mar por el cambio climático, aumentaron la fuerza de las olas sobre la orilla.\n\nEsto aceleró la pérdida de playa y la destrucción de las primeras manzanas de viviendas, llevando a la crisis actual donde más de 10.000 habitantes sufren el avance del mar sobre sus casas y la falta de agua potable y red sanitaria.",
     color: "#dc2626",
     metrics: [
       { label: "Período", value: "Años 2000–Actual" },
@@ -193,7 +193,7 @@ export const TIMELINE_EPOCHS = [
     type: "modern",
     title: "2050: Masterplan Resiliente (Tesis)",
     tagline: "Respuesta Proyectual // Soberanía Hídrica + Reubicación +22m",
-    description: "Frente al colapso acumulado de erosión costera y desabastecimiento hídrico, la tesis propone el reasentamiento seguro en la meseta (+22m), colegio bioclimático de 350 plazas y macro-aljibe de 450.000 L para garantizar la permanencia y dignidad de la comunidad en su territorio ancestral.",
+    description: "Frente al colapso acumulado de erosión costera y desabastecimiento hídrico, la tesis propone el reasentamiento seguro en la meseta (+22m).\n\nSe proyecta un colegio bioclimático de 350 plazas y un macro-aljibe ciclópeo de 450.000 L para garantizar la soberanía y dignidad de la comunidad en su territorio.",
     color: "#0d9488",
     metrics: [
       { label: "Cota Seguridad", value: "+22.00 m.s.n.m." },
@@ -1078,15 +1078,13 @@ export default function HistoricalAtlas({ onSelectModule, extraControls }) {
               </h3>
             </div>
 
-            {/* Guion Histórico Causal continuo */}
-            <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/70 space-y-1.5 shadow-xs">
-              <div className="flex items-center space-x-1.5 text-amber-900 font-mono text-[10px] font-bold uppercase tracking-wider">
-                <BookOpen className="w-3.5 h-3.5 text-amber-700" />
-                <span>Guion Histórico Causal</span>
-              </div>
-              <p className="text-xs text-slate-800 font-sans leading-relaxed text-justify">
-                {currentTimelineData.description}
-              </p>
+            {/* Texto explicativo continuo con enter por frase */}
+            <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/70 space-y-2.5 shadow-xs">
+              {currentTimelineData.description.split('\n\n').map((paragraph, pIdx) => (
+                <p key={pIdx} className="text-xs text-slate-800 font-sans leading-relaxed text-justify">
+                  {paragraph}
+                </p>
+              ))}
             </div>
 
             {/* 4 CAD Telemetry Metrics */}
@@ -1307,9 +1305,13 @@ export default function HistoricalAtlas({ onSelectModule, extraControls }) {
                   <h2 className="font-serif font-bold text-xl sm:text-2xl text-slate-900">
                     {selectedGalleryMap.title}
                   </h2>
-                  <p className="text-xs sm:text-sm font-sans text-slate-700 leading-relaxed">
-                    {selectedGalleryMap.description}
-                  </p>
+                  <div className="space-y-2.5">
+                    {selectedGalleryMap.description.split('\n\n').map((paragraph, pIdx) => (
+                      <p key={pIdx} className="text-xs sm:text-sm font-sans text-slate-700 leading-relaxed text-justify">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Main Large Image Container */}

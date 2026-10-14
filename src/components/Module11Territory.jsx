@@ -457,9 +457,13 @@ export default function Module11Territory({ onNavigateModule }) {
                     Autor: {selectedHistoricalMap.author}
                   </p>
 
-                  <p className="text-xs sm:text-sm text-slate-600 font-sans leading-relaxed text-justify">
-                    {selectedHistoricalMap.description}
-                  </p>
+                  <div className="space-y-2.5">
+                    {selectedHistoricalMap.description.split('\n\n').map((paragraph, pIdx) => (
+                      <p key={pIdx} className="text-xs sm:text-sm text-slate-600 font-sans leading-relaxed text-justify">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Urban & Morphological Analysis Card */}

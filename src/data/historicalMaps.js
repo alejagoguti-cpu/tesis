@@ -23,7 +23,7 @@ export const HISTORICAL_MAPS_DATA = [
     author: "Baptista Boazio (tras el saqueo de Francis Drake, 1586)",
     period: "Años 1500 a 1700",
     orientation: "Vista caballera del frente marino occidental",
-    description: "Durante este periodo, España ocupó la isla únicamente con fines defensivos militares, construyendo fortalezas como los Fuertes de San Fernando y San Luis. Al ser una plataforma de piedra coralina que no tiene ríos ni manantiales, las tropas militares dependían exclusivamente de juntar agua de lluvia en aljibes de piedra o de traerla en barcos desde el continente. Como el territorio solo albergaba soldados de forma temporal, nunca se planificó un pueblo ni una infraestructura para la vida civil.",
+    description: "Durante este periodo, España ocupó la isla únicamente con fines defensivos militares, construyendo fortalezas como los Fuertes de San Fernando y San Luis.\n\nAl ser una plataforma de piedra coralina que no tiene ríos ni manantiales, las tropas militares dependían exclusivamente de juntar agua de lluvia en aljibes de piedra o de traerla en barcos desde el continente.\n\nComo el territorio solo albergaba soldados de forma temporal, nunca se planificó un pueblo ni una infraestructura para la vida civil.",
     urbanAnalysis: "Enclave puramente militar sin asentamiento civil. La carencia de fuentes naturales de agua dulce y la dependencia de aljibes pluviales y barcazas desde Cartagena sentaron las bases del aislamiento estructural.",
     keyFeatures: [
       "Flota de Francis Drake fondeada frente a la ciudad (1586)",
@@ -45,7 +45,7 @@ export const HISTORICAL_MAPS_DATA = [
     author: "Grabadores alemanes contemporáneos al sitio de 1741",
     period: "Años 1500 a 1700",
     orientation: "Norte con rosa de los vientos central",
-    description: "Durante este periodo, España ocupó la isla únicamente con fines defensivos militares, construyendo fortalezas como los Fuertes de San Fernando y San Luis. Al ser una plataforma de piedra coralina que no tiene ríos ni manantiales, las tropas militares dependían exclusivamente de juntar agua de lluvia en aljibes de piedra o de traerla en barcos desde el continente. Como el territorio solo albergaba soldados de forma temporal, nunca se planificó un pueblo ni una infraestructura para la vida civil.",
+    description: "Durante este periodo, España ocupó la isla únicamente con fines defensivos militares, construyendo fortalezas como los Fuertes de San Fernando y San Luis.\n\nAl ser una plataforma de piedra coralina que no tiene ríos ni manantiales, las tropas militares dependían exclusivamente de juntar agua de lluvia en aljibes de piedra o de traerla en barcos desde el continente.\n\nComo el territorio solo albergaba soldados de forma temporal, nunca se planificó un pueblo ni una infraestructura para la vida civil.",
     urbanAnalysis: "La isla se consolida como fortaleza marítima frente al sitio de Vernon (1741). Los fuertes de Bocachica y las baterías sobre Tierrabomba operan como cuartel militar sin proyectar jamás un pueblo ni redes de servicios para vida civil.",
     keyFeatures: [
       "Escuadra inglesa de Vernon desplegada frente a Bocachica",
@@ -66,7 +66,7 @@ export const HISTORICAL_MAPS_DATA = [
     author: "M. le Comte de Chastenet (Marina francesa)",
     period: "Años 1755 a 1758",
     orientation: "Norte con flor de lis y meridiana",
-    description: "Entre los años 1755 y 1758, el ingeniero Antonio de Arévalo construyó la Escollera Submarina de Bocagrande, un muro sumergido de piedra que cerró el paso del agua para impedir la entrada de barcos enemigos a la bahía. Esta obra cambió las corrientes del mar y desvió la fuerza del oleaje del Caribe directamente contra la orilla de Tierrabomba, dando inicio al fenómeno de erosión costera que comenzó a carcomer sus playas.",
+    description: "Entre los años 1755 y 1758, el ingeniero Antonio de Arévalo construyó la Escollera Submarina de Bocagrande, un muro sumergido de piedra que cerró el paso del agua para impedir la entrada de barcos enemigos a la bahía.\n\nEsta obra cambió las corrientes del mar y desvió la fuerza del oleaje del Caribe directamente contra la orilla de Tierrabomba, dando inicio al fenómeno de erosión costera que comenzó a carcomer sus playas.",
     urbanAnalysis: "El muro submarino construido entre 1755 y 1758 desvió la hidrodinámica del Caribe hacia la orilla oriental y norte de Tierrabomba. Este hito ingenieril constituye la causa originaria del retroceso costero y socavación marina que perdura hasta el presente.",
     keyFeatures: [
       "Escollera Submarina de Bocagrande construida por Antonio de Arévalo",
@@ -87,7 +87,7 @@ export const HISTORICAL_MAPS_DATA = [
     author: "Manuel M. Paz (Comisión Corográfica)",
     period: "Años 1800",
     orientation: "Norte vertical con meridiana",
-    description: "Tras la independencia, familias afrodescendientes y pescadores nativos poblaron la isla de forma orgánica, estableciéndose alrededor de las ruinas de las antiguas fortalezas por su cercanía al mar y su vocación pesquera. Los caseríos crecieron adaptándose al territorio de manera espontánea.",
+    description: "Tras la independencia, familias afrodescendientes y pescadores nativos poblaron la isla de forma orgánica, estableciéndose alrededor de las ruinas de las antiguas fortalezas por su cercanía al mar y su vocación pesquera.\n\nLos caseríos crecieron adaptándose al territorio de manera espontánea.",
     urbanAnalysis: "Poblamiento espontáneo y orgánico: comunidades afrodescendientes y pescadores se asientan junto a los fuertes abandonados para faenar en la bahía. La falta de ordenamiento estatal deja a las viviendas expuestas al oleaje en la franja baja.",
     keyFeatures: [
       "Familias afrodescendientes y pescadores nativos tras la independencia",
@@ -108,7 +108,7 @@ export const HISTORICAL_MAPS_DATA = [
     author: "Depósito Hidrográfico Francés",
     period: "Años 1800",
     orientation: "Latitud norte 10°26' y longitud de París",
-    description: "Tras la independencia, familias afrodescendientes y pescadores nativos poblaron la isla de forma orgánica, estableciéndose alrededor de las ruinas de las antiguas fortalezas por su cercanía al mar y su vocación pesquera. Los caseríos crecieron adaptándose al territorio de manera espontánea.",
+    description: "Tras la independencia, familias afrodescendientes y pescadores nativos poblaron la isla de forma orgánica, estableciéndose alrededor de las ruinas de las antiguas fortalezas por su cercanía al mar y su vocación pesquera.\n\nLos caseríos crecieron adaptándose al territorio de manera espontánea.",
     urbanAnalysis: "El relieve de la isla muestra la meseta segura elevada desocupada (+22m), mientras los caseríos de Bocachica y Tierrabomba se concentran en las orillas bajas para el zarpe de canoas, aumentando su exposición.",
     keyFeatures: [
       "Poblados de pescadores consolidándose en la línea de pleamar",
@@ -129,7 +129,7 @@ export const HISTORICAL_MAPS_DATA = [
     author: "Levantamiento hidrográfico de entresiglos",
     period: "Años 1900",
     orientation: "Norte con rosa y canales de acceso",
-    description: "A lo largo de los años 1900, la falta de agua se convirtió en una brecha de infraestructura: mientras la Cartagena continental construía su red de acueducto trayendo agua desde el Canal del Dique, el Estado no instaló la tubería submarina hacia la isla. Esto obligó a los pobladores a abastecerse comprando agua traída en pimpinas y lanchas desde el continente.",
+    description: "A lo largo de los años 1900, la falta de agua se convirtió en una brecha de infraestructura: mientras la Cartagena continental construía su red de acueducto trayendo agua desde el Canal del Dique, el Estado no instaló la tubería submarina hacia la isla.\n\nEsto obligó a los pobladores a abastecerse comprando agua traída en pimpinas y lanchas desde el continente.",
     urbanAnalysis: "Se consuma la brecha histórica de servicios esenciales: Cartagena continental se moderniza e interconecta con el Canal del Dique, mientras Tierrabomba es marginada del acueducto público submarino, forzando un costoso mercado informal de acarreo en pimpinas.",
     keyFeatures: [
       "Cartagena continental construye acueducto desde el Canal del Dique",
