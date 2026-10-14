@@ -217,7 +217,7 @@ const HOUSES_DATA = [
     id: 5,
     meshName: 'Mesh_Conclusions',
     title: 'Conclusiones: Territorio de Transición',
-    buttonLabel: 'Conclusiones: Territorio de Transición',
+    buttonLabel: '5 Conclusiones: Territorio de Transición',
     sector: '',
     subtitle: 'Tierra Bomba · Análisis Habitacional y Dinámicas Territoriales',
     badge: 'SÍNTESIS DE INVESTIGACIÓN TERRITORIAL',
@@ -2396,18 +2396,26 @@ export default function RevitModule() {
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center space-x-2 shadow-md cursor-pointer ${
                 selectedHouseId === h.id
-                  ? 'bg-rose-600 text-white ring-2 ring-rose-400 scale-105'
+                  ? h.id === 5
+                    ? 'bg-teal-600 text-white ring-2 ring-teal-400 scale-105'
+                    : h.id === 4
+                    ? 'bg-amber-600 text-white ring-2 ring-amber-400 scale-105'
+                    : 'bg-rose-600 text-white ring-2 ring-rose-400 scale-105'
+                  : h.id === 5
+                  ? 'bg-teal-50/95 hover:bg-teal-100 text-teal-950 border border-teal-400 font-black'
+                  : h.id === 4
+                  ? 'bg-amber-50/95 hover:bg-amber-100 text-amber-950 border border-amber-300'
                   : 'bg-white/90 hover:bg-white text-slate-800 border border-slate-200 hover:border-rose-300'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full inline-block ${
+              <span className={`w-2 h-2 rounded-full shrink-0 inline-block ${
                 selectedHouseId === h.id
                   ? 'bg-white'
                   : h.id <= 3
                   ? 'bg-rose-500'
                   : h.id === 4
                   ? 'bg-amber-500'
-                  : 'bg-teal-500'
+                  : 'bg-teal-600'
               }`} />
               <span>{h.buttonLabel || h.title}</span>
             </button>
