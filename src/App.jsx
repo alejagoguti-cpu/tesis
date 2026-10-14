@@ -1,7 +1,6 @@
 import React, { useState, useEffect, Component } from 'react';
 import DashboardSidebar from './components/DashboardSidebar';
 import DashboardHeader from './components/DashboardHeader';
-import ExecutiveControlCenter from './components/ExecutiveControlCenter';
 import ThesisFramework from './components/ThesisFramework';
 import DiagnosisMap from './components/DiagnosisMap';
 import ModelViewer3D from './components/ModelViewer3D';
@@ -42,7 +41,7 @@ class SafeSection extends Component {
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [activeModule, setActiveModule] = useState('overview');
+  const [activeModule, setActiveModule] = useState('module11');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
@@ -121,18 +120,9 @@ export default function App() {
           {viewMode === 'dashboard' && (
             <div className="w-full h-full relative overflow-hidden transition-all duration-300">
               
-              {/* Module 01: Centro de Control & KPIs */}
-              {activeModule === 'overview' && (
-                <SafeSection name="Centro de Control & KPIs">
-                  <ExecutiveControlCenter 
-                    onSelectModule={(modId) => setActiveModule(modId)} 
-                  />
-                </SafeSection>
-              )}
-
-              {/* Module 1.1: Pregunta Central */}
+              {/* Module 01: Pregunta Central */}
               {activeModule === 'module11' && (
-                <SafeSection name="Módulo 1.1">
+                <SafeSection name="Módulo 01">
                   <Module11Territory onNavigateModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}

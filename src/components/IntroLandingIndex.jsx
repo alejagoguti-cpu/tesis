@@ -350,13 +350,6 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                 <span>PREGUNTA CENTRAL</span>
                 <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
               </button>
-
-              <button
-                onClick={() => onNavigateModule('overview')}
-                className="inline-flex items-center space-x-2 px-4 py-3.5 rounded-2xl text-slate-600 hover:text-slate-950 font-mono text-xs transition-colors hover:underline"
-              >
-                <span>CENTRO DE CONTROL &bull; KPIs &rarr;</span>
-              </button>
             </div>
 
             {/* Author and Academic Credentials */}
