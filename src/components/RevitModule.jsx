@@ -75,17 +75,17 @@ function removeSeaSkirt(geo) {
   }
 }
 
-// Genera un cielo diurno arquitectónico caribeño con degradado realista
+// Genera un cielo diurno arquitectónico caribeño con degradado realista y luminoso
 function createSkyTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 256;
   canvas.height = 512;
   const ctx = canvas.getContext('2d');
   const grad = ctx.createLinearGradient(0, 0, 0, 512);
-  grad.addColorStop(0.0, '#1d6fb8'); // Azul cielo caribe intenso en el cenit
-  grad.addColorStop(0.4, '#5ca3e6'); // Celeste cielo soleado
-  grad.addColorStop(0.75, '#b4dbf9'); // Bruma celeste suave
-  grad.addColorStop(1.0, '#eaf5fe'); // Horizonte luminoso
+  grad.addColorStop(0.0, '#196db5'); // Azul cielo caribe intenso en el cenit
+  grad.addColorStop(0.45, '#569fe3'); // Celeste cielo soleado brillante
+  grad.addColorStop(0.75, '#b0d7f7'); // Bruma celeste suave
+  grad.addColorStop(1.0, '#ebf5fe'); // Horizonte luminoso soleado
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 256, 512);
   const tex = new THREE.CanvasTexture(canvas);
@@ -111,11 +111,11 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     const getW = () => container.clientWidth || window.innerWidth || 800;
     const getH = () => container.clientHeight || Math.max(window.innerHeight - 64, 550);
 
-    // Escena 3D configurada para Render Arquitectónico Diurno con cielo caribeño
+    // Escena 3D configurada para Render Arquitectónico Diurno luminoso
     const scene = new THREE.Scene();
     const skyTex = createSkyTexture();
     scene.background = skyTex;
-    scene.fog = new THREE.Fog(0xb4dbf9, 220, 800); // Neblina suave hacia el horizonte
+    scene.fog = new THREE.Fog(0xb0d7f7, 240, 850); // Neblina suave hacia el horizonte
 
     const camera = new THREE.PerspectiveCamera(40, getW() / getH(), 0.1, 4000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -125,16 +125,16 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.3;
     container.appendChild(renderer.domElement);
 
-    // Iluminación diurna de render arquitectónico
-    scene.add(new THREE.HemisphereLight(0x7bb8f0, 0x3a5a40, 0.85)); // Luz celeste cenital + rebote de terreno
-    scene.add(new THREE.AmbientLight(0xffffff, 0.65)); // Luz difusa cálida
+    // Iluminación diurna de alta intensidad para que las casas blancas resalten con claridad
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x88aacc, 1.1));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.85)); // Luz difusa abundante
 
-    // Sol tropical que proyecta sombras limpias sobre la arquitectura blanca
-    const sun = new THREE.DirectionalLight(0xfffaec, 2.3);
-    sun.position.set(85, 125, 65);
+    // Sol tropical que proyecta sombras nítidas de los cubos y casas
+    const sun = new THREE.DirectionalLight(0xfffaed, 2.5);
+    sun.position.set(70, 130, 60);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.camera.left = -65;
@@ -144,10 +144,10 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     sun.shadow.bias = 0.0001;
     scene.add(sun);
 
-    // Luz de relleno lateral (reflejo de mar abierto)
-    const skyFill = new THREE.DirectionalLight(0xaad4f5, 0.75);
-    skyFill.position.set(-80, 50, -85);
-    scene.add(skyFill);
+    // Luz de relleno lateral
+    const fillLight = new THREE.DirectionalLight(0xd0e8ff, 1.2);
+    fillLight.position.set(-70, 90, -60);
+    scene.add(fillLight);
 
     const root = new THREE.Group();
     rootRef.current = root;
@@ -164,7 +164,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     aguaTex.anisotropy = 8;
     aguaTex.colorSpace = THREE.SRGBColorSpace;
 
-    // 2. Textura de pasto (verde oscuro terroso natural, descanso para la vista)
+    // 2. Textura de pasto (verde natural orgánico, visible y agradable a la vista)
     const pastoTex = texLoader.load(pastoTexImg);
     pastoTex.wrapS = THREE.RepeatWrapping;
     pastoTex.wrapT = THREE.RepeatWrapping;
@@ -175,9 +175,9 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     const grassMat = new THREE.MeshStandardMaterial({
       map: pastoTex,
       bumpMap: pastoTex,
-      bumpScale: 0.22,
-      color: 0x223d1b, // Verde bosque oscuro natural (sin fosforescencia)
-      roughness: 0.93,
+      bumpScale: 0.18,
+      color: 0x3d6b35, // Verde natural visible y descansado (no fosforescente ni oscuro negro)
+      roughness: 0.88,
       metalness: 0.02,
       side: THREE.DoubleSide
     });
@@ -193,11 +193,11 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       side: THREE.DoubleSide
     });
 
-    // 4. TODAS LAS CASAS Y EDIFICACIONES: BLANCO PURO NÍTIDO
+    // 4. TODAS LAS CASAS Y CUBOS: ¡BLANCO PURO NÍTIDO!
     const buildingMat = new THREE.MeshStandardMaterial({
-      color: 0xffffff, // Casas completamente blancas
-      roughness: 0.28,
-      metalness: 0.04,
+      color: 0xffffff, // Cubos y casas completamente blancas
+      roughness: 0.2,
+      metalness: 0.02,
       side: THREE.DoubleSide
     });
 
@@ -266,7 +266,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       placeCamera();
     };
 
-    // Procesamiento seguro de materiales para cualquier modelo de Revit (GLB o FBX)
+    // Procesamiento seguro y preciso de materiales para Revit (GLB y FBX)
     const setupRevitModel = (obj) => {
       if (cancelled || !obj) return;
       if (modelRef.current) {
@@ -299,26 +299,27 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
             return;
           }
 
-          // B. Terreno de la Isla (Pasto verde oscuro, recortando el cuadrado marino)
+          // B. Terreno de la Isla (ÚNICAMENTE mallas topográficas del suelo)
           if (
-            name.includes('toposolid') || name.includes('terrain') || name.includes('terreno') ||
-            matName.includes('terrain') || matName.includes('toposolid') ||
-            name.includes('149111') || footprint > 180000 || (c.geometry?.attributes?.position?.count > 4000)
+            name.includes('terrain') || name.includes('toposolid') || name.includes('terreno') ||
+            matName.includes('terrain') || matName.includes('toposolid') || name.includes('149111')
           ) {
             removeSeaSkirt(c.geometry);
             ensureTopUVs(c.geometry, 42);
             c.material = grassMat;
           }
-          // C. Vías y trazados (PINTADAS DE GRIS)
+          // C. Vías y trazados viales (PINTADAS DE GRIS)
           else if (
-            name.includes('via') || name.includes('camino') || name.includes('road') ||
-            name.includes('walls') || name.includes('sólido') || name.includes('solido') || name.includes('164695') ||
-            (wide > 30 && narrow >= 1.5 && narrow <= 28 && wide / narrow > 2.5 && sz <= 10)
+            name.includes('wall') || name.includes('muro') || name.includes('via') ||
+            name.includes('camino') || name.includes('road') || name.includes('pista') ||
+            name.includes('sólido 164695') || name.includes('solido 164695') ||
+            (wide > 25 && narrow >= 1.5 && narrow <= 25 && wide / narrow > 2.5 && sz <= 10)
           ) {
             c.material = roadMat;
             c.renderOrder = 3;
+            ensureTopUVs(c.geometry, 16);
           }
-          // D. TODAS LAS CASAS Y EDIFICACIONES: BLANCAS
+          // D. TODOS LOS CUBOS, CASAS Y EDIFICACIONES -> ¡BLANCO PURO NÍTIDO!
           else {
             c.material = buildingMat;
           }
@@ -702,7 +703,7 @@ export default function RevitModule() {
             />
           </div>
           <p className="text-[11px] font-mono text-slate-300 text-center max-w-sm">
-            Isla orgánica en pasto oscuro, casas blancas, vías grises y mar Caribe animado.
+            Isla orgánica en pasto natural, cubos y casas en blanco puro, vías grises y mar animado.
           </p>
           
           <button
@@ -740,7 +741,7 @@ export default function RevitModule() {
           Tierrabomba · Modelo Revit
         </h1>
         <p className="text-slate-700 text-xs font-mono drop-shadow-sm max-w-md hidden sm:block">
-          Render diurno: casas blancas, vías grises, isla en pasto oscuro y océano dinámico.
+          Render diurno: cubos y casas blancas, vías grises, isla en pasto natural y océano dinámico.
         </p>
       </div>
 
