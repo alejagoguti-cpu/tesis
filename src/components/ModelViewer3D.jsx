@@ -55,8 +55,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  ShieldCheck,
-  Map
+  ShieldCheck
 } from 'lucide-react';
 
 const TreeIcon = ({ className = "w-4 h-4" }) => (
