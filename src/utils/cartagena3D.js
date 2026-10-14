@@ -942,7 +942,7 @@ export async function buildCartagenaTerritoryScene({
         bumpTex.offset.x = (t * -0.0000045 * speedMultiplier) % 1;
         bumpTex.offset.y = (t * 0.0000032 * speedMultiplier) % 1;
       }
-      if (waterMesh.material.uniforms.time) waterMesh.material.uniforms.time.value = t * 0.00055 * speedMultiplier;
+      if (waterMesh.userData.update) waterMesh.userData.update(t * 0.001 * speedMultiplier);
       // Pulsate hotspot rings
       if (hotspotRings && hotspotRings.length > 0) {
         const pulse = 1.0 + 0.35 * Math.sin(t * 0.004);

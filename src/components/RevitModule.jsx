@@ -7,6 +7,7 @@ import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { Water } from 'three/examples/jsm/objects/Water.js';
 import PlanningToolbar from './PlanningToolbar';
 import MasterplanCard from './MasterplanCard';
+import { createMobility } from '../utils/movilidad';
 import { buildGroundSolid } from '../utils/groundSolid';
 import { USOS, loadUserTags, saveUserTags, useColor, iconSprite } from '../utils/usosTerritorio';
 import { DATA_URL, loadSatelliteMap, loadSatelliteTexture, applySatelliteUV, loadRealTrees, loadTreeTemplates } from '../utils/realTerritory';
@@ -216,6 +217,7 @@ function RenderViewer({
   onPlanPoint,
   onPlanFinish,
   layers,
+  onMobility,
   onRealTrees,
   usos,
   onTagBuilding,
@@ -230,6 +232,7 @@ function RenderViewer({
   const applySectionRef = useRef(null);
   const secStateRef = useRef(null);
   const groundSolidRef = useRef(null);
+  const mobilityRef = useRef(null);
   const buildingMeshesRef = useRef([]);
   const buildingMatRef = useRef(null);
   const buildingUseMatRef = useRef(null);
@@ -249,6 +252,8 @@ function RenderViewer({
   const [templatesNonce, setTemplatesNonce] = useState(0);
   const layersRef = useRef(layers);
   layersRef.current = layers;
+  const onMobilityRef = useRef(onMobility);
+  onMobilityRef.current = onMobility;
   const onRealTreesRef = useRef(onRealTrees);
   onRealTreesRef.current = onRealTrees;
   const mountRef = useRef(null);
@@ -966,7 +971,7 @@ function RenderViewer({
       frameModel(obj);
       obj.updateMatrixWorld(true);
       try {
-        heightFieldRef.current = buildHeightField(terrainMeshes);
+        heightFieldRef.current = buildHeightField([...terrainMeshes, ...roadsMeshRef.current]);
       } catch (err) {
         console.warn('No se pudo construir el mapa de alturas:', err);
       }
@@ -1005,6 +1010,11 @@ function RenderViewer({
             m.userData.origMat = m.material;
             if (layersRef.current?.satellite) m.material = satMat;
           });
+          roadsMeshRef.current.forEach((m) => {
+            applySatelliteUV(m.geometry, map);
+            m.userData.origMat = m.material;
+            if (layersRef.current?.satellite && !layersRef.current?.modelRoads) m.material = satMat;
+          });
         } catch (err) {
           console.warn('Imagen satelital no disponible:', err);
         }
@@ -1019,6 +1029,21 @@ function RenderViewer({
           if (onRealTreesRef.current) onRealTreesRef.current(rt.count);
         } catch (err) {
           console.warn('Vegetación real no disponible:', err);
+        }
+        try {
+          const hf2 = heightFieldRef.current;
+          if (hf2) {
+            const osm = await (await fetch(`${DATA_URL}capas_osm.json`)).json();
+            const mob = await createMobility({ roads: osm.roads, parentObj: obj, heightAt: hf2.heightAt });
+            if (!cancelled) {
+              root.add(mob.group);
+              mob.group.visible = layersRef.current?.mobility !== false;
+              mobilityRef.current = mob;
+              if (onMobilityRef.current) onMobilityRef.current({ motos: mob.motos, bikes: mob.bikes });
+            }
+          }
+        } catch (err) {
+          console.warn('Movilidad no disponible:', err);
         }
         try {
           treeTemplatesRef.current = await loadTreeTemplates();
@@ -1304,7 +1329,7 @@ function RenderViewer({
 
     const onWheel = (e) => {
       e.preventDefault();
-      sph.radius = Math.max(15, Math.min(260, sph.radius * (e.deltaY > 0 ? 1.09 : 0.91)));
+      sph.radius = Math.max(2.5, Math.min(260, sph.radius * (e.deltaY > 0 ? 1.09 : 0.91)));
       placeCamera();
     };
 
@@ -1336,8 +1361,19 @@ function RenderViewer({
     // Animación continua con oleaje suave y pulsación sutil de casas rojas
     const clock = new THREE.Clock();
     let rafId = 0;
+    let lastMobT = performance.now();
     const animate = () => {
       rafId = requestAnimationFrame(animate);
+      const nowM = performance.now();
+      if (mobilityRef.current && layersRef.current?.mobility !== false) {
+        try {
+          mobilityRef.current.update((nowM - lastMobT) / 1000);
+        } catch (err) {
+          console.warn("Movilidad detenida por un error:", err);
+          mobilityRef.current = null;
+        }
+      }
+      lastMobT = nowM;
       const elapsed = clock.getElapsedTime();
 
       if (waveActiveRef.current) {
@@ -1426,7 +1462,14 @@ function RenderViewer({
       if (target) m.material = target;
     });
     if (realTreesRef.current) realTreesRef.current.visible = layers.realTrees !== false;
-    roadsMeshRef.current.forEach((m) => { if (m) m.visible = !!layers.modelRoads; });
+    if (mobilityRef.current) mobilityRef.current.group.visible = layers.mobility !== false;
+    roadsMeshRef.current.forEach((m) => {
+      if (!m) return;
+      m.visible = true;
+      const sat = layers.satellite && !layers.modelRoads && satMatRef.current;
+      const target = sat ? satMatRef.current : (m.userData.origMat || m.material);
+      if (target) m.material = target;
+    });
   }, [layers, hfNonce, templatesNonce]);
 
   // Usos del suelo: color por edificio + iconos de equipamientos
@@ -1661,8 +1704,9 @@ export default function RevitModule() {
   };
 
   // Capas territoriales (datos reales)
-  const [layers, setLayers] = useState({ satellite: true, realTrees: true, modelRoads: false });
+  const [layers, setLayers] = useState({ satellite: true, realTrees: true, modelRoads: false, mobility: true });
   const [realTreeCount, setRealTreeCount] = useState(0);
+  const [mobilityCount, setMobilityCount] = useState({ motos: 0, bikes: 0 });
   const toggleLayer = (k) => setLayers((l) => ({ ...l, [k]: !l[k] }));
 
   // Vías y zonificación
@@ -1888,6 +1932,7 @@ export default function RevitModule() {
           onPlanPoint={handlePlanPoint}
           onPlanFinish={handlePlanFinish}
           layers={layers}
+          onMobility={setMobilityCount}
           onRealTrees={setRealTreeCount}
           usos={{ enabled: usosOn, tags: userTags, paint: paintUse }}
           onTagBuilding={tagBuilding}
@@ -2264,6 +2309,7 @@ export default function RevitModule() {
         {[
           ['satellite', 'Imagen satelital real', 'Esri World Imagery · z18'],
           ['realTrees', 'Vegetación real (' + realTreeCount.toLocaleString('es-CO') + ' árboles)', 'Copas detectadas en la imagen'],
+          ['mobility', 'Motos y bicicletas (' + (mobilityCount.motos + mobilityCount.bikes) + ')', 'Circulan por las vías reales · acércate para verlas'],
           ['modelRoads', 'Vías del modelo Revit', 'Malla vial original']
         ].map(([key, label, sub]) => (
           <button

@@ -6,6 +6,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { buildCartagenaTerritoryScene } from '../utils/cartagena3D.js';
 import { createSkyEnvironment } from '../utils/realTerritory.js';
+import { createSkyDome } from '../utils/caribeWater.js';
 import TierrabombaFutureModal from './TierrabombaFutureModal.jsx';
 import pastoTextureImg from '../assets/textura_pasto_m5.png';
 import waterTextureImg from '../assets/textura_agua_m5.jpg';
@@ -380,6 +381,8 @@ export default function ModelViewer3D({ onSelectModule }) {
       scene.remove(currentModelGroupRef.current);
       currentModelGroupRef.current = null;
     }
+    // el cielo físico (reflejo del mar) solo existe en las escenas territoriales
+    if (scene.userData.skyDome && scene.userData.skyDome.parent) scene.remove(scene.userData.skyDome);
 
     const modelGroup = new THREE.Group();
     objectsRef.current.roof = null;
@@ -443,6 +446,8 @@ export default function ModelViewer3D({ onSelectModule }) {
           if (!scene.userData.skyEnv) scene.userData.skyEnv = createSkyEnvironment(rendererRef.current);
           scene.environment = scene.userData.skyEnv;
           scene.environmentIntensity = 0.9;
+          if (!scene.userData.skyDome) scene.userData.skyDome = createSkyDome(1400);
+          if (!scene.userData.skyDome.parent) scene.add(scene.userData.skyDome);
         } catch (e) {
           console.warn('Entorno de cielo no disponible:', e);
         }
