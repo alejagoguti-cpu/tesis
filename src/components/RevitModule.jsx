@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import pastoTexImg from '../assets/textura_pasto_m5.png';
 import aguaTexImg from '../assets/textura_agua_m5.jpg';
+import arenaTexImg from '../assets/textura_piso_m5.png';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import rvtPreviewImg from '../assets/rvt_tierrabomba_preview.png';
 
@@ -257,8 +258,21 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce, viewCla
       // La lámina plana es la falda del propio terreno (z bajo): se parte por caras.
       let island = null;
       try { island = findTerrain(obj); } catch (e) {}
-      const tMeshes = [];
-      if (island) island.traverse((c) => { if (c.isMesh && c.geometry && c.geometry.attributes && c.geometry.attributes.position) tMeshes.push(c); });
+      // Láminas grandes (agua + isla): huella mayor a 500.000
+      const bigMeshes = [];
+      {
+        const bb = new THREE.Box3();
+        obj.traverse((c) => {
+          if (!c.isMesh || !c.geometry || !c.geometry.attributes || !c.geometry.attributes.position) return;
+          bb.setFromObject(c);
+          const a = (bb.max.x - bb.min.x) * (bb.max.y - bb.min.y);
+          if (a > 500000 && !bigMeshes.includes(c)) bigMeshes.push(c);
+        });
+        if (bigMeshes.length === 0 && island) {
+          island.traverse((c) => { if (c.isMesh && c.geometry && c.geometry.attributes && c.geometry.attributes.position) bigMeshes.push(c); });
+        }
+      }
+      const tMeshes = bigMeshes;
 
       const texLoader = new THREE.TextureLoader();
       const pastoTex = texLoader.load(pastoTexImg);
@@ -274,8 +288,15 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce, viewCla
       aguaTex.anisotropy = 4;
       aguaTex.colorSpace = THREE.SRGBColorSpace;
       const grassMat = new THREE.MeshStandardMaterial({ map: pastoTex, color: 0xbfe3b0, roughness: 0.95 });
-      const waterMat = new THREE.MeshStandardMaterial({ map: aguaTex, color: 0xcfeaf5, roughness: 0.35, metalness: 0.15 });
+      const waterMat = new THREE.MeshStandardMaterial({ map: aguaTex, color: 0xcfeaf5, roughness: 0.22, metalness: 0.3, envMapIntensity: 1.25 });
       const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
+      const arenaTex = texLoader.load(arenaTexImg);
+      arenaTex.wrapS = THREE.RepeatWrapping;
+      arenaTex.wrapT = THREE.RepeatWrapping;
+      arenaTex.repeat.set(1, 1);
+      arenaTex.anisotropy = 4;
+      arenaTex.colorSpace = THREE.SRGBColorSpace;
+      const sandMat = new THREE.MeshStandardMaterial({ map: arenaTex, color: 0xe8dcc0, roughness: 0.95 });
       const roadMat = new THREE.MeshStandardMaterial({ color: 0xd62f2f, roughness: 0.85, emissive: 0x7f1d1d, emissiveIntensity: 0.35, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
       const paleMat = new THREE.MeshStandardMaterial({ color: 0xc9c9c9, roughness: 0.95 });
 
@@ -291,6 +312,62 @@ function ensureTopUVs(geo, tile) {
     uv[i * 2 + 1] = (p.getY(i) - bb.min.y) / tile;
   }
   geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+}
+
+// Arbolado de render sobre la isla (instanciado, determinista, sobre el terreno real)
+function plantTrees(islandMeshes, count = 320) {
+  if (!islandMeshes || islandMeshes.length === 0) return null;
+  let seed = 7;
+  const rnd = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  const ib = new THREE.Box3();
+  islandMeshes.forEach((m) => ib.expandByObject(m));
+  const size = ib.getSize(new THREE.Vector3());
+  if (!(size.x > 0) || !(size.z > 0)) return null;
+  const groundThr = ib.min.y + (ib.max.y - ib.min.y) * 0.12;
+  const ray = new THREE.Raycaster();
+  const down = new THREE.Vector3(0, -1, 0);
+  const origin = new THREE.Vector3();
+  const pts = [];
+  let guard = 0;
+  while (pts.length < count && guard++ < count * 15) {
+    origin.set(ib.min.x + rnd() * size.x, ib.max.y + size.y * 0.5 + 10, ib.min.z + rnd() * size.z);
+    ray.set(origin, down);
+    const hits = ray.intersectObjects(islandMeshes, false);
+    if (hits.length > 0 && hits[0].point.y > groundThr) pts.push(hits[0].point.clone());
+  }
+  if (pts.length === 0) return null;
+  const trunkG = new THREE.CylinderGeometry(0.05, 0.07, 0.55, 5);
+  const canG = new THREE.IcosahedronGeometry(0.42, 0);
+  const trunkM = new THREE.MeshStandardMaterial({ color: 0x7a5a3a, roughness: 1 });
+  const canM = new THREE.MeshStandardMaterial({ color: 0x4d8a3f, roughness: 1 });
+  const trunks = new THREE.InstancedMesh(trunkG, trunkM, pts.length);
+  const cans = new THREE.InstancedMesh(canG, canM, pts.length);
+  const M = new THREE.Matrix4();
+  const Q = new THREE.Quaternion();
+  const E = new THREE.Euler();
+  const P = new THREE.Vector3();
+  const S = new THREE.Vector3();
+  pts.forEach((p, i) => {
+    const s = 0.8 + rnd() * 0.9;
+    E.set(0, rnd() * Math.PI * 2, 0);
+    Q.setFromEuler(E);
+    P.set(p.x, p.y + 0.27 * s, p.z);
+    S.set(s, s, s);
+    M.compose(P, Q, S);
+    trunks.setMatrixAt(i, M);
+    P.set(p.x, p.y + 0.82 * s, p.z);
+    M.compose(P, Q, S);
+    cans.setMatrixAt(i, M);
+  });
+  trunks.castShadow = true;
+  cans.castShadow = true;
+  const grp = new THREE.Group();
+  grp.add(trunks);
+  grp.add(cans);
+  return grp;
 }
 
 // Isla partida por altura real: mar (falda baja) vs tierra, por caras
@@ -344,8 +421,15 @@ function ensureTopUVs(geo, tile) {
           const sy = mBox.max.y - mBox.min.y;
           const sz = mBox.max.z - mBox.min.z;
           const footprint = sx * sy;
-          if (sz > 2 && footprint < 40000) {
-            c.material = whiteMat; // casas y muros blancos (las vías llegan en archivo aparte)
+          const wide = Math.max(sx, sy);
+          const narrow = Math.max(Math.min(sx, sy), 0.001);
+          if (sz > 8 && footprint < 40000) {
+            c.material = whiteMat; // alto = estructura blanca (muros y casas)
+          } else if (wide > 40 && narrow >= 2.5 && narrow <= 16 && wide / narrow > 3 && footprint < 20000 && sz <= 8) {
+            c.material = sandMat; // vías en arena
+            ensureTopUVs(c.geometry, 30);
+          } else if (sz > 2 && footprint < 40000) {
+            c.material = whiteMat; // casas blancas
           } else {
             c.material = paleMat;
           }
@@ -368,6 +452,10 @@ function ensureTopUVs(geo, tile) {
         });
       }
       frameModel();
+      try {
+        const trees = plantTrees(bigMeshes, 320);
+        if (trees) root.add(trees);
+      } catch (e) {}
     };
 
     new FBXLoader().load(
