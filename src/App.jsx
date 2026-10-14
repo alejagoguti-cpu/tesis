@@ -6,6 +6,7 @@ import DiagnosisMap from './components/DiagnosisMap';
 import ModelViewer3D from './components/ModelViewer3D';
 import RevitModule from './components/RevitModule';
 import Module11Territory from './components/Module11Territory';
+import RedColaborativa from './components/RedColaborativa';
 import IntroLandingIndex from './components/IntroLandingIndex';
 import Hero from './components/Hero';
 import Footer from './components/Footer';
@@ -137,6 +138,12 @@ export default function App() {
               {activeModule === 'module11' && (
                 <SafeSection name="Módulo 1.1: Planos Históricos & Evidencias">
                   <Module11Territory onNavigateModule={(modId) => setActiveModule(modId)} />
+                </SafeSection>
+              )}
+
+              {activeModule === 'red' && (
+                <SafeSection name="Módulo 1.3: Red Vivienda Colaborativa">
+                  <RedColaborativa />
                 </SafeSection>
               )}
 

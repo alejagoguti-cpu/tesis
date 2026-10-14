@@ -280,6 +280,7 @@ export const projectInfo = {
     { id: "framework", number: "01", title: "Marco de Tesis", icon: "BookOpen", badge: "Académico", desc: "Problema, Justificación y Objetivos OE-01 a OE-04" },
     { id: "module11", number: "1.1", title: "Planos Históricos & Evidencias Territoriales", icon: "Map", badge: "Módulo 1.1", desc: "Atlas de 6 Planos Históricos (1589–1900) y Evidencias de Habitabilidad en Sitio" },
     { id: "gis", number: "1.2", title: "Teledetección & GIS Espectral", icon: "Layers", badge: "GIS", desc: "5 Bandas satelitales (NDVI, NDWI, Manglar) y Shaders CSS" },
+    { id: "red", number: "1.3", title: "Red Vivienda Colaborativa", icon: "Network", badge: "Red interactiva", desc: "Red conceptual que se despliega ítem por ítem con cada clic" },
     { id: "3dviewer", number: "02", title: "Visor 3D WebGL / BIM", icon: "Box", badge: "Interactivo", desc: "Territorio, Colegio, Vivienda, Masterplan + Despiece & Speckle" },
     { id: "revit", number: "03", title: "Modelo Revit Tierrabomba", icon: "Building2", badge: "BIM", desc: "Carga del .rvt + visor del modelo exportado" },
   ],

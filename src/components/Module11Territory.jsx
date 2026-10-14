@@ -28,6 +28,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { HISTORICAL_MAPS_DATA } from '../data/historicalMaps';
+import HistoricalAtlas from './HistoricalAtlas';
 
 const EVIDENCE_GALLERIES = {
   vivienda: {
@@ -175,6 +176,25 @@ export default function Module11Territory({ onNavigateModule }) {
     filter: filterStyle(),
     transition: 'transform 0.22s ease-out, filter 0.2s ease'
   };
+
+  if (activeTab === 'planos_historicos') {
+    return (
+      <div className="w-full relative" style={{ height: "calc(100vh - 65px)" }}>
+        <HistoricalAtlas
+          onSelectModule={onNavigateModule}
+          extraControls={(
+            <button
+              onClick={() => setActiveTab('evidencias')}
+              className="absolute bottom-4 right-4 z-[500] px-4 py-2.5 rounded-xl bg-slate-950 text-white text-xs font-mono font-bold shadow-lg hover:bg-teal-700 flex items-center space-x-2"
+            >
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <span>PREGUNTA CENTRAL & EVIDENCIAS</span>
+            </button>
+          )}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full overflow-y-auto bg-gradient-to-b from-stone-50 via-white to-stone-100 text-slate-800 p-4 sm:p-8 lg:p-10 animate-fade-in relative">

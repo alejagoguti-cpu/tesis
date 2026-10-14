@@ -11,6 +11,7 @@ import {
   Activity,
   Building2,
   Sparkles,
+  Network,
   Layers,
   ChevronRight,
   AlertTriangle
@@ -30,7 +31,8 @@ const iconMap = {
   Droplets,
   Activity,
   Building2,
-  Sparkles
+  Sparkles,
+  Network
 };
 
 export default function DashboardSidebar({
