@@ -378,10 +378,10 @@ function RenderViewer({
     });
     waterMatRef.current = waterMat;
 
-    const oceanGeo = new THREE.PlaneGeometry(1200, 1200, 64, 64);
+    const oceanGeo = new THREE.PlaneGeometry(3000, 3000, 64, 64);
     const oceanMesh = new THREE.Mesh(oceanGeo, waterMat);
     oceanMesh.rotation.x = -Math.PI / 2;
-    oceanMesh.position.y = 0.02;
+    oceanMesh.position.y = 0.055;
     oceanMesh.receiveShadow = true;
     root.add(oceanMesh);
 
