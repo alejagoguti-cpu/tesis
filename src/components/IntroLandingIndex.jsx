@@ -17,12 +17,96 @@ import {
   X,
   RotateCcw,
   CheckCircle2,
-  Waves
+  Waves,
+  ChevronLeft,
+  ChevronRight,
+  Image as ImageIcon
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
+const PROBLEM_GALLERIES = {
+  erosion: {
+    id: "erosion",
+    code: "PROBLEMA 01",
+    color: "#e11d48",
+    badgeLabel: "Riesgo Físico Crítico",
+    title: "Erosión de las costas y riesgo en las viviendas",
+    description: "El golpe del mar destruye la orilla y pone en peligro las casas construidas cerca del agua.",
+    context: "El avance marino, el oleaje directo y las mareas de leva socavan aceleradamente la línea costera de Tierrabomba con tasas de retroceso de hasta 1.8 m/año. Viviendas tradicionales construidas sobre cimientos precarios presentan descalces, fracturas estructurales y peligro inminente de colapso.",
+    source: "Expediente Judicial de Gestión del Riesgo & Registro en Sitio (2022–2026)",
+    images: [
+      {
+        url: `${import.meta.env.BASE_URL}assets/vivienda_erosion_ruinas.png`,
+        caption: "Ruinas de viviendas socavadas por el oleaje frente a la bahía de Cartagena. Estructuras fracturadas y desmanteladas por el avance marino.",
+        tag: "Colapso Estructural por Socavación"
+      },
+      {
+        url: `${import.meta.env.BASE_URL}assets/vivienda_borde_socavacion.jpg`,
+        caption: "Asentamientos en el borde costero crítico de Tierrabomba. Viviendas autoconstruidas sobre cimientos socavados y muros precarios de contención.",
+        tag: "Viviendas en Peligro Inminente"
+      },
+      {
+        url: `${import.meta.env.BASE_URL}assets/vivienda_costa_tierrabomba.png`,
+        caption: "Franja habitacional de borde en Tierrabomba frente al agua: exposición directa a pleamar, mareas de leva e impacto de trenes de olas.",
+        tag: "Exposición Territorial Costera"
+      }
+    ]
+  },
+  agua: {
+    id: "agua",
+    code: "PROBLEMA 02",
+    color: "#d97706",
+    badgeLabel: "Déficit Estructural Hídrico",
+    title: "Falta de agua potable y alcantarillado",
+    description: "La isla no tiene red de agua ni desagües, lo que obliga a la población a comprar agua traída en lanchas.",
+    context: "Tierrabomba sufre un 0% de cobertura en red formal de acueducto y alcantarillado. Los acuíferos locales padecen salinización por intrusión marina, obligando a las familias a comprar pimpinas traídas en lanchas desde Cartagena a costos desproporcionados, acarreándolas a pie por calles sin pavimentar.",
+    source: "Reportaje Especial Publimetro & Sentencias Corte Constitucional",
+    images: [
+      {
+        url: `${import.meta.env.BASE_URL}assets/tierrabomba_acarreo_pimpina.png`,
+        caption: "Acarreo cotidiano de pimpinas de agua dulce al hombro por las calles de Tierrabomba ante la falta absoluta de red de acueducto.",
+        tag: "Acarreo Manual de Agua"
+      },
+      {
+        url: `${import.meta.env.BASE_URL}assets/tierrabomba_publimetro_agua.jpg`,
+        caption: "El diario vivir de las familias de Tierra Bomba: compra y traslado precario de agua dulce traída en barcazas desde Cartagena.",
+        tag: "0% Red Formal de Acueducto"
+      }
+    ]
+  },
+  servicios: {
+    id: "servicios",
+    code: "PROBLEMA 03",
+    color: "#2563eb",
+    badgeLabel: "Vulnerabilidad Institucional",
+    title: "Falta de servicios públicos y colegios",
+    description: "Existe un abandono en la infraestructura de la isla, afectando la educación, la salud y los espacios comunitarios.",
+    context: "El Informe de Calidad de Vida clasifica la infraestructura educativa y comunitaria de Tierra Bomba como deficiente (37,3 puntos). La sede escolar actual sufre severa corrosión de acero estructural en columnas y losas por el ambiente salino, con áreas acordonadas por peligro de desplome y falta de condiciones higiénicas continuas.",
+    source: "Informe de Calidad de Vida Cartagena (2025) & Diagnóstico en Sitio",
+    images: [
+      {
+        url: `${import.meta.env.BASE_URL}assets/colegio_deterioro_columnas.jpg`,
+        caption: "Severa corrosión del acero estructural en columnas y voladizos, pérdida total del recubrimiento de concreto y cintas de acordonamiento por riesgo inminente de colapso.",
+        tag: "Riesgo Estructural & Acordonamiento"
+      },
+      {
+        url: `${import.meta.env.BASE_URL}assets/colegio_deterioro_1.jpg`,
+        caption: "Desprendimiento de mampostería, corrosión de armaduras y cerramiento provisional con madera aglomerada.",
+        tag: "Deterioro Físico Crítico"
+      },
+      {
+        url: `${import.meta.env.BASE_URL}assets/colegio_deterioro_2.png`,
+        caption: "Viga de concreto con acero de refuerzo totalmente expuesto a la salinidad marina y fisuras en elementos portantes.",
+        tag: "Falla Estructural Portante"
+      }
+    ]
+  }
+};
+
 export default function IntroLandingIndex({ onNavigateModule }) {
   const [selectedNode, setSelectedNode] = useState(null);
+  const [activeProblemKey, setActiveProblemKey] = useState(null); // 'erosion' | 'agua' | 'servicios'
+  const [problemSlideIndex, setProblemSlideIndex] = useState(0);
   const [hoveredNode, setHoveredNode] = useState(null);
   const [hoveredRelation, setHoveredRelation] = useState(null);
   const [isShattering, setIsShattering] = useState(false);
@@ -94,6 +178,26 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       timers.forEach(clearInterval);
     };
   }, [scrambleKey]);
+
+  // Keyboard navigation for problem photo gallery modal
+  useEffect(() => {
+    if (!activeProblemKey) return;
+    const activeProb = PROBLEM_GALLERIES[activeProblemKey];
+    if (!activeProb) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setActiveProblemKey(null);
+      } else if (e.key === 'ArrowLeft') {
+        setProblemSlideIndex((prev) => (prev > 0 ? prev - 1 : activeProb.images.length - 1));
+      } else if (e.key === 'ArrowRight') {
+        setProblemSlideIndex((prev) => (prev < activeProb.images.length - 1 ? prev + 1 : 0));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeProblemKey]);
 
   // -------------------------------------------------------------
   // 2. 3D PERSPECTIVE MOUSE TILT ON CARD
@@ -286,7 +390,10 @@ export default function IntroLandingIndex({ onNavigateModule }) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
               
               <div 
-                onClick={() => setSelectedNode(nodes.find(n => n.id === 'oe01'))}
+                onClick={() => {
+                  setActiveProblemKey('erosion');
+                  setProblemSlideIndex(0);
+                }}
                 className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-rose-400 hover:bg-rose-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md flex flex-col justify-between"
               >
                 <div>
@@ -300,13 +407,25 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                     Erosión de las costas y riesgo en las viviendas
                   </h3>
                 </div>
-                <p className="text-[11px] text-slate-600 mt-1.5 leading-snug">
-                  El golpe del mar destruye la orilla y pone en peligro las casas construidas cerca del agua.
-                </p>
+                <div>
+                  <p className="text-[11px] text-slate-600 mt-1.5 leading-snug">
+                    El golpe del mar destruye la orilla y pone en peligro las casas construidas cerca del agua.
+                  </p>
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono font-bold text-rose-700 group-hover:text-rose-900 transition-colors">
+                    <span className="flex items-center space-x-1">
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <span>Ver fotos en sitio ({PROBLEM_GALLERIES.erosion.images.length})</span>
+                    </span>
+                    <span>&rarr;</span>
+                  </div>
+                </div>
               </div>
 
               <div 
-                onClick={() => setSelectedNode(nodes.find(n => n.id === 'oe03'))}
+                onClick={() => {
+                  setActiveProblemKey('agua');
+                  setProblemSlideIndex(0);
+                }}
                 className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-amber-400 hover:bg-amber-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md flex flex-col justify-between"
               >
                 <div>
@@ -320,13 +439,25 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                     Falta de agua potable y alcantarillado
                   </h3>
                 </div>
-                <p className="text-[11px] text-slate-600 mt-1.5 leading-snug">
-                  La isla no tiene red de agua ni desagües, lo que obliga a la población a comprar agua traída en lanchas.
-                </p>
+                <div>
+                  <p className="text-[11px] text-slate-600 mt-1.5 leading-snug">
+                    La isla no tiene red de agua ni desagües, lo que obliga a la población a comprar agua traída en lanchas.
+                  </p>
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono font-bold text-amber-700 group-hover:text-amber-900 transition-colors">
+                    <span className="flex items-center space-x-1">
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <span>Ver fotos en sitio ({PROBLEM_GALLERIES.agua.images.length})</span>
+                    </span>
+                    <span>&rarr;</span>
+                  </div>
+                </div>
               </div>
 
               <div 
-                onClick={() => setSelectedNode(nodes.find(n => n.id === 'oe04'))}
+                onClick={() => {
+                  setActiveProblemKey('servicios');
+                  setProblemSlideIndex(0);
+                }}
                 className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-400 hover:bg-blue-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md flex flex-col justify-between"
               >
                 <div>
@@ -340,9 +471,18 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                     Falta de servicios públicos y colegios
                   </h3>
                 </div>
-                <p className="text-[11px] text-slate-600 mt-1.5 leading-snug">
-                  Existe un abandono en la infraestructura de la isla, afectando la educación, la salud y los espacios comunitarios.
-                </p>
+                <div>
+                  <p className="text-[11px] text-slate-600 mt-1.5 leading-snug">
+                    Existe un abandono en la infraestructura de la isla, afectando la educación, la salud y los espacios comunitarios.
+                  </p>
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono font-bold text-blue-700 group-hover:text-blue-900 transition-colors">
+                    <span className="flex items-center space-x-1">
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <span>Ver fotos en sitio ({PROBLEM_GALLERIES.servicios.images.length})</span>
+                    </span>
+                    <span>&rarr;</span>
+                  </div>
+                </div>
               </div>
 
             </div>
@@ -695,7 +835,156 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       )}
 
       {/* ========================================================= */}
-      {/* 4. FOOTER NOTE                                            */}
+      {/* 4. MODAL DE EVIDENCIA FOTOGRÁFICA DE PROBLEMÁTICA         */}
+      {/* ========================================================= */}
+      {activeProblemKey && PROBLEM_GALLERIES[activeProblemKey] && (() => {
+        const activeProb = PROBLEM_GALLERIES[activeProblemKey];
+        const activeImg = activeProb.images[problemSlideIndex] || activeProb.images[0];
+        
+        return (
+          <div 
+            onClick={() => setActiveProblemKey(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-fade-in"
+          >
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-4xl bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh] animate-scale-up"
+            >
+              
+              {/* Header */}
+              <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                <div className="space-y-1 min-w-0 pr-4">
+                  <div className="flex items-center space-x-2">
+                    <span 
+                      className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-white"
+                      style={{ backgroundColor: activeProb.color }}
+                    >
+                      {activeProb.code}
+                    </span>
+                    <span className="text-xs font-mono text-slate-300">
+                      Evidencia en Sitio &bull; Foto {problemSlideIndex + 1} de {activeProb.images.length}
+                    </span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold font-display text-white truncate">
+                    {activeProb.title}
+                  </h3>
+                </div>
+                
+                <button
+                  onClick={() => setActiveProblemKey(null)}
+                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors shrink-0"
+                  title="Cerrar ventana"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Problem Quick Switch Tabs */}
+              <div className="flex items-center gap-1.5 p-2.5 bg-slate-100 border-b border-slate-200 overflow-x-auto">
+                {Object.values(PROBLEM_GALLERIES).map((prob) => {
+                  const isCur = prob.id === activeProblemKey;
+                  return (
+                    <button
+                      key={prob.id}
+                      onClick={() => {
+                        setActiveProblemKey(prob.id);
+                        setProblemSlideIndex(0);
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all whitespace-nowrap flex items-center space-x-1.5 ${
+                        isCur
+                          ? 'bg-white text-slate-950 shadow-sm border border-slate-300 ring-2 ring-slate-900/10'
+                          : 'text-slate-600 hover:text-slate-950 hover:bg-slate-200/70'
+                      }`}
+                    >
+                      <span 
+                        className="w-2.5 h-2.5 rounded-full shrink-0" 
+                        style={{ backgroundColor: prob.color }}
+                      />
+                      <span>{prob.code}: {prob.id === 'erosion' ? 'Erosión Costera' : prob.id === 'agua' ? 'Agua Potable' : 'Servicios & Escuela'}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Problem Description Banner */}
+              <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 text-xs text-slate-700 leading-snug">
+                <p>
+                  <b className="text-slate-900">{activeProb.badgeLabel}:</b> {activeProb.context}
+                </p>
+              </div>
+
+              {/* Main Photo Viewer Area */}
+              <div className="relative bg-slate-950 flex-1 min-h-[300px] sm:min-h-[440px] flex items-center justify-center overflow-hidden">
+                <img
+                  src={activeImg.url}
+                  alt={activeImg.caption}
+                  className="max-h-[50vh] max-w-full object-contain select-none transition-all duration-300 p-2"
+                />
+
+                {/* Floating Image Tag Badge */}
+                <div className="absolute top-4 left-4 bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 text-white text-xs font-mono font-bold shadow-lg">
+                  {activeImg.tag}
+                </div>
+
+                {/* Slide Arrows */}
+                {activeProb.images.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => setProblemSlideIndex((prev) => (prev > 0 ? prev - 1 : activeProb.images.length - 1))}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 sm:p-3 rounded-2xl bg-black/60 hover:bg-black/90 text-white transition-all hover:scale-110 backdrop-blur-sm cursor-pointer shadow-lg"
+                      title="Foto anterior (Flecha Izquierda)"
+                    >
+                      <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                    <button
+                      onClick={() => setProblemSlideIndex((prev) => (prev < activeProb.images.length - 1 ? prev + 1 : 0))}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 sm:p-3 rounded-2xl bg-black/60 hover:bg-black/90 text-white transition-all hover:scale-110 backdrop-blur-sm cursor-pointer shadow-lg"
+                      title="Foto siguiente (Flecha Derecha)"
+                    >
+                      <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                  </>
+                )}
+
+                {/* Dot Indicators */}
+                {activeProb.images.length > 1 && (
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center space-x-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full">
+                    {activeProb.images.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setProblemSlideIndex(idx)}
+                        className={`h-2 rounded-full transition-all cursor-pointer ${
+                          idx === problemSlideIndex ? 'w-6 bg-white' : 'w-2 bg-white/40 hover:bg-white/80'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Caption and Source Footer */}
+              <div className="p-4 sm:p-5 bg-white border-t border-slate-200 space-y-2">
+                <p className="text-xs sm:text-sm font-medium text-slate-800 leading-snug">
+                  {activeImg.caption}
+                </p>
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] font-mono text-slate-500 border-t border-slate-100">
+                  <span className="flex items-center space-x-1.5 text-slate-600">
+                    <span className="font-bold text-slate-900">Fuente:</span>
+                    <span>{activeProb.source}</span>
+                  </span>
+                  <span className="text-teal-700 font-bold">
+                    Tierrabomba &bull; Bahía de Cartagena
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ========================================================= */}
+      {/* 5. FOOTER NOTE                                            */}
       {/* ========================================================= */}
       <footer className="relative z-10 border-t border-slate-200 bg-white py-6 px-4 text-center text-xs font-mono text-slate-500">
         <p>
