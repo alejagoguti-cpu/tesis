@@ -149,7 +149,7 @@ export default function App() {
               )}
 
               {activeModule === 'rizoma' && (
-                <SafeSection name="Módulo 1.4: Vivienda Progresiva · Rizoma">
+                <SafeSection name="Módulo 1.4: Master Plan Rizoma">
                   <RedRizoma />
                 </SafeSection>
               )}

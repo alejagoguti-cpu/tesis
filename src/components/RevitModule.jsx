@@ -6,6 +6,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { Water } from 'three/examples/jsm/objects/Water.js';
 import PlanningToolbar from './PlanningToolbar';
+import MasterplanCard from './MasterplanCard';
 import { buildGroundSolid } from '../utils/groundSolid';
 import { USOS, loadUserTags, saveUserTags, useColor, iconSprite } from '../utils/usosTerritorio';
 import { DATA_URL, loadSatelliteMap, loadSatelliteTexture, applySatelliteUV, loadRealTrees, loadTreeTemplates } from '../utils/realTerritory';
@@ -1571,6 +1572,10 @@ export default function RevitModule() {
   const [selectedTreeId, setSelectedTreeId] = useState(null);
   const [showTreeToolbar, setShowTreeToolbar] = useState(false);
 
+  // Propuesta territorial / Plan Maestro (tarjeta que antes vivía en el módulo 02)
+  const [showMasterplan, setShowMasterplan] = useState(false);
+  const [masterplanStep, setMasterplanStep] = useState(0);
+
   // Section box (corte tipo Revit)
   const SECTION_FULL = { on: false, x: [0, 1], y: [0, 1], z: [0, 1] };
   const [section, setSection] = useState(SECTION_FULL);
@@ -1932,6 +1937,15 @@ export default function RevitModule() {
           <span>{treesVisible ? '🌲 Árboles Render ON' : '🌱 Árboles OFF'}</span>
         </button>
 
+        {/* Propuesta territorial */}
+        <button
+          onClick={() => setShowMasterplan((v) => !v)}
+          className={'px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md flex items-center space-x-1.5 cursor-pointer ' + (showMasterplan ? 'bg-amber-500 text-white border-amber-300' : 'bg-white/90 hover:bg-white text-slate-800 border-slate-300')}
+          title="Propuesta territorial 2026 · Plan Maestro Tierra Bomba"
+        >
+          <span>{showMasterplan ? 'Cerrar Propuesta' : '📍 Propuesta territorial'}</span>
+        </button>
+
         {/* Section Box tipo Revit */}
         <button
           onClick={() => {
@@ -2050,6 +2064,10 @@ export default function RevitModule() {
           <span>✨</span>
           <span>¡Vista guardada para siempre! Esta será la perspectiva al abrir el visor.</span>
         </div>
+      )}
+
+      {showMasterplan && (
+        <MasterplanCard step={masterplanStep} setStep={setMasterplanStep} onClose={() => setShowMasterplan(false)} className="top-36" />
       )}
 
       {showSectionPanel && (

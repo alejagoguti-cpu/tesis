@@ -19,6 +19,10 @@ import {
   STORAGE_KEY_CATASTRO 
 } from '../utils/treeTool.js';
 import TreePlacementToolbar from './TreePlacementToolbar.jsx';
+import RutasLanchasPanel from './RutasLanchasPanel.jsx';
+import {
+  STORAGE_RUTAS, STORAGE_PUNTOS, ROUTE_TYPES, POINT_TYPES, loadList as loadRutasList, saveList as saveRutasList, createRoutesLayer
+} from '../utils/rutasLanchas.js';
 import { 
   Layers, 
   RotateCcw, 
@@ -154,6 +158,20 @@ export default function ModelViewer3D({ onSelectModule }) {
     }
   });
   const [isPlantingTree, setIsPlantingTree] = useState(false);
+
+  // Recorridos de lanchas Tierra Bomba <-> Cartagena y puntos de vertimiento (mercurio)
+  const [showRutas, setShowRutas] = useState(false);
+  const [rutasMode, setRutasMode] = useState('none'); // 'none' | 'ruta' | 'punto'
+  const [routeType, setRouteType] = useState('residuos');
+  const [pointType, setPointType] = useState('mercurio');
+  const [rutaName, setRutaName] = useState('');
+  const [rutaDraft, setRutaDraft] = useState([]);
+  const [rutas, setRutas] = useState(() => loadRutasList(STORAGE_RUTAS));
+  const [puntosHg, setPuntosHg] = useState(() => loadRutasList(STORAGE_PUNTOS));
+  const [routesNonce, setRoutesNonce] = useState(0);
+  const routesLayerRef = useRef(null);
+  const rutasRef = useRef({});
+  rutasRef.current = { mode: rutasMode, draft: rutaDraft, routeType, pointType, name: rutaName, rutas, puntosHg };
   const [treePlantScale, setTreePlantScale] = useState(1.0);
   const [selectedCatastroTreeId, setSelectedCatastroTreeId] = useState(null);
   const [showTreePlacementToolbar, setShowTreePlacementToolbar] = useState(false);
@@ -429,6 +447,12 @@ export default function ModelViewer3D({ onSelectModule }) {
           console.warn('Entorno de cielo no disponible:', e);
         }
         currentModelGroupRef.current = rootContainer;
+        if (routesLayerRef.current) routesLayerRef.current.dispose();
+        routesLayerRef.current = createRoutesLayer(rootContainer, () => {
+          const c = mountRef.current;
+          return [c ? c.clientWidth : 800, c ? c.clientHeight : 600];
+        });
+        setRoutesNonce((n) => n + 1);
       } catch (err) {
         console.error("Error building cartagena territory:", err);
       } finally {
@@ -898,6 +922,18 @@ export default function ModelViewer3D({ onSelectModule }) {
         mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
 
+        // 0. Modo recorridos de lanchas: marcar un punto sobre el plano del mapa
+        if (rutasRef.current.mode !== 'none' && currentModelGroupRef.current && rutasHandlerRef.current) {
+          const root = currentModelGroupRef.current;
+          const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(root.position.y + 0.05));
+          const hit = new THREE.Vector3();
+          if (raycaster.ray.intersectPlane(plane, hit)) {
+            root.worldToLocal(hit);
+            rutasHandlerRef.current(hit.x, hit.z);
+          }
+          return;
+        }
+
         // 1. Detectar clic en un árbol existente
         const vegGroup = cartagenaTerritoryRef.current?.vegetationGroup;
         if (vegGroup && vegGroup.children.length > 0) {
@@ -962,6 +998,10 @@ export default function ModelViewer3D({ onSelectModule }) {
     };
 
     const domElem = renderer.domElement;
+    const onDblClick = () => {
+      if (rutasRef.current.mode === 'ruta' && rutasFinishRef.current) rutasFinishRef.current();
+    };
+    domElem.addEventListener('dblclick', onDblClick);
     domElem.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
@@ -974,6 +1014,7 @@ export default function ModelViewer3D({ onSelectModule }) {
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
+      if (routesLayerRef.current) routesLayerRef.current.setResolution(container.clientWidth, container.clientHeight);
     };
     window.addEventListener('resize', handleResize);
 
@@ -988,6 +1029,7 @@ export default function ModelViewer3D({ onSelectModule }) {
           console.warn("Territory animation error:", e);
         }
       }
+      if (routesLayerRef.current) routesLayerRef.current.update(performance.now(), camera.top || 100);
       renderer.render(scene, camera);
     };
     animate();
@@ -995,12 +1037,68 @@ export default function ModelViewer3D({ onSelectModule }) {
     return () => {
       cancelAnimationFrame(reqId);
       window.removeEventListener('resize', handleResize);
+      domElem.removeEventListener('dblclick', onDblClick);
       domElem.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
       domElem.removeEventListener('wheel', onWheel);
       if (renderer) renderer.dispose();
     };
+  }, []);
+
+  // ---- Recorridos de lanchas: manejadores ----
+  const rutasHandlerRef = useRef(null);
+  const rutasFinishRef = useRef(null);
+  const typeColor = (list, id) => (list.find((t) => t.id === id) || list[0]).color;
+
+  const finishRuta = () => {
+    const { mode, draft, routeType: rt, name } = rutasRef.current;
+    if (mode !== 'ruta' || draft.length < 2) return;
+    const next = [...rutasRef.current.rutas, { id: 'ruta_' + Date.now(), type: rt, name: (name || '').trim(), pts: draft }];
+    setRutas(next);
+    saveRutasList(STORAGE_RUTAS, next);
+    setRutaDraft([]);
+    setRutaName('');
+  };
+  rutasFinishRef.current = finishRuta;
+
+  rutasHandlerRef.current = (x, z) => {
+    const { mode, pointType: pt, name } = rutasRef.current;
+    if (mode === 'ruta') {
+      setRutaDraft((prev) => {
+        const last = prev[prev.length - 1];
+        if (last && Math.hypot(last.x - x, last.z - z) < 0.4) return prev;
+        return [...prev, { x, z }];
+      });
+    } else if (mode === 'punto') {
+      const next = [...rutasRef.current.puntosHg, { id: 'pt_' + Date.now(), type: pt, name: (name || '').trim(), x, z }];
+      setPuntosHg(next);
+      saveRutasList(STORAGE_PUNTOS, next);
+      setRutaName('');
+    }
+  };
+
+  useEffect(() => {
+    if (routesLayerRef.current) routesLayerRef.current.setData(rutas, puntosHg);
+  }, [rutas, puntosHg, routesNonce]);
+
+  useEffect(() => {
+    if (!routesLayerRef.current) return;
+    routesLayerRef.current.setDraft(
+      rutasMode === 'ruta' ? 'ruta' : 'none',
+      rutasMode === 'ruta' ? rutaDraft : [],
+      typeColor(ROUTE_TYPES, routeType)
+    );
+  }, [rutaDraft, rutasMode, routeType, routesNonce]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (rutasRef.current.mode === 'none') return;
+      if (e.key === 'Enter') finishRuta();
+      if (e.key === 'Escape') setRutaDraft([]);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   // Sync simulation refs with state
@@ -1669,6 +1767,26 @@ export default function ModelViewer3D({ onSelectModule }) {
               </span>
             )}
           </button>
+          <button
+            onClick={() => {
+              const v = !showRutas;
+              setShowRutas(v);
+              if (!v) { setRutasMode('none'); setRutaDraft([]); }
+            }}
+            className={`px-3.5 py-2 rounded-2xl text-xs font-sans font-semibold backdrop-blur-xl border transition-all shadow-md flex items-center space-x-2 cursor-pointer ${
+              showRutas
+                ? 'bg-rose-600 text-white border-rose-600 ring-2 ring-rose-300 shadow-rose-600/20'
+                : 'bg-white/95 hover:bg-slate-50 text-slate-800 border-slate-200/90'
+            }`}
+            title="Dibujar los recorridos de las lanchas Tierra Bomba - Cartagena y los puntos de mercurio en el agua"
+          >
+            <span>{showRutas ? 'Cerrar Recorridos' : '🚤 Recorridos de lanchas'}</span>
+            {(rutas.length + puntosHg.length) > 0 && (
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-1 ${showRutas ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800'}`}>
+                {rutas.length + puntosHg.length}
+              </span>
+            )}
+          </button>
         </div>
 
         {/* Panel Flotante de Vegetación Interactiva */}
@@ -1696,230 +1814,29 @@ export default function ModelViewer3D({ onSelectModule }) {
       {/* ========================================================================= */}
       {/* 3. TARJETA EDITORIAL BLANCA: PROPUESTA TERRITORIAL & PLAN MAESTRO 2026      */}
       {/* ========================================================================= */}
-      {showMasterplanPanel && (
-        <div className="absolute top-4 right-4 z-[450] w-[430px] max-w-[calc(100vw-2rem)] pointer-events-auto animate-fade-in font-sans">
-          <div className="bg-white/95 rounded-3xl p-5 text-slate-800 shadow-2xl border border-slate-200/90 backdrop-blur-xl transition-all duration-300 max-h-[88vh] overflow-y-auto">
-            
-            {/* Header con Badge y Botón de Minimizar */}
-            <div className="flex items-start justify-between border-b border-slate-100 pb-3 mb-3">
-              <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 shadow-sm">
-                  <Compass className="w-4 h-4 text-amber-600" />
-                </div>
-                <div>
-                  <span className="text-[10px] uppercase tracking-wider text-amber-700 font-bold block">
-                    Propuesta Territorial 2026 // Tesis
-                  </span>
-                  <h3 className="font-bold text-sm text-slate-900">
-                    Plan Maestro Tierra Bomba
-                  </h3>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowMasterplanPanel(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer text-xs"
-                title="Minimizar panel del Plan Maestro"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Párrafo Introductorio Oficial */}
-            <div className="text-[11.5px] leading-relaxed text-slate-700 mb-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/70">
-              <p className="font-semibold text-slate-900 mb-1">
-                El plan maestro representa la articulación territorial de nuestra propuesta.
-              </p>
-              <p className="text-slate-600 text-[11px]">
-                Su primera función es identificar cómo podrían organizarse las áreas residenciales, el equipamiento educativo y los espacios colectivos en relación con los asentamientos existentes.
-              </p>
-            </div>
-
-            {/* Tabs / Pasos del Tour con Botones Estilizados */}
-            <div className="grid grid-cols-5 gap-1 mb-3 p-1 rounded-2xl bg-slate-100 border border-slate-200/60">
-              {[
-                { label: 'Vías', idx: 0, title: 'Articulación y Vías' },
-                { label: 'Colegio', idx: 1, title: 'Colegio en Meseta' },
-                { label: 'Vivienda', idx: 2, title: 'Reubicación y Suelo' },
-                { label: 'Senderos', idx: 3, title: 'Recorridos Peatonales' },
-                { label: 'Parque', idx: 4, title: 'Parque Ecológico' },
-              ].map(tab => {
-                const isActive = activeMasterplanStep === tab.idx;
-                return (
-                  <button
-                    key={tab.idx}
-                    onClick={() => setActiveMasterplanStep(tab.idx)}
-                    className={`py-1.5 px-1 rounded-xl text-[10.5px] transition-all cursor-pointer font-medium text-center ${
-                      isActive 
-                        ? 'bg-amber-500 text-white font-bold shadow-md' 
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
-                    }`}
-                    title={tab.title}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Contenido Dinámico según el Paso Seleccionado */}
-            <div className="space-y-3 min-h-[160px] text-xs">
-              {activeMasterplanStep === 0 && (
-                <div className="animate-fade-in space-y-2.5">
-                  <div className="flex items-center space-x-2 text-amber-800 font-bold text-xs bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-xl">
-                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-                    <span>1. Articulación Territorial & Red Vial</span>
-                  </div>
-                  <p className="text-[11.5px] text-slate-700 leading-relaxed">
-                    Para determinar su localización, proponemos evaluar la seguridad del suelo, la topografía, la accesibilidad, las condiciones ambientales, la disponibilidad de servicios y la cercanía a las actividades cotidianas de la comunidad.
-                  </p>
-                  <div className="bg-amber-50/70 rounded-xl p-2.5 border border-amber-200/60 space-y-1.5 text-[11px] text-slate-700">
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-amber-600 font-bold">➔</span>
-                      <span><b>Vías estructurantes (amarillo en 3D):</b> Trazado del Paso 5 que articula el asentamiento costero de Punta Arenas con el altiplano de la meseta (+22m).</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-amber-600 font-bold">➔</span>
-                      <span><b>Conectividad integral:</b> Vincula las actividades productivas y pesqueras cotidianas con la nueva infraestructura resiliente.</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeMasterplanStep === 1 && (
-                <div className="animate-fade-in space-y-2.5">
-                  <div className="flex items-center space-x-2 text-purple-800 font-bold text-xs bg-purple-50 border border-purple-200 px-2.5 py-1 rounded-xl">
-                    <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping" />
-                    <span>2. Equipamiento Educativo Adentro de la Meseta</span>
-                  </div>
-                  <p className="text-[11.5px] text-slate-700 leading-relaxed">
-                    De esta forma, el colegio se convierte en un punto de articulación entre la comunidad y el parque: un lugar desde donde se aprende a cuidar el territorio que se habita.
-                  </p>
-                  <div className="bg-purple-50/70 rounded-xl p-2.5 border border-purple-200/60 space-y-1.5 text-[11px] text-slate-700">
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-purple-600 font-bold">➔</span>
-                      <span><b>Cota segura (+22m):</b> Implantado adentro de la meseta, protegido de inundaciones por pleamar y socavación marina.</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-purple-600 font-bold">➔</span>
-                      <span><b>Diferenciación espacial:</b> Separa con claridad las áreas educativas de acceso controlado de los espacios de encuentro comunitario libre.</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeMasterplanStep === 2 && (
-                <div className="animate-fade-in space-y-2.5">
-                  <div className="flex items-center space-x-2 text-sky-800 font-bold text-xs bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-xl">
-                    <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping" />
-                    <span>3. Reubicación Habitacional & Suelo Seguro</span>
-                  </div>
-                  <p className="text-[11.5px] text-slate-700 leading-relaxed">
-                    Uno de los componentes del proyecto es la posible reubicación de familias cuyas viviendas no puedan mantenerse de forma segura en su localización original.
-                  </p>
-                  <div className="bg-sky-50/70 rounded-xl p-2.5 border border-sky-200/60 space-y-1.5 text-[11px] text-slate-700">
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-sky-600 font-bold">➔</span>
-                      <span><b>Estudios de respaldo:</b> Decisión respaldada por la identificación de hogares afectados y estudios para comparar alternativas de mejoramiento, adaptación o traslado.</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-sky-600 font-bold">➔</span>
-                      <span><b>Suelos liberados:</b> Las áreas liberadas por una eventual reubicación se integran al parque y <b>no volverán a ocuparse</b>.</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeMasterplanStep === 3 && (
-                <div className="animate-fade-in space-y-2.5">
-                  <div className="flex items-center space-x-2 text-teal-800 font-bold text-xs bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-xl">
-                    <span className="w-2 h-2 rounded-full bg-teal-500 animate-ping" />
-                    <span>4. Recorridos Peatonales & Espacios Colectivos</span>
-                  </div>
-                  <p className="text-[11.5px] text-slate-700 leading-relaxed">
-                    La organización del plan maestro busca conectar las viviendas con el colegio y los espacios públicos mediante recorridos peatonales claros. También buscamos diferenciar los espacios privados, las áreas educativas de acceso controlado y los lugares de encuentro comunitario.
-                  </p>
-                  <div className="bg-teal-50/70 rounded-xl p-2.5 border border-teal-200/60 space-y-1.5 text-[11px] text-slate-700">
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-teal-600 font-bold">➔</span>
-                      <span><b>Recorridos paisajísticos:</b> Senderos que conectan los asentamientos, el colegio y los espacios comunitarios con el paisaje insular.</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-teal-600 font-bold">➔</span>
-                      <span><b>Patrimonio histórico:</b> Senderos que permiten reconocer el patrimonio cultural y vestigios militares de la isla.</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeMasterplanStep === 4 && (
-                <div className="animate-fade-in space-y-2.5">
-                  <div className="flex items-center space-x-2 text-emerald-800 font-bold text-xs bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                    <span>5. Visión de Futuro: Parque Ecológico Insular</span>
-                  </div>
-                  <p className="text-[11.5px] text-slate-700 leading-relaxed">
-                    Estas decisiones se enmarcan en una visión de largo plazo: proyectamos el futuro de Tierra Bomba como un parque ecológico porque enfrenta presiones como la erosión costera, la pérdida de ecosistemas y la ocupación de zonas de riesgo. El parque ecológico no busca desplazar a la comunidad, sino ordenar la relación entre las personas y el territorio.
-                  </p>
-                  <div className="bg-emerald-50/70 rounded-xl p-2.5 border border-emerald-200/60 space-y-1.5 text-[11px] text-slate-700">
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-emerald-600 font-bold">➔</span>
-                      <span><b>Barreras naturales:</b> Protección y restauración de ecosistemas costeros (manglares, playas y vegetación nativa).</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-emerald-600 font-bold">➔</span>
-                      <span><b>Economía sostenible:</b> Educación ambiental, ecoturismo comunitario y pesca responsable que generen oportunidades reales.</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-emerald-600 font-bold">➔</span>
-                      <span><b>Estructura integrada:</b> Vivienda, educación, espacio público y naturaleza como parte de un mismo sistema y no edificios independientes.</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Navegación Siguiente / Anterior */}
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
-              <button
-                onClick={() => setActiveMasterplanStep(s => (s > 0 ? s - 1 : 4))}
-                className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium flex items-center space-x-1 cursor-pointer transition-colors"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-                <span>Anterior</span>
-              </button>
-              <div className="flex items-center space-x-1">
-                {[0, 1, 2, 3, 4].map(idx => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveMasterplanStep(idx)}
-                    className={`h-2 rounded-full transition-all cursor-pointer ${
-                      activeMasterplanStep === idx ? 'bg-amber-500 w-4' : 'bg-slate-300 w-2'
-                    }`}
-                  />
-                ))}
-              </div>
-              <button
-                onClick={() => setActiveMasterplanStep(s => (s < 4 ? s + 1 : 0))}
-                className="px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] flex items-center space-x-1 cursor-pointer transition-colors shadow-sm"
-              >
-                <span>Siguiente</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* Botón flotante para reabrir panel si fue cerrado */}
-      {!showMasterplanPanel && (
-        <button
-          onClick={() => setShowMasterplanPanel(true)}
-          className="absolute top-4 right-4 z-[400] bg-white/95 px-3.5 py-2 rounded-2xl text-xs font-sans font-semibold text-slate-800 border border-slate-200/90 shadow-lg flex items-center space-x-2 hover:bg-slate-50 transition-all cursor-pointer animate-fade-in"
-        >
-          <Compass className="w-4 h-4 text-amber-600" />
-          <span>📍 Plan Maestro Territorial</span>
-        </button>
+      {showRutas && (
+        <RutasLanchasPanel
+          mode={rutasMode}
+          setMode={(m) => { setRutasMode(m); setRutaDraft([]); if (m !== 'none') { setIsPlantingTree(false); } }}
+          routeType={routeType}
+          setRouteType={setRouteType}
+          pointType={pointType}
+          setPointType={setPointType}
+          name={rutaName}
+          setName={setRutaName}
+          draftCount={rutaDraft.length}
+          onFinish={finishRuta}
+          onUndo={() => setRutaDraft((d) => d.slice(0, -1))}
+          onCancel={() => setRutaDraft([])}
+          routes={rutas}
+          points={puntosHg}
+          onDeleteRoute={(id) => { const n = rutas.filter((r) => r.id !== id); setRutas(n); saveRutasList(STORAGE_RUTAS, n); }}
+          onDeletePoint={(id) => { const n = puntosHg.filter((r) => r.id !== id); setPuntosHg(n); saveRutasList(STORAGE_PUNTOS, n); }}
+          onClear={() => {
+            if (!window.confirm('¿Borrar todos los recorridos y puntos dibujados?')) return;
+            setRutas([]); setPuntosHg([]); saveRutasList(STORAGE_RUTAS, []); saveRutasList(STORAGE_PUNTOS, []);
+          }}
+        />
       )}
 
       {/* Floating Bottom Center: Orbit & Zoom Instruction Pill */}

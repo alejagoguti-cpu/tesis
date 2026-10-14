@@ -10,6 +10,7 @@ import { loadCleanTreeTemplate, buildTreeObject, BASE_TREE_SCALE } from './treeT
 import { buildRealTierrabomba } from './tierrabombaReal.js';
 import { buildSatelliteGround } from './satelliteGround.js';
 import { BASE as TB_BASE } from './realTerritory.js';
+import { createCaribeWater } from './caribeWater.js';
 
 /**
  * Generador 3D Territorial: Bahía de Cartagena & Isla de Tierra Bomba
@@ -206,12 +207,9 @@ export async function buildCartagenaTerritoryScene({
   // -------------------------------------------------------------
   // 1. CUERPO DE AGUA ESTATICO INFINITO (Bahía de Cartagena & Mar Caribe)
   // -------------------------------------------------------------
-  const waterGeo = new THREE.PlaneGeometry(4000, 4000, 2, 2);
-  const waterMesh = new THREE.Mesh(waterGeo, mats.water);
-  waterMesh.name = "Water";
-  waterMesh.rotation.x = -Math.PI / 2;
-  waterMesh.position.y = -0.06;
-  waterMesh.receiveShadow = true;
+  const waterMesh = createCaribeWater({ color: colors.water || '#1ea4c8', y: -0.06 });
+  // el material antiguo pasa a ser un proxy del color del shader (setWaterColor y el clima lo usan)
+  mats.water = { color: waterMesh.material.uniforms.waterColor.value, set needsUpdate(v) {} };
   waterMesh.visible = activeLayers.water !== false;
   territoryGroup.add(waterMesh);
   animatedObjects.waterMeshes.push(waterMesh);
@@ -944,8 +942,7 @@ export async function buildCartagenaTerritoryScene({
         bumpTex.offset.x = (t * -0.0000045 * speedMultiplier) % 1;
         bumpTex.offset.y = (t * 0.0000032 * speedMultiplier) % 1;
       }
-      waterNormalTex.offset.x = (t * 0.000012 * speedMultiplier) % 1;
-      waterNormalTex.offset.y = (t * 0.000008 * speedMultiplier) % 1;
+      if (waterMesh.material.uniforms.time) waterMesh.material.uniforms.time.value = t * 0.00055 * speedMultiplier;
       // Pulsate hotspot rings
       if (hotspotRings && hotspotRings.length > 0) {
         const pulse = 1.0 + 0.35 * Math.sin(t * 0.004);

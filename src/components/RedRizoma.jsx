@@ -56,7 +56,7 @@ export default function RedRizoma() {
       <div className="w-full max-w-6xl flex items-end justify-between gap-4 mb-3">
         <div>
           <p className="text-[11px] font-mono font-bold tracking-[0.18em] text-teal-700 uppercase">Marco conceptual · Módulo 1.4</p>
-          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">Vivienda progresiva · rizoma</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">Master plan rizoma</h2>
         </div>
         <button onClick={() => setOpen([])} className="h-9 px-4 rounded-full bg-white border border-slate-200 shadow-sm text-slate-700 text-xs font-semibold hover:border-slate-400 flex items-center gap-1.5">
           <RotateCcw className="w-3.5 h-3.5" /><span>Reiniciar</span>
