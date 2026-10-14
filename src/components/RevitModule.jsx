@@ -6,16 +6,12 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import pastoTexImg from '../assets/textura_pasto_m5.png';
 import aguaTexImg from '../assets/textura_agua_m5.jpg';
 import arenaTexImg from '../assets/textura_piso_m5.png';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
-// URLs de los modelos de Revit Tierrabomba
-const GLB_MODEL_URL = `${import.meta.env.BASE_URL}models/tierrabomba_revit.glb`;
-const FBX_MODEL_URL = `${import.meta.env.BASE_URL}models/tierrabomba_3dview.fbx`;
-
-// Genera mapeo UV cenital uniforme para que las texturas se proyecten con fidelidad
+// Genera mapeo UV cenital ortogonal para mallas que vienen sin coordenadas de Revit
 function ensureTopUVs(geo, tile = 35) {
   try {
     if (!geo || !geo.attributes || !geo.attributes.position) return;
+    if (geo.attributes.uv && geo.attributes.uv.count === geo.attributes.position.count) return;
     geo.computeBoundingBox();
     const bb = geo.boundingBox;
     if (!bb) return;
@@ -46,54 +42,53 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     const container = mountRef.current;
     if (!container) return;
 
-    // Escena 3D configurada para Render Arquitectónico luminoso
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xebf2f7);
-    scene.fog = new THREE.Fog(0xebf2f7, 180, 500);
+    // Medidas seguras que previenen el colapso a 0px en Flexbox
+    const getW = () => container.clientWidth || window.innerWidth || 800;
+    const getH = () => container.clientHeight || Math.max(window.innerHeight - 64, 550);
 
-    const camera = new THREE.PerspectiveCamera(42, container.clientWidth / container.clientHeight, 0.1, 4000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Escena 3D de Render Arquitectónico Nocturno / Crepuscular realista
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x091824); // Horizonte marino oscuro y elegante
+    scene.fog = new THREE.Fog(0x091824, 140, 520);
+
+    const camera = new THREE.PerspectiveCamera(40, getW() / getH(), 0.1, 4000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    renderer.setSize(getW(), getH());
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
 
-    // Iluminación ambiental PBR
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    pmrem.dispose();
+    // Iluminación para resaltar volumen y arquitectura
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x1e3a5f, 0.85));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
 
-    // Luces para volumen arquitectónico y sombras suaves
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xd0e0ec, 0.75));
-    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-
-    const sun = new THREE.DirectionalLight(0xfff5e6, 1.85);
-    sun.position.set(80, 110, 55);
+    const sun = new THREE.DirectionalLight(0xfff1dc, 2.0);
+    sun.position.set(85, 115, 60);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
-    sun.shadow.camera.left = -55;
-    sun.shadow.camera.right = 55;
-    sun.shadow.camera.top = 55;
-    sun.shadow.camera.bottom = -55;
+    sun.shadow.camera.left = -60;
+    sun.shadow.camera.right = 60;
+    sun.shadow.camera.top = 60;
+    sun.shadow.camera.bottom = -60;
     sun.shadow.bias = 0.0001;
     scene.add(sun);
 
-    const rim = new THREE.DirectionalLight(0xcde2f5, 0.65);
-    rim.position.set(-70, 40, -80);
+    const rim = new THREE.DirectionalLight(0x7eaed9, 0.8);
+    rim.position.set(-75, 45, -85);
     scene.add(rim);
 
     const root = new THREE.Group();
     rootRef.current = root;
     scene.add(root);
 
-    // Carga de texturas PBR de alta resolución
+    // Texturas de alta calidad
     const texLoader = new THREE.TextureLoader();
 
-    // 1. Textura de agua para mar animado realista
+    // 1. Textura de agua para mar animado
     const aguaTex = texLoader.load(aguaTexImg);
     aguaTex.wrapS = THREE.RepeatWrapping;
     aguaTex.wrapT = THREE.RepeatWrapping;
@@ -101,7 +96,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     aguaTex.anisotropy = 8;
     aguaTex.colorSpace = THREE.SRGBColorSpace;
 
-    // 2. Textura de pasto (verde oscuro natural, terroso, descanso para la vista)
+    // 2. Textura de pasto (verde oscuro terroso natural, descanso para la vista)
     const pastoTex = texLoader.load(pastoTexImg);
     pastoTex.wrapS = THREE.RepeatWrapping;
     pastoTex.wrapT = THREE.RepeatWrapping;
@@ -131,7 +126,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       map: arenaTex,
       bumpMap: arenaTex,
       bumpScale: 0.35,
-      color: 0xc4ab8a, // Arena de playa caribe cálida y realista
+      color: 0xc4ab8a, // Arena de playa cálida y realista
       roughness: 0.94,
       metalness: 0.01,
       polygonOffset: true,
@@ -153,17 +148,17 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       map: aguaTex,
       bumpMap: aguaTex,
       bumpScale: 0.65,
-      color: 0x09263b, // Azul marino caribe profundo (elegante y realista)
+      color: 0x09263b, // Azul marino caribe profundo
       roughness: 0.14,
       metalness: 0.32,
       envMapIntensity: 1.7
     });
 
-    // Gran plano oceánico continuo que enmarca la isla
-    const oceanGeo = new THREE.PlaneGeometry(500, 500, 64, 64);
+    // Gran plano oceánico continuo que rodea la isla
+    const oceanGeo = new THREE.PlaneGeometry(600, 600, 64, 64);
     const oceanMesh = new THREE.Mesh(oceanGeo, waterMat);
     oceanMesh.rotation.x = -Math.PI / 2;
-    oceanMesh.position.y = 0.04;
+    oceanMesh.position.y = 0.05;
     oceanMesh.receiveShadow = true;
     root.add(oceanMesh);
 
@@ -187,7 +182,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       const obj = objToFrame || modelRef.current;
       if (!obj) return;
 
-      // Reseteo previo para cálculo de escala idempotente
+      // Reseteo para cálculo de escala idempotente
       obj.scale.set(1, 1, 1);
       obj.position.set(0, 0, 0);
       obj.rotation.set(-Math.PI / 2, 0, 0); // Acostar terreno de Revit (Z-up a Y-up)
@@ -199,9 +194,9 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       const maxDim = Math.max(size.x, size.y, size.z);
       if (!isFinite(maxDim) || maxDim <= 0) return;
 
-      const s = 36 / maxDim;
+      const s = 38 / maxDim;
       obj.scale.set(s, s, s);
-      obj.position.set(-center.x * s, -box.min.y * s + 0.08, -center.z * s);
+      obj.position.set(-center.x * s, -box.min.y * s + 0.1, -center.z * s);
       obj.updateMatrixWorld(true);
 
       const c2 = new THREE.Box3().setFromObject(obj).getCenter(new THREE.Vector3());
@@ -214,7 +209,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
 
     // Procesamiento seguro de materiales para cualquier modelo de Revit (GLB o FBX)
     const setupRevitModel = (obj) => {
-      if (cancelled) return;
+      if (cancelled || !obj) return;
       if (modelRef.current) {
         root.remove(modelRef.current);
       }
@@ -231,21 +226,12 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
           const name = ((c.name || '') + ' ' + (c.parent?.name || '')).toLowerCase();
           const matName = ((c.material?.name || '')).toLowerCase();
 
-          mBox.setFromObject(c);
-          const sx = mBox.max.x - mBox.min.x;
-          const sy = mBox.max.y - mBox.min.y;
-          const sz = mBox.max.z - mBox.min.z;
-          const footprint = sx * sy;
-          const wide = Math.max(sx, sy);
-          const narrow = Math.max(Math.min(sx, sy), 0.001);
-
           // 1. Vías con textura de arena hiper-realista
           if (
             name.includes('sólido') || name.includes('solido') || name.includes('164695') ||
             name.includes('via') || name.includes('camino') || name.includes('road') ||
             name.includes('walls') || name.includes('wall') || name.includes('partición') ||
-            name.includes('muro') || matName.includes('walls') || matName.includes('muro') ||
-            (wide > 20 && narrow >= 1.5 && narrow <= 32 && wide / narrow > 2.2 && sz <= 12)
+            name.includes('muro') || matName.includes('walls') || matName.includes('muro')
           ) {
             c.material = sandMat;
             c.renderOrder = 3;
@@ -255,7 +241,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
           else if (
             name.includes('toposolid') || name.includes('terrain') || name.includes('terreno') ||
             matName.includes('terrain') || matName.includes('toposolid') ||
-            name.includes('149111') || footprint > 180000
+            name.includes('149111') || (c.geometry?.attributes?.position?.count > 2500)
           ) {
             c.material = grassMat;
             ensureTopUVs(c.geometry, 42);
@@ -299,42 +285,89 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       }
     };
 
-    // Carga rápida e instantánea del modelo Revit oficial
-    let hasLoaded = false;
-    const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
-    const gltfLoader = new GLTFLoader();
-    gltfLoader.setDRACOLoader(dracoLoader);
+    // Rutas dinámicas compatibles con GitHub Pages y servidores locales
+    const basePath = import.meta.env.BASE_URL || '/';
+    const cleanBase = basePath.endsWith('/') ? basePath : basePath + '/';
+    const GLB_CANDIDATES = [
+      `${cleanBase}models/tierrabomba_revit.glb`,
+      './models/tierrabomba_revit.glb',
+      '/tesis/models/tierrabomba_revit.glb',
+      'models/tierrabomba_revit.glb'
+    ];
+    const FBX_CANDIDATES = [
+      `${cleanBase}models/tierrabomba_3dview.fbx`,
+      './models/tierrabomba_3dview.fbx',
+      '/tesis/models/tierrabomba_3dview.fbx',
+      'models/tierrabomba_3dview.fbx'
+    ];
 
-    // 1. Cargar modelo base ultra-optimizado (2 MB, carga en 0.4s a 60 FPS)
-    gltfLoader.load(
-      GLB_MODEL_URL,
-      (gltf) => {
-        if (!hasLoaded) {
-          hasLoaded = true;
-          setupRevitModel(gltf.scene);
+    let hasLoaded = false;
+
+    // Cargador con reintentos automáticos
+    const loadCandidates = (urls, isGlb, onSuccess, onFail) => {
+      let idx = 0;
+      const tryNext = () => {
+        if (cancelled || hasLoaded) return;
+        if (idx >= urls.length) {
+          if (onFail) onFail();
+          return;
         }
-      },
-      (xhr) => {
-        if (onProgress && xhr.loaded && xhr.total) {
-          onProgress(Math.min(99, Math.round((xhr.loaded / xhr.total) * 100)));
+        const url = urls[idx++];
+        if (isGlb) {
+          const dLoader = new DRACOLoader();
+          dLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+          const gLoader = new GLTFLoader();
+          gLoader.setDRACOLoader(dLoader);
+          gLoader.load(
+            url,
+            (gltf) => {
+              if (!hasLoaded) {
+                hasLoaded = true;
+                onSuccess(gltf.scene);
+              }
+            },
+            (xhr) => {
+              if (onProgress && xhr.loaded && xhr.total) {
+                onProgress(Math.min(99, Math.round((xhr.loaded / xhr.total) * 100)));
+              }
+            },
+            () => tryNext()
+          );
+        } else {
+          const fLoader = new FBXLoader();
+          fLoader.load(
+            url,
+            (loadedObj) => {
+              if (!hasLoaded) {
+                hasLoaded = true;
+                onSuccess(loadedObj);
+              }
+            },
+            (xhr) => {
+              if (onProgress && xhr.loaded) {
+                const total = xhr.total || 27704704;
+                onProgress(Math.min(99, Math.round((xhr.loaded / total) * 100)));
+              }
+            },
+            () => tryNext()
+          );
         }
-      },
-      (gErr) => {
-        console.warn('GLB falló, intentando FBX...', gErr);
-        // Fallback a FBX si GLB no estuviera disponible
-        const fbxLoader = new FBXLoader();
-        fbxLoader.load(
-          FBX_MODEL_URL,
-          (loadedObj) => {
-            if (!hasLoaded) {
-              hasLoaded = true;
-              setupRevitModel(loadedObj);
-            }
-          },
-          undefined,
-          (fErr) => {
-            console.error('Error cargando modelo:', fErr);
+      };
+      tryNext();
+    };
+
+    // Estrategia: Cargar GLB instantáneo (2 MB, 0.4s). Si fallara, cargar FBX (28 MB)
+    loadCandidates(
+      GLB_CANDIDATES,
+      true,
+      (obj) => setupRevitModel(obj),
+      () => {
+        loadCandidates(
+          FBX_CANDIDATES,
+          false,
+          (obj) => setupRevitModel(obj),
+          () => {
+            console.error('No se pudo cargar el modelo automáticamente. Por favor use el botón Cargar FBX.');
             if (onLoaded) onLoaded();
           }
         );
@@ -392,9 +425,11 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
 
     const onResize = () => {
       if (!container) return;
-      camera.aspect = container.clientWidth / container.clientHeight;
+      const w = getW();
+      const h = getH();
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setSize(w, h);
     };
     window.addEventListener('resize', onResize);
 
@@ -463,7 +498,13 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     }
   }, [localFile]);
 
-  return <div ref={mountRef} className="w-full h-full min-h-[600px] cursor-grab active:cursor-grabbing select-none" />;
+  return (
+    <div
+      ref={mountRef}
+      className="w-full h-full min-h-[600px] cursor-grab active:cursor-grabbing select-none block"
+      style={{ width: '100%', height: '100%', minHeight: '600px' }}
+    />
+  );
 }
 
 export default function RevitModule() {
@@ -533,7 +574,16 @@ export default function RevitModule() {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`w-full h-full relative overflow-hidden bg-slate-900 font-sans ${isFullscreen ? 'fixed inset-0 z-[9999]' : ''}`}
+      className={`w-full relative overflow-hidden bg-slate-950 font-sans ${
+        isFullscreen
+          ? '!fixed !inset-0 !z-[9999] !h-screen !min-h-screen'
+          : 'h-[calc(100vh-4rem)] min-h-[600px]'
+      }`}
+      style={{
+        height: isFullscreen ? '100vh' : 'calc(100vh - 4rem)',
+        minHeight: '600px',
+        width: '100%'
+      }}
     >
       <input
         ref={fileInputRef}
@@ -560,7 +610,7 @@ export default function RevitModule() {
 
       {/* Pantalla de Carga interactiva */}
       {isLoading && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-950/75 backdrop-blur-md space-y-4">
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-md space-y-4">
           <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shadow-2xl animate-pulse">
             <span className="text-3xl">🏝️</span>
           </div>
@@ -613,10 +663,10 @@ export default function RevitModule() {
             </span>
           )}
         </div>
-        <h1 className="text-slate-900 dark:text-white font-extrabold text-xl sm:text-2xl tracking-tight drop-shadow-md">
+        <h1 className="text-white font-extrabold text-xl sm:text-2xl tracking-tight drop-shadow-md">
           Tierrabomba · Modelo Revit
         </h1>
-        <p className="text-slate-600 dark:text-slate-300 text-xs font-mono drop-shadow max-w-md hidden sm:block">
+        <p className="text-slate-300 text-xs font-mono drop-shadow max-w-md hidden sm:block">
           Toposolid orgánico en pasto oscuro, vías en textura de arena costera y océano en simulación de oleaje.
         </p>
       </div>
