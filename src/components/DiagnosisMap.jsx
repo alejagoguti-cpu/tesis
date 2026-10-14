@@ -93,27 +93,27 @@ export const SPECTRAL_LAYERS = [
     ]
   },
   {
-    id: 'falsocolor',
-    name: '🏝️ Falso Color • Suelo vs Bahía',
-    shortName: '🏝️ Falso Color',
-    badge: 'Contraste Espectral',
-    sensor: 'Composición B8-B4-B3',
-    utility: 'Contraste de geomorfología entre la roca calcárea de la meseta y las aguas someras.',
-    color: '#ea580c',
-    accentBg: 'bg-amber-500/10 border-amber-500/30 text-amber-800',
+    id: 'mercurio',
+    name: '☣️ Mercurio • Presencia en la Bahía',
+    shortName: '☣️ Mercurio',
+    badge: 'Contaminación por Mercurio (Hg)',
+    sensor: 'Monitoreo Químico & Sedimentos (Hg) / Invemar',
+    utility: 'Mapeo de la concentración y dispersión de mercurio (Hg) en la Bahía de Cartagena y su afectación al borde costero de Tierrabomba.',
+    color: '#f97316',
+    accentBg: 'bg-orange-500/10 border-orange-500/30 text-orange-800',
     cssFilter: 'hue-rotate(305deg) saturate(3.4) contrast(1.5) brightness(1.0)',
-    unit: 'Reflectancia Espectral',
+    unit: 'Concentración de Mercurio (Hg) [µg/L]',
     legend: [
-      { color: '#1d4ed8', label: 'Cuenca Marítima' },
-      { color: '#38bdf8', label: 'Aguas Someras Costeras' },
-      { color: '#ea580c', label: 'Suelo Insular / Urbano' },
-      { color: '#c2410c', label: 'Roca Firme / Meseta' }
+      { color: '#1d4ed8', label: 'Zona Sin Detección / Nivel Permisible (< 0.05 µg/L)' },
+      { color: '#38bdf8', label: 'Concentración Baja a Moderada (0.05 - 0.2 µg/L)' },
+      { color: '#f97316', label: 'Concentración Alta / Riesgo Ictiológico (0.2 - 0.5 µg/L)' },
+      { color: '#dc2626', label: 'Foco Crítico de Vertimiento / Sedimentos Activos (> 0.5 µg/L)' }
     ],
     metrics: [
-      { label: 'Suelo Expuesto', value: '57.2%' },
-      { label: 'Frente Marino', value: 'Oeste Expuesto' },
-      { label: 'Bahía Interna', value: 'Protegida' },
-      { label: 'Roca', value: 'Caliza Coralina' }
+      { label: 'Foco Crítico', value: 'Bahía Interna / Mamonal' },
+      { label: 'Costas Tierrabomba', value: 'Borde Este Expuesto' },
+      { label: 'Impacto Principal', value: 'Pesca & Cadena Trófica' },
+      { label: 'Meseta +22m', value: '0% Afectación / Inmune' }
     ]
   },
   {
@@ -552,7 +552,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
         {/* Module Title Card */}
         <div className="glass-hud px-4 py-2.5 rounded-2xl pointer-events-auto flex items-center space-x-3 max-w-xl shadow-xl">
           <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-md">
-            03
+            GIS
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
@@ -560,7 +560,7 @@ export default function DiagnosisMap({ onNavigateModule }) {
                 TELEDETECCIÓN & ANÁLISIS ESPECTRAL
               </span>
               <span className="text-[9px] font-mono text-cyan-800 font-bold bg-cyan-50 px-1.5 py-0.5 rounded border border-cyan-300">
-                5 BANDAS GIS (CSS SHADER)
+                BANDAS GIS (CSS SHADER)
               </span>
             </div>
             <h2 className="font-serif font-bold text-xs sm:text-sm text-slate-900 truncate">
@@ -796,8 +796,8 @@ export default function DiagnosisMap({ onNavigateModule }) {
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold font-mono text-base shadow-sm">
-                  03
+                <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold font-mono text-xs shadow-sm">
+                  GIS
                 </div>
                 <div>
                   <span className="text-[10px] font-mono font-bold uppercase text-emerald-700 tracking-wider">
