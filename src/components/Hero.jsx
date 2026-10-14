@@ -134,20 +134,6 @@ export default function Hero({ onExplore3D, onExploreGIS, onExploreDiagnosis }) 
               Estrategia proyectual frente a la erosión costera en <b>Tierrabomba</b>: reubicación de <b>120 viviendas palafíticas</b> y diseño de un <b>equipamiento educativo bioclimático</b> con aljibe central de 450.000 L para soberanía hídrica.
             </p>
 
-            {/* Community Quote / Testimonio de Campo */}
-            <div className="p-5 rounded-2xl bg-sand-100/90 dark:bg-deepsea-900/90 border-l-4 border-terracotta-500 border-y border-r border-sand-300 dark:border-deepsea-800 shadow-subtle space-y-2 transition-spring hover:scale-[1.01]">
-              <div className="flex items-center space-x-2 text-terracotta-600 dark:text-terracotta-400 text-xs font-mono font-bold uppercase tracking-wider">
-                <Quote className="w-3.5 h-3.5" />
-                <span>Memoria Social del Territorio</span>
-              </div>
-              <p className="font-serif-quote italic text-sm sm:text-base text-sand-800 dark:text-sand-200 leading-snug">
-                "{projectInfo.communityVoice.quote}"
-              </p>
-              <p className="text-[11px] font-mono text-sand-500 dark:text-deepsea-300">
-                &mdash; {projectInfo.communityVoice.author} &bull; {projectInfo.communityVoice.context}
-              </p>
-            </div>
-
             {/* Action Buttons with Spring Transitions */}
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <button
