@@ -166,11 +166,11 @@ export const SPECTRAL_LAYERS = [
   },
   {
     id: 'geomorfologia',
-    name: '🗺️ Geomorfología • Unidades de Suelo',
+    name: '🗺️ Geomorfología',
     shortName: '🗺️ Geomorfología',
     badge: 'Unidades Geomorfológicas',
     sensor: 'Mapa Geomorfológico Oficial de Tierrabomba',
-    utility: 'Zonificación de terrazas marinas, espigas, manglares y playas para la reubicación segura.',
+    utility: 'Integra la forma del terreno, la meseta a +22 m, las pendientes y el borde costero. Es la capa que une todas las anteriores y define dónde es seguro y viable construir.',
     color: '#c49beb',
     accentBg: 'bg-purple-500/10 border-purple-500/30 text-purple-900',
     cssFilter: 'hue-rotate(280deg) saturate(3.5) contrast(1.6) brightness(1.05)',
