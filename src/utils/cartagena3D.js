@@ -26,11 +26,11 @@ export async function buildCartagenaTerritoryScene({
     grid: false,
   },
   colors = {
-    water: '#8dc8d2',
+    water: '#b5ebf5',
     roads: '#334155',
     terrain: '#ffffff',
     buildings: '#ffffff',
-    roofs: '#b45309',
+    roofs: '#ffffff',
     manzanas: '#f8fafc',
     vehicles: '#e2635a',
     boats: '#24c8bd',
@@ -181,8 +181,8 @@ export async function buildCartagenaTerritoryScene({
       clippingPlanes,
     }),
     colonialRoof: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.roofs || '#b45309'),
-      roughness: 0.45,
+      color: new THREE.Color(colors.roofs || '#ffffff'),
+      roughness: 0.35,
       metalness: 0.05,
       clippingPlanes,
     }),
@@ -839,14 +839,17 @@ export async function buildCartagenaTerritoryScene({
           });
 
           const dummy = new THREE.Object3D();
-          const TREE_SCALE = 0.038; // Escala proporcional arquitectónica
+          // tree.glb mide ~6m de altura y ~5m de diámetro de copa.
+          // Con TREE_SCALE = 0.38, cada árbol mide ~2.3 unidades de altura (12-15m escala territorial),
+          // siendo inmediatamente visible, nítido y con frondosidad desde la vista axonométrica y cenital.
+          const TREE_SCALE = 0.38;
 
           tierrabombaTreeCoords.forEach(([lon, lat], idx) => {
-            const pos = lonLatToVector3(lon, lat, 0.06);
-            const s = TREE_SCALE * (0.8 + Math.random() * 0.4);
+            const pos = lonLatToVector3(lon, lat, 0.08);
+            const s = TREE_SCALE * (0.85 + Math.random() * 0.35);
             dummy.position.set(pos.x, pos.y, pos.z);
             dummy.rotation.y = Math.random() * Math.PI * 2;
-            dummy.rotation.x = (Math.random() - 0.5) * 0.06;
+            dummy.rotation.x = (Math.random() - 0.5) * 0.04;
             dummy.scale.set(s, s, s);
             dummy.updateMatrix();
 
@@ -865,14 +868,14 @@ export async function buildCartagenaTerritoryScene({
       (err) => {
         console.warn("Could not load tree.glb, using procedural fallback:", err);
         const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.9 });
-        const foliageMat = new THREE.MeshStandardMaterial({ color: 0x3d7a42, roughness: 0.6 });
+        const foliageMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 0.5 });
         tierrabombaTreeCoords.forEach(([lon, lat], i) => {
-          const pos = lonLatToVector3(lon, lat, 0.06);
+          const pos = lonLatToVector3(lon, lat, 0.08);
           const t = new THREE.Group();
-          const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.35, 6), trunkMat);
-          tr.position.y = 0.175;
-          const fol = new THREE.Mesh(new THREE.DodecahedronGeometry(0.24 + (i % 3) * 0.05), foliageMat);
-          fol.position.y = 0.42;
+          const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 1.4, 8), trunkMat);
+          tr.position.y = 0.7;
+          const fol = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2 + (i % 3) * 0.2), foliageMat);
+          fol.position.y = 1.9;
           fol.castShadow = true;
           t.add(tr);
           t.add(fol);
@@ -897,15 +900,15 @@ export async function buildCartagenaTerritoryScene({
     animatedObjects,
     mats,
     update: (speedMultiplier = 1.0, elapsed = null) => {
-      waterUniforms.uTime.value += 0.018 * speedMultiplier;
+      waterUniforms.uTime.value += 0.003 * speedMultiplier;
       const t = elapsed !== null ? elapsed : performance.now();
       if (waterTex) {
-        waterTex.offset.x = (t * 0.000018 * speedMultiplier) % 1;
-        waterTex.offset.y = (t * 0.000012 * speedMultiplier) % 1;
+        waterTex.offset.x = (t * 0.0000035 * speedMultiplier) % 1;
+        waterTex.offset.y = (t * 0.0000022 * speedMultiplier) % 1;
       }
       if (bumpTex) {
-        bumpTex.offset.x = (t * -0.000027 * speedMultiplier) % 1;
-        bumpTex.offset.y = (t * 0.000021 * speedMultiplier) % 1;
+        bumpTex.offset.x = (t * -0.0000045 * speedMultiplier) % 1;
+        bumpTex.offset.y = (t * 0.0000032 * speedMultiplier) % 1;
       }
       // Pulsate hotspot rings
       if (hotspotRings && hotspotRings.length > 0) {

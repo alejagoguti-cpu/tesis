@@ -49,10 +49,10 @@ import {
 
 export const DEFAULT_M5_PALETTE = {
   grass: '#ffffff',
-  water: '#8dc8d2', // Azul turquesa caribeño suave y luminoso
+  water: '#b5ebf5', // Celeste cristalino más clarito y luminoso
   pavement: '#f8fafc',
   building: '#ffffff',
-  roof: '#b45309',
+  roof: '#ffffff', // 100% blanco
   road: '#334155'
 };
 
@@ -61,10 +61,10 @@ export const getSavedM5Palette = () => {
     const saved = localStorage.getItem('thesis_m5_custom_colors');
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Actualizar si tenía guardado el tono azul anterior no deseado
-      if (parsed.water === '#257f96' || parsed.water === '#0a2d48' || parsed.water === '#bfc4c5') {
-        parsed.water = '#8dc8d2';
-      }
+      // Forzar tono celeste clarito solicitado por el usuario y edificios blancos
+      parsed.water = '#b5ebf5';
+      parsed.roof = '#ffffff';
+      parsed.building = '#ffffff';
       return { ...DEFAULT_M5_PALETTE, ...parsed };
     }
   } catch (e) {}
@@ -80,11 +80,11 @@ export default function ModelViewer3D({ onSelectModule }) {
 
   // Tonos de Materialidad Personalizables (Mar, Pasto, Piso, Edificios, Techos, Vías)
   const [initialPalette] = useState(getSavedM5Palette);
-  const [waterColor, setWaterColor] = useState(initialPalette.water);
+  const [waterColor, setWaterColor] = useState('#b5ebf5');
   const [grassColor, setGrassColor] = useState(initialPalette.grass);
   const [pavementColor, setPavementColor] = useState(initialPalette.pavement);
-  const [buildingColor, setBuildingColor] = useState(initialPalette.building);
-  const [roofColor, setRoofColor] = useState(initialPalette.roof);
+  const [buildingColor, setBuildingColor] = useState('#ffffff');
+  const [roofColor, setRoofColor] = useState('#ffffff');
   const [roadColor, setRoadColor] = useState(initialPalette.road);
 
   const [saveColorsToast, setSaveColorsToast] = useState(false);
@@ -97,14 +97,14 @@ export default function ModelViewer3D({ onSelectModule }) {
   // Simulación de Tránsito Marítimo y Urbano en Vivo
   const [isPlayingSimulation, setIsPlayingSimulation] = useState(true);
   const isPlayingSimulationRef = useRef(true);
-  const [simulationSpeed, setSimulationSpeed] = useState(1.5);
-  const simulationSpeedRef = useRef(1.5);
+  const [simulationSpeed, setSimulationSpeed] = useState(0.4);
+  const simulationSpeedRef = useRef(0.4);
   const cartagenaTerritoryRef = useRef(null);
 
-  // Parámetros Solares (Estudio de Sombras & Heliodón)
-  const [sunAzimuth, setSunAzimuth] = useState(130);
-  const [sunElevation, setSunElevation] = useState(45);
-  const [sunIntensity, setSunIntensity] = useState(1.2);
+  // Parámetros Solares Fijados (Acimut 48°, Altura 23°, Intensidad 1.7x)
+  const [sunAzimuth, setSunAzimuth] = useState(48);
+  const [sunElevation, setSunElevation] = useState(23);
+  const [sunIntensity, setSunIntensity] = useState(1.7);
   const [cameraMode, setCameraMode] = useState('orthographic');
 
   const [showFutureModal, setShowFutureModal] = useState(false);
@@ -362,12 +362,12 @@ export default function ModelViewer3D({ onSelectModule }) {
       modelGroup.add(louversGroup);
       objectsRef.current.louvers = louversGroup;
 
-      // E. Cubierta Invertida Captadora (1.850 m²)
+      // E. Cubierta Invertida Captadora (1.850 m² - 100% Blanca)
       const roofGroup = new THREE.Group();
       const roofMat = new THREE.MeshStandardMaterial({
-        color: 0x475569,
+        color: 0xffffff,
         roughness: 0.3,
-        metalness: 0.6,
+        metalness: 0.05,
         side: THREE.DoubleSide
       });
 
@@ -468,9 +468,9 @@ export default function ModelViewer3D({ onSelectModule }) {
       deckMesh.receiveShadow = true;
       modelGroup.add(deckMesh);
 
-      // Estructura Habitacional
+      // Estructura Habitacional (100% Blanca)
       const houseGroup = new THREE.Group();
-      const btcMat = new THREE.MeshStandardMaterial({ color: 0xc2785c, roughness: 0.85 });
+      const btcMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35 });
 
       const room1 = new THREE.Mesh(new THREE.BoxGeometry(4.2, 2.8, 3.2), btcMat);
       room1.position.set(-2.2, 2.8, -1.6);
@@ -484,7 +484,7 @@ export default function ModelViewer3D({ onSelectModule }) {
 
       const porch = new THREE.Mesh(
         new THREE.BoxGeometry(8.6, 2.8, 2.8),
-        new THREE.MeshStandardMaterial({ color: 0xfef3c7, transparent: true, opacity: 0.4, roughness: 0.9 })
+        new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, roughness: 0.3 })
       );
       porch.position.set(0, 2.8, 1.8);
       houseGroup.add(porch);
@@ -504,7 +504,7 @@ export default function ModelViewer3D({ onSelectModule }) {
 
       // Celosías de Fachada
       const louversGroup = new THREE.Group();
-      const louverMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.6 });
+      const louverMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
       for (let z = 0.5; z <= 3.0; z += 0.4) {
         const louver = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.4, 0.2), louverMat);
         louver.position.set(4.3, 2.8, z);
@@ -513,9 +513,9 @@ export default function ModelViewer3D({ onSelectModule }) {
       modelGroup.add(louversGroup);
       objectsRef.current.louvers = louversGroup;
 
-      // Cubierta a dos aguas con aleros de 2.5m
+      // Cubierta a dos aguas con aleros de 2.5m (100% Blanca)
       const roofGroup = new THREE.Group();
-      const roofMat = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.4, side: THREE.DoubleSide });
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, side: THREE.DoubleSide });
 
       const roofSide1 = new THREE.Mesh(new THREE.BoxGeometry(10.5, 0.15, 4.8), roofMat);
       roofSide1.position.set(0, 4.6, -1.8);
@@ -1382,10 +1382,10 @@ export default function ModelViewer3D({ onSelectModule }) {
           <div className="flex items-center space-x-1 glass-dark px-2 py-1 rounded-xl border border-white/10 shadow-xl backdrop-blur-xl">
             <span className="text-[10px] font-mono text-slate-300 font-bold pr-1">Mar:</span>
             {[
-              { label: 'Turquesa Caribeño', color: '#8dc8d2' },
+              { label: 'Celeste Clarito Caribe', color: '#b5ebf5' },
+              { label: 'Turquesa Suave', color: '#8dc8d2' },
               { label: 'Celeste Luminoso', color: '#58c4dc' },
-              { label: 'Bahía Esmeralda', color: '#4fa8b2' },
-              { label: 'Azul Colonial', color: '#3b82a6' }
+              { label: 'Bahía Esmeralda', color: '#4fa8b2' }
             ].map(p => (
               <button
                 key={p.color}
@@ -1541,74 +1541,6 @@ export default function ModelViewer3D({ onSelectModule }) {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Floating Sun Study Panel (Top-Right) */}
-      <div className="absolute top-4 right-4 z-[400] pointer-events-auto animate-fade-in">
-        <div className="glass-dark p-3.5 rounded-2xl space-y-3 text-white w-64 shadow-2xl border border-white/10 backdrop-blur-xl">
-          <div className="flex items-center justify-between border-b border-white/10 pb-2">
-            <div className="flex items-center space-x-2">
-              <Sun className="w-4 h-4 text-amber-400" />
-              <span className="text-xs font-mono font-bold tracking-wide text-white">Estudio Solar</span>
-            </div>
-            <button
-              onClick={resetAxonometricView}
-              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-all hover:scale-105 active:scale-95 cursor-pointer"
-              title="Restablecer vista axonométrica (35°)"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
-            </button>
-          </div>
-
-          {/* Acimut solar */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300 text-[11px]">Acimut</span>
-              <span className="text-amber-400 font-bold text-[11px]">{sunAzimuth}°</span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="360"
-              value={sunAzimuth}
-              onChange={(e) => setSunAzimuth(Number(e.target.value))}
-              className="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-            />
-          </div>
-
-          {/* Altura solar */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300 text-[11px]">Altura</span>
-              <span className="text-amber-400 font-bold text-[11px]">{sunElevation}°</span>
-            </div>
-            <input
-              type="range"
-              min="5"
-              max="85"
-              value={sunElevation}
-              onChange={(e) => setSunElevation(Number(e.target.value))}
-              className="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-            />
-          </div>
-
-          {/* Intensidad solar */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300 text-[11px]">Intensidad</span>
-              <span className="text-amber-400 font-bold text-[11px]">{sunIntensity.toFixed(1)}x</span>
-            </div>
-            <input
-              type="range"
-              min="0.5"
-              max="2.5"
-              step="0.1"
-              value={sunIntensity}
-              onChange={(e) => setSunIntensity(Number(e.target.value))}
-              className="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-            />
-          </div>
-        </div>
       </div>
 
       {/* Floating Bottom Center: Orbit & Zoom Instruction Pill */}

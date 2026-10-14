@@ -93,7 +93,7 @@ function createSkyTexture() {
   return tex;
 }
 
-function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitNonce, waveActive, localFile, wireframe, roadColorMode, treesVisible = true, waterColor = '#8dc8d2' }) {
+function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitNonce, waveActive, localFile, wireframe, roadColorMode, treesVisible = true, waterColor = '#b5ebf5' }) {
   const mountRef = useRef(null);
   const applyViewRef = useRef(null);
   const modelRef = useRef(null);
@@ -428,14 +428,15 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
                 });
 
                 const dummy = new THREE.Object3D();
-                const TREE_SCALE = 0.024; // Escala proporcional arquitectónica
+                // Escala de árboles de SketchUp visible sobre la topografía de Revit
+                const TREE_SCALE = 0.12;
 
                 for (let i = 0; i < count; i++) {
                   const pt = islandPoints[i];
-                  const s = TREE_SCALE * (0.8 + Math.random() * 0.4);
+                  const s = TREE_SCALE * (0.85 + Math.random() * 0.35);
                   dummy.position.set(pt.x, pt.y, pt.z);
                   dummy.rotation.y = Math.random() * Math.PI * 2;
-                  dummy.rotation.x = (Math.random() - 0.5) * 0.06;
+                  dummy.rotation.x = (Math.random() - 0.5) * 0.05;
                   dummy.scale.set(s, s, s);
                   dummy.updateMatrix();
 
@@ -634,10 +635,10 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       rafId = requestAnimationFrame(animate);
       const elapsed = clock.getElapsedTime();
 
-      // Animación continua del oleaje del mar
+      // Animación suave y continua del oleaje del mar (velocidad pausada y cristalina)
       if (waveActiveRef.current && aguaTex) {
-        aguaTex.offset.x = (elapsed * 0.035) % 1;
-        aguaTex.offset.y = (elapsed * 0.02) % 1;
+        aguaTex.offset.x = (elapsed * 0.005) % 1;
+        aguaTex.offset.y = (elapsed * 0.003) % 1;
       }
 
       renderer.render(scene, camera);
@@ -737,7 +738,7 @@ export default function RevitModule() {
   const [wireframe, setWireframe] = useState(false);
   const [roadColorMode, setRoadColorMode] = useState('grey'); // 'grey' | 'blue'
   const [treesVisible, setTreesVisible] = useState(true);
-  const [waterColor, setWaterColor] = useState('#8dc8d2');
+  const [waterColor, setWaterColor] = useState('#b5ebf5');
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [localFile, setLocalFile] = useState(null);
