@@ -5,7 +5,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import pastoTexImg from '../assets/textura_pasto_m5.png';
 import aguaTexImg from '../assets/textura_agua_m5.jpg';
-import arenaTexImg from '../assets/textura_piso_m5.png';
 
 // Genera mapeo UV cenital ortogonal para mallas que vienen sin coordenadas de Revit
 function ensureTopUVs(geo, tile = 35) {
@@ -76,6 +75,24 @@ function removeSeaSkirt(geo) {
   }
 }
 
+// Genera un cielo diurno arquitectónico caribeño con degradado realista
+function createSkyTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 512);
+  grad.addColorStop(0.0, '#1d6fb8'); // Azul cielo caribe intenso en el cenit
+  grad.addColorStop(0.4, '#5ca3e6'); // Celeste cielo soleado
+  grad.addColorStop(0.75, '#b4dbf9'); // Bruma celeste suave
+  grad.addColorStop(1.0, '#eaf5fe'); // Horizonte luminoso
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 256, 512);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitNonce, waveActive, localFile, wireframe }) {
   const mountRef = useRef(null);
   const applyViewRef = useRef(null);
@@ -94,10 +111,11 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     const getW = () => container.clientWidth || window.innerWidth || 800;
     const getH = () => container.clientHeight || Math.max(window.innerHeight - 64, 550);
 
-    // Escena 3D configurada para Render Arquitectónico de Día / Soleado luminoso
+    // Escena 3D configurada para Render Arquitectónico Diurno con cielo caribeño
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xeaf2f8); // Cielo arquitectónico diurno claro y luminoso
-    scene.fog = new THREE.Fog(0xeaf2f8, 160, 600); // Neblina suave en el horizonte marino
+    const skyTex = createSkyTexture();
+    scene.background = skyTex;
+    scene.fog = new THREE.Fog(0xb4dbf9, 220, 800); // Neblina suave hacia el horizonte
 
     const camera = new THREE.PerspectiveCamera(40, getW() / getH(), 0.1, 4000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -111,12 +129,12 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     container.appendChild(renderer.domElement);
 
     // Iluminación diurna de render arquitectónico
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xcce0f0, 0.95)); // Cielo celeste + rebote claro
-    scene.add(new THREE.AmbientLight(0xffffff, 0.65)); // Luz difusa ambiental
+    scene.add(new THREE.HemisphereLight(0x7bb8f0, 0x3a5a40, 0.85)); // Luz celeste cenital + rebote de terreno
+    scene.add(new THREE.AmbientLight(0xffffff, 0.65)); // Luz difusa cálida
 
-    // Sol tropical cálido que proyecta sombras nítidas y suaves de las casas
-    const sun = new THREE.DirectionalLight(0xfffaec, 2.2);
-    sun.position.set(85, 120, 65);
+    // Sol tropical que proyecta sombras limpias sobre la arquitectura blanca
+    const sun = new THREE.DirectionalLight(0xfffaec, 2.3);
+    sun.position.set(85, 125, 65);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.camera.left = -65;
@@ -126,8 +144,8 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     sun.shadow.bias = 0.0001;
     scene.add(sun);
 
-    // Luz de relleno celeste desde el mar
-    const skyFill = new THREE.DirectionalLight(0xbfe0f7, 0.85);
+    // Luz de relleno lateral (reflejo de mar abierto)
+    const skyFill = new THREE.DirectionalLight(0xaad4f5, 0.75);
     skyFill.position.set(-80, 50, -85);
     scene.add(skyFill);
 
@@ -138,7 +156,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     // Texturas de alta calidad
     const texLoader = new THREE.TextureLoader();
 
-    // 1. Textura de agua para mar animado realista
+    // 1. Textura de agua para mar animado
     const aguaTex = texLoader.load(aguaTexImg);
     aguaTex.wrapS = THREE.RepeatWrapping;
     aguaTex.wrapT = THREE.RepeatWrapping;
@@ -164,32 +182,22 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       side: THREE.DoubleSide
     });
 
-    // 3. Textura de arena hiper-realista para las vías de la isla
-    const arenaTex = texLoader.load(arenaTexImg);
-    arenaTex.wrapS = THREE.RepeatWrapping;
-    arenaTex.wrapT = THREE.RepeatWrapping;
-    arenaTex.repeat.set(8, 8);
-    arenaTex.anisotropy = 8;
-    arenaTex.colorSpace = THREE.SRGBColorSpace;
-
-    const sandMat = new THREE.MeshStandardMaterial({
-      map: arenaTex,
-      bumpMap: arenaTex,
-      bumpScale: 0.35,
-      color: 0xc4ab8a, // Arena de playa cálida y realista
-      roughness: 0.94,
-      metalness: 0.01,
+    // 3. Vías en GRIS (asfalto / concreto vial limpio para las vías del archivo)
+    const roadMat = new THREE.MeshStandardMaterial({
+      color: 0x8898a6, // Gris vial nítido y elegante
+      roughness: 0.78,
+      metalness: 0.08,
       polygonOffset: true,
       polygonOffsetFactor: -3,
       polygonOffsetUnits: -3,
       side: THREE.DoubleSide
     });
 
-    // 4. Edificaciones y casas de Revit: BLANCO PURO ARQUITECTÓNICO NÍTIDO
+    // 4. TODAS LAS CASAS Y EDIFICACIONES: BLANCO PURO NÍTIDO
     const buildingMat = new THREE.MeshStandardMaterial({
       color: 0xffffff, // Casas completamente blancas
-      roughness: 0.35,
-      metalness: 0.02,
+      roughness: 0.28,
+      metalness: 0.04,
       side: THREE.DoubleSide
     });
 
@@ -198,9 +206,9 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       map: aguaTex,
       bumpMap: aguaTex,
       bumpScale: 0.65,
-      color: 0x0a2a40, // Azul marino caribe profundo
+      color: 0x0a2d48, // Azul caribe profundo
       roughness: 0.12,
-      metalness: 0.28,
+      metalness: 0.35,
       envMapIntensity: 1.8
     });
 
@@ -282,36 +290,35 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
           const sy = mBox.max.y - mBox.min.y;
           const sz = mBox.max.z - mBox.min.z;
           const footprint = sx * sy;
+          const wide = Math.max(sx, sy);
+          const narrow = Math.max(Math.min(sx, sy), 0.001);
 
-          // Si es una lámina completamente plana y gigantesca del fondo de Revit, ocultarla
+          // A. Ocultar láminas planas del mar de Revit
           if (sz < 0.8 && footprint > 350000 && (name.includes('water') || name.includes('agua') || name.includes('skirt') || name.includes('fondo') || name.includes('base'))) {
             c.visible = false;
             return;
           }
 
-          // 1. Vías con textura de arena hiper-realista
+          // B. Terreno de la Isla (Pasto verde oscuro, recortando el cuadrado marino)
           if (
-            name.includes('sólido') || name.includes('solido') || name.includes('164695') ||
-            name.includes('via') || name.includes('camino') || name.includes('road') ||
-            name.includes('walls') || name.includes('wall') || name.includes('partición') ||
-            name.includes('muro') || matName.includes('walls') || matName.includes('muro')
-          ) {
-            c.material = sandMat;
-            c.renderOrder = 3;
-            ensureTopUVs(c.geometry, 16);
-          }
-          // 2. Terreno de la Isla (Pasto verde oscuro terroso natural)
-          // Se quita el cuadrado de fondo para que solo quede la silueta de la isla
-          else if (
             name.includes('toposolid') || name.includes('terrain') || name.includes('terreno') ||
             matName.includes('terrain') || matName.includes('toposolid') ||
-            name.includes('149111') || (c.geometry?.attributes?.position?.count > 2500)
+            name.includes('149111') || footprint > 180000 || (c.geometry?.attributes?.position?.count > 4000)
           ) {
             removeSeaSkirt(c.geometry);
             ensureTopUVs(c.geometry, 42);
             c.material = grassMat;
           }
-          // 3. Edificaciones, casas y volumetría de Revit: BLANCAS
+          // C. Vías y trazados (PINTADAS DE GRIS)
+          else if (
+            name.includes('via') || name.includes('camino') || name.includes('road') ||
+            name.includes('walls') || name.includes('sólido') || name.includes('solido') || name.includes('164695') ||
+            (wide > 30 && narrow >= 1.5 && narrow <= 28 && wide / narrow > 2.5 && sz <= 10)
+          ) {
+            c.material = roadMat;
+            c.renderOrder = 3;
+          }
+          // D. TODAS LAS CASAS Y EDIFICACIONES: BLANCAS
           else {
             c.material = buildingMat;
           }
@@ -523,6 +530,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       window.removeEventListener('pointerup', onPointerUp);
       dom.removeEventListener('pointerdown', onPointerDown);
       dom.removeEventListener('wheel', onWheel);
+      if (skyTex) skyTex.dispose();
       renderer.dispose();
       if (dom.parentNode === container) container.removeChild(dom);
     };
@@ -694,7 +702,7 @@ export default function RevitModule() {
             />
           </div>
           <p className="text-[11px] font-mono text-slate-300 text-center max-w-sm">
-            Isla orgánica en pasto oscuro, casas blancas, vías en arena y mar Caribe animado.
+            Isla orgánica en pasto oscuro, casas blancas, vías grises y mar Caribe animado.
           </p>
           
           <button
@@ -732,7 +740,7 @@ export default function RevitModule() {
           Tierrabomba · Modelo Revit
         </h1>
         <p className="text-slate-700 text-xs font-mono drop-shadow-sm max-w-md hidden sm:block">
-          Render diurno: isla en pasto oscuro, casas blancas, vías de arena y océano dinámico.
+          Render diurno: casas blancas, vías grises, isla en pasto oscuro y océano dinámico.
         </p>
       </div>
 
