@@ -164,6 +164,8 @@ function createSkyTexture() {
   return tex;
 }
 
+const SECTION_BASE = -1.3; // cota inferior del bloque de terreno para el corte
+
 function RenderViewer({
   onStats,
   onProgress,
@@ -560,6 +562,17 @@ function RenderViewer({
       handles.push(h);
     }));
     const secState = { bounds: null, dragging: null, planes: [], lastClip: 0 };
+    // volumen de agua (de la base al nivel del mar) para que el corte muestre mar y tierra como un bloque
+    const seaBlock = new THREE.Mesh(
+      new THREE.BoxGeometry(1, 1, 1),
+      new THREE.MeshStandardMaterial({
+        color: 0x1ea4c8, transparent: true, opacity: 0.5, roughness: 0.25, metalness: 0, side: THREE.DoubleSide, depthWrite: false
+      })
+    );
+    seaBlock.name = 'SeaBlock';
+    seaBlock.visible = false;
+    seaBlock.renderOrder = 30;
+    root.add(seaBlock);
     const planeX0 = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
     const planeX1 = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0);
     const planeY0 = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -603,11 +616,21 @@ function RenderViewer({
       const box = boxFromSection();
       if (!sc || !sc.on || !box) {
         secGroup.visible = false;
+        seaBlock.visible = false;
+        oceanMesh.visible = true;
         if (groundSolidRef.current) groundSolidRef.current.visible = false;
         applyClipToScene(false);
         return;
       }
       if (groundSolidRef.current) groundSolidRef.current.visible = true;
+      oceanMesh.visible = false;
+      {
+        const b = secState.bounds;
+        const seaTop = 0.055;
+        seaBlock.position.set((b.min.x + b.max.x) / 2, (SECTION_BASE + seaTop) / 2, (b.min.z + b.max.z) / 2);
+        seaBlock.scale.set(b.max.x - b.min.x, seaTop - SECTION_BASE, b.max.z - b.min.z);
+        seaBlock.visible = true;
+      }
       planeX0.constant = -box.min.x; planeX1.constant = box.max.x;
       planeY0.constant = -box.min.y; planeY1.constant = box.max.y;
       planeZ0.constant = -box.min.z; planeZ1.constant = box.max.z;
@@ -633,7 +656,7 @@ function RenderViewer({
       if (!m) return;
       const b = new THREE.Box3().setFromObject(m);
       secState.bounds = new THREE.Box3(
-        new THREE.Vector3(b.min.x, 0, b.min.z),
+        new THREE.Vector3(b.min.x, SECTION_BASE, b.min.z),
         new THREE.Vector3(b.max.x, Math.max(b.max.y * 1.6, 1.4), b.max.z)
       );
       applySection();
@@ -933,7 +956,7 @@ function RenderViewer({
       try {
         if (heightFieldRef.current && heightFieldRef.current.grid) {
           if (groundSolidRef.current) root.remove(groundSolidRef.current);
-          groundSolidRef.current = buildGroundSolid(heightFieldRef.current.grid);
+          groundSolidRef.current = buildGroundSolid(heightFieldRef.current.grid, { base: SECTION_BASE });
           root.add(groundSolidRef.current);
         }
       } catch (err) {
@@ -1573,7 +1596,7 @@ export default function RevitModule() {
   const [showTreeToolbar, setShowTreeToolbar] = useState(false);
 
   // Propuesta territorial / Plan Maestro (tarjeta que antes vivía en el módulo 02)
-  const [showMasterplan, setShowMasterplan] = useState(false);
+  const [showMasterplan, setShowMasterplan] = useState(true);
   const [masterplanStep, setMasterplanStep] = useState(0);
 
   // Section box (corte tipo Revit)
