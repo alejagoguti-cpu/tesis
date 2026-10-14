@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
+import pastoTextureImg from '../assets/textura_pasto_m5.png';
+import waterTextureImg from '../assets/textura_agua_m5.jpg';
+import pisoTextureImg from '../assets/textura_piso_m5.png';
+import viaTextureImg from '../assets/textura_via.jpg';
+
 /**
  * Generador 3D Territorial: Bahía de Cartagena & Isla de Tierra Bomba
  * Modelo Arquitectónico 100% Real y Proporcional (Escala Catastral 1:50m)
@@ -20,12 +25,12 @@ export async function buildCartagenaTerritoryScene({
     grid: false,
   },
   colors = {
-    water: '#bfc4c5',
-    roads: '#94a3b8',
-    terrain: '#c2c4b5',
+    water: '#257f96',
+    roads: '#334155',
+    terrain: '#ffffff',
     buildings: '#ffffff',
-    roofs: '#ffffff',
-    manzanas: '#c8b9a6',
+    roofs: '#b45309',
+    manzanas: '#f8fafc',
     vehicles: '#e2635a',
     boats: '#24c8bd',
   },
@@ -59,11 +64,59 @@ export async function buildCartagenaTerritoryScene({
     catastroData = generateSyntheticFallback();
   }
 
-  // Pure architectural standard materials with instantaneous color loading & clean shading
+  // Load real textures with direct Three.js TextureLoader for maximum fidelity and crispness
+  const texLoader = new THREE.TextureLoader();
+
+  // 1. Pasto / Grass (Seamless Mottled Green de Tierra Bomba)
+  const pastoTex = texLoader.load(pastoTextureImg);
+  pastoTex.wrapS = THREE.RepeatWrapping;
+  pastoTex.wrapT = THREE.RepeatWrapping;
+  pastoTex.repeat.set(1, 1);
+  pastoTex.colorSpace = THREE.SRGBColorSpace;
+  pastoTex.anisotropy = 16;
+
+  // 2. Agua / Water (Seamless Fine Caribbean Aqua Texture)
+  const waterTex = texLoader.load(waterTextureImg);
+  waterTex.wrapS = THREE.RepeatWrapping;
+  waterTex.wrapT = THREE.RepeatWrapping;
+  waterTex.repeat.set(80, 80);
+  waterTex.colorSpace = THREE.SRGBColorSpace;
+  waterTex.anisotropy = 16;
+
+  const bumpTex = texLoader.load(waterTextureImg);
+  bumpTex.wrapS = THREE.RepeatWrapping;
+  bumpTex.wrapT = THREE.RepeatWrapping;
+  bumpTex.repeat.set(80, 80);
+  bumpTex.anisotropy = 16;
+
+  // 3. Piso / Manzanas / Urban Ground (Light Limestone Pavement)
+  const pisoTex = texLoader.load(pisoTextureImg);
+  pisoTex.wrapS = THREE.RepeatWrapping;
+  pisoTex.wrapT = THREE.RepeatWrapping;
+  pisoTex.repeat.set(1, 1);
+  pisoTex.colorSpace = THREE.SRGBColorSpace;
+  pisoTex.anisotropy = 16;
+
+  // 4. Vías / Roads (Crisp dark asphalt texture)
+  const viaTex = texLoader.load(viaTextureImg);
+  viaTex.wrapS = THREE.RepeatWrapping;
+  viaTex.wrapT = THREE.RepeatWrapping;
+  viaTex.repeat.set(4, 4);
+  viaTex.colorSpace = THREE.SRGBColorSpace;
+  viaTex.anisotropy = 16;
+
+  // Animated Water Shader Uniforms
+  const waterUniforms = {
+    uTime: { value: 0.0 },
+  };
+
   const waterMat = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(colors.water || '#bfc4c5'),
-    roughness: 0.18,
-    metalness: 0.05,
+    map: waterTex,
+    bumpMap: bumpTex,
+    bumpScale: 0.025,
+    color: new THREE.Color(colors.water || '#257f96'),
+    roughness: 0.15,
+    metalness: 0.10,
     transparent: true,
     opacity: 0.95,
     side: THREE.DoubleSide,
@@ -73,14 +126,16 @@ export async function buildCartagenaTerritoryScene({
   const mats = {
     water: waterMat,
     terrain: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.terrain || '#c2c4b5'),
-      roughness: 0.85,
+      map: pastoTex,
+      color: new THREE.Color(colors.terrain || '#ffffff'),
+      roughness: 0.82,
       metalness: 0.0,
       side: THREE.DoubleSide,
       clippingPlanes,
     }),
     manzanas: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.manzanas || '#c8b9a6'),
+      map: pisoTex,
+      color: new THREE.Color(colors.manzanas || '#f8fafc'),
       roughness: 0.85,
       metalness: 0.0,
       polygonOffset: true,
@@ -90,7 +145,8 @@ export async function buildCartagenaTerritoryScene({
       clippingPlanes,
     }),
     roads: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.roads || '#94a3b8'),
+      map: viaTex,
+      color: new THREE.Color(colors.roads || '#334155'),
       roughness: 0.70,
       metalness: 0.05,
       polygonOffset: true,
@@ -124,7 +180,7 @@ export async function buildCartagenaTerritoryScene({
       clippingPlanes,
     }),
     colonialRoof: new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colors.roofs || '#ffffff'),
+      color: new THREE.Color(colors.roofs || '#b45309'),
       roughness: 0.45,
       metalness: 0.05,
       clippingPlanes,
@@ -723,7 +779,16 @@ export async function buildCartagenaTerritoryScene({
     animatedObjects,
     mats,
     update: (speedMultiplier = 1.0, elapsed = null) => {
+      waterUniforms.uTime.value += 0.018 * speedMultiplier;
       const t = elapsed !== null ? elapsed : performance.now();
+      if (waterTex) {
+        waterTex.offset.x = (t * 0.000018 * speedMultiplier) % 1;
+        waterTex.offset.y = (t * 0.000012 * speedMultiplier) % 1;
+      }
+      if (bumpTex) {
+        bumpTex.offset.x = (t * -0.000027 * speedMultiplier) % 1;
+        bumpTex.offset.y = (t * 0.000021 * speedMultiplier) % 1;
+      }
       // Pulsate hotspot rings
       if (hotspotRings && hotspotRings.length > 0) {
         const pulse = 1.0 + 0.35 * Math.sin(t * 0.004);

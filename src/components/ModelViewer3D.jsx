@@ -48,12 +48,12 @@ import {
 } from 'lucide-react';
 
 export const DEFAULT_M5_PALETTE = {
-  grass: '#c2c4b5',
-  water: '#bfc4c5',
-  pavement: '#c8b9a6',
+  grass: '#ffffff',
+  water: '#257f96',
+  pavement: '#f8fafc',
   building: '#ffffff',
-  roof: '#ffffff',
-  road: '#94a3b8'
+  roof: '#b45309',
+  road: '#334155'
 };
 
 export const getSavedM5Palette = () => {
@@ -169,9 +169,9 @@ export default function ModelViewer3D({ onSelectModule }) {
       setLoadProgress(15);
       setLoadPhase(modelType === 'masterplan' ? 'Cargando Masterplan Territorial Tierrabomba (+22m)...' : 'Cargando Catastro Oficial AMB Cartagena (MAGNA-SIRGAS)...');
 
-      const bgColor = 0xbfc4c5;
+      const bgColor = 0xeaf2f8;
       scene.background = new THREE.Color(bgColor);
-      scene.fog = new THREE.Fog(bgColor, 350, 1500);
+      scene.fog = new THREE.Fog(bgColor, 500, 2400);
 
       const rootContainer = new THREE.Group();
       
@@ -532,9 +532,9 @@ export default function ModelViewer3D({ onSelectModule }) {
 
     // Scene
     const scene = new THREE.Scene();
-    const bgColor = 0xbfc4c5;
+    const bgColor = 0xeaf2f8;
     scene.background = new THREE.Color(bgColor);
-    scene.fog = new THREE.Fog(bgColor, 350, 1500);
+    scene.fog = new THREE.Fog(bgColor, 500, 2400);
     sceneRef.current = scene;
 
     // Cámara Ortográfica para Proyección Axonométrica Paralela a 35° (sin distorsión de perspectiva)
@@ -559,7 +559,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.0;
     rendererRef.current = renderer;
 
     while (container.firstChild) {
@@ -567,14 +567,14 @@ export default function ModelViewer3D({ onSelectModule }) {
     }
     container.appendChild(renderer.domElement);
 
-    // Iluminación Solar & Ambiental Equilibrada (Sin sombras negras en pasto)
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xc2c4b5, 1.25);
+    // Iluminación Solar & Ambiental Equilibrada (Alto Contraste y Definición 3D)
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xcce0f0, 0.85);
     scene.add(hemiLight);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.90);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xfffaed, sunIntensity);
+    const dirLight = new THREE.DirectionalLight(0xfffaec, sunIntensity * 1.35);
     const radAz = (sunAzimuth * Math.PI) / 180;
     const radEl = (sunElevation * Math.PI) / 180;
     const dist = selected3DModel === 'revit' ? 220 : 90;
@@ -754,7 +754,7 @@ export default function ModelViewer3D({ onSelectModule }) {
       dist * Math.sin(radEl),
       dist * Math.sin(radAz) * Math.cos(radEl)
     );
-    dirLight.intensity = sunIntensity;
+    dirLight.intensity = sunIntensity * 1.35;
   }, [sunAzimuth, sunElevation, sunIntensity, selected3DModel]);
 
   // Update Wireframe mode
