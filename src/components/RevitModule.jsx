@@ -128,9 +128,9 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
     renderer.toneMappingExposure = 1.3;
     container.appendChild(renderer.domElement);
 
-    // Iluminación diurna de alta intensidad para que las casas blancas resalten con claridad
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x88aacc, 1.1));
-    scene.add(new THREE.AmbientLight(0xffffff, 0.85)); // Luz difusa abundante
+    // Iluminación diurna de alta intensidad para que los cubos blancos resalten con claridad
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x88aacc, 1.15));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.9)); // Luz difusa abundante
 
     // Sol tropical que proyecta sombras nítidas de los cubos y casas
     const sun = new THREE.DirectionalLight(0xfffaed, 2.5);
@@ -176,20 +176,23 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       map: pastoTex,
       bumpMap: pastoTex,
       bumpScale: 0.18,
-      color: 0x3d6b35, // Verde natural visible y descansado (no fosforescente ni oscuro negro)
+      color: 0x3d6b35, // Verde natural visible y descansado
       roughness: 0.88,
       metalness: 0.02,
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1,
       side: THREE.DoubleSide
     });
 
-    // 3. Vías en GRIS (asfalto / concreto vial limpio para las vías del archivo)
+    // 3. MALLA DE CAMINOS Y VÍAS EN GRIS (Asfalto / concreto vial limpio para la traza del archivo)
     const roadMat = new THREE.MeshStandardMaterial({
-      color: 0x8898a6, // Gris vial nítido y elegante
-      roughness: 0.78,
-      metalness: 0.08,
+      color: 0x758594, // Gris vial contrastado y definido
+      roughness: 0.72,
+      metalness: 0.12,
       polygonOffset: true,
-      polygonOffsetFactor: -3,
-      polygonOffsetUnits: -3,
+      polygonOffsetFactor: -4,
+      polygonOffsetUnits: -4,
       side: THREE.DoubleSide
     });
 
@@ -266,7 +269,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       placeCamera();
     };
 
-    // Procesamiento seguro y preciso de materiales para Revit (GLB y FBX)
+    // Procesamiento exacto de mallas para Revit (GLB y FBX)
     const setupRevitModel = (obj) => {
       if (cancelled || !obj) return;
       if (modelRef.current) {
@@ -299,25 +302,27 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
             return;
           }
 
-          // B. Terreno de la Isla (ÚNICAMENTE mallas topográficas del suelo)
+          // B. LA MALLA DE CAMINOS Y VÍAS (Sólido topográfico 164695, trazados viales, o mallas alargadas de caminos)
           if (
-            name.includes('terrain') || name.includes('toposolid') || name.includes('terreno') ||
-            matName.includes('terrain') || matName.includes('toposolid') || name.includes('149111')
+            name.includes('164695') || name.includes('sólido topográfico') || name.includes('solido topografico') ||
+            name.includes('sólido 1') || name.includes('solido 1') ||
+            name.includes('via') || name.includes('camino') || name.includes('road') || name.includes('pista') ||
+            name.includes('mesh_walls') || name.includes('layer_walls') ||
+            (wide > 25 && narrow >= 1.5 && narrow <= 25 && wide / narrow > 2.5 && sz <= 10)
+          ) {
+            c.material = roadMat;
+            c.renderOrder = 10;
+            ensureTopUVs(c.geometry, 16);
+          }
+          // C. TERRENO DE LA ISLA (Únicamente la topografía 149111 o terrain)
+          else if (
+            name.includes('149111') || name.includes('terrain') ||
+            (name.includes('toposolid') && !name.includes('164695') && !name.includes('sólido')) ||
+            (name.includes('terreno') && !name.includes('164695'))
           ) {
             removeSeaSkirt(c.geometry);
             ensureTopUVs(c.geometry, 42);
             c.material = grassMat;
-          }
-          // C. Vías y trazados viales (PINTADAS DE GRIS)
-          else if (
-            name.includes('wall') || name.includes('muro') || name.includes('via') ||
-            name.includes('camino') || name.includes('road') || name.includes('pista') ||
-            name.includes('sólido 164695') || name.includes('solido 164695') ||
-            (wide > 25 && narrow >= 1.5 && narrow <= 25 && wide / narrow > 2.5 && sz <= 10)
-          ) {
-            c.material = roadMat;
-            c.renderOrder = 3;
-            ensureTopUVs(c.geometry, 16);
           }
           // D. TODOS LOS CUBOS, CASAS Y EDIFICACIONES -> ¡BLANCO PURO NÍTIDO!
           else {
@@ -429,7 +434,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       tryNext();
     };
 
-    // Carga rápida del modelo oficial de Revit (GLB optimizado). Si fallara, carga FBX
+    // Carga del modelo oficial de Revit
     loadCandidates(
       GLB_CANDIDATES,
       true,
@@ -703,7 +708,7 @@ export default function RevitModule() {
             />
           </div>
           <p className="text-[11px] font-mono text-slate-300 text-center max-w-sm">
-            Isla orgánica en pasto natural, cubos y casas en blanco puro, vías grises y mar animado.
+            Isla orgánica en pasto natural, cubos y casas en blanco puro, malla de caminos y vías grises, y mar Caribe animado.
           </p>
           
           <button
@@ -741,7 +746,7 @@ export default function RevitModule() {
           Tierrabomba · Modelo Revit
         </h1>
         <p className="text-slate-700 text-xs font-mono drop-shadow-sm max-w-md hidden sm:block">
-          Render diurno: cubos y casas blancas, vías grises, isla en pasto natural y océano dinámico.
+          Render diurno: cubos y casas blancas, malla de caminos en gris vial, isla en pasto natural y océano dinámico.
         </p>
       </div>
 
