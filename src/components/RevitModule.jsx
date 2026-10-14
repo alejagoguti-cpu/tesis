@@ -3,6 +3,15 @@ import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { Sky } from 'three/examples/jsm/objects/Sky.js';
+import { Water } from 'three/examples/jsm/objects/Water.js';
+import PlanningToolbar from './PlanningToolbar';
+import { loadSatelliteMap, loadSatelliteTexture, applySatelliteUV, loadRealTrees, loadTreeTemplates } from '../utils/realTerritory';
+import {
+  STORAGE_ROADS, STORAGE_ZONES, ZONE_TYPES, loadList, saveList, buildHeightField,
+  createRoadMaterials, buildRoadObject, buildZoneObject, buildDraftObject, disposeObject
+} from '../utils/planningTools';
+
 
 // Texturas y modelos optimizados
 const basePath = import.meta.env.BASE_URL || '/';
@@ -174,9 +183,40 @@ function RenderViewer({
   plantScale,
   selectedTreeId,
   onSelectTree,
-  onAddTree
+  onAddTree,
+  planMode,
+  zoneType,
+  roadWidth,
+  draftPoints,
+  roads,
+  zones,
+  onPlanPoint,
+  onPlanFinish,
+  layers,
+  onRealTrees
 }) {
+  const terrainMeshesRef = useRef([]);
+  const satMatRef = useRef(null);
+  const realTreesRef = useRef(null);
+  const treeTemplatesRef = useRef(null);
+  const [templatesNonce, setTemplatesNonce] = useState(0);
+  const layersRef = useRef(layers);
+  layersRef.current = layers;
+  const onRealTreesRef = useRef(onRealTrees);
+  onRealTreesRef.current = onRealTrees;
   const mountRef = useRef(null);
+  const heightFieldRef = useRef(null);
+  const planGroupRef = useRef(null);
+  const draftGroupRef = useRef(null);
+  const roadPlanMatsRef = useRef(null);
+  const hoverRingRef = useRef(null);
+  const [hfNonce, setHfNonce] = useState(0);
+  const planModeRef = useRef(planMode);
+  planModeRef.current = planMode;
+  const onPlanPointRef = useRef(onPlanPoint);
+  onPlanPointRef.current = onPlanPoint;
+  const onPlanFinishRef = useRef(onPlanFinish);
+  onPlanFinishRef.current = onPlanFinish;
   const applyViewRef = useRef(null);
   const modelRef = useRef(null);
   const rootRef = useRef(null);
@@ -214,9 +254,9 @@ function RenderViewer({
 
     // Escena 3D
     const scene = new THREE.Scene();
-    const skyTex = createSkyTexture();
-    scene.background = skyTex;
-    scene.fog = new THREE.Fog(0xbce0fd, 260, 950);
+    const skyTex = null;
+    scene.background = new THREE.Color(0xbfdcf0);
+    scene.fog = new THREE.Fog(0xcfe4f3, 170, 1500);
 
     const camera = new THREE.PerspectiveCamera(40, getW() / getH(), 0.1, 4000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -226,23 +266,53 @@ function RenderViewer({
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.35;
+    renderer.toneMappingExposure = 0.92;
     container.appendChild(renderer.domElement);
+    camera.far = 6000;
+    camera.updateProjectionMatrix();
 
-    // Iluminación diurna de alta intensidad para que los cubos blancos resalten con claridad
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x8cbbe2, 1.25));
-    scene.add(new THREE.AmbientLight(0xffffff, 1.05));
+    // Cielo atmosférico físico + iluminación de entorno derivada del mismo cielo
+    const sunDir = new THREE.Vector3(75, 100, 65).normalize();
+    const sky = new Sky();
+    sky.scale.setScalar(4500);
+    const skyU = sky.material.uniforms;
+    skyU.turbidity.value = 3.4;
+    skyU.rayleigh.value = 1.15;
+    skyU.mieCoefficient.value = 0.0045;
+    skyU.mieDirectionalG.value = 0.82;
+    skyU.sunPosition.value.copy(sunDir);
+    scene.add(sky);
+    scene.background = null;
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const envScene = new THREE.Scene();
+    const envSky = new Sky();
+    envSky.scale.setScalar(90);
+    ['turbidity', 'rayleigh', 'mieCoefficient', 'mieDirectionalG'].forEach((k) => {
+      envSky.material.uniforms[k].value = skyU[k].value;
+    });
+    envSky.material.uniforms.sunPosition.value.copy(sunDir);
+    envScene.add(envSky);
+    const envRT = pmrem.fromScene(envScene, 0, 0.1, 200);
+    scene.environment = envRT.texture;
+    scene.environmentIntensity = 0.85;
+
+    // Luz de cielo suave (el resto de la luz ambiente viene del entorno)
+    scene.add(new THREE.HemisphereLight(0xdcecff, 0xb8c9a0, 0.45));
 
     // Sol tropical
-    const sun = new THREE.DirectionalLight(0xfffaec, 2.6);
-    sun.position.set(75, 140, 65);
+    const sun = new THREE.DirectionalLight(0xfff3dc, 3.1);
+    sun.position.copy(sunDir.clone().multiplyScalar(160));
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
-    sun.shadow.camera.left = -70;
-    sun.shadow.camera.right = 70;
-    sun.shadow.camera.top = 70;
-    sun.shadow.camera.bottom = -70;
-    sun.shadow.bias = 0.0001;
+    sun.shadow.mapSize.set(4096, 4096);
+    sun.shadow.camera.left = -34;
+    sun.shadow.camera.right = 34;
+    sun.shadow.camera.top = 34;
+    sun.shadow.camera.bottom = -34;
+    sun.shadow.camera.near = 20;
+    sun.shadow.camera.far = 400;
+    sun.shadow.bias = -0.00025;
+    sun.shadow.normalBias = 0.03;
     scene.add(sun);
 
     // Luz de relleno lateral
@@ -325,8 +395,8 @@ function RenderViewer({
     const buildingMat = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       emissive: 0xffffff,
-      emissiveIntensity: 0.35,
-      roughness: 0.15,
+      emissiveIntensity: 0.1,
+      roughness: 0.62,
       metalness: 0.0,
       side: THREE.DoubleSide
     });
@@ -376,20 +446,53 @@ function RenderViewer({
       opacity: 0.94,
       envMapIntensity: 1.5
     });
-    waterMatRef.current = waterMat;
 
-    const oceanGeo = new THREE.PlaneGeometry(3000, 3000, 64, 64);
-    const oceanMesh = new THREE.Mesh(oceanGeo, waterMat);
+    // Mar físico: reflejo del cielo y de la isla, olas con normales animadas y brillo solar
+    waterNormalTex.wrapS = waterNormalTex.wrapT = THREE.RepeatWrapping;
+    const oceanMesh = new Water(new THREE.PlaneGeometry(4000, 4000), {
+      textureWidth: 512,
+      textureHeight: 512,
+      waterNormals: waterNormalTex,
+      sunDirection: sunDir.clone(),
+      sunColor: 0xfff6e0,
+      waterColor: new THREE.Color(initialWaterColor).getHex(),
+      distortionScale: 2.4,
+      alpha: 0.96,
+      fog: true
+    });
+    oceanMesh.material.uniforms.size.value = 0.55;
     oceanMesh.rotation.x = -Math.PI / 2;
     oceanMesh.position.y = 0.055;
-    oceanMesh.receiveShadow = true;
     root.add(oceanMesh);
+    waterMatRef.current = { color: oceanMesh.material.uniforms.waterColor.value };
 
     // Grupo para árboles plantados dinámicamente
     const dynamicTreesGroup = new THREE.Group();
     dynamicTreesGroup.name = 'DynamicTreesGroup';
     root.add(dynamicTreesGroup);
     dynamicTreesGroupRef.current = dynamicTreesGroup;
+
+    // Capas de planeación (vías y zonas dibujadas) y borrador
+    const planGroup = new THREE.Group();
+    planGroup.name = 'PlanningGroup';
+    root.add(planGroup);
+    planGroupRef.current = planGroup;
+    const draftGroup = new THREE.Group();
+    draftGroup.name = 'PlanningDraft';
+    root.add(draftGroup);
+    draftGroupRef.current = draftGroup;
+    roadPlanMatsRef.current = createRoadMaterials(texLoader, SAND_DIFFUSE, SAND_BUMP);
+
+    const hoverRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.12, 0.17, 32),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, depthTest: false, transparent: true, opacity: 0.95 })
+    );
+    hoverRing.rotation.x = -Math.PI / 2;
+    hoverRing.renderOrder = 60;
+    hoverRing.visible = false;
+    root.add(hoverRing);
+    hoverRingRef.current = hoverRing;
+
 
     // Sistema de cámara orbital y pan
     let initialSph = { radius: 76, theta: Math.PI / 4, phi: Math.PI / 3.2 };
@@ -484,8 +587,8 @@ function RenderViewer({
 
       fetch(`${cleanBase}models/trees_data.json`)
         .then((res) => (res.ok ? res.json() : []))
-        .then((treePositions) => {
-          if (!treePositions || treePositions.length === 0) return;
+        .then(() => {
+          const treePositions = []; // sin árboles inventados: la vegetación real viene de la imagen satelital
 
           gltfLoader.load(treeUrl, (gltf) => {
             if (cancelled) return;
@@ -557,6 +660,7 @@ function RenderViewer({
 
       roadsMeshRef.current = [];
       housesMeshesRef.current = {};
+      const terrainMeshes = [];
 
       try {
         obj.traverse((c) => {
@@ -608,6 +712,7 @@ function RenderViewer({
           else if (name.includes('mesh_coastsand') || name.includes('coast') || name.includes('sand')) {
             c.material = sandMat;
             c.renderOrder = 2;
+            terrainMeshes.push(c);
           }
           // C. TERRENO DE LA ISLA: Pasto fresco natural y agradable
           else if (
@@ -618,6 +723,7 @@ function RenderViewer({
           ) {
             c.material = grassMat;
             c.renderOrder = 1;
+            terrainMeshes.push(c);
           }
           // D. TODOS LOS DEMÁS CUBOS Y CASAS: ¡BLANCO PURO RADIANTE!
           else {
@@ -666,6 +772,51 @@ function RenderViewer({
       if (onLoaded) onLoaded();
 
       frameModel(obj);
+      obj.updateMatrixWorld(true);
+      try {
+        heightFieldRef.current = buildHeightField(terrainMeshes);
+      } catch (err) {
+        console.warn('No se pudo construir el mapa de alturas:', err);
+      }
+      setHfNonce((n) => n + 1);
+      terrainMeshesRef.current = terrainMeshes;
+      (async () => {
+        try {
+          const map = await loadSatelliteMap();
+          if (cancelled) return;
+          const tex = loadSatelliteTexture(renderer);
+          const maskTex = new THREE.TextureLoader().load(`${cleanBase}textures/tierrabomba_tierra_mascara.png`);
+          const satMat = new THREE.MeshStandardMaterial({
+            map: tex, alphaMap: maskTex, alphaTest: 0.5, roughness: 0.96, metalness: 0, color: 0xdedede, envMapIntensity: 0.5, side: THREE.DoubleSide
+          });
+          satMatRef.current = satMat;
+          terrainMeshes.forEach((m) => {
+            applySatelliteUV(m.geometry, map);
+            m.userData.origMat = m.material;
+            if (layersRef.current?.satellite) m.material = satMat;
+          });
+        } catch (err) {
+          console.warn('Imagen satelital no disponible:', err);
+        }
+        try {
+          const hf = heightFieldRef.current;
+          if (!hf) return;
+          const rt = await loadRealTrees({ parentObj: obj, heightAt: hf.heightAt });
+          if (cancelled) return;
+          root.add(rt.group);
+          realTreesRef.current = rt.group;
+          rt.group.visible = layersRef.current?.realTrees !== false;
+          if (onRealTreesRef.current) onRealTreesRef.current(rt.count);
+        } catch (err) {
+          console.warn('Vegetación real no disponible:', err);
+        }
+        try {
+          treeTemplatesRef.current = await loadTreeTemplates();
+          setTemplatesNonce((n) => n + 1);
+        } catch (err) {
+          console.warn('Plantillas de árbol no disponibles:', err);
+        }
+      })();
       loadTrees(obj);
     };
 
@@ -785,6 +936,27 @@ function RenderViewer({
       px = e.clientX;
       py = e.clientY;
 
+      // Anillo guía sobre el terreno mientras se dibuja
+      if (!isRotating && !isPanning && hoverRingRef.current) {
+        const ring = hoverRingRef.current;
+        const hf = heightFieldRef.current;
+        if (planModeRef.current !== 'none' && hf && e.target === dom) {
+          const rect = dom.getBoundingClientRect();
+          const mx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          const my = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+          raycaster.setFromCamera(new THREE.Vector2(mx, my), camera);
+          const hit = hf.pickRay(raycaster.ray);
+          if (hit) {
+            ring.position.set(hit.x, hit.y + 0.07, hit.z);
+            ring.visible = true;
+          } else {
+            ring.visible = false;
+          }
+        } else {
+          ring.visible = false;
+        }
+      }
+
       if (isPanning) {
         // Paneo suave en el plano de la cámara
         const fwd = new THREE.Vector3().subVectors(target, camera.position).normalize();
@@ -829,6 +1001,13 @@ function RenderViewer({
           }
         }
 
+        // 1b. Modo dibujo de vías / zonas: marcar punto sobre el terreno
+        if (planModeRef.current !== 'none' && heightFieldRef.current && e.target === dom) {
+          const hit = heightFieldRef.current.pickRay(raycaster.ray);
+          if (hit && onPlanPointRef.current) onPlanPointRef.current({ x: hit.x, y: hit.y, z: hit.z });
+          return;
+        }
+
         // 2. Si el modo plantar árbol está activo, colocarlo en la superficie
         if (isPlantingTreeRef.current && modelRef.current) {
           const hits = raycaster.intersectObjects(modelRef.current.children, true);
@@ -868,6 +1047,10 @@ function RenderViewer({
     };
 
     const dom = renderer.domElement;
+    const onDblClick = () => {
+      if (planModeRef.current !== 'none' && onPlanFinishRef.current) onPlanFinishRef.current();
+    };
+    dom.addEventListener('dblclick', onDblClick);
     dom.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
@@ -902,6 +1085,12 @@ function RenderViewer({
         }
       }
 
+      if (oceanMesh.material.uniforms.time) {
+        const dt = clock.getDelta ? 0 : 0;
+        void dt;
+        if (waveActiveRef.current) oceanMesh.material.uniforms.time.value = elapsed * 0.55;
+      }
+
       const pulse = 0.25 + 0.12 * Math.sin(elapsed * 3.5);
       if (houseRedSoftMat) {
         houseRedSoftMat.emissiveIntensity = pulse;
@@ -918,9 +1107,12 @@ function RenderViewer({
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       dom.removeEventListener('pointerdown', onPointerDown);
+      dom.removeEventListener('dblclick', onDblClick);
       dom.removeEventListener('wheel', onWheel);
       dom.removeEventListener('contextmenu', onContextMenu);
       if (skyTex) skyTex.dispose();
+      envRT.dispose();
+      pmrem.dispose();
       renderer.dispose();
       if (dom.parentNode === container) container.removeChild(dom);
     };
@@ -956,6 +1148,17 @@ function RenderViewer({
     });
   }, [selectedHouseId]);
 
+  // Capas: imagen satelital, vegetación real, vías del modelo
+  useEffect(() => {
+    if (!layers) return;
+    terrainMeshesRef.current.forEach((m) => {
+      const target = layers.satellite && satMatRef.current ? satMatRef.current : m.userData.origMat;
+      if (target) m.material = target;
+    });
+    if (realTreesRef.current) realTreesRef.current.visible = layers.realTrees !== false;
+    roadsMeshRef.current.forEach((m) => { if (m) m.visible = !!layers.modelRoads; });
+  }, [layers, hfNonce, templatesNonce]);
+
   // Visibilidad de árboles
   useEffect(() => {
     if (treesGroupRef.current) {
@@ -973,11 +1176,11 @@ function RenderViewer({
     }
   }, [waterColor]);
 
-  // Renderizado de árboles dinámicos agregados por el usuario
+  // Árboles plantados a mano por el usuario: modelos reales de árbol (Poly Haven)
   useEffect(() => {
     const grp = dynamicTreesGroupRef.current;
-    const baseScene = treeModelSceneRef.current;
-    if (!grp || !baseScene) return;
+    const tpl = treeTemplatesRef.current;
+    if (!grp || !tpl) return;
 
     while (grp.children.length > 0) {
       grp.remove(grp.children[0]);
@@ -985,17 +1188,46 @@ function RenderViewer({
 
     if (!treesList || treesList.length === 0) return;
 
-    treesList.forEach((t) => {
-      const clone = baseScene.clone(true);
+    treesList.forEach((t, i) => {
+      const clone = tpl[i % tpl.length].clone(true);
       const isSel = t.id === selectedTreeId;
-      const sc = (t.scale || 1.0) * (isSel ? 1.25 : 1.0);
-      clone.scale.set(sc, sc, sc);
+      const height = 0.19 * (t.scale || 1.0) * (isSel ? 1.25 : 1.0);
+      clone.scale.set(height, height, height);
       clone.position.set(t.x, t.y, t.z);
       clone.rotation.y = t.rotY || 0;
       clone.userData = { treeId: t.id };
       grp.add(clone);
     });
-  }, [treesList, selectedTreeId]);
+  }, [treesList, selectedTreeId, templatesNonce]);
+
+  // Vías y zonas dibujadas: se reconstruyen sobre el terreno
+  useEffect(() => {
+    const grp = planGroupRef.current;
+    const hf = heightFieldRef.current;
+    if (!grp || !hf) return;
+    while (grp.children.length > 0) {
+      const o = grp.children[0];
+      grp.remove(o);
+      disposeObject(o);
+    }
+    (zones || []).forEach((z) => grp.add(buildZoneObject(z, hf.heightAt)));
+    (roads || []).forEach((r) => grp.add(buildRoadObject(r, hf.heightAt, roadPlanMatsRef.current)));
+  }, [roads, zones, hfNonce]);
+
+  // Borrador mientras se dibuja
+  useEffect(() => {
+    const grp = draftGroupRef.current;
+    const hf = heightFieldRef.current;
+    if (!grp || !hf) return;
+    while (grp.children.length > 0) {
+      const o = grp.children[0];
+      grp.remove(o);
+      disposeObject(o);
+    }
+    if (planMode === 'none' || !draftPoints || draftPoints.length === 0) return;
+    const zt = ZONE_TYPES.find((z) => z.id === zoneType) || ZONE_TYPES[0];
+    grp.add(buildDraftObject(planMode, draftPoints, { color: zt.color, width: roadWidth }, hf.heightAt));
+  }, [draftPoints, planMode, zoneType, roadWidth, hfNonce]);
 
   // Wireframe toggle
   useEffect(() => {
@@ -1040,6 +1272,71 @@ export default function RevitModule() {
   const [plantScale, setPlantScale] = useState(1.0);
   const [selectedTreeId, setSelectedTreeId] = useState(null);
   const [showTreeToolbar, setShowTreeToolbar] = useState(false);
+
+  // Capas territoriales (datos reales)
+  const [layers, setLayers] = useState({ satellite: true, realTrees: true, modelRoads: false });
+  const [realTreeCount, setRealTreeCount] = useState(0);
+  const toggleLayer = (k) => setLayers((l) => ({ ...l, [k]: !l[k] }));
+
+  // Vías y zonificación
+  const [showPlanToolbar, setShowPlanToolbar] = useState(false);
+  const [planMode, setPlanMode] = useState('none'); // 'none' | 'road' | 'zone'
+  const [zoneType, setZoneType] = useState('vivienda');
+  const [zoneName, setZoneName] = useState('');
+  const [roadWidth, setRoadWidth] = useState(0.18);
+  const [draftPoints, setDraftPoints] = useState([]);
+  const [roads, setRoads] = useState(() => loadList(STORAGE_ROADS));
+  const [zones, setZones] = useState(() => loadList(STORAGE_ZONES));
+  const planRef = useRef({});
+  planRef.current = { planMode, draftPoints, zoneType, zoneName, roadWidth, roads, zones };
+
+  const handlePlanPoint = (pt) => {
+    setDraftPoints((prev) => {
+      const last = prev[prev.length - 1];
+      if (last && Math.hypot(last.x - pt.x, last.z - pt.z) < 0.06) return prev;
+      return [...prev, pt];
+    });
+  };
+
+  const handlePlanFinish = () => {
+    const { planMode: mode, draftPoints: pts, zoneType: zt, zoneName: zn, roadWidth: rw, roads: rs, zones: zs } = planRef.current;
+    if (mode === 'road' && pts.length >= 2) {
+      const next = [...rs, { id: 'road_' + Date.now(), width: rw, points: pts.map(({ x, z }) => ({ x, z })) }];
+      setRoads(next);
+      saveList(STORAGE_ROADS, next);
+    } else if (mode === 'zone' && pts.length >= 3) {
+      const t = ZONE_TYPES.find((z) => z.id === zt) || ZONE_TYPES[0];
+      const next = [...zs, { id: 'zone_' + Date.now(), type: zt, name: (zn || '').trim() || t.name, points: pts.map(({ x, z }) => ({ x, z })) }];
+      setZones(next);
+      saveList(STORAGE_ZONES, next);
+      setZoneName('');
+    } else {
+      return;
+    }
+    setDraftPoints([]);
+  };
+
+  const changePlanMode = (m) => {
+    setPlanMode(m);
+    setDraftPoints([]);
+    if (m !== 'none') setIsPlantingTree(false);
+  };
+
+  const deleteRoad = (id) => {
+    const next = roads.filter((r) => r.id !== id);
+    setRoads(next);
+    saveList(STORAGE_ROADS, next);
+  };
+  const deleteZone = (id) => {
+    const next = zones.filter((z) => z.id !== id);
+    setZones(next);
+    saveList(STORAGE_ZONES, next);
+  };
+  const clearPlan = () => {
+    if (!window.confirm('¿Eliminar todas las vías y zonas dibujadas?')) return;
+    setRoads([]); setZones([]);
+    saveList(STORAGE_ROADS, []); saveList(STORAGE_ZONES, []);
+  };
 
   const handleAddTree = (newTree) => {
     const updated = [...treesList, newTree];
@@ -1106,6 +1403,14 @@ export default function RevitModule() {
 
   useEffect(() => {
     const onKey = (e) => {
+      if (e.key === 'Enter' && planRef.current.planMode !== 'none') {
+        handlePlanFinish();
+        return;
+      }
+      if (e.key === 'Escape' && planRef.current.planMode !== 'none') {
+        setDraftPoints([]);
+        return;
+      }
       if (e.key === 'Escape') {
         if (selectedHouseId) setSelectedHouseId(null);
         else if (isFullscreen) setIsFullscreen(false);
@@ -1187,6 +1492,16 @@ export default function RevitModule() {
           selectedTreeId={selectedTreeId}
           onSelectTree={setSelectedTreeId}
           onAddTree={handleAddTree}
+          planMode={planMode}
+          zoneType={zoneType}
+          roadWidth={roadWidth}
+          draftPoints={draftPoints}
+          roads={roads}
+          zones={zones}
+          onPlanPoint={handlePlanPoint}
+          onPlanFinish={handlePlanFinish}
+          layers={layers}
+          onRealTrees={setRealTreeCount}
         />
       </div>
 
@@ -1236,7 +1551,7 @@ export default function RevitModule() {
       </div>
 
       {/* Botones de acción superior derecha */}
-      <div className="absolute top-4 right-4 z-10 flex flex-wrap items-center justify-end gap-2">
+      <div className="absolute top-4 right-4 z-10 flex flex-wrap items-center justify-end gap-2 max-w-[66%]">
         {/* Selector de color del mar caribe */}
         <div className="flex items-center space-x-1 bg-white/90 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-300 dark:border-slate-700 shadow-md">
           <span className="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400 px-1">Mar:</span>
@@ -1269,6 +1584,23 @@ export default function RevitModule() {
           title="Mostrar u ocultar los árboles de render distribuidos por la isla"
         >
           <span>{treesVisible ? '🌲 Árboles Render ON' : '🌱 Árboles OFF'}</span>
+        </button>
+
+        {/* Herramienta de vías y zonificación */}
+        <button
+          onClick={() => {
+            const v = !showPlanToolbar;
+            setShowPlanToolbar(v);
+            if (!v) changePlanMode('none');
+          }}
+          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md flex items-center space-x-1.5 cursor-pointer ${
+            showPlanToolbar
+              ? 'bg-amber-600 text-white border-amber-400'
+              : 'bg-white/90 hover:bg-white text-slate-800 border-slate-300'
+          }`}
+          title="Dibujar vías nuevas y zonificar el territorio"
+        >
+          <span>{showPlanToolbar ? 'Cerrar Planeación' : '🗺️ Vías y Zonas'}</span>
         </button>
 
         {/* Herramienta de Vegetación */}
@@ -1361,9 +1693,32 @@ export default function RevitModule() {
         </div>
       )}
 
+      {showPlanToolbar && (
+        <PlanningToolbar
+          mode={planMode}
+          setMode={changePlanMode}
+          zoneType={zoneType}
+          setZoneType={setZoneType}
+          zoneName={zoneName}
+          setZoneName={setZoneName}
+          roadWidth={roadWidth}
+          setRoadWidth={setRoadWidth}
+          draftCount={draftPoints.length}
+          onFinish={handlePlanFinish}
+          onUndo={() => setDraftPoints((p) => p.slice(0, -1))}
+          onCancel={() => setDraftPoints([])}
+          roads={roads}
+          zones={zones}
+          onDeleteRoad={deleteRoad}
+          onDeleteZone={deleteZone}
+          onClearPlan={clearPlan}
+          onClose={() => { setShowPlanToolbar(false); changePlanMode('none'); }}
+        />
+      )}
+
       {/* BARRA DE HERRAMIENTAS DE VEGETACIÓN INTERACTIVA */}
       {showTreeToolbar && (
-        <div className="absolute top-20 right-4 z-30 flex flex-col space-y-2 bg-white/95 dark:bg-slate-900/95 p-3 rounded-2xl border border-emerald-500/40 shadow-2xl backdrop-blur-md w-72">
+        <div className="absolute top-32 right-4 z-30 flex flex-col space-y-2 bg-white/95 dark:bg-slate-900/95 p-3 rounded-2xl border border-emerald-500/40 shadow-2xl backdrop-blur-md w-72">
           <div className="flex items-center justify-between pb-1 border-b border-slate-200 dark:border-slate-800">
             <span className="text-xs font-mono font-bold text-slate-800 dark:text-emerald-400 flex items-center space-x-1.5">
               <span>🌱</span>
@@ -1423,7 +1778,7 @@ export default function RevitModule() {
       )}
 
       {/* SELECTOR DIRECTO DE LAS 3 VIVIENDAS EN LA ISLA */}
-      <div className="absolute top-20 left-4 z-10 flex flex-col space-y-2 pointer-events-none">
+      <div className="absolute top-32 left-4 z-10 flex flex-col space-y-2 pointer-events-none">
         <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800 bg-white/80 backdrop-blur px-2 py-0.5 rounded-md border border-slate-300 w-fit">
           Diagnóstico de Viviendas (Rojo Suave)
         </span>
@@ -1447,6 +1802,32 @@ export default function RevitModule() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* CAPAS TERRITORIALES (DATOS REALES) */}
+      <div className="absolute left-4 bottom-24 z-10 w-72 rounded-2xl bg-white/95 border border-slate-200 shadow-xl backdrop-blur-md p-3 space-y-2">
+        <div>
+          <p className="text-[10px] font-mono font-bold tracking-widest text-teal-700 uppercase">Capas territoriales</p>
+          <p className="text-[11px] text-slate-500 leading-snug">Datos reales de Tierrabomba</p>
+        </div>
+        {[
+          ['satellite', 'Imagen satelital real', 'Esri World Imagery · z18'],
+          ['realTrees', 'Vegetación real (' + realTreeCount.toLocaleString('es-CO') + ' árboles)', 'Copas detectadas en la imagen'],
+          ['modelRoads', 'Vías del modelo Revit', 'Malla vial original']
+        ].map(([key, label, sub]) => (
+          <button
+            key={key}
+            onClick={() => toggleLayer(key)}
+            className={'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left transition-all cursor-pointer border ' + (layers[key] ? 'bg-teal-50 border-teal-300' : 'bg-slate-50 border-slate-200 hover:bg-white')}
+          >
+            <span className={'w-4 h-4 rounded-md border-2 shrink-0 grid place-items-center text-[10px] font-black ' + (layers[key] ? 'bg-teal-600 border-teal-600 text-white' : 'border-slate-300 text-transparent')}>✓</span>
+            <span className="min-w-0">
+              <span className="block text-xs font-semibold text-slate-900 truncate">{label}</span>
+              <span className="block text-[10px] text-slate-500 truncate">{sub}</span>
+            </span>
+          </button>
+        ))}
+        <p className="text-[9px] leading-snug text-slate-400">Fuentes: Esri World Imagery · © OpenStreetMap contributors · modelos de árbol Poly Haven (CC0)</p>
       </div>
 
       {/* POPUP DE ANIMACIÓN DINÁMICO: ESTADO ACTUAL DE LA VIVIENDA */}

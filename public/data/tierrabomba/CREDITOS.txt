@@ -1,0 +1,19 @@
+Datos reales usados en el Módulo 05 (Tierrabomba)
+
+IMAGEN SATELITAL  public/textures/tierrabomba_satelite.jpg
+  Esri World Imagery (Esri, Maxar, Earthstar Geographics, USDA FSA, USGS, Aerogrid, IGN, IGP, swisstopo y la comunidad GIS).
+  Mosaico de 169 teselas z18 (~0,59 m/px) del área del modelo, descargado el 2026-10-14. Uso académico con atribución.
+
+VEGETACIÓN  public/data/tierrabomba/vegetacion.json
+  Árboles detectados sobre la imagen anterior (índice de verdor + máximos locales de copa), filtrados con el modelo Revit
+  (solo tierra firme y fuera de huellas de edificios). No se inventó ninguna posición: cada punto corresponde a una copa visible.
+
+CAPAS OSM  public/data/tierrabomba/capas_osm.json
+  © OpenStreetMap contributors, licencia ODbL (https://www.openstreetmap.org/copyright). Consultado el 2026-10-14 vía Overpass API.
+
+GEORREFERENCIACIÓN
+  El modelo Revit se registró contra los edificios de OSM (268 de 271 emparejados, error mediano 1,1 m, rotación -0,12°, escala 0,9998).
+
+MODELOS DE ÁRBOL  public/models/arboles/
+  Island Tree 01 y 02 (Rob Tuytel, Rico Cilliers) de Poly Haven, licencia CC0 (https://polyhaven.com), versiones reducidas para web
+  tomadas del repositorio REN3D del proyecto Kennedy.
