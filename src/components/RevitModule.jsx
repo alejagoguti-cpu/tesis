@@ -10,8 +10,9 @@ const cleanBase = basePath.endsWith('/') ? basePath : basePath + '/';
 
 const SAND_DIFFUSE = `${cleanBase}textures/sand_diffuse.jpg`;
 const SAND_BUMP = `${cleanBase}textures/sand_bump.jpg`;
-const GRASS_DIFFUSE = `${cleanBase}textures/grass_light_diffuse.jpg`;
+const GRASS_DIFFUSE = `${cleanBase}textures/textura_pasto_m5.png`;
 const GRASS_BUMP = `${cleanBase}textures/grass_bump.jpg`;
+const WATER_DIFFUSE = `${cleanBase}textures/textura_agua_m5.jpg`;
 const WATER_NORMALS = `${cleanBase}textures/water_normals_fine.jpg`;
 const TREE_BARK = `${cleanBase}textures/tree_bark.jpg`;
 const TREE_LEAF = `${cleanBase}textures/tree_leaf.png`;
@@ -259,20 +260,20 @@ function RenderViewer({
     const sandDiffuseTex = texLoader.load(SAND_DIFFUSE);
     sandDiffuseTex.wrapS = THREE.RepeatWrapping;
     sandDiffuseTex.wrapT = THREE.RepeatWrapping;
-    sandDiffuseTex.repeat.set(16, 16);
+    sandDiffuseTex.repeat.set(24, 24);
     sandDiffuseTex.colorSpace = THREE.SRGBColorSpace;
 
     const sandBumpTex = texLoader.load(SAND_BUMP);
     sandBumpTex.wrapS = THREE.RepeatWrapping;
     sandBumpTex.wrapT = THREE.RepeatWrapping;
-    sandBumpTex.repeat.set(16, 16);
+    sandBumpTex.repeat.set(24, 24);
 
     const sandMat = new THREE.MeshStandardMaterial({
       map: sandDiffuseTex,
       bumpMap: sandBumpTex,
-      bumpScale: 0.14,
-      color: 0xdeb887,
-      roughness: 0.90,
+      bumpScale: 0.10,
+      color: 0xedd6a6,
+      roughness: 0.82,
       metalness: 0.02,
       polygonOffset: true,
       polygonOffsetFactor: -3,
@@ -299,20 +300,20 @@ function RenderViewer({
     const grassDiffuseTex = texLoader.load(GRASS_DIFFUSE);
     grassDiffuseTex.wrapS = THREE.RepeatWrapping;
     grassDiffuseTex.wrapT = THREE.RepeatWrapping;
-    grassDiffuseTex.repeat.set(18, 18);
+    grassDiffuseTex.repeat.set(26, 26);
     grassDiffuseTex.colorSpace = THREE.SRGBColorSpace;
 
     const grassBumpTex = texLoader.load(GRASS_BUMP);
     grassBumpTex.wrapS = THREE.RepeatWrapping;
     grassBumpTex.wrapT = THREE.RepeatWrapping;
-    grassBumpTex.repeat.set(18, 18);
+    grassBumpTex.repeat.set(26, 26);
 
     const grassMat = new THREE.MeshStandardMaterial({
       map: grassDiffuseTex,
       bumpMap: grassBumpTex,
-      bumpScale: 0.12,
-      color: 0x62964a,
-      roughness: 0.85,
+      bumpScale: 0.10,
+      color: 0x76b856,
+      roughness: 0.78,
       metalness: 0.02,
       polygonOffset: true,
       polygonOffsetFactor: 1,
@@ -324,8 +325,8 @@ function RenderViewer({
     const buildingMat = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       emissive: 0xffffff,
-      emissiveIntensity: 0.16,
-      roughness: 0.18,
+      emissiveIntensity: 0.35,
+      roughness: 0.15,
       metalness: 0.0,
       side: THREE.DoubleSide
     });
@@ -351,27 +352,36 @@ function RenderViewer({
     });
     houseMatSelectedRef.current = houseSelectedGlowMat;
 
-    // 5. OCÉANO REALISTA (Azul caribe sereno, olas muy suaves, escala fina)
+    // 5. OCÉANO REALISTA (Azul caribe tropical vivo con textura acuática, cáusticas y oleaje activo)
+    const waterDiffuseTex = texLoader.load(WATER_DIFFUSE);
+    waterDiffuseTex.wrapS = THREE.RepeatWrapping;
+    waterDiffuseTex.wrapT = THREE.RepeatWrapping;
+    waterDiffuseTex.repeat.set(20, 20);
+    waterDiffuseTex.colorSpace = THREE.SRGBColorSpace;
+
     const waterNormalTex = texLoader.load(WATER_NORMALS);
     waterNormalTex.wrapS = THREE.RepeatWrapping;
     waterNormalTex.wrapT = THREE.RepeatWrapping;
-    waterNormalTex.repeat.set(48, 48);
+    waterNormalTex.repeat.set(40, 40);
 
-    const initialWaterColor = waterColor || '#0c3d5f';
+    const initialWaterColor = waterColor || '#1ea4c8';
     const waterMat = new THREE.MeshStandardMaterial({
+      map: waterDiffuseTex,
       normalMap: waterNormalTex,
-      normalScale: new THREE.Vector2(0.16, 0.16),
+      normalScale: new THREE.Vector2(0.20, 0.20),
       color: new THREE.Color(initialWaterColor),
-      roughness: 0.18,
-      metalness: 0.22,
+      roughness: 0.16,
+      metalness: 0.12,
+      transparent: true,
+      opacity: 0.94,
       envMapIntensity: 1.5
     });
     waterMatRef.current = waterMat;
 
-    const oceanGeo = new THREE.PlaneGeometry(900, 900, 64, 64);
+    const oceanGeo = new THREE.PlaneGeometry(1200, 1200, 64, 64);
     const oceanMesh = new THREE.Mesh(oceanGeo, waterMat);
     oceanMesh.rotation.x = -Math.PI / 2;
-    oceanMesh.position.y = 0.04;
+    oceanMesh.position.y = 0.02;
     oceanMesh.receiveShadow = true;
     root.add(oceanMesh);
 
@@ -551,6 +561,32 @@ function RenderViewer({
           c.castShadow = true;
           c.receiveShadow = true;
 
+          // 1. ELIMINAR CUALQUIER COLOR DE VÉRTICES PARA EVITAR QUE LA ISLA SE PONGA NEGRA
+          if (c.geometry && c.geometry.attributes && c.geometry.attributes.color) {
+            c.geometry.deleteAttribute('color');
+          }
+
+          // 2. CALCULAR NORMALES DE VÉRTICES PARA QUE LA ILUMINACIÓN DIURNA SEA PERFECTA
+          if (c.geometry) {
+            c.geometry.computeVertexNormals();
+          }
+
+          // 3. GENERAR COORDENADAS UV PLANARIAS SI NO EXISTEN
+          if (c.geometry && (!c.geometry.attributes.uv || c.geometry.attributes.uv.count === 0)) {
+            const pos = c.geometry.attributes.position;
+            if (pos && pos.count > 0) {
+              const uvs = new Float32Array(pos.count * 2);
+              for (let i = 0; i < pos.count; i++) {
+                const x = pos.getX(i);
+                const y = pos.getY(i);
+                uvs[i * 2] = (x + 1000) * 0.035;
+                uvs[i * 2 + 1] = (y + 1000) * 0.035;
+              }
+              c.geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+              c.geometry.attributes.uv.needsUpdate = true;
+            }
+          }
+
           const name = ((c.name || '') + ' ' + (c.parent?.name || '')).toLowerCase();
 
           // A. VÍAS Y CAMINOS: Textura de arena realista
@@ -580,24 +616,42 @@ function RenderViewer({
             c.material = grassMat;
             c.renderOrder = 1;
           }
-          // D. LAS TRES VIVIENDAS EN ROJO SUAVE
-          else if (name.includes('mesh_house_1') || name.includes('house_1')) {
-            c.material = selectedHouseId === 1 ? houseSelectedGlowMat : houseRedSoftMat;
-            c.renderOrder = 20;
-            housesMeshesRef.current[1] = c;
-          } else if (name.includes('mesh_house_2') || name.includes('house_2')) {
-            c.material = selectedHouseId === 2 ? houseSelectedGlowMat : houseRedSoftMat;
-            c.renderOrder = 20;
-            housesMeshesRef.current[2] = c;
-          } else if (name.includes('mesh_house_3') || name.includes('house_3')) {
-            c.material = selectedHouseId === 3 ? houseSelectedGlowMat : houseRedSoftMat;
-            c.renderOrder = 20;
-            housesMeshesRef.current[3] = c;
-          }
-          // E. TODOS LOS DEMÁS CUBOS Y CASAS: ¡BLANCO PURO RADIANTE!
+          // D. TODOS LOS DEMÁS CUBOS Y CASAS: ¡BLANCO PURO RADIANTE!
           else {
             c.material = buildingMat;
           }
+        });
+
+        // 4. CREAR LAS 3 VIVIENDAS DIAGNÓSTICO EN COLOR ROJO SUAVE CON VOLUMETRÍA Y MARCADORES BEACON
+        HOUSES_DATA.forEach((house) => {
+          const [hx, hy, hz] = house.coordsLocal;
+          const group = new THREE.Group();
+          group.name = `Group_${house.meshName}`;
+          group.position.set(hx, hy, hz);
+
+          // Cubo de volumen habitacional en rojo suave
+          const boxMat = selectedHouseId === house.id ? houseSelectedGlowMat : houseRedSoftMat;
+          const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 14, 7), boxMat);
+          boxMesh.position.set(0, 0, 3.5);
+          boxMesh.castShadow = true;
+          boxMesh.receiveShadow = true;
+          boxMesh.renderOrder = 25;
+          group.add(boxMesh);
+
+          // Marcador de flecha/cono apuntando hacia abajo
+          const pinMat = new THREE.MeshStandardMaterial({
+            color: 0xef4444,
+            emissive: 0xf87171,
+            emissiveIntensity: 0.6,
+            roughness: 0.2
+          });
+          const pinMesh = new THREE.Mesh(new THREE.ConeGeometry(3.5, 9, 12), pinMat);
+          pinMesh.position.set(0, 0, 13);
+          pinMesh.rotation.x = Math.PI;
+          group.add(pinMesh);
+
+          obj.add(group);
+          housesMeshesRef.current[house.id] = boxMesh;
         });
       } catch (err) {
         console.warn('Advertencia configurando materiales:', err);
@@ -834,9 +888,15 @@ function RenderViewer({
       rafId = requestAnimationFrame(animate);
       const elapsed = clock.getElapsedTime();
 
-      if (waveActiveRef.current && waterNormalTex) {
-        waterNormalTex.offset.x = (elapsed * 0.007) % 1;
-        waterNormalTex.offset.y = (elapsed * 0.005) % 1;
+      if (waveActiveRef.current) {
+        if (waterDiffuseTex) {
+          waterDiffuseTex.offset.x = (elapsed * 0.010) % 1;
+          waterDiffuseTex.offset.y = (elapsed * 0.007) % 1;
+        }
+        if (waterNormalTex) {
+          waterNormalTex.offset.x = (elapsed * 0.016) % 1;
+          waterNormalTex.offset.y = (elapsed * 0.012) % 1;
+        }
       }
 
       const pulse = 0.25 + 0.12 * Math.sin(elapsed * 3.5);
@@ -965,7 +1025,7 @@ export default function RevitModule() {
   const [wireframe, setWireframe] = useState(false);
   const [roadColorMode, setRoadColorMode] = useState('sand'); // 'sand' | 'blue'
   const [treesVisible, setTreesVisible] = useState(true);
-  const [waterColor, setWaterColor] = useState('#0c3d5f');
+  const [waterColor, setWaterColor] = useState('#1ea4c8');
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [localFile, setLocalFile] = useState(null);
@@ -1247,12 +1307,26 @@ export default function RevitModule() {
           onClick={() => setWaveActive((w) => !w)}
           className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md cursor-pointer ${
             waveActive
-              ? 'bg-cyan-900/90 border-cyan-600 text-cyan-100 hover:bg-cyan-800'
+              ? 'bg-cyan-700/90 border-cyan-400 text-white hover:bg-cyan-600'
               : 'bg-white/90 border-slate-300 text-slate-700 hover:bg-white'
           }`}
           title="Pausar o activar movimiento del mar"
         >
-          {waveActive ? '🌊 Oleaje Suave' : '⏸ Mar Pausado'}
+          {waveActive ? '🌊 Oleaje Activo' : '⏸ Mar Pausado'}
+        </button>
+
+        {/* Tono del Mar Caribe */}
+        <button
+          onClick={() => {
+            const tones = ['#1ea4c8', '#26c6da', '#0ea5e9', '#0284c7'];
+            const curIdx = tones.indexOf(waterColor);
+            const nextIdx = curIdx >= 0 ? (curIdx + 1) % tones.length : 0;
+            setWaterColor(tones[nextIdx]);
+          }}
+          className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border border-cyan-300 bg-cyan-500/80 hover:bg-cyan-500 text-white transition-all shadow-md flex items-center space-x-1.5 cursor-pointer"
+          title="Alternar tono caribeño del agua"
+        >
+          <span>💧 Tono Mar Caribe</span>
         </button>
 
         <button
