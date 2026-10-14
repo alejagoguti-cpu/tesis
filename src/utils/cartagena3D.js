@@ -869,7 +869,6 @@ export async function buildCartagenaTerritoryScene({
   treesGroup.name = "Vegetation";
   treesGroup.visible = activeLayers.trees !== false;
 
-  const basePath = import.meta.env.BASE_URL || '/';
   let treeTemplate = null;
   try {
     treeTemplate = await loadCleanTreeTemplate(basePath);
