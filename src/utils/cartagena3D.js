@@ -784,142 +784,12 @@ export async function buildCartagenaTerritoryScene({
   animatedObjects.hotspotRings = hotspotRings;
 
   // -------------------------------------------------------------
-  // -------------------------------------------------------------
-  // 8. ÁRBOLES REALES DE SKETCHUP EN TIERRA BOMBA (C:\sketch\tree+300.skp)
-  // Ubicados ESTRICTAMENTE al CENTRO de la isla dentro de la zona verde protegida
-  // (Meseta Segura +22m y Parque Ecológico Central), SIN tocar el agua ni la orilla,
-  // y fuera del corregimiento en la punta (Punta Arenas).
+  // 8. GRUPO DE VEGETACIÓN PERSONALIZABLE
+  // Se eliminaron todos los árboles automáticos para dar control total al usuario.
+  // Los árboles se plantan, escalan y administran de forma interactiva y persistente.
   // -------------------------------------------------------------
   const treesGroup = new THREE.Group();
   treesGroup.name = "Vegetation";
-
-  // Recolectar puntos 3D situados exclusivamente en el interior verde elevado (centro de la isla)
-  const tierrabombaTreePoints = [];
-
-  // Centros de distribución en el corazón y espina central de la isla de Tierra Bomba
-  // (Lat: 10.3600 a 10.3745, Lon: -75.5765 a -75.5720 - Zona núcleo protegida, a más de 1km del mar)
-  const centralIslandAnchors = [
-    // Núcleo Parque Ecológico Central y Meseta Segura (+22m)
-    [-75.5748, 10.3742], [-75.5755, 10.3738], [-75.5740, 10.3735], [-75.5762, 10.3730],
-    [-75.5750, 10.3725], [-75.5738, 10.3722], [-75.5758, 10.3718], [-75.5745, 10.3712],
-    [-75.5735, 10.3710], [-75.5752, 10.3705], [-75.5742, 10.3700], [-75.5760, 10.3695],
-    // Corredor Ambiental Centro - Bosque Seco Tropical Interior
-    [-75.5748, 10.3688], [-75.5738, 10.3682], [-75.5755, 10.3675], [-75.5742, 10.3670],
-    [-75.5732, 10.3665], [-75.5750, 10.3658], [-75.5740, 10.3652], [-75.5758, 10.3645],
-    [-75.5735, 10.3640], [-75.5748, 10.3632], [-75.5738, 10.3625], [-75.5745, 10.3618],
-    [-75.5732, 10.3610], [-75.5742, 10.3602], [-75.5735, 10.3595]
-  ];
-
-  centralIslandAnchors.forEach(([cLon, cLat]) => {
-    // Árbol en el centro del clúster
-    const pCenter = lonLatToVector3(cLon, cLat, 0.22 + Math.random() * 0.06);
-    tierrabombaTreePoints.push({ x: pCenter.x, y: pCenter.y, z: pCenter.z });
-
-    // Grupo denso orgánico alrededor de cada ancla interior (sin salirse del centro verde)
-    const clusterCount = 14 + Math.floor(Math.random() * 4);
-    for (let k = 0; k < clusterCount; k++) {
-      const radius = 0.00015 + Math.random() * 0.00055;
-      const angle = Math.random() * Math.PI * 2;
-      const lon = cLon + Math.cos(angle) * radius;
-      const lat = cLat + Math.sin(angle) * radius * 0.85;
-      const h = 0.20 + Math.random() * 0.08;
-      const pt = lonLatToVector3(lon, lat, h);
-      tierrabombaTreePoints.push({ x: pt.x, y: pt.y, z: pt.z });
-    }
-  });
-
-  // Limitar a una cantidad abundante y de alto rendimiento (420 árboles)
-  const finalTreePoints = tierrabombaTreePoints.slice(0, 430);
-
-  try {
-    const gltfLoader = new GLTFLoader();
-    const treeUrl = `${basePath.endsWith('/') ? basePath : basePath + '/'}models/tree.glb`;
-    gltfLoader.load(
-      treeUrl,
-      (gltf) => {
-        const treeScene = gltf.scene;
-        const meshes = [];
-        treeScene.traverse((c) => {
-          if (c.isMesh) {
-            c.castShadow = true;
-            c.receiveShadow = true;
-            if (c.material) {
-              c.material.side = THREE.DoubleSide;
-              c.material.alphaTest = 0.35;
-              c.material.depthWrite = true;
-              c.material.shadowSide = THREE.DoubleSide;
-            }
-            meshes.push(c);
-          }
-        });
-
-        if (meshes.length > 0) {
-          const count = finalTreePoints.length;
-          const instancedList = meshes.map((m) => {
-            const inst = new THREE.InstancedMesh(m.geometry, m.material, count);
-            inst.castShadow = true;
-            inst.receiveShadow = true;
-            return inst;
-          });
-
-          const dummy = new THREE.Object3D();
-          // Escalas variadas: árboles pequeños (arbustos/jóvenes), medianos y grandes
-          // Distribución de escalas desde 0.18 (pequeños) hasta 0.48 (grandes frondosos)
-          finalTreePoints.forEach((pt, idx) => {
-            // Factor de tamaño aleatorio variado: 35% pequeños, 45% medianos, 20% grandes
-            const rand = Math.random();
-            let baseScale;
-            if (rand < 0.35) {
-              baseScale = 0.16 + Math.random() * 0.09; // Pequeños (1.0m - 1.5m)
-            } else if (rand < 0.80) {
-              baseScale = 0.28 + Math.random() * 0.10; // Medianos (1.8m - 2.4m)
-            } else {
-              baseScale = 0.42 + Math.random() * 0.12; // Grandes (2.6m - 3.4m)
-            }
-
-            dummy.position.set(pt.x, pt.y || 0.08, -pt.z);
-            dummy.rotation.y = Math.random() * Math.PI * 2;
-            dummy.rotation.x = (Math.random() - 0.5) * 0.04;
-            dummy.rotation.z = (Math.random() - 0.5) * 0.04;
-            dummy.scale.set(baseScale, baseScale, baseScale);
-            dummy.updateMatrix();
-
-            instancedList.forEach((inst) => {
-              inst.setMatrixAt(idx, dummy.matrix);
-            });
-          });
-
-          instancedList.forEach((inst) => {
-            inst.instanceMatrix.needsUpdate = true;
-            treesGroup.add(inst);
-          });
-        }
-      },
-      undefined,
-      (err) => {
-        console.warn("Could not load tree.glb, using procedural fallback:", err);
-        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.9 });
-        const foliageMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 0.5 });
-        finalTreePoints.forEach((pt) => {
-          const rand = Math.random();
-          const s = rand < 0.35 ? 0.5 : rand < 0.8 ? 0.9 : 1.4;
-          const t = new THREE.Group();
-          const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * s, 0.18 * s, 0.9 * s, 8), trunkMat);
-          tr.position.y = (0.9 * s) / 2;
-          const fol = new THREE.Mesh(new THREE.DodecahedronGeometry(0.75 * s), foliageMat);
-          fol.position.y = 1.1 * s;
-          fol.castShadow = true;
-          t.add(tr);
-          t.add(fol);
-          t.position.set(pt.x, pt.y || 0.08, -pt.z);
-          treesGroup.add(t);
-        });
-      }
-    );
-  } catch (e) {
-    console.error("Error setting up trees:", e);
-  }
-
   treesGroup.visible = activeLayers.trees !== false;
   territoryGroup.add(treesGroup);
 
@@ -929,6 +799,7 @@ export async function buildCartagenaTerritoryScene({
 
   return {
     group: territoryGroup,
+    vegetationGroup: treesGroup,
     animatedObjects,
     mats,
     update: (speedMultiplier = 1.0, elapsed = null) => {

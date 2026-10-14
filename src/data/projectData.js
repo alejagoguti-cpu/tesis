@@ -245,7 +245,7 @@ export const projectInfo = {
   impactMatrix: [
     {
       factor: "Seguridad Territorial",
-      current: "120 viviendas en franja de socavación activa (pérdida de 1.8m/año)",
+      current: "500 viviendas en franja de socavación activa e inundación (pérdida de 1.8m/año)",
       proposed: "Reubicación a meseta +22.00 m.s.n.m. inmune a marea y cambio climático",
       delta: "+100% Seguridad Estructural"
     },
@@ -331,7 +331,7 @@ export const projectInfo = {
           { name: "Cota de Socavación Marina", icon: "Waves", detail: "Monitoreo del retroceso costero de hasta 1.8 metros por año en playa." },
           { name: "Delimitación Meseta (+22m)", icon: "Compass", detail: "Suelo firme protegido del aumento del nivel del mar por 100 años." },
           { name: "Teledetección & GIS Espectral", icon: "Map", detail: "5 bandas satelitales (NDVI, NDWI, Falso Color, Manglar, LST)." },
-          { name: "Censo de Vulnerabilidad", icon: "Home", detail: "120 viviendas identificadas en línea crítica de derrumbe marino." }
+          { name: "Censo de Vulnerabilidad", icon: "Home", detail: "500 viviendas identificadas en línea crítica de derrumbe marino e inundación." }
         ]
       },
       {

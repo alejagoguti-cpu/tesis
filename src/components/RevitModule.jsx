@@ -5,6 +5,15 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import pastoTexImg from '../assets/textura_pasto_m5.png';
 import aguaTexImg from '../assets/textura_agua_m5.jpg';
+import { 
+  loadCleanTreeTemplate, 
+  buildTreeObject, 
+  getSavedTrees, 
+  saveTrees, 
+  STORAGE_KEY_REVIT 
+} from '../utils/treeTool.js';
+import TreePlacementToolbar from './TreePlacementToolbar.jsx';
+import { TreePine } from 'lucide-react';
 
 // Genera mapeo UV cenital ortogonal para mallas que vienen sin coordenadas de Revit
 function ensureTopUVs(geo, tile = 35) {
@@ -93,7 +102,25 @@ function createSkyTexture() {
   return tex;
 }
 
-function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitNonce, waveActive, localFile, wireframe, roadColorMode, treesVisible = true, waterColor = '#b5ebf5' }) {
+function RenderViewer({ 
+  onStats, 
+  onProgress, 
+  onLoaded, 
+  preset, 
+  presetNonce, 
+  fitNonce, 
+  waveActive, 
+  localFile, 
+  wireframe, 
+  roadColorMode, 
+  treesVisible = true, 
+  waterColor = '#b5ebf5',
+  isPlantingTree = false,
+  plantScale = 1.0,
+  treesList = [],
+  onAddTree = () => {},
+  onSelectTree = () => {}
+}) {
   const mountRef = useRef(null);
   const applyViewRef = useRef(null);
   const modelRef = useRef(null);
@@ -105,10 +132,53 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
   waveActiveRef.current = waveActive;
   const waterMatRef = useRef(null);
   const treesGroupRef = useRef(null);
+  const treeTemplateRef = useRef(null);
+  const syncTreesRef = useRef(null);
+
+  const isPlantingTreeRef = useRef(isPlantingTree);
+  isPlantingTreeRef.current = isPlantingTree;
+  const plantScaleRef = useRef(plantScale);
+  plantScaleRef.current = plantScale;
+  const treesListRef = useRef(treesList);
+  treesListRef.current = treesList;
+  const onAddTreeRef = useRef(onAddTree);
+  onAddTreeRef.current = onAddTree;
+  const onSelectTreeRef = useRef(onSelectTree);
+  onSelectTreeRef.current = onSelectTree;
 
   // Materiales de vías
   const roadMatGreyRef = useRef(null);
   const roadMatBlueRef = useRef(null);
+
+  const syncTrees = (list, tpl) => {
+    if (!treesGroupRef.current || !tpl) return;
+    const grp = treesGroupRef.current;
+    const existing = new Map();
+    grp.children.forEach((c) => {
+      if (c.userData?.treeId) existing.set(c.userData.treeId, c);
+    });
+    const curIds = new Set(list.map((t) => t.id));
+    existing.forEach((obj, id) => {
+      if (!curIds.has(id)) grp.remove(obj);
+    });
+    list.forEach((tData) => {
+      const obj = existing.get(tData.id);
+      if (obj) {
+        const s = tData.scale || 1.0;
+        obj.scale.set(s, s, s);
+      } else {
+        const newObj = buildTreeObject(tpl, tData);
+        grp.add(newObj);
+      }
+    });
+  };
+  syncTreesRef.current = syncTrees;
+
+  useEffect(() => {
+    if (treeTemplateRef.current && treesGroupRef.current) {
+      syncTrees(treesList, treeTemplateRef.current);
+    }
+  }, [treesList]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -365,132 +435,23 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
 
       frameModel(obj);
 
-      // Cargar y distribuir los árboles reales de SketchUp (C:\sketch\tree+300.skp) exclusivamente al centro de la isla
-      if (terrainMesh && terrainMesh.geometry && terrainMesh.geometry.attributes.position) {
-        const posAttr = terrainMesh.geometry.attributes.position;
-        const normAttr = terrainMesh.geometry.attributes.normal;
+      // Contenedor de Vegetación Interactiva y Persistente (sin árboles automáticos)
+      const oldVeg = root.getObjectByName('VegetationRevit');
+      if (oldVeg) root.remove(oldVeg);
 
-        const oldVeg = root.getObjectByName('VegetationRevit');
-        if (oldVeg) root.remove(oldVeg);
+      const treesGroup = new THREE.Group();
+      treesGroup.name = 'VegetationRevit';
+      treesGroup.visible = !!treesVisible;
+      root.add(treesGroup);
+      treesGroupRef.current = treesGroup;
 
-        // Centro geométrico horizontal de la isla de Revit
-        const tBox = new THREE.Box3().setFromObject(terrainMesh);
-        const tCenter = tBox.getCenter(new THREE.Vector3());
-
-        const islandPoints = [];
-        const v = new THREE.Vector3();
-
-        // 1. Filtrar vértices del interior elevado (centro verde de la isla)
-        // El mar está en y = 0.08. Exigir v.y >= 0.26 garantiza cero árboles en el agua o la orilla.
-        // Limitar la distancia al centro garantiza que no haya árboles en la punta ni en asentamientos costeros.
-        const allCandidates = [];
-        for (let i = 0; i < posAttr.count; i++) {
-          v.set(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
-          terrainMesh.localToWorld(v);
-          const dx = v.x - tCenter.x;
-          const dz = v.z - tCenter.z;
-          const distFromCenter = Math.sqrt(dx * dx + dz * dz);
-
-          if (v.y >= 0.26 && distFromCenter <= 9.2) {
-            allCandidates.push({ pos: v.clone(), dist: distFromCenter, y: v.y });
-          }
+      // Cargar plantilla de árbol sin bordes negros y sincronizar árboles guardados
+      loadCleanTreeTemplate(cleanBase).then((tpl) => {
+        treeTemplateRef.current = tpl;
+        if (syncTreesRef.current && treesListRef.current) {
+          syncTreesRef.current(treesListRef.current, tpl);
         }
-
-        // Si la densidad de la malla en ese rango fuera muy baja, respaldo seguro con cota sobre el agua
-        if (allCandidates.length < 80) {
-          for (let i = 0; i < posAttr.count; i++) {
-            v.set(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
-            terrainMesh.localToWorld(v);
-            const dx = v.x - tCenter.x;
-            const dz = v.z - tCenter.z;
-            const distFromCenter = Math.sqrt(dx * dx + dz * dz);
-            if (v.y >= 0.22 && distFromCenter <= 10.5) {
-              allCandidates.push({ pos: v.clone(), dist: distFromCenter, y: v.y });
-            }
-          }
-        }
-
-        // Distribuir homogéneamente hasta 420 árboles en el centro
-        const step = Math.max(1, Math.floor(allCandidates.length / 420));
-        for (let i = 0; i < allCandidates.length && islandPoints.length < 420; i += step) {
-          islandPoints.push(allCandidates[i].pos);
-        }
-
-        if (islandPoints.length > 0) {
-          const treesGroup = new THREE.Group();
-          treesGroup.name = 'VegetationRevit';
-          treesGroupRef.current = treesGroup;
-
-          const gLoader = new GLTFLoader();
-          const treeUrl = `${cleanBase}models/tree.glb`;
-          gLoader.load(
-            treeUrl,
-            (tGltf) => {
-              const meshes = [];
-              tGltf.scene.traverse((tc) => {
-                if (tc.isMesh) {
-                  tc.castShadow = true;
-                  tc.receiveShadow = true;
-                  if (tc.material) {
-                    tc.material.side = THREE.DoubleSide;
-                    tc.material.alphaTest = 0.35;
-                    tc.material.depthWrite = true;
-                    tc.material.shadowSide = THREE.DoubleSide;
-                  }
-                  meshes.push(tc);
-                }
-              });
-
-              if (meshes.length > 0) {
-                const count = Math.min(islandPoints.length, 450);
-                const instancedList = meshes.map((m) => {
-                  const inst = new THREE.InstancedMesh(m.geometry, m.material, count);
-                  inst.castShadow = true;
-                  inst.receiveShadow = true;
-                  return inst;
-                });
-
-                const dummy = new THREE.Object3D();
-
-                for (let i = 0; i < count; i++) {
-                  const pt = islandPoints[i];
-                  // Diferentes tamaños: pequeños (arbustos), medianos y grandes
-                  const rand = Math.random();
-                  let s;
-                  if (rand < 0.35) {
-                    s = 0.05 + Math.random() * 0.04; // Pequeños
-                  } else if (rand < 0.80) {
-                    s = 0.10 + Math.random() * 0.05; // Medianos
-                  } else {
-                    s = 0.16 + Math.random() * 0.06; // Grandes
-                  }
-
-                  dummy.position.set(pt.x, pt.y, pt.z);
-                  dummy.rotation.y = Math.random() * Math.PI * 2;
-                  dummy.rotation.x = (Math.random() - 0.5) * 0.05;
-                  dummy.rotation.z = (Math.random() - 0.5) * 0.05;
-                  dummy.scale.set(s, s, s);
-                  dummy.updateMatrix();
-
-                  instancedList.forEach((inst) => {
-                    inst.setMatrixAt(i, dummy.matrix);
-                  });
-                }
-
-                instancedList.forEach((inst) => {
-                  inst.instanceMatrix.needsUpdate = true;
-                  treesGroup.add(inst);
-                });
-              }
-            },
-            undefined,
-            (err) => console.warn('Could not load tree.glb for Revit model:', err)
-          );
-
-          treesGroup.visible = !!treesVisible;
-          root.add(treesGroup);
-        }
-      }
+      });
     };
 
     // Procesar archivo 3D local del usuario (arrastrar o botón)
@@ -620,14 +581,21 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
 
     fitCtl.current = () => frameModel();
 
-    // Controles de interacción orbital con mouse/touch
+    // Controles de interacción orbital con mouse/touch y raycasting para plantar árboles
     let dragging = false;
     let px = 0;
     let py = 0;
+    let startX = 0;
+    let startY = 0;
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
     const onPointerDown = (e) => {
       dragging = true;
       px = e.clientX;
       py = e.clientY;
+      startX = e.clientX;
+      startY = e.clientY;
     };
     const onPointerMove = (e) => {
       if (!dragging) return;
@@ -637,7 +605,58 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
       py = e.clientY;
       placeCamera();
     };
-    const onPointerUp = () => { dragging = false; };
+    const onPointerUp = (e) => {
+      dragging = false;
+      const distMoved = Math.hypot(e.clientX - startX, e.clientY - startY);
+      if (distMoved < 6) {
+        // Clic en la escena 3D
+        const rect = dom.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+
+        // 1. Verificar si se hizo clic en un árbol existente para seleccionarlo
+        if (treesGroupRef.current && treesGroupRef.current.children.length > 0) {
+          const treeHits = raycaster.intersectObjects(treesGroupRef.current.children, true);
+          if (treeHits.length > 0) {
+            let cur = treeHits[0].object;
+            while (cur && !cur.userData?.treeId && cur.parent && cur.parent !== treesGroupRef.current) {
+              cur = cur.parent;
+            }
+            if (cur?.userData?.treeId) {
+              if (onSelectTreeRef.current) onSelectTreeRef.current(cur.userData.treeId);
+              return;
+            }
+          }
+        }
+
+        // 2. Si el modo plantar está activo, colocar un árbol en la superficie del terreno
+        if (isPlantingTreeRef.current && modelRef.current) {
+          const hits = raycaster.intersectObjects(modelRef.current.children, true);
+          const validHit = hits.find((h) => {
+            const name = (h.object.name || '').toLowerCase();
+            return !name.includes('water') && !name.includes('skirt') && h.point.y > 0.08;
+          });
+
+          if (validHit) {
+            const pt = validHit.point;
+            const newTree = {
+              id: 'tree_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+              x: pt.x,
+              y: pt.y - 0.01,
+              z: pt.z,
+              scale: plantScaleRef.current || 1.0,
+              rotY: Math.random() * Math.PI * 2
+            };
+            if (onAddTreeRef.current) onAddTreeRef.current(newTree);
+          } else {
+            if (onSelectTreeRef.current) onSelectTreeRef.current(null);
+          }
+        } else {
+          if (onSelectTreeRef.current) onSelectTreeRef.current(null);
+        }
+      }
+    };
     const onWheel = (e) => {
       e.preventDefault();
       sph.radius = Math.max(20, Math.min(240, sph.radius * (e.deltaY > 0 ? 1.09 : 0.91)));
@@ -777,6 +796,43 @@ export default function RevitModule() {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
+  // Herramienta de Vegetación Interactiva y Persistente
+  const [treesList, setTreesList] = useState(() => getSavedTrees(STORAGE_KEY_REVIT));
+  const [isPlantingTree, setIsPlantingTree] = useState(false);
+  const [plantScale, setPlantScale] = useState(1.0);
+  const [selectedTreeId, setSelectedTreeId] = useState(null);
+  const [showTreeToolbar, setShowTreeToolbar] = useState(false);
+
+  const selectedTree = treesList.find((t) => t.id === selectedTreeId) || null;
+
+  const handleAddTree = (newTree) => {
+    const updated = [...treesList, newTree];
+    setTreesList(updated);
+    saveTrees(STORAGE_KEY_REVIT, updated);
+    setSelectedTreeId(newTree.id);
+  };
+
+  const handleScaleChange = (treeId, newScale) => {
+    const updated = treesList.map((t) => (t.id === treeId ? { ...t, scale: newScale } : t));
+    setTreesList(updated);
+    saveTrees(STORAGE_KEY_REVIT, updated);
+  };
+
+  const handleDeleteTree = (treeId) => {
+    const updated = treesList.filter((t) => t.id !== treeId);
+    setTreesList(updated);
+    saveTrees(STORAGE_KEY_REVIT, updated);
+    setSelectedTreeId(null);
+  };
+
+  const handleClearAllTrees = () => {
+    if (window.confirm('¿Deseas eliminar todos los árboles colocados en la isla?')) {
+      setTreesList([]);
+      saveTrees(STORAGE_KEY_REVIT, []);
+      setSelectedTreeId(null);
+    }
+  };
+
   const pickView = (name) => {
     setViewPreset(name);
     setPresetNonce((n) => n + 1);
@@ -864,6 +920,11 @@ export default function RevitModule() {
           localFile={localFile}
           treesVisible={treesVisible}
           waterColor={waterColor}
+          isPlantingTree={isPlantingTree}
+          plantScale={plantScale}
+          treesList={treesList}
+          onAddTree={handleAddTree}
+          onSelectTree={setSelectedTreeId}
         />
       </div>
 
@@ -953,17 +1014,21 @@ export default function RevitModule() {
           ))}
         </div>
 
-        {/* Toggle Árboles SketchUp */}
+        {/* Herramienta de Vegetación / Plantar Árboles */}
         <button
-          onClick={() => setTreesVisible(v => !v)}
+          onClick={() => {
+            setShowTreeToolbar(v => !v);
+            if (!showTreeToolbar) setIsPlantingTree(true);
+          }}
           className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md flex items-center space-x-1.5 cursor-pointer ${
-            treesVisible
-              ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500'
-              : 'bg-white/90 border-slate-300 text-slate-700 hover:bg-white'
+            showTreeToolbar
+              ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-300'
+              : 'bg-white/90 hover:bg-white text-emerald-800 border-emerald-600/30'
           }`}
-          title="Mostrar u ocultar los árboles de SketchUp (tree+300.skp) distribuidos por toda la isla"
+          title="Herramienta para plantar y agrandar/disminuir árboles en la isla"
         >
-          <span>{treesVisible ? '🌲 Árboles SketchUp ON' : '🌱 Árboles OFF'}</span>
+          <TreePine className="w-3.5 h-3.5" />
+          <span>{showTreeToolbar ? 'Cerrar Vegetación' : '🌱 Plantar Árboles'}</span>
         </button>
 
         <button
@@ -1059,6 +1124,24 @@ export default function RevitModule() {
           )}
         </div>
       </div>
+      {/* Panel Flotante de Vegetación Interactiva */}
+      {showTreeToolbar && (
+        <div className="absolute top-16 right-4 z-40">
+          <TreePlacementToolbar
+            isPlanting={isPlantingTree}
+            setIsPlanting={setIsPlantingTree}
+            plantScale={plantScale}
+            setPlantScale={setPlantScale}
+            selectedTree={selectedTree}
+            onScaleChange={handleScaleChange}
+            onDeleteTree={handleDeleteTree}
+            onClearAll={handleClearAllTrees}
+            treesCount={treesList.length}
+            onDeselect={() => setSelectedTreeId(null)}
+            onClose={() => setShowTreeToolbar(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }

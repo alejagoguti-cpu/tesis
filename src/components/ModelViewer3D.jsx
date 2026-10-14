@@ -11,6 +11,14 @@ import waterTextureImg from '../assets/textura_agua_m5.jpg';
 import pisoTextureImg from '../assets/textura_piso_m5.png';
 import viaTextureImg from '../assets/textura_via.jpg';
 import { 
+  loadCleanTreeTemplate, 
+  buildTreeObject, 
+  getSavedTrees, 
+  saveTrees, 
+  STORAGE_KEY_CATASTRO 
+} from '../utils/treeTool.js';
+import TreePlacementToolbar from './TreePlacementToolbar.jsx';
+import { 
   Layers, 
   RotateCcw, 
   Sun, 
@@ -105,6 +113,93 @@ export default function ModelViewer3D({ onSelectModule }) {
   const [simulationSpeed, setSimulationSpeed] = useState(0.4);
   const simulationSpeedRef = useRef(0.4);
   const cartagenaTerritoryRef = useRef(null);
+
+  // Herramienta de Vegetación Interactiva y Persistente (Tierra Bomba & Catastro)
+  const [catastroTreesList, setCatastroTreesList] = useState(() => getSavedTrees(STORAGE_KEY_CATASTRO));
+  const [isPlantingTree, setIsPlantingTree] = useState(false);
+  const [treePlantScale, setTreePlantScale] = useState(1.0);
+  const [selectedCatastroTreeId, setSelectedCatastroTreeId] = useState(null);
+  const [showTreePlacementToolbar, setShowTreePlacementToolbar] = useState(false);
+
+  const isPlantingTreeRef = useRef(isPlantingTree);
+  isPlantingTreeRef.current = isPlantingTree;
+  const treePlantScaleRef = useRef(treePlantScale);
+  treePlantScaleRef.current = treePlantScale;
+  const onAddCatastroTreeRef = useRef(null);
+  const onSelectCatastroTreeRef = useRef(null);
+  const treeTemplateRef = useRef(null);
+
+  const selectedCatastroTree = catastroTreesList.find((t) => t.id === selectedCatastroTreeId) || null;
+
+  const handleAddCatastroTree = (newTree) => {
+    const updated = [...catastroTreesList, newTree];
+    setCatastroTreesList(updated);
+    saveTrees(STORAGE_KEY_CATASTRO, updated);
+    setSelectedCatastroTreeId(newTree.id);
+  };
+  onAddCatastroTreeRef.current = handleAddCatastroTree;
+
+  const handleCatastroTreeScaleChange = (treeId, newScale) => {
+    const updated = catastroTreesList.map((t) => (t.id === treeId ? { ...t, scale: newScale } : t));
+    setCatastroTreesList(updated);
+    saveTrees(STORAGE_KEY_CATASTRO, updated);
+  };
+
+  const handleCatastroTreeDelete = (treeId) => {
+    const updated = catastroTreesList.filter((t) => t.id !== treeId);
+    setCatastroTreesList(updated);
+    saveTrees(STORAGE_KEY_CATASTRO, updated);
+    setSelectedCatastroTreeId(null);
+  };
+
+  const handleCatastroTreeClearAll = () => {
+    if (window.confirm('¿Deseas eliminar todos los árboles colocados en la isla?')) {
+      setCatastroTreesList([]);
+      saveTrees(STORAGE_KEY_CATASTRO, []);
+      setSelectedCatastroTreeId(null);
+    }
+  };
+
+  onSelectCatastroTreeRef.current = (id) => {
+    setSelectedCatastroTreeId(id);
+  };
+
+  const syncCatastroTrees = (list, tpl, grp) => {
+    if (!grp || !tpl) return;
+    const existing = new Map();
+    grp.children.forEach((c) => {
+      if (c.userData?.treeId) existing.set(c.userData.treeId, c);
+    });
+    const curIds = new Set(list.map((t) => t.id));
+    existing.forEach((obj, id) => {
+      if (!curIds.has(id)) grp.remove(obj);
+    });
+    list.forEach((tData) => {
+      const obj = existing.get(tData.id);
+      if (obj) {
+        const s = tData.scale || 1.0;
+        obj.scale.set(s, s, s);
+      } else {
+        const newObj = buildTreeObject(tpl, tData);
+        grp.add(newObj);
+      }
+    });
+  };
+
+  useEffect(() => {
+    const vegGroup = cartagenaTerritoryRef.current?.vegetationGroup;
+    if (!vegGroup) return;
+    const basePath = import.meta.env.BASE_URL || '/';
+
+    if (!treeTemplateRef.current) {
+      loadCleanTreeTemplate(basePath).then((tpl) => {
+        treeTemplateRef.current = tpl;
+        syncCatastroTrees(catastroTreesList, tpl, vegGroup);
+      });
+    } else {
+      syncCatastroTrees(catastroTreesList, treeTemplateRef.current, vegGroup);
+    }
+  }, [catastroTreesList, cartagenaTerritoryRef.current]);
 
   // Módulo Interactivo: Plan Maestro Territorial (Articulación, Parque Ecológico, Colegio y Senderos)
   const [showMasterplanPanel, setShowMasterplanPanel] = useState(true);
@@ -649,10 +744,15 @@ export default function ModelViewer3D({ onSelectModule }) {
     };
     updateCameraPosition();
 
+    let startMouseDownPos = { x: 0, y: 0 };
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
     const onMouseDown = (e) => {
       isDragging = true;
       dragButton = e.button;
       prevMousePos = { x: e.clientX, y: e.clientY };
+      startMouseDownPos = { x: e.clientX, y: e.clientY };
     };
 
     const onMouseMove = (e) => {
@@ -681,8 +781,61 @@ export default function ModelViewer3D({ onSelectModule }) {
       prevMousePos = { x: e.clientX, y: e.clientY };
     };
 
-    const onMouseUp = () => {
+    const onMouseUp = (e) => {
       isDragging = false;
+      const deltaDist = Math.hypot(e.clientX - startMouseDownPos.x, e.clientY - startMouseDownPos.y);
+      if (deltaDist < 6) {
+        // Clic en la escena 3D
+        const rect = domElem.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+
+        // 1. Detectar clic en un árbol existente
+        const vegGroup = cartagenaTerritoryRef.current?.vegetationGroup;
+        if (vegGroup && vegGroup.children.length > 0) {
+          const treeHits = raycaster.intersectObjects(vegGroup.children, true);
+          if (treeHits.length > 0) {
+            let cur = treeHits[0].object;
+            while (cur && !cur.userData?.treeId && cur.parent && cur.parent !== vegGroup) {
+              cur = cur.parent;
+            }
+            if (cur?.userData?.treeId) {
+              if (onSelectCatastroTreeRef.current) onSelectCatastroTreeRef.current(cur.userData.treeId);
+              return;
+            }
+          }
+        }
+
+        // 2. Si el modo plantar está activo, raycast contra el territorio
+        if (isPlantingTreeRef.current && currentModelGroupRef.current) {
+          const hits = raycaster.intersectObjects(currentModelGroupRef.current.children, true);
+          const validHit = hits.find((h) => {
+            const name = (h.object.name || '').toLowerCase();
+            return !name.includes('water') && !name.includes('noise') && !name.includes('beacon') && !h.object.userData?.isCustomTree;
+          });
+
+          if (validHit && vegGroup) {
+            // Convertir punto de colisión al espacio local de vegGroup
+            const localPt = validHit.point.clone();
+            vegGroup.worldToLocal(localPt);
+
+            const newTree = {
+              id: 'tree_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+              x: localPt.x,
+              y: localPt.y,
+              z: localPt.z,
+              scale: treePlantScaleRef.current || 1.0,
+              rotY: Math.random() * Math.PI * 2
+            };
+            if (onAddCatastroTreeRef.current) onAddCatastroTreeRef.current(newTree);
+          } else {
+            if (onSelectCatastroTreeRef.current) onSelectCatastroTreeRef.current(null);
+          }
+        } else {
+          if (onSelectCatastroTreeRef.current) onSelectCatastroTreeRef.current(null);
+        }
+      }
     };
 
     const onContextMenu = (e) => {
@@ -1408,17 +1561,21 @@ export default function ModelViewer3D({ onSelectModule }) {
             ))}
           </div>
 
-          {/* Toggle Árboles SketchUp */}
+          {/* Herramienta de Vegetación / Plantar Árboles */}
           <button
-            onClick={() => setActiveLayers(prev => ({ ...prev, trees: !prev.trees }))}
+            onClick={() => {
+              setShowTreePlacementToolbar(v => !v);
+              if (!showTreePlacementToolbar) setIsPlantingTree(true);
+            }}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-xl border transition-all shadow-xl flex items-center space-x-1.5 cursor-pointer ${
-              activeLayers.trees
-                ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-400'
-                : 'glass-dark text-slate-400 hover:text-white border-white/10'
+              showTreePlacementToolbar
+                ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-400/50'
+                : 'glass-dark text-white hover:bg-white/20 border-white/20'
             }`}
-            title="Mostrar u ocultar los árboles de SketchUp en toda la isla"
+            title="Herramienta para plantar y editar árboles libremente en la isla"
           >
-            <span>{activeLayers.trees ? '🌲 Árboles ON' : '🌱 Árboles OFF'}</span>
+            <TreePine className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{showTreePlacementToolbar ? 'Cerrar Vegetación' : '🌱 Plantar Árboles'}</span>
           </button>
 
           {/* Toggle Rutas Marítimas */}
@@ -1435,6 +1592,25 @@ export default function ModelViewer3D({ onSelectModule }) {
             <span>{activeLayers.boats ? 'Lanchas ON' : 'Lanchas OFF'}</span>
           </button>
         </div>
+
+        {/* Panel Flotante de Vegetación Interactiva */}
+        {showTreePlacementToolbar && (
+          <div className="pt-1">
+            <TreePlacementToolbar
+              isPlanting={isPlantingTree}
+              setIsPlanting={setIsPlantingTree}
+              plantScale={treePlantScale}
+              setPlantScale={setTreePlantScale}
+              selectedTree={selectedCatastroTree}
+              onScaleChange={handleCatastroTreeScaleChange}
+              onDeleteTree={handleCatastroTreeDelete}
+              onClearAll={handleCatastroTreeClearAll}
+              treesCount={catastroTreesList.length}
+              onDeselect={() => setSelectedCatastroTreeId(null)}
+              onClose={() => setShowTreePlacementToolbar(false)}
+            />
+          </div>
+        )}
 
         {/* Panel Editor de Colores Flotante */}
         {showRightControls && (

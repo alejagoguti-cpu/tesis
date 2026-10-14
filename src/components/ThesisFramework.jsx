@@ -43,6 +43,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
+import { VULNERABLE_HOUSES_POLYGON, VULNERABLE_HOUSES_COORDS } from '../data/vulnerableHouses500';
 import calqueImage from '../assets/calque_tierrabomba.png';
 import calcoCotasImage from '../assets/calco_cotas.png';
 import calcoErosionImage from '../assets/calco_erosion.png';
@@ -254,30 +255,7 @@ export const DEFAULT_DELIMITATIONS = {
     [10.38049, -75.57590],
     [10.38059, -75.57592]
   ],
-  vulnerableHouses: [
-    // Borde Costero Oeste (de Norte a Sur hasta la línea horizontal de la Meseta Segura Lat 10.3725)
-    [10.38158, -75.57545],
-    [10.38090, -75.57640],
-    [10.38040, -75.57697],
-    [10.37950, -75.57740],
-    [10.37884, -75.57763],
-    [10.37780, -75.57815],
-    [10.37680, -75.57860],
-    [10.37550, -75.57910],
-    [10.37450, -75.57950],
-    [10.37320, -75.57990],
-    [10.37250, -75.58050], // Límite horizontal meseta segura (Sur del área de estudio)
-    
-    // Franja interna de 500m de delimitación territorial / erosión (de Sur a Norte)
-    [10.37250, -75.57680],
-    [10.37350, -75.57620],
-    [10.37480, -75.57580],
-    [10.37650, -75.57520],
-    [10.37800, -75.57480],
-    [10.37950, -75.57440],
-    [10.38080, -75.57480],
-    [10.38158, -75.57545]
-  ],
+  vulnerableHouses: VULNERABLE_HOUSES_POLYGON,
   plateau: [
     [10.37487, -75.57396],
     [10.37523, -75.57534],
@@ -505,14 +483,14 @@ export const FRAMEWORK_STEPS = [
     id: "vulnerabilidad",
     title: "3. Colegio & Viviendas en Riesgo",
     badge: "Paso 03 // Vulnerabilidad",
-    targetName: "Colegio Actual & 120 Viviendas en Borde de Socavación",
+    targetName: "Colegio Actual & 500 Viviendas en Borde de Socavación",
     center: [10.3805, -75.5761],
-    zoom: 17.5,
+    zoom: 18.2,
     highlight: "currentSchool",
     modalType: "objectives",
     btnLabel: "Objetivos de la Investigación",
-    description: "Equipamiento educativo precario en cota +1.5m y 120 viviendas atrapadas en la franja crítica de socavación marina.",
-    hint: "Alterna entre Colegio en Riesgo o 120 Viviendas en Riesgo"
+    description: "Equipamiento educativo precario en cota +1.5m y 500 viviendas atrapadas en la franja crítica de inundación y socavación marina.",
+    hint: "Alterna entre Colegio en Riesgo o 500 Viviendas en Riesgo"
   },
   {
     step: 4,
@@ -898,10 +876,10 @@ export default function ThesisFramework({ onSelectModule }) {
       cameraZoom = 13.2;
     } else if (stepIdx === 2) {
       isPolygon = true;
-      mainColor = '#dc2626';
-      glowColor = '#f87171';
-      cameraCenter = vulnerabilitySubTab === 'houses' ? [10.3735, -75.5790] : [10.3805, -75.5761];
-      cameraZoom = vulnerabilitySubTab === 'houses' ? 16.0 : 18.2;
+      mainColor = '#ef4444';
+      glowColor = '#fb7185';
+      cameraCenter = vulnerabilitySubTab === 'houses' ? [10.3765, -75.5780] : [10.3805, -75.5761];
+      cameraZoom = vulnerabilitySubTab === 'houses' ? 16.5 : 18.2;
     } else if (stepIdx === 3) {
       isPolygon = true;
       mainColor = '#0d9488';
@@ -944,7 +922,147 @@ export default function ThesisFramework({ onSelectModule }) {
     if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
     if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 3.2, color: '#f59e0b', dashArray: '6, 5', lineCap: 'round', lineJoin: 'round' });
 
-    // Instantly stabilize camera on the exact coordinates so the animation never jumps or warps
+    // Internal tracer engine
+    const runTracer = (rawCoords, isPoly, strokeColor, glowStrokeColor, onComplete) => {
+      if (!rawCoords || rawCoords.length < 2) {
+        setIsIntroAnimating(false);
+        return;
+      }
+
+      setIsIntroAnimating(true);
+      setAnimProgress(0);
+
+      const sampledCoords = resampleCoordinates(rawCoords, isPoly, 120);
+
+      const glowLine = L.polyline([], {
+        color: glowStrokeColor,
+        weight: 6,
+        opacity: 0.45,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(map);
+
+      const mainLine = L.polyline([], {
+        color: strokeColor,
+        weight: 3.5,
+        opacity: 1,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(map);
+
+      const leadIcon = L.divIcon({
+        className: 'custom-anim-lead-node',
+        html: `
+          <div class="relative flex items-center justify-center pointer-events-none">
+            <div class="absolute -inset-2 rounded-full animate-ping opacity-75" style="background-color: ${glowStrokeColor}"></div>
+            <div class="w-4 h-4 rounded-full border-2 border-white shadow-xl flex items-center justify-center" style="background-color: ${strokeColor}">
+              <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+            </div>
+          </div>
+        `,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+
+      const leadMarker = L.marker(sampledCoords[0], {
+        icon: leadIcon,
+        zIndexOffset: 3000
+      }).addTo(map);
+
+      animatingGlowRef.current = glowLine;
+      animatingLayerRef.current = mainLine;
+      tracerMarkerRef.current = leadMarker;
+
+      const totalSteps = sampledCoords.length;
+      let stepCount = 1;
+      const stepIntervalMs = 20;
+
+      animationTimerRef.current = setInterval(() => {
+        stepCount++;
+        const currentPts = sampledCoords.slice(0, stepCount);
+
+        glowLine.setLatLngs(currentPts);
+        mainLine.setLatLngs(currentPts);
+
+        const currentHead = sampledCoords[Math.min(stepCount - 1, totalSteps - 1)];
+        leadMarker.setLatLng(currentHead);
+
+        const pct = Math.min(100, Math.round((stepCount / totalSteps) * 100));
+        setAnimProgress(pct);
+
+        if (stepCount >= totalSteps) {
+          clearInterval(animationTimerRef.current);
+          animationTimerRef.current = null;
+
+          setTimeout(() => {
+            if (onComplete) onComplete();
+
+            if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
+            if (animatingLayerRef.current) map.removeLayer(animatingLayerRef.current);
+            if (tracerMarkerRef.current) map.removeLayer(tracerMarkerRef.current);
+            setIsIntroAnimating(false);
+          }, 150);
+        }
+      }, stepIntervalMs);
+    };
+
+    // SPECIAL REQUIREMENT FOR PASO 3 (Colegio):
+    // 1. Iniciar la escena desde grande como el Paso 2
+    // 2. Hacer zoom progresivo hacia el colegio sin dibujar todavía
+    // 3. Hasta que la foto satelital esté quieta y en la zona de estudio, dibujar el colegio
+    if (stepIdx === 2 && vulnerabilitySubTab !== 'houses') {
+      const islandCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
+      if (islandCoords.length > 0) {
+        const islandBounds = L.latLngBounds(islandCoords);
+        map.fitBounds(islandBounds, {
+          paddingTopLeft: [70, 70],
+          paddingBottomRight: [70, 130],
+          animate: false
+        });
+      } else {
+        map.setView([10.352, -75.568], 13.2, { animate: false });
+      }
+
+      const schoolTarget = [10.3805, -75.5761];
+      const schoolZoom = 18.2;
+
+      let hasDrawn = false;
+      const drawSchoolWhenStill = () => {
+        if (hasDrawn) return;
+        hasDrawn = true;
+        map.off('moveend', drawSchoolWhenStill);
+
+        // Esperar 350ms a que la foto satelital esté completamente quieta y nítida
+        setTimeout(() => {
+          if (!mapInstanceRef.current) return;
+          const schoolCoords = delimitations.school || DEFAULT_DELIMITATIONS.school || [];
+          runTracer(schoolCoords, true, '#f43f5e', '#fb7185', () => {
+            if (schoolLayer) {
+              schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.35, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
+            }
+          });
+        }, 350);
+      };
+
+      // Iniciar el zoom fluido después de un breve instante mostrando la vista panorámica del Paso 2
+      setTimeout(() => {
+        if (!mapInstanceRef.current) return;
+        map.once('moveend', drawSchoolWhenStill);
+        map.flyTo(schoolTarget, schoolZoom, {
+          duration: 1.8,
+          easeLinearity: 0.25
+        });
+
+        // Temporizador de respaldo por si moveend se suprime
+        setTimeout(() => {
+          if (!hasDrawn) drawSchoolWhenStill();
+        }, 2400);
+      }, 150);
+
+      return;
+    }
+
+    // Posicionamiento estándar para pasos 0, 1, 3, 4 y sub-paso de viviendas
     if (stepIdx === 0 || stepIdx === 1) {
       const islandCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
       if (islandCoords.length > 0) {
@@ -959,7 +1077,7 @@ export default function ThesisFramework({ onSelectModule }) {
       map.setView(cameraCenter, cameraZoom, { animate: false });
     }
 
-    // Stabilize for 180ms before drawing starts to ensure the map viewport is completely stationary
+    // Estabilizar 180ms antes de comenzar trazado estándar
     setTimeout(() => {
       if (!mapInstanceRef.current) return;
 
@@ -1008,100 +1126,26 @@ export default function ThesisFramework({ onSelectModule }) {
         return;
       }
 
-      // For single polygon/polyline (island, erosion, school, plateau)
+      // Trazado de polígonos / líneas estándar
       let rawCoords = [];
       if (stepIdx === 0) rawCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
       else if (stepIdx === 1) rawCoords = delimitations.erosion || DEFAULT_DELIMITATIONS.erosion || [];
-      else if (stepIdx === 2) rawCoords = (vulnerabilitySubTab === 'houses' ? delimitations.vulnerableHouses : delimitations.school) || DEFAULT_DELIMITATIONS.school || [];
+      else if (stepIdx === 2) rawCoords = delimitations.vulnerableHouses || VULNERABLE_HOUSES_POLYGON;
       else if (stepIdx === 3) rawCoords = delimitations.plateau || DEFAULT_DELIMITATIONS.plateau || [];
 
-      if (rawCoords.length < 2) return;
-
-      setIsIntroAnimating(true);
-      setAnimProgress(0);
-
-      const sampledCoords = resampleCoordinates(rawCoords, isPolygon, 120);
-
-      const glowLine = L.polyline([], {
-        color: glowColor,
-        weight: 6,
-        opacity: 0.45,
-        lineCap: 'round',
-        lineJoin: 'round'
-      }).addTo(map);
-
-      const mainLine = L.polyline([], {
-        color: mainColor,
-        weight: 3.5,
-        opacity: 1,
-        lineCap: 'round',
-        lineJoin: 'round'
-      }).addTo(map);
-
-      const leadIcon = L.divIcon({
-        className: 'custom-anim-lead-node',
-        html: `
-          <div class="relative flex items-center justify-center pointer-events-none">
-            <div class="absolute -inset-2 rounded-full animate-ping opacity-75" style="background-color: ${glowColor}"></div>
-            <div class="w-4 h-4 rounded-full border-2 border-white shadow-xl flex items-center justify-center" style="background-color: ${mainColor}">
-              <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
-            </div>
-          </div>
-        `,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10]
-      });
-
-      const leadMarker = L.marker(sampledCoords[0], {
-        icon: leadIcon,
-        zIndexOffset: 3000
-      }).addTo(map);
-
-      animatingGlowRef.current = glowLine;
-      animatingLayerRef.current = mainLine;
-      tracerMarkerRef.current = leadMarker;
-
-      const totalSteps = sampledCoords.length;
-      let stepCount = 1;
-      const stepIntervalMs = 20;
-
-      animationTimerRef.current = setInterval(() => {
-        stepCount++;
-        const currentPts = sampledCoords.slice(0, stepCount);
-
-        glowLine.setLatLngs(currentPts);
-        mainLine.setLatLngs(currentPts);
-
-        const currentHead = sampledCoords[Math.min(stepCount - 1, totalSteps - 1)];
-        leadMarker.setLatLng(currentHead);
-
-        const pct = Math.min(100, Math.round((stepCount / totalSteps) * 100));
-        setAnimProgress(pct);
-
-        if (stepCount >= totalSteps) {
-          clearInterval(animationTimerRef.current);
-          animationTimerRef.current = null;
-
-          setTimeout(() => {
-            if (stepIdx === 0 && islandLayer) {
-              islandLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#ea580c', dashArray: '6, 6' });
-            } else if (stepIdx === 1 && erosionLayer) {
-              erosionLayer.setStyle({ opacity: 1, weight: 6, color: '#dc2626', dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' });
-              const { erosionFillLayer: fillLayer } = layersRef.current || {};
-              if (fillLayer) fillLayer.setStyle({ opacity: 0.9, weight: 2, color: '#dc2626', dashArray: '6, 6', fillColor: '#dc2626', fillOpacity: 0.5 });
-            } else if (stepIdx === 2 && schoolLayer) {
-              schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.25, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
-            } else if (stepIdx === 3 && masterplanLayer) {
-              masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '6, 6' });
-            }
-
-            if (animatingGlowRef.current) map.removeLayer(animatingGlowRef.current);
-            if (animatingLayerRef.current) map.removeLayer(animatingLayerRef.current);
-            if (tracerMarkerRef.current) map.removeLayer(tracerMarkerRef.current);
-            setIsIntroAnimating(false);
-          }, 150);
+      runTracer(rawCoords, isPolygon, mainColor, glowColor, () => {
+        if (stepIdx === 0 && islandLayer) {
+          islandLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#ea580c', dashArray: '6, 6' });
+        } else if (stepIdx === 1 && erosionLayer) {
+          erosionLayer.setStyle({ opacity: 1, weight: 6, color: '#dc2626', dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' });
+          const { erosionFillLayer: fillLayer } = layersRef.current || {};
+          if (fillLayer) fillLayer.setStyle({ opacity: 0.9, weight: 2, color: '#dc2626', dashArray: '6, 6', fillColor: '#dc2626', fillOpacity: 0.5 });
+        } else if (stepIdx === 2 && vulnerableHousesLayer) {
+          vulnerableHousesLayer.setStyle({ opacity: 0.9, fillOpacity: 0.35, weight: 2.5, color: '#ef4444', dashArray: '6, 6' });
+        } else if (stepIdx === 3 && masterplanLayer) {
+          masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '6, 6' });
         }
-      }, stepIntervalMs);
+      });
     }, 180);
   };
 
@@ -1311,6 +1355,7 @@ export default function ThesisFramework({ onSelectModule }) {
       : [10.3805, -75.5761];
     const marker3 = L.marker(schoolCenter, { icon: marker3Icon, interactive: true }).addTo(map);
     marker3.on('click', () => {
+      setVulnerabilitySubTab('school');
       setCurrentStepIndex(2);
       startZoneTraceAnimation(2);
     });
@@ -1754,87 +1799,27 @@ export default function ThesisFramework({ onSelectModule }) {
         if (vulnerableHousesMarkersGroup) {
           vulnerableHousesMarkersGroup.clearLayers();
           
-          // Icono Cuadradito Rojo Nítido para cada vivienda
+          // Icono Cuadradito Rojo Nítido para cada una de las 500 viviendas
           const houseIcon = L.divIcon({
             className: 'custom-vuln-house-pin',
             html: `
-              <div class="relative flex items-center justify-center group" title="Vivienda en Riesgo Crítico (Sector Norte)">
-                <div class="w-3 h-3 bg-red-600 border border-white shadow-md rounded-[2px] transition-transform hover:scale-150"></div>
+              <div class="relative flex items-center justify-center group" title="Vivienda en Riesgo de Inundación">
+                <div class="w-2.5 h-2.5 bg-red-600 border border-white shadow-sm rounded-[1px] transition-transform hover:scale-150"></div>
               </div>
             `,
-            iconSize: [12, 12],
-            iconAnchor: [6, 6]
+            iconSize: [10, 10],
+            iconAnchor: [5, 5]
           });
 
-          // 120 Viviendas reales en riesgo dentro del Área de Estudio Norte (Punta Arena y Franja 500m sobre Lat 10.3725)
-          const VULNERABLE_HOUSES_COORDS = [
-            // Sector 1: Punta Arena Norte (35 casas)
-            [10.38148, -75.57520], [10.38135, -75.57538], [10.38120, -75.57555], [10.38105, -75.57572],
-            [10.38090, -75.57590], [10.38075, -75.57608], [10.38060, -75.57625], [10.38045, -75.57640],
-            [10.38030, -75.57655], [10.38015, -75.57670], [10.38140, -75.57490], [10.38125, -75.57505],
-            [10.38110, -75.57522], [10.38095, -75.57540], [10.38080, -75.57558], [10.38065, -75.57575],
-            [10.38050, -75.57592], [10.38035, -75.57610], [10.38020, -75.57628], [10.38005, -75.57645],
-            [10.38115, -75.57465], [10.38100, -75.57480], [10.38085, -75.57498], [10.38070, -75.57515],
-            [10.38055, -75.57532], [10.38040, -75.57550], [10.38025, -75.57568], [10.38010, -75.57585],
-            [10.37995, -75.57602], [10.37980, -75.57620], [10.38090, -75.57445], [10.38075, -75.57462],
-            [10.38060, -75.57480], [10.38045, -75.57498], [10.38030, -75.57515],
-
-            // Sector 2: Punta Arena Centro-Oeste (45 casas)
-            [10.37990, -75.57680], [10.37975, -75.57695], [10.37960, -75.57710], [10.37945, -75.57725],
-            [10.37930, -75.57740], [10.37915, -75.57755], [10.37900, -75.57770], [10.37885, -75.57785],
-            [10.37870, -75.57800], [10.37855, -75.57815], [10.37970, -75.57640], [10.37955, -75.57655],
-            [10.37940, -75.57670], [10.37925, -75.57685], [10.37910, -75.57700], [10.37895, -75.57715],
-            [10.37880, -75.57730], [10.37865, -75.57745], [10.37850, -75.57760], [10.37835, -75.57775],
-            [10.37950, -75.57600], [10.37935, -75.57615], [10.37920, -75.57630], [10.37905, -75.57645],
-            [10.37890, -75.57660], [10.37875, -75.57675], [10.37860, -75.57690], [10.37845, -75.57705],
-            [10.37830, -75.57720], [10.37815, -75.57735], [10.37920, -75.57560], [10.37905, -75.57575],
-            [10.37890, -75.57590], [10.37875, -75.57605], [10.37860, -75.57620], [10.37845, -75.57635],
-            [10.37830, -75.57650], [10.37815, -75.57665], [10.37800, -75.57680], [10.37785, -75.57695],
-            [10.37770, -75.57710], [10.37755, -75.57725], [10.37740, -75.57740], [10.37725, -75.57755],
-            [10.37710, -75.57770],
-
-            // Sector 3: Franja Costera Socavación (40 casas hacia la línea horizontal de la Meseta)
-            [10.37680, -75.57860], [10.37665, -75.57875], [10.37650, -75.57890], [10.37635, -75.57905],
-            [10.37620, -75.57920], [10.37605, -75.57935], [10.37590, -75.57950], [10.37575, -75.57965],
-            [10.37560, -75.57980], [10.37545, -75.57995], [10.37650, -75.57820], [10.37635, -75.57835],
-            [10.37620, -75.57850], [10.37605, -75.57865], [10.37590, -75.57880], [10.37575, -75.57895],
-            [10.37560, -75.57910], [10.37545, -75.57925], [10.37530, -75.57940], [10.37515, -75.57955],
-            [10.37490, -75.57930], [10.37475, -75.57945], [10.37460, -75.57960], [10.37445, -75.57975],
-            [10.37430, -75.57990], [10.37415, -75.58005], [10.37400, -75.58020], [10.37385, -75.58035],
-            [10.37370, -75.58050], [10.37355, -75.58065], [10.37340, -75.58040], [10.37325, -75.58055],
-            [10.37310, -75.58070], [10.37295, -75.58085], [10.37280, -75.58100], [10.37265, -75.58115],
-            [10.37250, -75.58130], [10.37260, -75.58010], [10.37275, -75.57990], [10.37290, -75.57970]
-          ];
-
-          VULNERABLE_HOUSES_COORDS.forEach(pt => {
-            vulnerableHousesMarkersGroup.addLayer(L.marker(pt, { icon: houseIcon, interactive: false }));
+          // 500 Viviendas reales en riesgo situadas estrictamente dentro de la franja de cota de inundación
+          VULNERABLE_HOUSES_COORDS.forEach((pt, idx) => {
+            const m = L.marker(pt, { 
+              icon: houseIcon, 
+              interactive: true,
+              title: `Vivienda #${idx + 1} en Riesgo de Inundación (Cota +1.5m)`
+            });
+            vulnerableHousesMarkersGroup.addLayer(m);
           });
-
-          // Línea horizontal divisoria a la altura del centro de la Meseta Segura (Lat 10.3725)
-          const limitLine = L.polyline([
-            [10.3725, -75.5835],
-            [10.3725, -75.5710]
-          ], {
-            color: '#38bdf8',
-            weight: 2,
-            dashArray: '5, 5',
-            opacity: 0.85
-          });
-          vulnerableHousesMarkersGroup.addLayer(limitLine);
-
-          const limitMarker = L.marker([10.3725, -75.5772], {
-            icon: L.divIcon({
-              className: 'custom-limit-line-tag',
-              html: `
-                <div class="px-2 py-0.5 rounded bg-slate-900/90 text-cyan-300 text-[9px] font-mono border border-cyan-400/40 shadow-lg whitespace-nowrap -translate-x-1/2">
-                  Línea Horizontal Meseta Segura // Límite Área de Estudio Norte ↑
-                </div>
-              `,
-              iconSize: [0, 0]
-            }),
-            interactive: false
-          });
-          vulnerableHousesMarkersGroup.addLayer(limitMarker);
         }
       }
     } else if (currentStepIndex === 3) {
@@ -2313,14 +2298,13 @@ export default function ThesisFramework({ onSelectModule }) {
         </div>
       )}
 
-      {/* Interactive Sub-Selector for Step 3: Colegio Actual vs Viviendas en Riesgo */}
+      {/* Interactive Sub-Selector for Step 3: Colegio Actual vs 500 Viviendas en Riesgo */}
       {currentStepIndex === 2 && !isEditMode && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[450] flex flex-wrap items-center justify-center gap-2 p-1.5 glass-hud rounded-2xl shadow-2xl border border-rose-500/50 animate-scale-up text-slate-900 pointer-events-auto">
           <button
             onClick={() => {
               setVulnerabilitySubTab('school');
-              const map = mapInstanceRef.current;
-              if (map) map.setView([10.3805, -75.5761], 18.2);
+              startZoneTraceAnimation(2);
             }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               vulnerabilitySubTab === 'school'
@@ -2335,16 +2319,16 @@ export default function ThesisFramework({ onSelectModule }) {
             onClick={() => {
               setVulnerabilitySubTab('houses');
               const map = mapInstanceRef.current;
-              if (map) map.setView([10.3770, -75.5765], 16.5);
+              if (map) map.flyTo([10.3765, -75.5780], 16.5, { duration: 1.2 });
             }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               vulnerabilitySubTab === 'houses'
-                ? 'bg-red-600 text-white shadow-md ring-2 ring-red-400 animate-pulse'
+                ? 'bg-red-600 text-white shadow-md ring-2 ring-red-400'
                 : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100'
             }`}
           >
             <Home className="w-3.5 h-3.5" />
-            <span>2. 120 Viviendas en Riesgo (Sector Norte &bull; Franja 500m)</span>
+            <span>2. 500 Viviendas en Riesgo (Franja de Inundación)</span>
           </button>
         </div>
       )}
@@ -3141,6 +3125,9 @@ export default function ThesisFramework({ onSelectModule }) {
                   key={step.id}
                   onClick={() => {
                     setIsPlaying(false);
+                    if (idx === 2) {
+                      setVulnerabilitySubTab('school');
+                    }
                     setCurrentStepIndex(idx);
                     startZoneTraceAnimation(idx);
                   }}
@@ -3400,7 +3387,7 @@ export default function ThesisFramework({ onSelectModule }) {
                     </div>
                     <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
                       <span className="text-[10px] font-mono text-slate-500 uppercase">Riesgo Inminente</span>
-                      <h4 className="font-serif font-bold text-lg text-terracotta-600 mt-1">120 Casas</h4>
+                      <h4 className="font-serif font-bold text-lg text-terracotta-600 mt-1">500 Casas</h4>
                     </div>
                   </div>
 
@@ -3465,6 +3452,15 @@ export default function ThesisFramework({ onSelectModule }) {
                       </div>
                     ))}
                   </div>
+
+                  {/* Summary of 500 vulnerable houses & school */}
+                  <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-mono font-bold uppercase text-rose-700">Diagnóstico Crítico de Campo</span>
+                      <h5 className="font-serif font-bold text-sm text-slate-900">500 Viviendas en Cota de Inundación & Colegio Actual</h5>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-xl bg-rose-600 text-white font-mono text-xs font-bold">Cota +1.5m</span>
+                  </div>
                 </div>
               )}
 
@@ -3476,14 +3472,14 @@ export default function ThesisFramework({ onSelectModule }) {
                       Modelo de Hábitat Resiliente & Dotacional
                     </h4>
                     <p className="text-xs sm:text-sm text-slate-700 font-sans leading-relaxed">
-                      El plan maestro organiza la vida comunitaria en torno a tres ejes fundamentales: reubicación de las 120 familias en riesgo, consolidación del equipamiento educativo-náutico y sistema de macro-aljibe pluvial para cortar la dependencia de Cartagena.
+                      El plan maestro organiza la vida comunitaria en torno a tres ejes fundamentales: reubicación de las 500 familias en riesgo, consolidación del equipamiento educativo-náutico y sistema de macro-aljibe pluvial para cortar la dependencia de Cartagena.
                     </p>
                   </div>
 
                   <div className="grid sm:grid-cols-3 gap-3">
                     <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-1">
                       <Home className="w-4 h-4 text-terracotta-600" />
-                      <h5 className="font-bold text-xs text-slate-900">120 Viviendas</h5>
+                      <h5 className="font-bold text-xs text-slate-900">500 Viviendas</h5>
                       <p className="text-[11px] text-slate-600">Módulos de madera y BTC sobre pilotes (+0.60m).</p>
                     </div>
                     <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-1">
