@@ -56,9 +56,15 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
-  TreePine,
   Map
 } from 'lucide-react';
+
+const TreeIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2a1 1 0 0 1-.8-1.7L12 3l4 4.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17z" />
+    <path d="M12 22v-3" />
+  </svg>
+);
 
 export const DEFAULT_M5_PALETTE = {
   grass: '#ffffff',
@@ -136,6 +142,12 @@ export default function ModelViewer3D({ onSelectModule }) {
     setCatastroTreesList(updated);
     saveTrees(STORAGE_KEY_CATASTRO, updated);
     setSelectedCatastroTreeId(newTree.id);
+
+    const vegGroup = cartagenaTerritoryRef.current?.vegetationGroup;
+    if (vegGroup && treeTemplateRef.current) {
+      const newObj = buildTreeObject(treeTemplateRef.current, newTree);
+      vegGroup.add(newObj);
+    }
   };
   onAddCatastroTreeRef.current = handleAddCatastroTree;
 
@@ -143,6 +155,12 @@ export default function ModelViewer3D({ onSelectModule }) {
     const updated = catastroTreesList.map((t) => (t.id === treeId ? { ...t, scale: newScale } : t));
     setCatastroTreesList(updated);
     saveTrees(STORAGE_KEY_CATASTRO, updated);
+
+    const vegGroup = cartagenaTerritoryRef.current?.vegetationGroup;
+    if (vegGroup) {
+      const obj = vegGroup.children.find(c => c.userData?.treeId === treeId);
+      if (obj) obj.scale.set(newScale, newScale, newScale);
+    }
   };
 
   const handleCatastroTreeDelete = (treeId) => {
@@ -150,6 +168,12 @@ export default function ModelViewer3D({ onSelectModule }) {
     setCatastroTreesList(updated);
     saveTrees(STORAGE_KEY_CATASTRO, updated);
     setSelectedCatastroTreeId(null);
+
+    const vegGroup = cartagenaTerritoryRef.current?.vegetationGroup;
+    if (vegGroup) {
+      const obj = vegGroup.children.find(c => c.userData?.treeId === treeId);
+      if (obj) vegGroup.remove(obj);
+    }
   };
 
   const handleCatastroTreeClearAll = () => {
@@ -157,6 +181,12 @@ export default function ModelViewer3D({ onSelectModule }) {
       setCatastroTreesList([]);
       saveTrees(STORAGE_KEY_CATASTRO, []);
       setSelectedCatastroTreeId(null);
+
+      const vegGroup = cartagenaTerritoryRef.current?.vegetationGroup;
+      if (vegGroup) {
+        const toRemove = vegGroup.children.filter(c => c.userData?.treeId);
+        toRemove.forEach(c => vegGroup.remove(c));
+      }
     }
   };
 
@@ -195,11 +225,13 @@ export default function ModelViewer3D({ onSelectModule }) {
       loadCleanTreeTemplate(basePath).then((tpl) => {
         treeTemplateRef.current = tpl;
         syncCatastroTrees(catastroTreesList, tpl, vegGroup);
+      }).catch(err => {
+        console.warn("Could not load tree template:", err);
       });
     } else {
       syncCatastroTrees(catastroTreesList, treeTemplateRef.current, vegGroup);
     }
-  }, [catastroTreesList, cartagenaTerritoryRef.current]);
+  }, [catastroTreesList]);
 
   // Módulo Interactivo: Plan Maestro Territorial (Articulación, Parque Ecológico, Colegio y Senderos)
   const [showMasterplanPanel, setShowMasterplanPanel] = useState(true);
@@ -1474,8 +1506,8 @@ export default function ModelViewer3D({ onSelectModule }) {
 
   return (
     <div 
-      className={`relative w-full h-screen overflow-hidden animate-fade-in select-none bg-slate-950 ${
-        isDragOver ? 'ring-4 ring-teal-400 ring-inset' : ''
+      className={`relative w-full h-screen overflow-hidden animate-fade-in select-none bg-[#f8fafc] ${
+        isDragOver ? 'ring-4 ring-amber-400 ring-inset' : ''
       }`}
       onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
       onDragLeave={() => setIsDragOver(false)}
@@ -1497,99 +1529,54 @@ export default function ModelViewer3D({ onSelectModule }) {
 
       {/* Drag & Drop Overlay */}
       {isDragOver && (
-        <div className="absolute inset-0 bg-teal-950/80 backdrop-blur-md z-[500] flex flex-col items-center justify-center p-6 text-white pointer-events-none animate-fade-in">
-          <div className="w-20 h-20 rounded-3xl bg-teal-500/20 border-2 border-teal-400 flex items-center justify-center mb-4 animate-bounce">
-            <UploadCloud className="w-10 h-10 text-teal-300" />
+        <div className="absolute inset-0 bg-white/90 backdrop-blur-md z-[500] flex flex-col items-center justify-center p-6 text-slate-800 pointer-events-none animate-fade-in">
+          <div className="w-20 h-20 rounded-3xl bg-amber-50 border-2 border-amber-400 flex items-center justify-center mb-4 animate-bounce">
+            <UploadCloud className="w-10 h-10 text-amber-600" />
           </div>
-          <h3 className="font-bold text-2xl text-white">Suelta tu archivo de Revit (.glb / .gltf / .obj) aquí</h3>
-          <p className="text-sm text-teal-200 mt-2 font-mono">Se cargará e iluminará en 3D en tiempo real</p>
+          <h3 className="font-bold text-2xl text-slate-900">Suelta tu archivo de Revit (.glb / .gltf / .obj) aquí</h3>
+          <p className="text-sm text-slate-600 mt-2 font-sans">Se cargará e iluminará en 3D en tiempo real</p>
         </div>
       )}
-
-
 
       {/* 1. FULLSCREEN 3D WEBGL CANVAS */}
       <div ref={mountRef} className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing z-0" />
 
       {/* ========================================================================= */}
-      {/* 2. CONTROLES MINIMALISTAS: ESTUDIO SOLAR & AXONOMETRÍA                    */}
+      {/* 2. CONTROLES MINIMALISTAS: VEGETACIÓN 3D & CARGA                           */}
       {/* ========================================================================= */}
 
       {/* Loading Indicator */}
       {isLoadingFile && (
-        <div className="absolute top-4 left-4 z-[400] glass-dark px-4 py-2.5 rounded-2xl text-xs font-mono text-white flex items-center space-x-2.5 border border-white/10 shadow-2xl pointer-events-none animate-fade-in backdrop-blur-xl">
-          <div className="w-3.5 h-3.5 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
-          <span>{loadPhase || 'Cargando axonometría territorial...'}</span>
+        <div className="absolute top-4 left-4 z-[400] bg-white/95 px-4 py-2.5 rounded-2xl text-xs font-sans text-slate-700 flex items-center space-x-2.5 border border-slate-200/90 shadow-lg pointer-events-none animate-fade-in backdrop-blur-xl">
+          <div className="w-3.5 h-3.5 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+          <span className="font-medium">{loadPhase || 'Cargando axonometría territorial...'}</span>
         </div>
       )}
 
-      {/* Floating Top-Left Controls: Color Editor & Layer Toggles */}
+      {/* Floating Top-Left Controls: Vegetación Nativa 3D */}
       <div className="absolute top-4 left-4 z-[400] flex flex-col space-y-2 pointer-events-auto animate-fade-in">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Botón Paleta de Materiales & Mar */}
-          <button
-            onClick={() => setShowRightControls(v => !v)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-xl border transition-all shadow-xl flex items-center space-x-1.5 cursor-pointer ${
-              showRightControls
-                ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-400/50'
-                : 'glass-dark text-white hover:bg-white/20 border-white/20'
-            }`}
-            title="Abrir Editor de Colores de Materiales (Pasto, Mar Caribe, Pavimento, Edificios, Vías)"
-          >
-            <Palette className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{showRightControls ? 'Ocultar Paleta' : '🎨 Cambiar Colores'}</span>
-          </button>
-
-          {/* Quick Mar Caribe Presets */}
-          <div className="flex items-center space-x-1 glass-dark px-2 py-1 rounded-xl border border-white/10 shadow-xl backdrop-blur-xl">
-            <span className="text-[10px] font-mono text-slate-300 font-bold pr-1">Mar:</span>
-            {[
-              { label: 'Celeste Clarito Caribe', color: '#b5ebf5' },
-              { label: 'Turquesa Suave', color: '#8dc8d2' },
-              { label: 'Celeste Luminoso', color: '#58c4dc' },
-              { label: 'Bahía Esmeralda', color: '#4fa8b2' }
-            ].map(p => (
-              <button
-                key={p.color}
-                onClick={() => setWaterColor(p.color)}
-                style={{ backgroundColor: p.color }}
-                className={`w-5 h-5 rounded-lg border-2 transition-transform hover:scale-110 cursor-pointer ${
-                  waterColor === p.color ? 'border-white ring-2 ring-emerald-400 scale-105' : 'border-white/40'
-                }`}
-                title={`Cambiar mar a ${p.label}`}
-              />
-            ))}
-          </div>
-
-          {/* Herramienta de Vegetación / Plantar Árboles */}
+        <div className="flex items-center space-x-2">
           <button
             onClick={() => {
               setShowTreePlacementToolbar(v => !v);
               if (!showTreePlacementToolbar) setIsPlantingTree(true);
             }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-xl border transition-all shadow-xl flex items-center space-x-1.5 cursor-pointer ${
+            className={`px-3.5 py-2 rounded-2xl text-xs font-sans font-semibold backdrop-blur-xl border transition-all shadow-md flex items-center space-x-2 cursor-pointer ${
               showTreePlacementToolbar
-                ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-400/50'
-                : 'glass-dark text-white hover:bg-white/20 border-white/20'
+                ? 'bg-emerald-600 text-white border-emerald-600 ring-2 ring-emerald-300 shadow-emerald-600/20'
+                : 'bg-white/95 hover:bg-slate-50 text-slate-800 border-slate-200/90'
             }`}
-            title="Herramienta para plantar y editar árboles libremente en la isla"
+            title="Herramienta para plantar, escalar y editar árboles libremente en la isla"
           >
-            <TreePine className="w-3.5 h-3.5 text-emerald-400" />
+            <TreeIcon className={`w-4 h-4 ${showTreePlacementToolbar ? 'text-white' : 'text-emerald-600'}`} />
             <span>{showTreePlacementToolbar ? 'Cerrar Vegetación' : '🌱 Plantar Árboles'}</span>
-          </button>
-
-          {/* Toggle Rutas Marítimas */}
-          <button
-            onClick={() => setActiveLayers(prev => ({ ...prev, boats: !prev.boats }))}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-xl border transition-all shadow-xl flex items-center space-x-1.5 cursor-pointer ${
-              activeLayers.boats
-                ? 'bg-cyan-600 hover:bg-cyan-500 text-white border-cyan-400'
-                : 'glass-dark text-slate-400 hover:text-white border-white/10'
-            }`}
-            title="Mostrar u ocultar lanchas y rutas náuticas"
-          >
-            <Ship className="w-3.5 h-3.5" />
-            <span>{activeLayers.boats ? 'Lanchas ON' : 'Lanchas OFF'}</span>
+            {catastroTreesList.length > 0 && (
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-1 ${
+                showTreePlacementToolbar ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {catastroTreesList.length}
+              </span>
+            )}
           </button>
         </div>
 
@@ -1611,148 +1598,33 @@ export default function ModelViewer3D({ onSelectModule }) {
             />
           </div>
         )}
-
-        {/* Panel Editor de Colores Flotante */}
-        {showRightControls && (
-          <div className="glass-dark p-3.5 rounded-2xl space-y-3 text-white w-72 shadow-2xl border border-white/15 backdrop-blur-2xl animate-fade-in">
-            <div className="flex items-center justify-between border-b border-white/10 pb-2">
-              <span className="text-xs font-mono font-bold flex items-center gap-1.5 text-emerald-400">
-                <Palette className="w-3.5 h-3.5" />
-                <span>Paleta de Materialidad 3D</span>
-              </span>
-              <button
-                onClick={() => setShowRightControls(false)}
-                className="text-slate-400 hover:text-white text-xs cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Mar Caribe */}
-            <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-300">Mar Caribe / Agua:</span>
-                <input
-                  type="color"
-                  value={waterColor}
-                  onChange={(e) => setWaterColor(e.target.value)}
-                  className="w-7 h-6 rounded cursor-pointer border border-white/20 bg-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Pasto / Vegetación */}
-            <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-300">Pasto / Terreno Isla:</span>
-                <input
-                  type="color"
-                  value={grassColor}
-                  onChange={(e) => setGrassColor(e.target.value)}
-                  className="w-7 h-6 rounded cursor-pointer border border-white/20 bg-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Manzanas / Pavimento */}
-            <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-300">Piso / Manzanas:</span>
-                <input
-                  type="color"
-                  value={pavementColor}
-                  onChange={(e) => setPavementColor(e.target.value)}
-                  className="w-7 h-6 rounded cursor-pointer border border-white/20 bg-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Vías / Caminos */}
-            <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-300">Vías / Asfalto:</span>
-                <input
-                  type="color"
-                  value={roadColor}
-                  onChange={(e) => setRoadColor(e.target.value)}
-                  className="w-7 h-6 rounded cursor-pointer border border-white/20 bg-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Edificios */}
-            <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-300">Casas / Edificios:</span>
-                <input
-                  type="color"
-                  value={buildingColor}
-                  onChange={(e) => setBuildingColor(e.target.value)}
-                  className="w-7 h-6 rounded cursor-pointer border border-white/20 bg-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Cubiertas */}
-            <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-300">Tejas / Cubiertas:</span>
-                <input
-                  type="color"
-                  value={roofColor}
-                  onChange={(e) => setRoofColor(e.target.value)}
-                  className="w-7 h-6 rounded cursor-pointer border border-white/20 bg-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Botones de acción */}
-            <div className="flex items-center space-x-2 pt-1 border-t border-white/10">
-              <button
-                onClick={handleSavePermanentColors}
-                className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-[11px] font-bold flex items-center justify-center space-x-1 cursor-pointer transition-all shadow-md"
-              >
-                <Save className="w-3.5 h-3.5" />
-                <span>{saveColorsToast ? '✓ Guardado' : 'Guardar'}</span>
-              </button>
-              <button
-                onClick={handleResetDefaultColors}
-                className="py-1.5 px-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white font-mono text-[11px] flex items-center justify-center space-x-1 cursor-pointer transition-all"
-                title="Restablecer colores predeterminados"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Restablecer</span>
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. TOOLTIP & TARJETA INTERACTIVA ANIMADA: PLAN MAESTRO & PARQUE ECOLÓGICO */}
+      {/* 3. TARJETA EDITORIAL BLANCA: PROPUESTA TERRITORIAL & PLAN MAESTRO 2026      */}
       {/* ========================================================================= */}
       {showMasterplanPanel && (
-        <div className="absolute top-4 right-4 z-[450] w-96 max-w-[calc(100vw-2rem)] pointer-events-auto animate-fade-in font-sans">
-          <div className="glass-dark rounded-3xl p-5 text-white shadow-2xl border border-white/15 backdrop-blur-2xl transition-all duration-300">
+        <div className="absolute top-4 right-4 z-[450] w-[430px] max-w-[calc(100vw-2rem)] pointer-events-auto animate-fade-in font-sans">
+          <div className="bg-white/95 rounded-3xl p-5 text-slate-800 shadow-2xl border border-slate-200/90 backdrop-blur-xl transition-all duration-300 max-h-[88vh] overflow-y-auto">
             
             {/* Header con Badge y Botón de Minimizar */}
-            <div className="flex items-start justify-between border-b border-white/10 pb-3 mb-3">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-400 flex items-center justify-center text-teal-300 shadow-sm animate-pulse">
-                  <Compass className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 shadow-sm">
+                  <Compass className="w-4 h-4 text-amber-600" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-teal-400 font-bold block">
-                    Propuesta Territorial 2026
+                  <span className="text-[10px] uppercase tracking-wider text-amber-700 font-bold block">
+                    Propuesta Territorial 2026 // Tesis
                   </span>
-                  <h3 className="font-bold text-sm text-white">
+                  <h3 className="font-bold text-sm text-slate-900">
                     Plan Maestro Tierra Bomba
                   </h3>
                 </div>
               </div>
               <button
                 onClick={() => setShowMasterplanPanel(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer text-xs font-mono"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer text-xs"
                 title="Minimizar panel del Plan Maestro"
               >
                 ✕
@@ -1760,142 +1632,164 @@ export default function ModelViewer3D({ onSelectModule }) {
             </div>
 
             {/* Párrafo Introductorio Oficial */}
-            <p className="text-[11px] leading-relaxed text-slate-200 mb-3 bg-white/5 p-2.5 rounded-xl border border-white/5">
-              El <b>plan maestro</b> representa la articulación territorial de nuestra propuesta: organiza áreas residenciales, equipamiento educativo y espacios colectivos en relación con los asentamientos existentes evaluando la seguridad del suelo, topografía, accesibilidad y condiciones ambientales.
-            </p>
+            <div className="text-[11.5px] leading-relaxed text-slate-700 mb-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/70">
+              <p className="font-semibold text-slate-900 mb-1">
+                El plan maestro representa la articulación territorial de nuestra propuesta.
+              </p>
+              <p className="text-slate-600 text-[11px]">
+                Su primera función es identificar cómo podrían organizarse las áreas residenciales, el equipamiento educativo y los espacios colectivos en relación con los asentamientos existentes.
+              </p>
+            </div>
 
-            {/* Tabs / Pasos del Tour con Iconos */}
-            <div className="grid grid-cols-5 gap-1 mb-3 p-1 rounded-xl bg-black/30 border border-white/5">
+            {/* Tabs / Pasos del Tour con Botones Estilizados */}
+            <div className="grid grid-cols-5 gap-1 mb-3 p-1 rounded-2xl bg-slate-100 border border-slate-200/60">
               {[
-                { label: 'Eje', icon: Home, idx: 0, title: 'Organización' },
-                { label: 'Riesgo', icon: ShieldCheck, idx: 1, title: 'Reubicación' },
-                { label: 'Rutas', icon: Map, idx: 2, title: 'Senderos' },
-                { label: 'Parque', icon: TreePine, idx: 3, title: 'Parque Ecológico' },
-                { label: 'Colegio', icon: GraduationCap, idx: 4, title: 'Articulación' },
+                { label: 'Vías', idx: 0, title: 'Articulación y Vías' },
+                { label: 'Colegio', idx: 1, title: 'Colegio en Meseta' },
+                { label: 'Vivienda', idx: 2, title: 'Reubicación y Suelo' },
+                { label: 'Senderos', idx: 3, title: 'Recorridos Peatonales' },
+                { label: 'Parque', idx: 4, title: 'Parque Ecológico' },
               ].map(tab => {
-                const Icon = tab.icon;
                 const isActive = activeMasterplanStep === tab.idx;
                 return (
                   <button
                     key={tab.idx}
                     onClick={() => setActiveMasterplanStep(tab.idx)}
-                    className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-lg text-[10px] font-mono transition-all cursor-pointer ${
+                    className={`py-1.5 px-1 rounded-xl text-[10.5px] transition-all cursor-pointer font-medium text-center ${
                       isActive 
-                        ? 'bg-teal-500 text-slate-950 font-bold shadow-md scale-102' 
-                        : 'text-slate-300 hover:text-white hover:bg-white/10'
+                        ? 'bg-amber-500 text-white font-bold shadow-md' 
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
                     }`}
                     title={tab.title}
                   >
-                    <Icon className="w-3.5 h-3.5 mb-0.5" />
-                    <span>{tab.label}</span>
+                    {tab.label}
                   </button>
                 );
               })}
             </div>
 
             {/* Contenido Dinámico según el Paso Seleccionado */}
-            <div className="space-y-2.5 min-h-[140px]">
+            <div className="space-y-3 min-h-[160px] text-xs">
               {activeMasterplanStep === 0 && (
-                <div className="animate-fade-in space-y-2 text-xs">
-                  <div className="flex items-center space-x-2 text-teal-300 font-bold font-mono text-[11px]">
-                    <span className="w-2 h-2 rounded-full bg-teal-400 animate-ping" />
-                    <span>1. Organización Territorial & Suelo Seguro</span>
+                <div className="animate-fade-in space-y-2.5">
+                  <div className="flex items-center space-x-2 text-amber-800 font-bold text-xs bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-xl">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                    <span>1. Articulación Territorial & Red Vial</span>
                   </div>
-                  <ul className="space-y-1.5 text-slate-200 text-[11px] leading-snug">
-                    <li className="flex items-start space-x-1.5">
-                      <span className="text-teal-400 font-bold">➔</span>
-                      <span><b>Localización estratégica:</b> Evaluación de seguridad del suelo, topografía (+22m cota resiliente) y accesibilidad.</span>
-                    </li>
-                    <li className="flex items-start space-x-1.5">
-                      <span className="text-teal-400 font-bold">➔</span>
-                      <span><b>Disponibilidad de servicios:</b> Proximidad a las actividades cotidianas, pesca responsable y dinámica comunitaria.</span>
-                    </li>
-                  </ul>
+                  <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                    Para determinar su localización, proponemos evaluar la seguridad del suelo, la topografía, la accesibilidad, las condiciones ambientales, la disponibilidad de servicios y la cercanía a las actividades cotidianas de la comunidad.
+                  </p>
+                  <div className="bg-amber-50/70 rounded-xl p-2.5 border border-amber-200/60 space-y-1.5 text-[11px] text-slate-700">
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-amber-600 font-bold">➔</span>
+                      <span><b>Vías estructurantes (amarillo en 3D):</b> Trazado del Paso 5 que articula el asentamiento costero de Punta Arenas con el altiplano de la meseta (+22m).</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-amber-600 font-bold">➔</span>
+                      <span><b>Conectividad integral:</b> Vincula las actividades productivas y pesqueras cotidianas con la nueva infraestructura resiliente.</span>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {activeMasterplanStep === 1 && (
-                <div className="animate-fade-in space-y-2 text-xs">
-                  <div className="flex items-center space-x-2 text-rose-300 font-bold font-mono text-[11px]">
-                    <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping" />
-                    <span>2. Reubicación y Mitigación de Riesgo</span>
+                <div className="animate-fade-in space-y-2.5">
+                  <div className="flex items-center space-x-2 text-purple-800 font-bold text-xs bg-purple-50 border border-purple-200 px-2.5 py-1 rounded-xl">
+                    <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping" />
+                    <span>2. Equipamiento Educativo Adentro de la Meseta</span>
                   </div>
-                  <ul className="space-y-1.5 text-slate-200 text-[11px] leading-snug">
-                    <li className="flex items-start space-x-1.5">
-                      <span className="text-rose-400 font-bold">➔</span>
-                      <span><b>Hogares en riesgo:</b> Reubicación respaldada de familias cuyas viviendas no puedan mantenerse seguras por erosión costera (franja 500m).</span>
-                    </li>
-                    <li className="flex items-start space-x-1.5">
-                      <span className="text-rose-400 font-bold">➔</span>
-                      <span><b>Criterio de suelo liberado:</b> Las áreas desalojadas se integran al parque ecológico de conservación y <b>no volverán a ser ocupadas</b>.</span>
-                    </li>
-                  </ul>
+                  <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                    De esta forma, el colegio se convierte en un punto de articulación entre la comunidad y el parque: un lugar desde donde se aprende a cuidar el territorio que se habita.
+                  </p>
+                  <div className="bg-purple-50/70 rounded-xl p-2.5 border border-purple-200/60 space-y-1.5 text-[11px] text-slate-700">
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-purple-600 font-bold">➔</span>
+                      <span><b>Cota segura (+22m):</b> Implantado adentro de la meseta, protegido de inundaciones por pleamar y socavación marina.</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-purple-600 font-bold">➔</span>
+                      <span><b>Diferenciación espacial:</b> Separa con claridad las áreas educativas de acceso controlado de los espacios de encuentro comunitario libre.</span>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {activeMasterplanStep === 2 && (
-                <div className="animate-fade-in space-y-2 text-xs">
-                  <div className="flex items-center space-x-2 text-cyan-300 font-bold font-mono text-[11px]">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                    <span>3. Senderos Peatonales & Espacio Colectivo</span>
+                <div className="animate-fade-in space-y-2.5">
+                  <div className="flex items-center space-x-2 text-sky-800 font-bold text-xs bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-xl">
+                    <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping" />
+                    <span>3. Reubicación Habitacional & Suelo Seguro</span>
                   </div>
-                  <ul className="space-y-1.5 text-slate-200 text-[11px] leading-snug">
-                    <li className="flex items-start space-x-1.5">
-                      <span className="text-cyan-400 font-bold">➔</span>
-                      <span><b>Recorridos peatonales claros:</b> Conectan las viviendas con el colegio, plazas colectivas y el muelle de conectividad limpia.</span>
-                    </li>
-                    <li className="flex items-start space-x-1.5">
-                      <span className="text-cyan-400 font-bold">➔</span>
-                      <span><b>Gradiente de privacidad:</b> Clara diferenciación entre espacios privados, áreas educativas de acceso controlado y lugares de encuentro común.</span>
-                    </li>
-                  </ul>
+                  <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                    Uno de los componentes del proyecto es la posible reubicación de familias cuyas viviendas no puedan mantenerse de forma segura en su localización original.
+                  </p>
+                  <div className="bg-sky-50/70 rounded-xl p-2.5 border border-sky-200/60 space-y-1.5 text-[11px] text-slate-700">
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-sky-600 font-bold">➔</span>
+                      <span><b>Estudios de respaldo:</b> Decisión respaldada por la identificación de hogares afectados y estudios para comparar alternativas de mejoramiento, adaptación o traslado.</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-sky-600 font-bold">➔</span>
+                      <span><b>Suelos liberados:</b> Las áreas liberadas por una eventual reubicación se integran al parque y <b>no volverán a ocuparse</b>.</span>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {activeMasterplanStep === 3 && (
-                <div className="animate-fade-in space-y-2 text-xs">
-                  <div className="flex items-center space-x-2 text-emerald-300 font-bold font-mono text-[11px]">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    <span>4. Visión de Futuro: Parque Ecológico Insular</span>
+                <div className="animate-fade-in space-y-2.5">
+                  <div className="flex items-center space-x-2 text-teal-800 font-bold text-xs bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-xl">
+                    <span className="w-2 h-2 rounded-full bg-teal-500 animate-ping" />
+                    <span>4. Recorridos Peatonales & Espacios Colectivos</span>
                   </div>
-                  <ul className="space-y-1.5 text-slate-200 text-[11px] leading-snug">
-                    <li className="flex items-start space-x-1.5">
-                      <span className="text-emerald-400 font-bold">➔</span>
-                      <span><b>Barreras naturales:</b> Protección y restauración de ecosistemas costeros (manglares, playas y vegetación nativa frente al mar).</span>
-                    </li>
-                    <li className="flex items-start space-x-1.5">
-                      <span className="text-emerald-400 font-bold">➔</span>
-                      <span><b>Ecoturismo y pesca:</b> Oportunidades sostenibles para los habitantes sin desplazar a la comunidad.</span>
-                    </li>
-                  </ul>
+                  <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                    La organización del plan maestro busca conectar las viviendas con el colegio y los espacios públicos mediante recorridos peatonales claros. También buscamos diferenciar los espacios privados, las áreas educativas de acceso controlado y los lugares de encuentro comunitario.
+                  </p>
+                  <div className="bg-teal-50/70 rounded-xl p-2.5 border border-teal-200/60 space-y-1.5 text-[11px] text-slate-700">
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-teal-600 font-bold">➔</span>
+                      <span><b>Recorridos paisajísticos:</b> Senderos que conectan los asentamientos, el colegio y los espacios comunitarios con el paisaje insular.</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-teal-600 font-bold">➔</span>
+                      <span><b>Patrimonio histórico:</b> Senderos que permiten reconocer el patrimonio cultural y vestigios militares de la isla.</span>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {activeMasterplanStep === 4 && (
-                <div className="animate-fade-in space-y-2 text-xs">
-                  <div className="flex items-center space-x-2 text-purple-300 font-bold font-mono text-[11px]">
-                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
-                    <span>5. El Colegio como Nodo de Articulación</span>
+                <div className="animate-fade-in space-y-2.5">
+                  <div className="flex items-center space-x-2 text-emerald-800 font-bold text-xs bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                    <span>5. Visión de Futuro: Parque Ecológico Insular</span>
                   </div>
-                  <ul className="space-y-1.5 text-slate-200 text-[11px] leading-snug">
-                    <li className="flex items-start space-x-1.5">
-                      <span className="text-purple-400 font-bold">➔</span>
-                      <span><b>Punto de encuentro:</b> Articula la comunidad con el parque ecológico: un lugar desde donde se aprende a cuidar el territorio.</span>
-                    </li>
-                    <li className="flex items-start space-x-1.5">
-                      <span className="text-purple-400 font-bold">➔</span>
-                      <span><b>Estructura integrada:</b> Vivienda, educación, espacio público y naturaleza como un <b>mismo sistema simbiótico</b>.</span>
-                    </li>
-                  </ul>
+                  <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                    Estas decisiones se enmarcan en una visión de largo plazo: proyectamos el futuro de Tierra Bomba como un parque ecológico porque enfrenta presiones como la erosión costera, la pérdida de ecosistemas y la ocupación de zonas de riesgo. El parque ecológico no busca desplazar a la comunidad, sino ordenar la relación entre las personas y el territorio.
+                  </p>
+                  <div className="bg-emerald-50/70 rounded-xl p-2.5 border border-emerald-200/60 space-y-1.5 text-[11px] text-slate-700">
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-emerald-600 font-bold">➔</span>
+                      <span><b>Barreras naturales:</b> Protección y restauración de ecosistemas costeros (manglares, playas y vegetación nativa).</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-emerald-600 font-bold">➔</span>
+                      <span><b>Economía sostenible:</b> Educación ambiental, ecoturismo comunitario y pesca responsable que generen oportunidades reales.</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-emerald-600 font-bold">➔</span>
+                      <span><b>Estructura integrada:</b> Vivienda, educación, espacio público y naturaleza como parte de un mismo sistema y no edificios independientes.</span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Navegación Siguiente / Anterior */}
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/10">
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
               <button
                 onClick={() => setActiveMasterplanStep(s => (s > 0 ? s - 1 : 4))}
-                className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 text-[11px] font-mono flex items-center space-x-1 cursor-pointer transition-colors"
+                className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium flex items-center space-x-1 cursor-pointer transition-colors"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span>Anterior</span>
@@ -1905,15 +1799,15 @@ export default function ModelViewer3D({ onSelectModule }) {
                   <button
                     key={idx}
                     onClick={() => setActiveMasterplanStep(idx)}
-                    className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
-                      activeMasterplanStep === idx ? 'bg-teal-400 w-4' : 'bg-white/20'
+                    className={`h-2 rounded-full transition-all cursor-pointer ${
+                      activeMasterplanStep === idx ? 'bg-amber-500 w-4' : 'bg-slate-300 w-2'
                     }`}
                   />
                 ))}
               </div>
               <button
                 onClick={() => setActiveMasterplanStep(s => (s < 4 ? s + 1 : 0))}
-                className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-bold text-[11px] font-mono flex items-center space-x-1 cursor-pointer transition-colors shadow-sm"
+                className="px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] flex items-center space-x-1 cursor-pointer transition-colors shadow-sm"
               >
                 <span>Siguiente</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -1928,21 +1822,21 @@ export default function ModelViewer3D({ onSelectModule }) {
       {!showMasterplanPanel && (
         <button
           onClick={() => setShowMasterplanPanel(true)}
-          className="absolute top-4 right-4 z-[400] glass-dark px-3 py-1.5 rounded-xl text-xs font-mono font-bold text-teal-300 border border-teal-400/40 shadow-2xl flex items-center space-x-1.5 hover:bg-white/20 transition-all cursor-pointer animate-fade-in"
+          className="absolute top-4 right-4 z-[400] bg-white/95 px-3.5 py-2 rounded-2xl text-xs font-sans font-semibold text-slate-800 border border-slate-200/90 shadow-lg flex items-center space-x-2 hover:bg-slate-50 transition-all cursor-pointer animate-fade-in"
         >
-          <Compass className="w-3.5 h-3.5 text-teal-400" />
-          <span>📍 Ver Plan Maestro & Puntos Clave</span>
+          <Compass className="w-4 h-4 text-amber-600" />
+          <span>📍 Plan Maestro Territorial</span>
         </button>
       )}
 
       {/* Floating Bottom Center: Orbit & Zoom Instruction Pill */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[400] pointer-events-none hidden md:block">
-        <div className="glass-dark px-4 py-2 rounded-2xl text-xs font-mono text-slate-300 flex items-center space-x-4 shadow-xl border border-white/10 backdrop-blur-xl">
-          <span className="flex items-center space-x-1.5"><RotateCcw className="w-3.5 h-3.5 text-amber-300" /><span><b>Arrastrar:</b> Girar</span></span>
-          <span className="text-slate-600">|</span>
-          <span className="flex items-center space-x-1.5"><Maximize2 className="w-3.5 h-3.5 text-amber-300" /><span><b>Scroll:</b> Zoom</span></span>
-          <span className="text-slate-600">|</span>
-          <span className="flex items-center space-x-1.5"><Sliders className="w-3.5 h-3.5 text-amber-300" /><span><b>Clic Derecho:</b> Mover</span></span>
+        <div className="bg-white/90 px-4 py-2 rounded-2xl text-xs font-sans text-slate-600 flex items-center space-x-4 shadow-lg border border-slate-200/80 backdrop-blur-md">
+          <span className="flex items-center space-x-1.5"><RotateCcw className="w-3.5 h-3.5 text-slate-500" /><span><b>Arrastrar:</b> Girar</span></span>
+          <span className="text-slate-300">|</span>
+          <span className="flex items-center space-x-1.5"><Maximize2 className="w-3.5 h-3.5 text-slate-500" /><span><b>Scroll:</b> Zoom</span></span>
+          <span className="text-slate-300">|</span>
+          <span className="flex items-center space-x-1.5"><Sliders className="w-3.5 h-3.5 text-slate-500" /><span><b>Clic Derecho:</b> Mover</span></span>
         </div>
       </div>
 

@@ -568,70 +568,99 @@ export async function buildCartagenaTerritoryScene({
   divLineMesh.lookAt(lineEnd);
   masterplanGroup.add(divLineMesh);
 
-  // C. Franja de 500m de Erosión Costera (Sector Norte en Riesgo - 800 Viviendas MIDAS)
-  const erosionCoords = [
-    [-75.57545, 10.38158],
-    [-75.57640, 10.38090],
-    [-75.57697, 10.38040],
-    [-75.57740, 10.37950],
-    [-75.57763, 10.37884],
-    [-75.57815, 10.37780],
-    [-75.57860, 10.37680],
-    [-75.57910, 10.37550],
-    [-75.57950, 10.37450],
-    [-75.57990, 10.37320],
-    [-75.58050, 10.37250],
-    [-75.57680, 10.37250],
-    [-75.57620, 10.37350],
-    [-75.57580, 10.37480],
-    [-75.57520, 10.37650],
-    [-75.57480, 10.37800],
-    [-75.57440, 10.37950],
-    [-75.57480, 10.38080],
-    [-75.57545, 10.38158]
-  ];
-  const erosionShape = new THREE.Shape();
-  const [e0x, e0y] = to9377(erosionCoords[0][0], erosionCoords[0][1]);
-  erosionShape.moveTo((e0x - ORIGIN_X) * SCALE_3D, (e0y - ORIGIN_Y) * SCALE_3D);
-  for (let i = 1; i < erosionCoords.length; i++) {
-    const [ex, ey] = to9377(erosionCoords[i][0], erosionCoords[i][1]);
-    erosionShape.lineTo((ex - ORIGIN_X) * SCALE_3D, (ey - ORIGIN_Y) * SCALE_3D);
-  }
-
-  const erosionGeo = new THREE.ShapeGeometry(erosionShape);
-  erosionGeo.rotateX(-Math.PI / 2);
-  erosionGeo.translate(0, 0.28, 0);
-  const erosionMat = new THREE.MeshBasicMaterial({
-    color: 0xef4444,
-    transparent: true,
-    opacity: 0.32,
-    side: THREE.DoubleSide,
-    depthWrite: false,
+  // C. VÍAS AMARILLAS DEL PLAN MAESTRO (PASO 5: RED VIAL ESTRUCTURANTE Y ARTICULACIÓN)
+  // Sin zona roja (eliminada a solicitud). Se trazan las vías amarillas estructurantes.
+  const yellowRoadMat = new THREE.MeshStandardMaterial({
+    color: 0xf59e0b,
+    emissive: 0xd97706,
+    emissiveIntensity: 0.85,
+    roughness: 0.35,
+    metalness: 0.1
   });
-  const erosionMesh = new THREE.Mesh(erosionGeo, erosionMat);
-  masterplanGroup.add(erosionMesh);
 
-  // C2. Puntos Rojos de Viviendas en Riesgo en el Sector Norte (Franja 500m)
-  const redHousePositions = [
-    [-75.5768, 10.3798], [-75.5772, 10.3790], [-75.5775, 10.3782],
-    [-75.5780, 10.3775], [-75.5783, 10.3768], [-75.5788, 10.3758],
-    [-75.5792, 10.3748], [-75.5795, 10.3738], [-75.5800, 10.3730],
-    [-75.5760, 10.3805], [-75.5763, 10.3795], [-75.5766, 10.3785],
-    [-75.5770, 10.3770], [-75.5773, 10.3755], [-75.5778, 10.3742],
-    [-75.5755, 10.3810], [-75.5758, 10.3800], [-75.5761, 10.3790]
+  // 1. Vías por defecto que articulan Punta Arenas, la Meseta (+22m) y el Corredor Oriental
+  const defaultMasterplanRoads = [
+    // Vía Arterial 1: Conexión Asentamiento Punta Arenas hacia Meseta Segura y Colegio
+    [
+      [-75.5765, 10.3808],
+      [-75.5762, 10.3795],
+      [-75.5758, 10.3778],
+      [-75.5755, 10.3760],
+      [-75.5754, 10.3745],
+      [-75.5755, 10.3732] // Centro meseta
+    ],
+    // Vía Anular 2: Circunvalar interna de la Meseta (+22m) conectando colegio y viviendas
+    [
+      [-75.5742, 10.3748],
+      [-75.5753, 10.3752],
+      [-75.5766, 10.3745],
+      [-75.5772, 10.3732],
+      [-75.5774, 10.3720],
+      [-75.5768, 10.3712],
+      [-75.5758, 10.3722],
+      [-75.5746, 10.3734],
+      [-75.5742, 10.3748]
+    ],
+    // Vía Colectora 3: Meseta hacia el flanco oriental / Caño de Oro
+    [
+      [-75.5755, 10.3732],
+      [-75.5725, 10.3728],
+      [-75.5690, 10.3720],
+      [-75.5640, 10.3695]
+    ]
   ];
-  const redPointMat = new THREE.MeshStandardMaterial({
-    color: 0xff2222,
-    emissive: 0xdd1111,
-    emissiveIntensity: 0.9,
-    roughness: 0.3
-  });
-  const redPointGeo = new THREE.SphereGeometry(0.22, 10, 10);
-  redHousePositions.forEach(([lon, lat]) => {
-    const dot = new THREE.Mesh(redPointGeo, redPointMat);
-    const p = lonLatToVector3(lon, lat, 0.48);
-    dot.position.copy(p);
-    masterplanGroup.add(dot);
+
+  // Recuperar vías personalizadas dibujadas por el usuario en el Paso 5 si existen
+  let customStep5Roads = [];
+  try {
+    const rawDelims = localStorage.getItem('thesis_custom_delimitations');
+    if (rawDelims) {
+      const parsed = JSON.parse(rawDelims);
+      if (parsed.roads && Array.isArray(parsed.roads) && parsed.roads.length > 0) {
+        // Formato de roads en ThesisFramework: [ [ [lat, lng], ... ], ... ]
+        parsed.roads.forEach(line => {
+          if (Array.isArray(line) && line.length >= 2) {
+            const converted = line.map(pt => {
+              if (Array.isArray(pt) && pt.length >= 2) {
+                // Verificar si es [lat, lng] o [lng, lat]
+                const lat = pt[0] > 0 ? pt[0] : pt[1];
+                const lng = pt[1] < 0 ? pt[1] : pt[0];
+                return [lng, lat];
+              }
+              return null;
+            }).filter(Boolean);
+            if (converted.length >= 2) customStep5Roads.push(converted);
+          }
+        });
+      }
+    }
+  } catch (e) {}
+
+  const allMasterRoads = customStep5Roads.length > 0 ? customStep5Roads : defaultMasterplanRoads;
+
+  allMasterRoads.forEach(roadLine => {
+    for (let i = 0; i < roadLine.length - 1; i++) {
+      const p1 = lonLatToVector3(roadLine[i][0], roadLine[i][1], 0.42);
+      const p2 = lonLatToVector3(roadLine[i + 1][0], roadLine[i + 1][1], 0.42);
+      const segDist = p1.distanceTo(p2);
+      if (segDist < 0.05) continue;
+
+      const segGeo = new THREE.CylinderGeometry(0.18, 0.18, segDist, 8);
+      segGeo.translate(0, segDist / 2, 0);
+      segGeo.rotateX(Math.PI / 2);
+
+      const segMesh = new THREE.Mesh(segGeo, yellowRoadMat);
+      segMesh.position.copy(p1);
+      segMesh.lookAt(p2);
+      segMesh.name = "MasterplanYellowRoad";
+      masterplanGroup.add(segMesh);
+
+      // Pequeño marcador en el nodo de intersección
+      const jointGeo = new THREE.SphereGeometry(0.22, 8, 8);
+      const jointMesh = new THREE.Mesh(jointGeo, yellowRoadMat);
+      jointMesh.position.copy(p1);
+      masterplanGroup.add(jointMesh);
+    }
   });
 
   // D. Corredores Ecológicos y Senderos Peatonales (Flechas 3D Animadas con Brillo)
@@ -644,11 +673,11 @@ export async function buildCartagenaTerritoryScene({
     const shaftLen = len * 0.76;
     const headLen = len * 0.24;
 
-    const shaftGeo = new THREE.CylinderGeometry(0.18, 0.18, shaftLen, 10);
+    const shaftGeo = new THREE.CylinderGeometry(0.20, 0.20, shaftLen, 10);
     shaftGeo.translate(0, shaftLen / 2, 0);
     shaftGeo.rotateX(Math.PI / 2);
 
-    const headGeo = new THREE.ConeGeometry(0.55, headLen, 14);
+    const headGeo = new THREE.ConeGeometry(0.60, headLen, 14);
     headGeo.translate(0, headLen / 2, 0);
     headGeo.rotateX(Math.PI / 2);
 
@@ -673,58 +702,56 @@ export async function buildCartagenaTerritoryScene({
     return arrowGroup;
   }
 
-  // 1. Sendero Conexión: Asentamiento Punta Arenas -> Equipamiento Educativo & Cisterna
-  masterplanGroup.add(create3DArrow([-75.5760, 10.3810], [-75.5745, 10.3755], 0x06b6d4));
-  // 2. Sendero Conexión: Colegio / Equipamiento -> Viviendas Reubicadas en Suelo Seguro
-  masterplanGroup.add(create3DArrow([-75.5745, 10.3755], [-75.5725, 10.3770], 0x3b82f6));
+  // 1. Flecha Principal Amarilla de Articulación Territorial: Punta Arenas -> Centro Meseta / Colegio
+  masterplanGroup.add(create3DArrow([-75.5765, 10.3805], [-75.5755, 10.3735], 0xf59e0b));
+  // 2. Sendero Conexión: Equipamiento Educativo -> Viviendas Reubicadas en Suelo Seguro
+  masterplanGroup.add(create3DArrow([-75.5755, 10.3732], [-75.5768, 10.3742], 0x0284c7));
   // 3. Corredor Ecológico: Meseta Segura -> Parque Ecológico Central & Reserva
-  masterplanGroup.add(create3DArrow([-75.5745, 10.3755], [-75.5760, 10.3730], 0x10b981));
+  masterplanGroup.add(create3DArrow([-75.5755, 10.3732], [-75.5760, 10.3715], 0x10b981));
   // 4. Conexión Paisajística y Productiva: Meseta -> Caño de Oro / Ecoturismo & Pesca
-  masterplanGroup.add(create3DArrow([-75.5730, 10.3745], [-75.5685, 10.3730], 0x14b8a6));
-  // 5. Conexión de Seguridad: Borde en Riesgo (500m) -> Meseta Resiliente (+22m)
-  masterplanGroup.add(create3DArrow([-75.5780, 10.3770], [-75.5745, 10.3745], 0xf59e0b));
+  masterplanGroup.add(create3DArrow([-75.5745, 10.3730], [-75.5685, 10.3720], 0x14b8a6));
 
   // E. Beacons / Hotspots 3D Estratégicos del Plan Maestro
   const hotspotsData = [
     {
       id: "organizacion",
-      title: "Organización Territorial & Suelo Seguro",
-      coords: [-75.5745, 10.3755],
-      color: 0x0d9488,
-      height: 4.2,
-      category: "Eje Central"
+      title: "Articulación Territorial & Red Vial",
+      coords: [-75.5755, 10.3755],
+      color: 0xf59e0b,
+      height: 4.5,
+      category: "Eje Estructurante"
+    },
+    {
+      id: "colegio_articulador",
+      title: "Equipamiento Educativo (Adentro de la Meseta)",
+      coords: [-75.5755, 10.3732], // UBICADO ESTRICTAMENTE DENTRO DE LA MESETA
+      color: 0x8b5cf6,
+      height: 5.0,
+      category: "Educación y Comunidad"
     },
     {
       id: "reubicacion",
-      title: "Reubicación & Franja de Riesgo (500m)",
-      coords: [-75.5775, 10.3785],
-      color: 0xef4444,
-      height: 3.8,
+      title: "Viviendas en Suelo Firme (+22m)",
+      coords: [-75.5768, 10.3742], // Dentro de la meseta segura
+      color: 0x0284c7,
+      height: 4.0,
       category: "Seguridad y Adaptación"
     },
     {
       id: "conectividad",
       title: "Senderos Peatonales & Espacio Colectivo",
-      coords: [-75.5730, 10.3765],
-      color: 0x3b82f6,
-      height: 3.6,
+      coords: [-75.5742, 10.3735],
+      color: 0x14b8a6,
+      height: 3.8,
       category: "Recorridos y Conexión"
     },
     {
       id: "parque",
-      title: "Parque Ecológico & Barreras Naturales",
-      coords: [-75.5760, 10.3725],
+      title: "Parque Ecológico & Barreras Costeras",
+      coords: [-75.5760, 10.3715],
       color: 0x10b981,
-      height: 4.0,
+      height: 4.2,
       category: "Conservación y Manglares"
-    },
-    {
-      id: "colegio_articulador",
-      title: "Colegio como Nodo de Articulación",
-      coords: [-75.5740, 10.3748],
-      color: 0x8b5cf6,
-      height: 4.5,
-      category: "Educación y Comunidad"
     }
   ];
 
