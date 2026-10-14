@@ -24,27 +24,27 @@ export const projectInfo = {
       problemStatement: "La Isla de Tierrabomba vive en una paradoja territorial: estando a solo 15 minutos en lancha de la bahía de Cartagena, sufre un aislamiento estructural absoluto. La falta del 100% de red formal de acueducto, la salinización de acuíferos subterráneos y una tasa de erosión costera de hasta 1.8 metros anuales ponen en riesgo directo de colapso a más de 4.200 habitantes asentados en la franja marina vulnerable.",
       academicJustification: "Esta tesis aborda la reubicación no como un desalojo pasivo, sino como un proyecto de hábitat progresivo e identidad caribeña. Se proyecta un asentamiento seguro en la meseta (+22.00 m.s.n.m.) que articula 120 viviendas con diseño bioclimático y un equipamiento educativo integral que actúa simultáneamente como centro comunal de oficios marítimos y dispensario público de agua potable.",
     },
-    generalObjective: "Formular un Plan Maestro de Reubicación Territorial en la meseta segura de Tierrabomba (+22.00 m.s.n.m.), desarrollando el diseño arquitectónico de prototipos de vivienda progresiva resiliente y un equipamiento educativo bioclimático dotado de infraestructura de autosuficiencia hídrica.",
+    generalObjective: "Desarrollar una propuesta progresiva de vivienda y colegio en Tierrabomba que responda a las dinámicas comunitarias locales y permita la expansión de ambos proyectos en el tiempo.",
     specificObjectives: [
       {
         code: "OE-01",
-        title: "Diagnóstico Territorial & Riesgo Costero",
-        desc: "Mapear la cota de socavación marina y marea de leva, delimitando la meseta central no inundable para la nueva implantación comunitaria."
+        title: "Dinámicas Comunitarias y Espaciales",
+        desc: "Analizar las dinámicas comunitarias y espaciales de la vivienda y el colegio en Tierrabomba."
       },
       {
         code: "OE-02",
-        title: "Vivienda Progresiva Resiliente",
-        desc: "Diseñar tipologías de vivienda modular (54 m² a 86 m²) con elevación palafítica (+0.60 m), patios de sombra y autoconstrucción comunitaria en madera y BTC."
+        title: "Patrones de Crecimiento y Autoconstrucción",
+        desc: "Identificar los patrones de crecimiento progresivo y autoconstrucción locales."
       },
       {
         code: "OE-03",
-        title: "Equipamiento Educativo & Cívico",
-        desc: "Proyectar un complejo escolar para 350 estudiantes con aulas de ventilación pasiva, talleres náuticos, biblioteca y plaza central de acopio comunitario."
+        title: "Criterios de Diseño e Identidad Local",
+        desc: "Definir criterios de diseño e identidad local para orientar ambos proyectos."
       },
       {
         code: "OE-04",
-        title: "Soberanía Hídrica Circular",
-        desc: "Implementar un sistema de captación pluvial en macro-cubierta, aljibe central inmune de 450.000 L y bio-humedales para fitodepuración de aguas grises."
+        title: "Propuesta Arquitectónica Modular",
+        desc: "Diseñar una propuesta arquitectónica modular que permita la expansión progresiva de ambos proyectos."
       }
     ]
   },
@@ -96,25 +96,25 @@ export const projectInfo = {
     summary: "El diagnóstico de campo evidencia que el 70% del borde habitado en Punta Arena y Caño del Oro se encuentra en cota de riesgo inminente por marea de leva, mientras que la falta de agua potable condiciona la salud, la economía y la permanencia de la comunidad en su territorio ancestral.",
     points: [
       {
-        id: "vivienda",
-        title: "Viviendas en Borde de Socavación",
-        description: "Construcciones tradicionales sobre arena suelta con cimientos expuestos por el oleaje y pérdida de hasta 1.8 metros de playa al año.",
-        icon: "Home",
-        badge: "Riesgo Físico Crítico"
+        id: "erosion",
+        title: "Erosión de las costas y riesgo en las viviendas",
+        description: "El golpe del mar destruye la orilla y pone en peligro las casas construidas cerca del agua.",
+        icon: "Waves",
+        badge: "Riesgo Costero"
       },
       {
         id: "agua",
-        title: "Emergencia Sanitaria & Salinidad",
-        description: "Inexistencia de red pública de agua. Los pozos locales sufren intrusión salina marina y las familias gastan más de un 20% de su sustento comprando pimpinas a barcazas.",
+        title: "Falta de agua potable y alcantarillado",
+        description: "La isla no tiene red de agua ni desagües, lo que obliga a la población a comprar agua traída en lanchas.",
         icon: "Droplets",
-        badge: "Déficit Estructural"
+        badge: "Déficit Hídrico"
       },
       {
-        id: "educacion",
-        title: "Infraestructura Dotacional Precaria",
-        description: "La sede escolar actual no cuenta con baterías sanitarias con agua continua ni espacios acondicionados climáticamente para la formación de jóvenes.",
-        icon: "GraduationCap",
-        badge: "Vulnerabilidad Social"
+        id: "servicios",
+        title: "Falta de servicios públicos y colegios",
+        description: "Existe un abandono en la infraestructura de la isla, afectando la educación, la salud y los espacios comunitarios.",
+        icon: "Building2",
+        badge: "Infraestructura & Educación"
       }
     ]
   },
@@ -288,98 +288,98 @@ export const projectInfo = {
 
   // 12. SISTEMA DE RED CONCEPTUAL DE OBJETIVOS (TESIS 2026)
   thesisNetwork: {
-    generalObjective: "Formular un Plan Maestro de Reubicación Territorial en la meseta segura de Tierrabomba (+22.00 m.s.n.m.), desarrollando el diseño arquitectónico de prototipos de vivienda progresiva resiliente y un equipamiento educativo bioclimático dotado de infraestructura de autosuficiencia hídrica.",
+    generalObjective: "Desarrollar una propuesta progresiva de vivienda y colegio en Tierrabomba que responda a las dinámicas comunitarias locales y permita la expansión de ambos proyectos en el tiempo.",
     nodes: [
-      {
-        id: "oe04",
-        code: "OE-04",
-        colorKey: "water",
-        color: "#0d9488",
-        gradientStart: "#14b8a6",
-        gradientEnd: "#0f766e",
-        title: "OE-04: Soberanía Hídrica Circular",
-        shortLines: ["OE-04", "Soberanía Hídrica", "Aljibe 450.000 L", "Captación Pluvial"],
-        cx: 310,
-        cy: 110,
-        r: 66,
-        badge: "Objetivo Hidráulico",
-        metric: "450.000 Litros",
-        area: "1.850 m² Macro-Cubierta",
-        desc: "Implementar un sistema de captación pluvial en macro-cubierta, aljibe central inmune de 450.000 L y bio-humedales para fitodepuración de aguas grises.",
-        satellites: [
-          { name: "Aljibe Térmico 450.000 L", icon: "Droplets", detail: "Tanque ciclópeo a +20m de cota protegido contra salinidad marina y sequía." },
-          { name: "Macro-Cubierta Captadora", icon: "Building2", detail: "1.850 m² en escuela: ~6.200 m³ pluviales cosechados anualmente." },
-          { name: "Desinfección Solar UV", icon: "Sparkles", detail: "Tren de potabilización fotovoltaica bajo Resolución 2115 de agua potable." },
-          { name: "Fitodepuración & Bio-Humedal", icon: "Activity", detail: "Recirculación del 75% de aguas grises mediante plantas macrófitas." }
-        ]
-      },
       {
         id: "oe01",
         code: "OE-01",
-        colorKey: "territory",
-        color: "#c86d51",
-        gradientStart: "#e06248",
-        gradientEnd: "#b85438",
-        title: "OE-01: Diagnóstico Territorial & Riesgo",
-        shortLines: ["OE-01", "Diagnóstico Territorial", "Riesgo & Cota Segura", "+22.00 m.s.n.m."],
-        cx: 140,
-        cy: 300,
-        r: 62,
-        badge: "Objetivo Territorial",
-        metric: "+22.00 m.s.n.m.",
-        area: "Meseta Central Segura",
-        desc: "Mapear la cota de socavación marina y marea de leva, delimitando la meseta central no inundable para la nueva implantación comunitaria.",
+        colorKey: "community",
+        color: "#0d9488",
+        gradientStart: "#14b8a6",
+        gradientEnd: "#0f766e",
+        title: "OE-01: Dinámicas Comunitarias y Espaciales",
+        shortLines: ["OE-01", "Dinámicas", "Comunitarias", "& Espaciales"],
+        cx: 310,
+        cy: 110,
+        r: 66,
+        badge: "Diagnóstico Comunitario",
+        metric: "Vivienda & Colegio",
+        area: "Dinámicas Locales",
+        desc: "Analizar las dinámicas comunitarias y espaciales de la vivienda y el colegio en Tierrabomba.",
         satellites: [
-          { name: "Cota de Socavación Marina", icon: "Waves", detail: "Monitoreo del retroceso costero de hasta 1.8 metros por año en playa." },
-          { name: "Delimitación Meseta (+22m)", icon: "Compass", detail: "Suelo firme protegido del aumento del nivel del mar por 100 años." },
-          { name: "Teledetección & GIS Espectral", icon: "Map", detail: "5 bandas satelitales (NDVI, NDWI, Falso Color, Manglar, LST)." },
-          { name: "Censo de Vulnerabilidad", icon: "Home", detail: "500 viviendas identificadas en línea crítica de derrumbe marino e inundación." }
+          { name: "Dinámicas de la Vivienda", icon: "Home", detail: "Relaciones espaciales, cotidianidad y modos de habitar isleños." },
+          { name: "Espacio Educativo & Vida Comunal", icon: "BookOpen", detail: "El colegio como centro articulador de encuentro y cultura insular." },
+          { name: "Usos Colectivos y Vecindad", icon: "Compass", detail: "Conexión entre callejones tradicionales, porches de sombra y borde costero." },
+          { name: "Diagnóstico Participativo", icon: "Activity", detail: "Lectura directa en territorio con las familias y líderes de Tierrabomba." }
         ]
       },
       {
         id: "oe02",
         code: "OE-02",
-        colorKey: "housing",
+        colorKey: "growth",
         color: "#d97706",
         gradientStart: "#f59e0b",
         gradientEnd: "#b45309",
-        title: "OE-02: Vivienda Progresiva Resiliente",
-        shortLines: ["OE-02", "Vivienda Progresiva", "120 Módulos Palafíticos", "Madera & BTC"],
+        title: "OE-02: Patrones de Crecimiento y Autoconstrucción",
+        shortLines: ["OE-02", "Crecimiento", "Progresivo &", "Autoconstrucción"],
         cx: 480,
         cy: 300,
-        r: 62,
-        badge: "Objetivo Habitacional",
-        metric: "120 Viviendas",
-        area: "54 a 86 m² Modulares",
-        desc: "Diseñar tipologías de vivienda modular (54 m² a 86 m²) con elevación palafítica (+0.60 m), patios de sombra y autoconstrucción comunitaria en madera y BTC.",
+        r: 64,
+        badge: "Patrones Locales",
+        metric: "Crecimiento Progresivo",
+        area: "Autoconstrucción",
+        desc: "Identificar los patrones de crecimiento progresivo y autoconstrucción locales.",
         satellites: [
-          { name: "Elevación Palafítica +0.60m", icon: "Home", detail: "Circulación de brisas caribeñas y cimientos aislados de humedad." },
-          { name: "Patios de Convección y Sombra", icon: "Wind", detail: "Microclima pasivo (-5°C) y espacio de secado de redes de pesca." },
-          { name: "Bloques de Tierra Comprimida", icon: "Box", detail: "BTC elaborado con áridos locales y alta inercia térmica." },
-          { name: "Tanques de 2.500 L por Hogar", icon: "Droplets", detail: "Autonomía de recolección de aguas lluvias en cubiertas domiciliarias." }
+          { name: "Patrones de Autoconstrucción", icon: "Box", detail: "Técnicas vernáculas y saberes constructivos adaptados al clima caribeño." },
+          { name: "Fases de Crecimiento del Hogar", icon: "Home", detail: "Ampliación gradual de la vivienda según las etapas y economía familiar." },
+          { name: "Flexibilidad del Colegio", icon: "Layers", detail: "Capacidad de adaptación y adición de espacios pedagógicos por fases." },
+          { name: "Materiales y Saberes Locales", icon: "Sparkles", detail: "Aprovechamiento de mano de obra y materiales autóctonos de la isla." }
         ]
       },
       {
         id: "oe03",
         code: "OE-03",
-        colorKey: "civic",
+        colorKey: "design",
         color: "#2563eb",
         gradientStart: "#3b82f6",
         gradientEnd: "#1d4ed8",
-        title: "OE-03: Equipamiento Educativo & Cívico",
-        shortLines: ["OE-03", "Equipamiento Cívico", "Escuela 350 Alumnos", "Ágora & Talleres"],
+        title: "OE-03: Criterios de Diseño e Identidad Local",
+        shortLines: ["OE-03", "Criterios de", "Diseño & Identidad", "Ambos Proyectos"],
         cx: 310,
         cy: 480,
         r: 66,
-        badge: "Objetivo Dotacional",
-        metric: "350 Alumnos",
-        area: "1.850 m² Bioclimáticos",
-        desc: "Proyectar un complejo escolar para 350 estudiantes con aulas de ventilación pasiva, talleres náuticos, biblioteca y plaza central de acopio comunitario.",
+        badge: "Criterios Proyectuales",
+        metric: "Identidad Insular",
+        area: "Ambos Proyectos",
+        desc: "Definir criterios de diseño e identidad local para orientar ambos proyectos.",
         satellites: [
-          { name: "6 Aulas Bioclimáticas BTC", icon: "BookOpen", detail: "Celosías cerámicas cruzadas y aleros de 2.5m que bloquean el sol cenital." },
-          { name: "Taller de Artes Pesqueras", icon: "Compass", detail: "Preservación de la cultura marina tradicional de Tierrabomba." },
-          { name: "Ágora Central Cubierta 400 m²", icon: "Layers", detail: "Espacio de asamblea cívica comunitaria y refugio insular de emergencia." },
-          { name: "Biblioteca & Mediateca Pública", icon: "Building2", detail: "Punto público de conectividad digital y mediateca cultural isleña." }
+          { name: "Identidad y Memoria Insular", icon: "Compass", detail: "Arquitectura arraigada en la cultura afrocaribeña y tradiciones locales." },
+          { name: "Criterios para Ambos Proyectos", icon: "Layers", detail: "Pautas formales y funcionales comunes que integran vivienda y colegio." },
+          { name: "Bioclimática y Sombra Pasiva", icon: "Wind", detail: "Ventilación cruzada, aleros protectores y confort térmico natural." },
+          { name: "Espacio Público y Convivencia", icon: "Building2", detail: "Articulación de plazas, senderos y zonas comunes de intercambio." }
+        ]
+      },
+      {
+        id: "oe04",
+        code: "OE-04",
+        colorKey: "modular",
+        color: "#c86d51",
+        gradientStart: "#e06248",
+        gradientEnd: "#b85438",
+        title: "OE-04: Propuesta Arquitectónica Modular",
+        shortLines: ["OE-04", "Propuesta", "Modular &", "Expansión"],
+        cx: 140,
+        cy: 300,
+        r: 64,
+        badge: "Propuesta Proyectual",
+        metric: "Expansión Progresiva",
+        area: "Ambos Proyectos",
+        desc: "Diseñar una propuesta arquitectónica modular que permita la expansión progresiva de ambos proyectos.",
+        satellites: [
+          { name: "Módulos Progresivos de Vivienda", icon: "Home", detail: "Células habitacionales escalables que crecen con el tiempo según la necesidad." },
+          { name: "Módulos Escolares Ampliables", icon: "Building2", detail: "Aulas y talleres modulares para la expansión progresiva del colegio." },
+          { name: "Expansión Temporal Coordinada", icon: "Activity", detail: "Evolución armónica y secuencial en el tiempo de ambos proyectos." },
+          { name: "Articulación en el Territorio", icon: "Sparkles", detail: "Cohesión urbana y paisajística entre el hábitat residencial y el equipamiento." }
         ]
       }
     ],
@@ -388,61 +388,61 @@ export const projectInfo = {
         id: "rel-oe01-oe02",
         from: "oe01",
         to: "oe02",
-        name: "Articulación OE-01 → OE-02: Suelo Seguro a Hábitat",
-        type: "directed",
-        pathD: "M202,300 Q310,250 418,300",
-        arrowTransform: "translate(418,300) rotate(22)",
-        desc: "La delimitación de la meseta no inundable (+22m) provee el trazado urbanístico seguro para las 120 viviendas relocalizadas."
-      },
-      {
-        id: "rel-oe04-oe03",
-        from: "oe04",
-        to: "oe03",
-        name: "Articulación OE-04 → OE-03: Célula Hídrica en Escuela",
-        type: "bidirectional",
-        pathD: "M310,176 Q275,295 310,414",
-        arrowTransform: "translate(310,414) rotate(90)",
-        desc: "La cubierta del equipamiento escolar actúa como macro-captador pluvial de 1.850 m² conectado al aljibe comunal de 450.000 L."
-      },
-      {
-        id: "rel-oe04-oe02",
-        from: "oe04",
-        to: "oe02",
-        name: "Articulación OE-04 → OE-02: Distribución Domiciliaria",
+        name: "Articulación OE-01 → OE-02: Dinámicas a Crecimiento",
         type: "directed",
         pathD: "M368,145 Q465,185 470,240",
         arrowTransform: "translate(470,240) rotate(78)",
-        desc: "Línea de conducción por gravedad que abastece las cisternas domiciliarias de 2.500 L de las 120 viviendas relocalizadas."
-      },
-      {
-        id: "rel-oe01-oe03",
-        from: "oe01",
-        to: "oe03",
-        name: "Articulación OE-01 → OE-03: Implantación Bioclimática",
-        type: "directed",
-        pathD: "M160,358 Q195,435 255,455",
-        arrowTransform: "translate(255,455) rotate(18)",
-        desc: "Orientación del equipamiento escolar de acuerdo al azimut y vientos alisios N-NE identificados en el diagnóstico de sitio."
+        desc: "El análisis de dinámicas comunitarias fundamenta la comprensión de los patrones de autoconstrucción y crecimiento progresivo."
       },
       {
         id: "rel-oe02-oe03",
         from: "oe02",
         to: "oe03",
-        name: "Articulación OE-02 ↔ OE-03: Eje Cívico & Peatonal",
-        type: "bidirectional",
+        name: "Articulación OE-02 → OE-03: Patrones a Criterios",
+        type: "directed",
         pathD: "M460,358 Q425,435 365,455",
         arrowTransform: "translate(365,455) rotate(162)",
-        desc: "Corredor continuo de sombra bioclimática que integra el barrio de viviendas con el ágora y la escuela."
+        desc: "Los patrones de crecimiento progresivo y autoconstrucción informan los criterios de diseño e identidad para ambos proyectos."
+      },
+      {
+        id: "rel-oe03-oe04",
+        from: "oe03",
+        to: "oe04",
+        name: "Articulación OE-03 → OE-04: Criterios a Propuesta Modular",
+        type: "directed",
+        pathD: "M255,455 Q195,435 160,358",
+        arrowTransform: "translate(160,358) rotate(198)",
+        desc: "Los criterios de diseño e identidad local orientan la concepción modular y la expansión progresiva de ambos proyectos."
       },
       {
         id: "rel-oe04-oe01",
         from: "oe04",
         to: "oe01",
-        name: "Articulación OE-04 → OE-01: Blindaje ante la Salinización",
+        name: "Articulación OE-04 ↔ OE-01: Respuesta a Dinámicas Locales",
+        type: "bidirectional",
+        pathD: "M150,240 Q155,185 252,145",
+        arrowTransform: "translate(252,145) rotate(-35)",
+        desc: "La propuesta modular responde directamente a las dinámicas comunitarias y espaciales analizadas en el territorio."
+      },
+      {
+        id: "rel-oe01-oe03",
+        from: "oe01",
+        to: "oe03",
+        name: "Articulación OE-01 → OE-03: Diagnóstico a Identidad",
         type: "directed",
-        pathD: "M252,145 Q155,185 150,240",
-        arrowTransform: "translate(150,240) rotate(102)",
-        desc: "Resuelve el problema diagnosticado de salinización de pozos costeros captando agua pura de lluvia en la cota alta."
+        pathD: "M310,176 Q275,295 310,414",
+        arrowTransform: "translate(310,414) rotate(90)",
+        desc: "Las dinámicas espaciales de la vivienda y el colegio nutren los criterios de identidad local para orientar ambos proyectos."
+      },
+      {
+        id: "rel-oe04-oe02",
+        from: "oe04",
+        to: "oe02",
+        name: "Articulación OE-04 ↔ OE-02: Modulación y Autoconstrucción",
+        type: "bidirectional",
+        pathD: "M202,300 Q310,250 418,300",
+        arrowTransform: "translate(418,300) rotate(22)",
+        desc: "La propuesta arquitectónica modular integra y potencia los patrones de crecimiento progresivo y autoconstrucción comunitarios."
       }
     ]
   }

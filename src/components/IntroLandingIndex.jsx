@@ -203,13 +203,9 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       {/* SVG Gradient Defs for Objective Nodes */}
       <svg width="0" height="0" className="absolute pointer-events-none" aria-hidden="true">
         <defs>
-          <linearGradient id="grad-oe04" x1="0" y1="0" x2="1" y2="1">
+          <linearGradient id="grad-oe01" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#14b8a6" />
             <stop offset="100%" stopColor="#0f766e" />
-          </linearGradient>
-          <linearGradient id="grad-oe01" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#e06248" />
-            <stop offset="100%" stopColor="#c86d51" />
           </linearGradient>
           <linearGradient id="grad-oe02" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#f59e0b" />
@@ -218,6 +214,10 @@ export default function IntroLandingIndex({ onNavigateModule }) {
           <linearGradient id="grad-oe03" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#3b82f6" />
             <stop offset="100%" stopColor="#1d4ed8" />
+          </linearGradient>
+          <linearGradient id="grad-oe04" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#e06248" />
+            <stop offset="100%" stopColor="#c86d51" />
           </linearGradient>
         </defs>
       </svg>
@@ -272,60 +272,76 @@ export default function IntroLandingIndex({ onNavigateModule }) {
               ¿Qué ocurre cuando una comunidad comienza a perder las condiciones necesarias para permanecer en su propio territorio?
             </h2>
 
-            {/* 3 Dimensional Action Blocks (Reflecting the Objectives) */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
+            {/* General Research Goal Phrase */}
+            <div className="p-4 rounded-2xl bg-teal-50/70 border border-teal-200/80 text-xs text-slate-800 leading-relaxed shadow-xs space-y-1">
+              <span className="font-mono text-[10px] font-bold text-teal-800 uppercase tracking-wider block">
+                Objetivo General de la Investigación
+              </span>
+              <p className="font-medium text-slate-800 text-[13px] leading-snug">
+                &ldquo;Desarrollar una propuesta progresiva de vivienda y colegio en Tierrabomba que responda a las dinámicas comunitarias locales y permita la expansión de ambos proyectos en el tiempo.&rdquo;
+              </p>
+            </div>
+
+            {/* 3 Dimensional Action Blocks: Problemática Diagnosticada */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
               
               <div 
                 onClick={() => setSelectedNode(nodes.find(n => n.id === 'oe01'))}
-                className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-rose-400 hover:bg-rose-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md"
+                className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-rose-400 hover:bg-rose-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md flex flex-col justify-between"
               >
-                <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform border border-rose-100">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">OE-01</span>
-                  <h3 className="font-display font-bold text-xs uppercase tracking-wider text-slate-900">
-                    RELOCALIZA
+                <div>
+                  <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform border border-rose-100">
+                    <Waves className="w-4 h-4" />
+                  </div>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">PROBLEMA 01</span>
+                  </div>
+                  <h3 className="font-display font-bold text-xs uppercase tracking-wider text-slate-900 mt-1.5 leading-snug">
+                    Erosión de las costas y riesgo en las viviendas
                   </h3>
                 </div>
-                <p className="text-[11px] text-slate-600 mt-1 leading-snug">
-                  120 viviendas palafíticas retiradas de la socavación a cota segura (+22m).
-                </p>
-              </div>
-
-              <div 
-                onClick={() => setSelectedNode(nodes.find(n => n.id === 'oe04'))}
-                className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-teal-400 hover:bg-teal-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md"
-              >
-                <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform border border-teal-100">
-                  <Droplets className="w-4 h-4" />
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-teal-100 text-teal-800">OE-04</span>
-                  <h3 className="font-display font-bold text-xs uppercase tracking-wider text-slate-900">
-                    CAPTURA & AGUA
-                  </h3>
-                </div>
-                <p className="text-[11px] text-slate-600 mt-1 leading-snug">
-                  Macro-cubierta de 1.850 m², cisterna de 450.000 L y potabilización solar UV.
+                <p className="text-[11px] text-slate-600 mt-1.5 leading-snug">
+                  El golpe del mar destruye la orilla y pone en peligro las casas construidas cerca del agua.
                 </p>
               </div>
 
               <div 
                 onClick={() => setSelectedNode(nodes.find(n => n.id === 'oe03'))}
-                className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-400 hover:bg-blue-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md"
+                className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-amber-400 hover:bg-amber-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md flex flex-col justify-between"
               >
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform border border-blue-100">
-                  <Wind className="w-4 h-4" />
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">OE-03</span>
-                  <h3 className="font-display font-bold text-xs uppercase tracking-wider text-slate-900">
-                    BIOCLIMÁTICA
+                <div>
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform border border-amber-100">
+                    <Droplets className="w-4 h-4" />
+                  </div>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">PROBLEMA 02</span>
+                  </div>
+                  <h3 className="font-display font-bold text-xs uppercase tracking-wider text-slate-900 mt-1.5 leading-snug">
+                    Falta de agua potable y alcantarillado
                   </h3>
                 </div>
-                <p className="text-[11px] text-slate-600 mt-1 leading-snug">
-                  Escuela 350 cupos con celosías de BTC (-5°C pasivo), madera y talleres náuticos.
+                <p className="text-[11px] text-slate-600 mt-1.5 leading-snug">
+                  La isla no tiene red de agua ni desagües, lo que obliga a la población a comprar agua traída en lanchas.
+                </p>
+              </div>
+
+              <div 
+                onClick={() => setSelectedNode(nodes.find(n => n.id === 'oe04'))}
+                className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-400 hover:bg-blue-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform border border-blue-100">
+                    <Building2 className="w-4 h-4" />
+                  </div>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">PROBLEMA 03</span>
+                  </div>
+                  <h3 className="font-display font-bold text-xs uppercase tracking-wider text-slate-900 mt-1.5 leading-snug">
+                    Falta de servicios públicos y colegios
+                  </h3>
+                </div>
+                <p className="text-[11px] text-slate-600 mt-1.5 leading-snug">
+                  Existe un abandono en la infraestructura de la isla, afectando la educación, la salud y los espacios comunitarios.
                 </p>
               </div>
 
@@ -443,15 +459,18 @@ export default function IntroLandingIndex({ onNavigateModule }) {
 
                   {/* Central General Objective Watermark Badge */}
                   <g transform="translate(310, 295)" className="select-none pointer-events-none">
-                    <circle r="42" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.2" strokeDasharray="3 3" opacity="0.9" />
-                    <text textAnchor="middle" y="-6" fill="#0f172a" fontSize="8.5" fontWeight="800" fontFamily="Space Grotesk, sans-serif" letterSpacing="0.8">
+                    <circle r="46" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.2" strokeDasharray="3 3" opacity="0.95" />
+                    <text textAnchor="middle" y="-12" fill="#0f172a" fontSize="8" fontWeight="800" fontFamily="Space Grotesk, sans-serif" letterSpacing="0.8">
                       OBJETIVO GENERAL
                     </text>
-                    <text textAnchor="middle" y="6" fill="#64748b" fontSize="7.5" fontFamily="JetBrains Mono, monospace">
-                      PLAN MAESTRO
+                    <text textAnchor="middle" y="2" fill="#64748b" fontSize="7" fontWeight="600" fontFamily="JetBrains Mono, monospace">
+                      PROPUESTA PROGRESIVA
                     </text>
-                    <text textAnchor="middle" y="16" fill="#0d9488" fontSize="7" fontWeight="700" fontFamily="JetBrains Mono, monospace">
-                      +22.00 M.S.N.M.
+                    <text textAnchor="middle" y="13" fill="#0d9488" fontSize="7.5" fontWeight="700" fontFamily="JetBrains Mono, monospace">
+                      VIVIENDA Y COLEGIO
+                    </text>
+                    <text textAnchor="middle" y="24" fill="#64748b" fontSize="6.5" fontFamily="JetBrains Mono, monospace">
+                      TIERRABOMBA
                     </text>
                   </g>
 
