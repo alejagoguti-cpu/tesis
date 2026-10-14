@@ -117,7 +117,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
   // -------------------------------------------------------------
   // 3. SHATTER EXPLOSION TRANSITION ("ROMPER LA BOLA")
   // -------------------------------------------------------------
-  const triggerShatterAndNavigate = (targetModuleId = '3dviewer') => {
+  const triggerShatterAndNavigate = (targetModuleId = 'module11') => {
     if (isShattering) return;
     setIsShattering(true);
 
@@ -334,20 +334,21 @@ export default function IntroLandingIndex({ onNavigateModule }) {
             {/* CTA Buttons Row */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
-                onClick={() => triggerShatterAndNavigate('3dviewer')}
+                onClick={() => triggerShatterAndNavigate('module11')}
                 disabled={isShattering}
                 className="inline-flex items-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-teal-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0"
               >
-                <Box className="w-4 h-4" />
-                <span>{isShattering ? 'Descomponiendo red...' : 'EXPLORAR EL MODELO 3D'}</span>
+                <Compass className="w-4 h-4 text-teal-400" />
+                <span>{isShattering ? 'Iniciando investigación...' : 'MÓDULO 01: PREGUNTA CENTRAL'}</span>
                 <ArrowRight className="w-4 h-4 ml-1" />
               </button>
 
               <button
-                onClick={() => onNavigateModule('module11')}
+                onClick={() => onNavigateModule('framework')}
                 className="inline-flex items-center space-x-2 px-5 py-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-semibold text-sm transition-all hover:-translate-y-0.5 shadow-xs"
               >
-                <span>PREGUNTA CENTRAL</span>
+                <BookOpen className="w-4 h-4 text-slate-600" />
+                <span>MÓDULO 02: MARCO DE TESIS</span>
                 <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
               </button>
             </div>
@@ -555,10 +556,10 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                   <span>Haz clic en OE-01..04 para ver el desglose</span>
                 </span>
                 <button
-                  onClick={() => triggerShatterAndNavigate('3dviewer')}
+                  onClick={() => triggerShatterAndNavigate('framework')}
                   className="text-teal-700 hover:text-teal-900 font-bold flex items-center space-x-1 hover:underline"
                 >
-                  <span>Explorar Despiece 3D &rarr;</span>
+                  <span>Ver Marco de Objetivos &rarr;</span>
                 </button>
               </div>
 
@@ -644,20 +645,20 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                 <button
                   onClick={() => {
                     setSelectedNode(null);
-                    onNavigateModule('framework');
+                    onNavigateModule('module11');
                   }}
                   className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-medium text-slate-700"
                 >
-                  Ver en Marco de Tesis
+                  Ver en Módulo 01
                 </button>
                 <button
                   onClick={() => {
                     setSelectedNode(null);
-                    triggerShatterAndNavigate('3dviewer');
+                    triggerShatterAndNavigate('framework');
                   }}
                   className="px-5 py-2.5 rounded-xl font-bold text-xs bg-slate-950 hover:bg-teal-700 text-white flex items-center space-x-1.5 shadow-md"
                 >
-                  <span>Explorar en Visor 3D</span>
+                  <span>Ver en Módulo 02 (Marco)</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
