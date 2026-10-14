@@ -23,6 +23,36 @@ export function loadCleanTreeTemplate(basePath = '/') {
 
   loadingPromise = new Promise((resolve) => {
     const loader = new GLTFLoader();
+    const texLoader = new THREE.TextureLoader();
+
+    const leafTex = texLoader.load(`${cleanBase}textures/tree_leaf.png`);
+    leafTex.colorSpace = THREE.SRGBColorSpace;
+
+    const barkTex = texLoader.load(`${cleanBase}textures/tree_bark.jpg`);
+    barkTex.colorSpace = THREE.SRGBColorSpace;
+
+    const leafMat = new THREE.MeshStandardMaterial({
+      map: leafTex,
+      color: new THREE.Color('#38a169'), // Verde vibrante, fresco y exuberante
+      emissive: new THREE.Color('#14532d'),
+      emissiveIntensity: 0.18,
+      alphaTest: 0.45,
+      transparent: true,
+      roughness: 0.65,
+      metalness: 0.0,
+      side: THREE.DoubleSide,
+      shadowSide: THREE.DoubleSide
+    });
+
+    const barkMat = new THREE.MeshStandardMaterial({
+      map: barkTex,
+      color: new THREE.Color('#784f33'),
+      roughness: 0.85,
+      metalness: 0.05,
+      emissive: new THREE.Color('#271810'),
+      emissiveIntensity: 0.08
+    });
+
     loader.load(
       treeUrl,
       (gltf) => {
@@ -41,40 +71,17 @@ export function loadCleanTreeTemplate(basePath = '/') {
             c.castShadow = true;
             c.receiveShadow = true;
 
+            if (c.geometry) {
+              c.geometry.computeVertexNormals();
+              if (c.geometry.attributes.color) {
+                c.geometry.deleteAttribute('color');
+              }
+            }
+
             const name = (c.name || '').toLowerCase();
             const isFoliage = name.includes('deeppink') || name.includes('leaf') || name.includes('hoja') || name.includes('foliage') || !name.includes('bark');
 
-            if (c.material) {
-              // Clonar material para evitar contaminaciones
-              const origMat = c.material;
-              const newMat = origMat.clone();
-
-              if (isFoliage) {
-                // FOLLAJE: Sin borde negro, verdoso vivo y luminoso
-                newMat.side = THREE.DoubleSide;
-                // Subir el alphaTest a 0.65 para cortar el halo negro del borde semi-transparente de SketchUp
-                newMat.alphaTest = 0.65;
-                newMat.depthWrite = true;
-                newMat.shadowSide = THREE.DoubleSide;
-
-                // Color verde vibrante y exuberante
-                newMat.color = new THREE.Color('#4ade80'); // Verde esmeralda fresco
-                // Emisivo sutil para que las hojas en sombra mantengan luminosidad natural
-                newMat.emissive = new THREE.Color('#14532d');
-                newMat.emissiveIntensity = 0.22;
-                newMat.roughness = 0.55;
-                newMat.metalness = 0.0;
-              } else {
-                // TRONCO / RAMAS: Madera natural cálida
-                newMat.color = new THREE.Color('#784f33');
-                newMat.roughness = 0.85;
-                newMat.metalness = 0.0;
-                newMat.emissive = new THREE.Color('#271810');
-                newMat.emissiveIntensity = 0.08;
-              }
-
-              c.material = newMat;
-            }
+            c.material = isFoliage ? leafMat.clone() : barkMat.clone();
           }
         });
 
@@ -169,18 +176,21 @@ export function saveTrees(storageKey, treesList) {
   }
 }
 
+export const BASE_TREE_SCALE = 0.055;
+
 // Crear instancia individual del árbol para colocar en la escena 3D
 export function buildTreeObject(template, data) {
   const treeInstance = template.clone(true);
   treeInstance.name = `CustomTree_${data.id}`;
+  const baseScale = data.baseScaleFactor !== undefined ? data.baseScaleFactor : BASE_TREE_SCALE;
   treeInstance.userData = {
     isCustomTree: true,
     treeId: data.id,
     scale: data.scale || 1.0,
-    origScale: data.scale || 1.0
+    baseScaleFactor: baseScale
   };
 
-  const s = data.scale || 1.0;
+  const s = (data.scale || 1.0) * baseScale;
   treeInstance.scale.set(s, s, s);
   treeInstance.position.set(data.x, data.y, data.z);
   if (data.rotY !== undefined) {

@@ -170,33 +170,48 @@ export default function ModelViewer3D({ onSelectModule }) {
   const selectedCatastroTree = safeCatastroList.find((t) => t && t.id === selectedCatastroTreeId) || null;
 
   const handleAddCatastroTree = (newTree) => {
-    const updated = [...catastroTreesList, newTree];
+    const updated = [...safeCatastroList, newTree];
     setCatastroTreesList(updated);
     saveTrees(STORAGE_KEY_CATASTRO, updated);
     setSelectedCatastroTreeId(newTree.id);
 
     const vegGroup = cartagenaTerritoryRef.current?.vegetationGroup;
-    if (vegGroup && treeTemplateRef.current) {
-      const newObj = buildTreeObject(treeTemplateRef.current, newTree);
-      vegGroup.add(newObj);
+    if (vegGroup) {
+      if (treeTemplateRef.current) {
+        const newObj = buildTreeObject(treeTemplateRef.current, newTree);
+        newObj.userData.isCustomPlacedTree = true;
+        vegGroup.add(newObj);
+      } else {
+        const basePath = import.meta.env.BASE_URL || '/';
+        loadCleanTreeTemplate(basePath).then((tpl) => {
+          treeTemplateRef.current = tpl;
+          const newObj = buildTreeObject(tpl, newTree);
+          newObj.userData.isCustomPlacedTree = true;
+          vegGroup.add(newObj);
+        });
+      }
     }
   };
   onAddCatastroTreeRef.current = handleAddCatastroTree;
 
   const handleCatastroTreeScaleChange = (treeId, newScale) => {
-    const updated = catastroTreesList.map((t) => (t.id === treeId ? { ...t, scale: newScale } : t));
+    const updated = safeCatastroList.map((t) => (t.id === treeId ? { ...t, scale: newScale } : t));
     setCatastroTreesList(updated);
     saveTrees(STORAGE_KEY_CATASTRO, updated);
 
     const vegGroup = cartagenaTerritoryRef.current?.vegetationGroup;
     if (vegGroup) {
       const obj = vegGroup.children.find(c => c.userData?.treeId === treeId);
-      if (obj) obj.scale.set(newScale, newScale, newScale);
+      if (obj) {
+        const s = newScale * 0.055;
+        obj.scale.set(s, s, s);
+        if (obj.userData) obj.userData.scale = newScale;
+      }
     }
   };
 
   const handleCatastroTreeDelete = (treeId) => {
-    const updated = catastroTreesList.filter((t) => t.id !== treeId);
+    const updated = safeCatastroList.filter((t) => t.id !== treeId);
     setCatastroTreesList(updated);
     saveTrees(STORAGE_KEY_CATASTRO, updated);
     setSelectedCatastroTreeId(null);
@@ -209,14 +224,14 @@ export default function ModelViewer3D({ onSelectModule }) {
   };
 
   const handleCatastroTreeClearAll = () => {
-    if (window.confirm('¿Deseas eliminar todos los árboles colocados en la isla?')) {
+    if (window.confirm('¿Deseas eliminar todos los árboles personalizados colocados en la isla?')) {
       setCatastroTreesList([]);
       saveTrees(STORAGE_KEY_CATASTRO, []);
       setSelectedCatastroTreeId(null);
 
       const vegGroup = cartagenaTerritoryRef.current?.vegetationGroup;
       if (vegGroup) {
-        const toRemove = vegGroup.children.filter(c => c.userData?.treeId);
+        const toRemove = vegGroup.children.filter(c => c.userData?.isCustomPlacedTree);
         toRemove.forEach(c => vegGroup.remove(c));
       }
     }
@@ -230,7 +245,8 @@ export default function ModelViewer3D({ onSelectModule }) {
     if (!grp || !tpl) return;
     const existing = new Map();
     grp.children.forEach((c) => {
-      if (c.userData?.treeId) existing.set(c.userData.treeId, c);
+      // Sincronizar únicamente árboles plantados por el usuario, protegiendo los nativos de la isla
+      if (c.userData?.isCustomPlacedTree) existing.set(c.userData.treeId, c);
     });
     const curIds = new Set(list.map((t) => t.id));
     existing.forEach((obj, id) => {
@@ -239,29 +255,45 @@ export default function ModelViewer3D({ onSelectModule }) {
     list.forEach((tData) => {
       const obj = existing.get(tData.id);
       if (obj) {
-        const s = tData.scale || 1.0;
+        const s = (tData.scale || 1.0) * 0.055;
         obj.scale.set(s, s, s);
       } else {
         const newObj = buildTreeObject(tpl, tData);
+        newObj.userData.isCustomPlacedTree = true;
         grp.add(newObj);
       }
     });
   };
 
+  // Pre-carga inmediata de la plantilla 3D de árbol en el montaje inicial
+  useEffect(() => {
+    const basePath = import.meta.env.BASE_URL || '/';
+    loadCleanTreeTemplate(basePath).then((tpl) => {
+      treeTemplateRef.current = tpl;
+      const vegGroup = cartagenaTerritoryRef.current?.vegetationGroup;
+      if (vegGroup) {
+        syncCatastroTrees(safeCatastroList, tpl, vegGroup);
+      }
+    }).catch(err => {
+      console.warn("Could not load tree template:", err);
+    });
+  }, []);
+
+  // Sincronización continua de la lista de árboles con el grupo 3D
   useEffect(() => {
     const vegGroup = cartagenaTerritoryRef.current?.vegetationGroup;
     if (!vegGroup) return;
-    const basePath = import.meta.env.BASE_URL || '/';
 
-    if (!treeTemplateRef.current) {
+    if (treeTemplateRef.current) {
+      syncCatastroTrees(safeCatastroList, treeTemplateRef.current, vegGroup);
+    } else {
+      const basePath = import.meta.env.BASE_URL || '/';
       loadCleanTreeTemplate(basePath).then((tpl) => {
         treeTemplateRef.current = tpl;
-        syncCatastroTrees(catastroTreesList, tpl, vegGroup);
+        syncCatastroTrees(safeCatastroList, tpl, vegGroup);
       }).catch(err => {
         console.warn("Could not load tree template:", err);
       });
-    } else {
-      syncCatastroTrees(catastroTreesList, treeTemplateRef.current, vegGroup);
     }
   }, [catastroTreesList]);
 
@@ -379,6 +411,10 @@ export default function ModelViewer3D({ onSelectModule }) {
         });
 
         cartagenaTerritoryRef.current = territory;
+
+        if (treeTemplateRef.current && territory.vegetationGroup) {
+          syncCatastroTrees(safeCatastroList, treeTemplateRef.current, territory.vegetationGroup);
+        }
 
         const box = new THREE.Box3().setFromObject(rootContainer);
         const center = box.getCenter(new THREE.Vector3());
@@ -848,7 +884,7 @@ export default function ModelViewer3D({ onSelectModule }) {
     const onMouseUp = (e) => {
       isDragging = false;
       const deltaDist = Math.hypot(e.clientX - startMouseDownPos.x, e.clientY - startMouseDownPos.y);
-      if (deltaDist < 6) {
+      if (deltaDist < 12) {
         // Clic en la escena 3D
         const rect = domElem.getBoundingClientRect();
         mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -887,7 +923,7 @@ export default function ModelViewer3D({ onSelectModule }) {
             const newTree = {
               id: 'tree_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
               x: localPt.x,
-              y: localPt.y,
+              y: Math.max(localPt.y, 0.36),
               z: localPt.z,
               scale: treePlantScaleRef.current || 1.0,
               rotY: Math.random() * Math.PI * 2

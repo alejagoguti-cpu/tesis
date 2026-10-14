@@ -6,6 +6,7 @@ import pastoTextureImg from '../assets/textura_pasto_m5.png';
 import waterTextureImg from '../assets/textura_agua_m5.jpg';
 import pisoTextureImg from '../assets/textura_piso_m5.png';
 import viaTextureImg from '../assets/textura_via.jpg';
+import { loadCleanTreeTemplate, buildTreeObject, BASE_TREE_SCALE } from './treeTool.js';
 
 /**
  * Generador 3D Territorial: Bahía de Cartagena & Isla de Tierra Bomba
@@ -868,48 +869,12 @@ export async function buildCartagenaTerritoryScene({
   treesGroup.name = "Vegetation";
   treesGroup.visible = activeLayers.trees !== false;
 
-  // Constructor de árbol con doble follaje verde vivo y tronco cálido sin halo negro
-  function buildIslandTree(scale = 1.0) {
-    const group = new THREE.Group();
-    const trunkMat = new THREE.MeshStandardMaterial({
-      color: 0x6d4c41,
-      roughness: 0.85,
-      metalness: 0.05
-    });
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.20, 1.2, 8), trunkMat);
-    trunk.position.y = 0.6;
-    trunk.castShadow = true;
-    trunk.receiveShadow = true;
-    group.add(trunk);
-
-    const folMat1 = new THREE.MeshStandardMaterial({
-      color: 0x4ade80, // Verde esmeralda vivo
-      emissive: 0x14532d,
-      emissiveIntensity: 0.22,
-      roughness: 0.55
-    });
-    const fol1 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.85, 1), folMat1);
-    fol1.position.set(0, 1.45, 0);
-    fol1.scale.set(1.1, 0.95, 1.1);
-    fol1.castShadow = true;
-    fol1.receiveShadow = true;
-    group.add(fol1);
-
-    const folMat2 = new THREE.MeshStandardMaterial({
-      color: 0x22c55e, // Verde bosque medio
-      emissive: 0x0f3f22,
-      emissiveIntensity: 0.18,
-      roughness: 0.55
-    });
-    const fol2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.65, 1), folMat2);
-    fol2.position.set(0.12, 1.95, 0.08);
-    fol2.scale.set(0.9, 0.85, 0.9);
-    fol2.castShadow = true;
-    fol2.receiveShadow = true;
-    group.add(fol2);
-
-    group.scale.set(scale, scale, scale);
-    return group;
+  const basePath = import.meta.env.BASE_URL || '/';
+  let treeTemplate = null;
+  try {
+    treeTemplate = await loadCleanTreeTemplate(basePath);
+  } catch (err) {
+    console.warn("No se pudo cargar la plantilla de tree.glb:", err);
   }
 
   // 52 coordenadas estrictamente dentro del centro verde de la isla (meseta y parque ecológico, lejos del mar)
@@ -934,27 +899,21 @@ export async function buildCartagenaTerritoryScene({
     [-75.5735, 10.3752, 0.60]
   ];
 
-  defaultCenterTreesCoords.forEach(([lon, lat, scale], idx) => {
-    const pos = lonLatToVector3(lon, lat, 0.36);
-    const treeMesh = buildIslandTree(scale);
-    treeMesh.position.copy(pos);
-    treeMesh.rotation.y = (idx * 1.37) % (Math.PI * 2);
-    treeMesh.name = `Tree_Center_${idx + 1}`;
-    treeMesh.userData = {
-      isCustomTree: true,
-      treeId: `init_tree_${idx + 1}`,
-      scale
-    };
-    treeMesh.traverse(ch => {
-      if (ch.isMesh) {
-        ch.userData.isCustomTree = true;
-        ch.userData.treeId = `init_tree_${idx + 1}`;
-        ch.castShadow = true;
-        ch.receiveShadow = true;
-      }
+  if (treeTemplate) {
+    defaultCenterTreesCoords.forEach(([lon, lat, scale], idx) => {
+      const pos = lonLatToVector3(lon, lat, 0.36);
+      const treeObj = buildTreeObject(treeTemplate, {
+        id: `init_tree_${idx + 1}`,
+        x: pos.x,
+        y: pos.y,
+        z: pos.z,
+        scale,
+        rotY: (idx * 1.37) % (Math.PI * 2)
+      });
+      treeObj.name = `Tree_Center_${idx + 1}`;
+      treesGroup.add(treeObj);
     });
-    treesGroup.add(treeMesh);
-  });
+  }
 
   territoryGroup.add(treesGroup);
 

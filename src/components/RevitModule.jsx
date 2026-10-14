@@ -505,10 +505,13 @@ function RenderViewer({
 
             const leafMat = new THREE.MeshStandardMaterial({
               map: leafTex,
+              color: new THREE.Color('#38a169'), // Verde vibrante, fresco y exuberante
+              emissive: new THREE.Color('#14532d'),
+              emissiveIntensity: 0.18,
               alphaTest: 0.45,
               transparent: true,
-              roughness: 0.7,
-              metalness: 0.02,
+              roughness: 0.65,
+              metalness: 0.0,
               side: THREE.DoubleSide
             });
 
