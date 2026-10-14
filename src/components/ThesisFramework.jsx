@@ -255,7 +255,7 @@ export const DEFAULT_DELIMITATIONS = {
     [10.38049, -75.57590],
     [10.38059, -75.57592]
   ],
-  vulnerableHouses: [],
+  vulnerableHouses: VULNERABLE_HOUSES_POLYGON,
   plateau: [
     [10.37487, -75.57396],
     [10.37523, -75.57534],
@@ -718,9 +718,6 @@ export default function ThesisFramework({ onSelectModule }) {
             parsed.roads = norm;
           }
         }
-        if (parsed.vulnerableHouses && parsed.vulnerableHouses.length > 25) {
-          parsed.vulnerableHouses = [];
-        }
         return { ...DEFAULT_DELIMITATIONS, ...parsed };
       }
     } catch (e) {
@@ -809,13 +806,19 @@ export default function ThesisFramework({ onSelectModule }) {
   const layersRef = useRef({
     islandLayer: null,
     erosionLayer: null,
+    erosionFillLayer: null,
     schoolLayer: null,
+    vulnerableHousesLayer: null,
+    vulnerableHousesMarkersGroup: null,
+    vulnerableHousesCallout: null,
     masterplanLayer: null,
+    roadsLayer: null,
     customLayer: null,
     marker1: null,
     marker2: null,
     marker3: null,
-    marker4: null
+    marker4: null,
+    marker5: null
   });
 
   const nodeMarkersGroupRef = useRef(null);
@@ -864,9 +867,11 @@ export default function ThesisFramework({ onSelectModule }) {
   // ANIMATED BOUNDARY TRACING (RUNS ON ANY CARD / STEP SELECTION)
   // Clean progressive trace directly over real geographic coordinates
   // =========================================================================
-  const startZoneTraceAnimation = (stepIdx, targetMap) => {
+  const startZoneTraceAnimation = (stepIdx, targetMap, overrideSubTab) => {
     const map = targetMap || mapInstanceRef.current;
     if (!map) return;
+
+    const currentSubTab = overrideSubTab || vulnerabilitySubTab;
 
     let isPolygon = true;
     let mainColor = '#ea580c';
@@ -888,10 +893,10 @@ export default function ThesisFramework({ onSelectModule }) {
       cameraZoom = 13.2;
     } else if (stepIdx === 2) {
       isPolygon = true;
-      mainColor = '#ef4444';
-      glowColor = '#fb7185';
-      cameraCenter = vulnerabilitySubTab === 'houses' ? [10.3765, -75.5780] : [10.3805, -75.5761];
-      cameraZoom = vulnerabilitySubTab === 'houses' ? 16.5 : 18.2;
+      mainColor = currentSubTab === 'houses' ? '#dc2626' : '#ef4444';
+      glowColor = currentSubTab === 'houses' ? '#ef4444' : '#fb7185';
+      cameraCenter = currentSubTab === 'houses' ? [10.3765, -75.5780] : [10.3805, -75.5761];
+      cameraZoom = currentSubTab === 'houses' ? 16.5 : 18.2;
     } else if (stepIdx === 3) {
       isPolygon = true;
       mainColor = '#0d9488';
@@ -925,16 +930,19 @@ export default function ThesisFramework({ onSelectModule }) {
     }
 
     // Hide static layers during active tracing
-    const { islandLayer, erosionLayer, erosionFillLayer, schoolLayer, vulnerableHousesLayer, masterplanLayer, roadsLayer } = layersRef.current;
+    const { islandLayer, erosionLayer, erosionFillLayer, schoolLayer, vulnerableHousesLayer, vulnerableHousesCallout, masterplanLayer, roadsLayer } = layersRef.current;
     if (islandLayer) islandLayer.setStyle({ opacity: stepIdx === 0 ? 0 : 0.15, fillOpacity: 0, weight: 2 });
     if (erosionLayer) erosionLayer.setStyle({ opacity: 0 });
     if (erosionFillLayer) erosionFillLayer.setStyle({ opacity: 0, fillOpacity: 0 });
     if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
     if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+    if (vulnerableHousesCallout && map.hasLayer(vulnerableHousesCallout)) {
+      map.removeLayer(vulnerableHousesCallout);
+    }
     if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
     if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 3.2, color: '#f59e0b', dashArray: '6, 5', lineCap: 'round', lineJoin: 'round' });
 
-    // Internal tracer engine
+    // Internal tracer engine (Trazado visiblemente más lento y nítido)
     const runTracer = (rawCoords, isPoly, strokeColor, glowStrokeColor, onComplete) => {
       if (!rawCoords || rawCoords.length < 2) {
         setIsIntroAnimating(false);
@@ -944,7 +952,8 @@ export default function ThesisFramework({ onSelectModule }) {
       setIsIntroAnimating(true);
       setAnimProgress(0);
 
-      const sampledCoords = resampleCoordinates(rawCoords, isPoly, 120);
+      // Muestreo con 180 puntos para un trazo detallado y pausado
+      const sampledCoords = resampleCoordinates(rawCoords, isPoly, 180);
 
       const glowLine = L.polyline([], {
         color: glowStrokeColor,
@@ -987,7 +996,8 @@ export default function ThesisFramework({ onSelectModule }) {
 
       const totalSteps = sampledCoords.length;
       let stepCount = 1;
-      const stepIntervalMs = 20;
+      // Intervalo de 35ms: velocidad significativamente más lenta, suave y legible
+      const stepIntervalMs = 35;
 
       animationTimerRef.current = setInterval(() => {
         stepCount++;
@@ -1018,60 +1028,109 @@ export default function ThesisFramework({ onSelectModule }) {
       }, stepIntervalMs);
     };
 
-    // SPECIAL REQUIREMENT FOR PASO 3 (Colegio):
-    // 1. Iniciar la escena desde grande como el Paso 2
-    // 2. Hacer zoom progresivo hacia el colegio sin dibujar todavía
-    // 3. Hasta que la foto satelital esté quieta y en la zona de estudio, dibujar el colegio
-    if (stepIdx === 2 && vulnerabilitySubTab !== 'houses') {
-      const islandCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
-      if (islandCoords.length > 0) {
-        const islandBounds = L.latLngBounds(islandCoords);
-        map.fitBounds(islandBounds, {
-          paddingTopLeft: [70, 70],
-          paddingBottomRight: [70, 130],
-          animate: false
-        });
-      } else {
-        map.setView([10.352, -75.568], 13.2, { animate: false });
-      }
+    // SPECIAL REQUIREMENT FOR PASO 3 (Colegio vs 500 Viviendas en Riesgo):
+    if (stepIdx === 2) {
+      if (currentSubTab === 'school') {
+        // 1. Colegio Actual: Ocultar viviendas y flecha, zoom desde grande y trazo pausado
+        if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+        if (vulnerableHousesCallout && map.hasLayer(vulnerableHousesCallout)) {
+          map.removeLayer(vulnerableHousesCallout);
+        }
 
-      const schoolTarget = [10.3805, -75.5761];
-      const schoolZoom = 18.2;
+        const islandCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
+        if (islandCoords.length > 0) {
+          const islandBounds = L.latLngBounds(islandCoords);
+          map.fitBounds(islandBounds, {
+            paddingTopLeft: [70, 70],
+            paddingBottomRight: [70, 130],
+            animate: false
+          });
+        } else {
+          map.setView([10.352, -75.568], 13.2, { animate: false });
+        }
 
-      let hasDrawn = false;
-      const drawSchoolWhenStill = () => {
-        if (hasDrawn) return;
-        hasDrawn = true;
-        map.off('moveend', drawSchoolWhenStill);
+        const schoolTarget = [10.3805, -75.5761];
+        const schoolZoom = 18.2;
 
-        // Esperar 350ms a que la foto satelital esté completamente quieta y nítida
+        let hasDrawn = false;
+        const drawSchoolWhenStill = () => {
+          if (hasDrawn) return;
+          hasDrawn = true;
+          map.off('moveend', drawSchoolWhenStill);
+
+          // Esperar 400ms a que la foto satelital esté completamente quieta y nítida
+          setTimeout(() => {
+            if (!mapInstanceRef.current) return;
+            const schoolCoords = delimitations.school || DEFAULT_DELIMITATIONS.school || [];
+            runTracer(schoolCoords, true, '#f43f5e', '#fb7185', () => {
+              if (schoolLayer) {
+                schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.35, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
+              }
+            });
+          }, 400);
+        };
+
         setTimeout(() => {
           if (!mapInstanceRef.current) return;
-          const schoolCoords = delimitations.school || DEFAULT_DELIMITATIONS.school || [];
-          runTracer(schoolCoords, true, '#f43f5e', '#fb7185', () => {
-            if (schoolLayer) {
-              schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.35, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
-            }
+          map.once('moveend', drawSchoolWhenStill);
+          map.flyTo(schoolTarget, schoolZoom, {
+            duration: 1.8,
+            easeLinearity: 0.25
           });
-        }, 350);
-      };
 
-      // Iniciar el zoom fluido después de un breve instante mostrando la vista panorámica del Paso 2
-      setTimeout(() => {
-        if (!mapInstanceRef.current) return;
-        map.once('moveend', drawSchoolWhenStill);
-        map.flyTo(schoolTarget, schoolZoom, {
-          duration: 1.8,
+          setTimeout(() => {
+            if (!hasDrawn) drawSchoolWhenStill();
+          }, 2400);
+        }, 150);
+
+        return;
+      } else {
+        // 2. 500 Viviendas en Riesgo: Ocultar colegio, zoom a la franja costera, trazo lento y flecha
+        if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+        if (vulnerableHousesCallout && map.hasLayer(vulnerableHousesCallout)) {
+          map.removeLayer(vulnerableHousesCallout);
+        }
+
+        const housesTarget = [10.3765, -75.5780];
+        const housesZoom = 16.5;
+
+        let hasDrawnHouses = false;
+        const drawHousesWhenStill = () => {
+          if (hasDrawnHouses) return;
+          hasDrawnHouses = true;
+          map.off('moveend', drawHousesWhenStill);
+
+          // Esperar 400ms a que la foto satelital esté quieta
+          setTimeout(() => {
+            if (!mapInstanceRef.current) return;
+            const housesCoords = (delimitations.vulnerableHouses && delimitations.vulnerableHouses.length >= 3)
+              ? delimitations.vulnerableHouses
+              : VULNERABLE_HOUSES_POLYGON;
+
+            runTracer(housesCoords, true, '#dc2626', '#ef4444', () => {
+              if (vulnerableHousesLayer) {
+                vulnerableHousesLayer.setStyle({ opacity: 1, fillOpacity: 0.35, weight: 3.5, color: '#dc2626', dashArray: '6, 6' });
+              }
+              // Mostrar la flecha indicadora "500 Viviendas en Riesgo"
+              if (vulnerableHousesCallout && !map.hasLayer(vulnerableHousesCallout)) {
+                map.addLayer(vulnerableHousesCallout);
+              }
+            });
+          }, 400);
+        };
+
+        map.once('moveend', drawHousesWhenStill);
+        map.flyTo(housesTarget, housesZoom, {
+          duration: 1.6,
           easeLinearity: 0.25
         });
 
-        // Temporizador de respaldo por si moveend se suprime
         setTimeout(() => {
-          if (!hasDrawn) drawSchoolWhenStill();
-        }, 2400);
-      }, 150);
+          if (!hasDrawnHouses) drawHousesWhenStill();
+        }, 2200);
 
-      return;
+        return;
+      }
     }
 
     // Posicionamiento estándar para pasos 0, 1, 3, 4 y sub-paso de viviendas
@@ -1268,9 +1327,30 @@ export default function ThesisFramework({ onSelectModule }) {
       fillOpacity: 0,
       opacity: 0,
       interactive: false
-    }).addTo(map);
-
     const vulnerableHousesMarkersGroup = L.layerGroup().addTo(map);
+
+    // 3C. Flecha indicadora "500 Viviendas en Riesgo"
+    const housesCalloutIcon = L.divIcon({
+      className: 'custom-vuln-houses-callout',
+      html: `
+        <div class="relative flex flex-col items-center pointer-events-auto select-none transition-transform hover:scale-105">
+          <div class="px-3.5 py-1.5 rounded-xl bg-red-600 text-white font-mono font-bold text-xs shadow-2xl border-2 border-white flex items-center space-x-1.5 whitespace-nowrap">
+            <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+            <span>500 Viviendas en Riesgo</span>
+          </div>
+          <!-- Flecha roja apuntando hacia la franja costera de inundación -->
+          <div class="w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[10px] border-t-red-600 -mt-[1px] drop-shadow-md"></div>
+        </div>
+      `,
+      iconSize: [200, 42],
+      iconAnchor: [100, 42]
+    });
+
+    const vulnerableHousesCallout = L.marker([10.3768, -75.5786], {
+      icon: housesCalloutIcon,
+      interactive: true,
+      zIndexOffset: 2500
+    });
 
     // 4. Safe Plateau Polygon (+22m) (Initially hidden, revealed on Card 04 click! - NO FILL, BORDER ONLY)
     const masterplanLayer = L.polygon(delimitations.plateau || [], {
@@ -1372,8 +1452,9 @@ export default function ThesisFramework({ onSelectModule }) {
     const marker3 = L.marker(schoolCenter, { icon: marker3Icon, interactive: true }).addTo(map);
     marker3.on('click', () => {
       setVulnerabilitySubTab('school');
+      setActiveZoneKey('school');
       setCurrentStepIndex(2);
-      startZoneTraceAnimation(2);
+      startZoneTraceAnimation(2, null, 'school');
     });
 
     // Marker 4: Meseta Segura (+22m)
@@ -1425,6 +1506,7 @@ export default function ThesisFramework({ onSelectModule }) {
       schoolLayer,
       vulnerableHousesLayer,
       vulnerableHousesMarkersGroup,
+      vulnerableHousesCallout,
       masterplanLayer,
       roadsLayer,
       customLayer,
@@ -1790,6 +1872,9 @@ export default function ThesisFramework({ onSelectModule }) {
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
+      if (layersRef.current.vulnerableHousesCallout && mapInstanceRef.current?.hasLayer(layersRef.current.vulnerableHousesCallout)) {
+        mapInstanceRef.current.removeLayer(layersRef.current.vulnerableHousesCallout);
+      }
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 2.8, color: '#f59e0b' });
       if (customLayer) customLayer.setStyle({ opacity: 0, fillOpacity: 0 });
@@ -1803,6 +1888,9 @@ export default function ThesisFramework({ onSelectModule }) {
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
+      if (layersRef.current.vulnerableHousesCallout && mapInstanceRef.current?.hasLayer(layersRef.current.vulnerableHousesCallout)) {
+        mapInstanceRef.current.removeLayer(layersRef.current.vulnerableHousesCallout);
+      }
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 2.8, color: '#f59e0b' });
     } else if (currentStepIndex === 1) {
@@ -1811,6 +1899,9 @@ export default function ThesisFramework({ onSelectModule }) {
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
+      if (layersRef.current.vulnerableHousesCallout && mapInstanceRef.current?.hasLayer(layersRef.current.vulnerableHousesCallout)) {
+        mapInstanceRef.current.removeLayer(layersRef.current.vulnerableHousesCallout);
+      }
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 2.8, color: '#f59e0b' });
     } else if (currentStepIndex === 2) {
@@ -1819,26 +1910,31 @@ export default function ThesisFramework({ onSelectModule }) {
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 2.8, color: '#f59e0b' });
 
+      const { vulnerableHousesCallout } = layersRef.current;
+
       if (vulnerabilitySubTab === 'school') {
         if (schoolLayer) schoolLayer.setStyle({ opacity: 1, fillOpacity: 0.35, weight: 4.5, color: '#f43f5e', dashArray: '6, 6' });
         if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
         if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
+        if (vulnerableHousesCallout && mapInstanceRef.current?.hasLayer(vulnerableHousesCallout)) {
+          mapInstanceRef.current.removeLayer(vulnerableHousesCallout);
+        }
       } else {
-        if (schoolLayer) schoolLayer.setStyle({ opacity: 0.15, fillOpacity: 0 });
+        if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
         if (vulnerableHousesLayer) {
-          const hasPoints = (delimitations.vulnerableHouses || []).length > 0;
           vulnerableHousesLayer.setStyle({ 
-            opacity: hasPoints ? 1 : 0, 
-            fillOpacity: hasPoints ? 0.35 : 0, 
+            opacity: 1, 
+            fillOpacity: 0.35, 
             weight: 3.5, 
             color: '#dc2626', 
             dashArray: '6, 6' 
           });
         }
-        
-        // Eliminar todos los puntos de viviendas para permitir el dibujo libre del usuario
         if (vulnerableHousesMarkersGroup) {
           vulnerableHousesMarkersGroup.clearLayers();
+        }
+        if (vulnerableHousesCallout && mapInstanceRef.current && !mapInstanceRef.current.hasLayer(vulnerableHousesCallout)) {
+          mapInstanceRef.current.addLayer(vulnerableHousesCallout);
         }
       }
     } else if (currentStepIndex === 3) {
@@ -1847,6 +1943,9 @@ export default function ThesisFramework({ onSelectModule }) {
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
+      if (layersRef.current.vulnerableHousesCallout && mapInstanceRef.current?.hasLayer(layersRef.current.vulnerableHousesCallout)) {
+        mapInstanceRef.current.removeLayer(layersRef.current.vulnerableHousesCallout);
+      }
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 1, fillOpacity: 0, weight: 4.5, color: '#0d9488', dashArray: '6, 6' });
       if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 0, weight: 3.2, color: '#f59e0b' });
     } else if (currentStepIndex === 4) {
@@ -1855,6 +1954,9 @@ export default function ThesisFramework({ onSelectModule }) {
       if (schoolLayer) schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
+      if (layersRef.current.vulnerableHousesCallout && mapInstanceRef.current?.hasLayer(layersRef.current.vulnerableHousesCallout)) {
+        mapInstanceRef.current.removeLayer(layersRef.current.vulnerableHousesCallout);
+      }
       if (masterplanLayer) masterplanLayer.setStyle({ opacity: 0.35, fillOpacity: 0, weight: 2, color: '#0d9488', dashArray: '6, 6' });
       if (roadsLayer) syncRoadsLayer(roadsLayer, delimitations.roads, { opacity: 1, weight: 3.2, color: '#f59e0b', dashArray: '6, 5', lineCap: 'round', lineJoin: 'round' });
     }
@@ -2325,7 +2427,7 @@ export default function ThesisFramework({ onSelectModule }) {
               setVulnerabilitySubTab('school');
               setActiveZoneKey('school');
               setIsEditMode(false);
-              startZoneTraceAnimation(2);
+              startZoneTraceAnimation(2, null, 'school');
             }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               vulnerabilitySubTab === 'school'
@@ -2340,10 +2442,8 @@ export default function ThesisFramework({ onSelectModule }) {
             onClick={() => {
               setVulnerabilitySubTab('houses');
               setActiveZoneKey('vulnerableHouses');
-              setIsEditMode(true);
-              setToolMode('add');
-              const map = mapInstanceRef.current;
-              if (map) map.flyTo([10.3765, -75.5780], 16.5, { duration: 1.2 });
+              setIsEditMode(false);
+              startZoneTraceAnimation(2, null, 'houses');
             }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
               vulnerabilitySubTab === 'houses'
@@ -2352,13 +2452,13 @@ export default function ThesisFramework({ onSelectModule }) {
             }`}
           >
             <Home className="w-3.5 h-3.5" />
-            <span>2. 500 Viviendas en Riesgo (Dibujar Polígono)</span>
+            <span>2. 500 Viviendas en Riesgo (Franja de Inundación)</span>
           </button>
         </div>
       )}
 
-      {/* Floating Drawing Status & Quick Actions Bar for 500 Viviendas */}
-      {currentStepIndex === 2 && vulnerabilitySubTab === 'houses' && (
+      {/* Floating Drawing Status & Quick Actions Bar for 500 Viviendas (In Edit Mode) */}
+      {currentStepIndex === 2 && vulnerabilitySubTab === 'houses' && isEditMode && (
         <div className="absolute top-32 left-1/2 -translate-x-1/2 z-[450] flex flex-wrap items-center justify-center gap-2 px-3.5 py-1.5 bg-slate-900/90 text-white rounded-2xl shadow-2xl border border-red-500/60 backdrop-blur-md animate-scale-up pointer-events-auto">
           <div className="flex items-center space-x-2">
             <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
@@ -3186,9 +3286,13 @@ export default function ThesisFramework({ onSelectModule }) {
                     setIsPlaying(false);
                     if (idx === 2) {
                       setVulnerabilitySubTab('school');
+                      setActiveZoneKey('school');
+                      setCurrentStepIndex(idx);
+                      startZoneTraceAnimation(idx, null, 'school');
+                    } else {
+                      setCurrentStepIndex(idx);
+                      startZoneTraceAnimation(idx);
                     }
-                    setCurrentStepIndex(idx);
-                    startZoneTraceAnimation(idx);
                   }}
                   className={`glass-card p-3 rounded-2xl text-left transition-all flex flex-col justify-between ${
                     isActive
