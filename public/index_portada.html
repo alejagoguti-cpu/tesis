@@ -3,30 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tierrabomba · Hábitat Resiliente & Reubicación Insular 2026</title>
+<title>Tierrabomba · Hábitat Resiliente — Tesis de Grado 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 :root {
-  --bg: #0a0c10;
-  --surface: #12161f;
-  --surface-hover: #181e2b;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --text: #f3efe9;
-  --text-dim: #9aa4b2;
-  --text-faint: #626d7f;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-hover: #f8fafc;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.14);
+  --text: #0f172a;
+  --text-dim: #475569;
+  --text-faint: #64748b;
   
-  --teal: #2fd4c8;
-  --teal-soft: rgba(47, 212, 200, 0.14);
-  --coral: #ef6f6f;
-  --coral-soft: rgba(239, 111, 111, 0.14);
-  --amber: #f5c26b;
-  --amber-soft: rgba(245, 194, 107, 0.14);
-  --orange: #ef8b3c;
-  --orange-soft: rgba(239, 139, 60, 0.14);
+  --teal: #0d9488;
+  --teal-soft: rgba(13, 148, 136, 0.12);
+  --coral: #c86d51;
+  --coral-soft: rgba(200, 109, 81, 0.12);
+  --amber: #d97706;
+  --amber-soft: rgba(217, 119, 6, 0.12);
+  --blue: #2563eb;
+  --blue-soft: rgba(37, 99, 235, 0.12);
 
   --font: 'Space Grotesk', 'Inter', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
@@ -39,24 +39,28 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
 }
 
-/* Atmospheric Glowing Auras */
+/* Atmospheric Glowing Soft Auras */
 .aura-a, .aura-b, .aura-c {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(80px);
+  filter: blur(90px);
   z-index: 0;
 }
 .aura-a {
   top: -150px; left: -150px; width: 600px; height: 600px;
-  background: radial-gradient(circle, rgba(47, 212, 200, 0.15), transparent 70%);
+  background: radial-gradient(circle, rgba(13, 148, 136, 0.12), transparent 70%);
   animation: drift 16s ease-in-out infinite alternate;
 }
 .aura-b {
   bottom: -150px; right: -100px; width: 650px; height: 650px;
-  background: radial-gradient(circle, rgba(239, 111, 111, 0.13), transparent 70%);
+  background: radial-gradient(circle, rgba(200, 109, 81, 0.12), transparent 70%);
   animation: drift 20s ease-in-out infinite alternate-reverse;
 }
 @keyframes drift {
@@ -74,9 +78,10 @@ body {
   justify-content: space-between;
   gap: 20px;
   padding: 16px 5vw;
-  background: rgba(18, 22, 31, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 .navbar .brand {
   display: flex;
@@ -89,11 +94,13 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #0f172a;
+  color: #fff;
   border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 .navbar .brand-text h1 {
   font-family: var(--font);
@@ -101,18 +108,18 @@ body {
   font-weight: 800;
   letter-spacing: 0.5px;
   line-height: 1.1;
-  color: #fff;
+  color: #0f172a;
 }
 .navbar .brand-text p {
   font-size: 10.5px;
-  color: var(--text-dim);
+  color: var(--text-faint);
   font-family: monospace;
 }
 .navbar .menu {
   display: flex;
   gap: 4px;
   list-style: none;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(241, 245, 249, 0.9);
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 4px;
@@ -127,23 +134,23 @@ body {
   transition: all .2s;
   display: inline-block;
 }
-.navbar .menu li a:hover { color: #fff; }
-.navbar .menu li.active a { background: #fff; color: #0a0c10; font-weight: 700; }
+.navbar .menu li a:hover { color: #0f172a; }
+.navbar .menu li.active a { background: #0f172a; color: #fff; font-weight: 700; }
 
 .navbar .btn-launch {
-  background: linear-gradient(90deg, #2fd4c8, #edfffe, #ef6f6f);
-  color: #090c10;
+  background: #0f172a;
+  color: #fff;
   border-radius: 10px;
   padding: 10px 20px;
   font-size: 12.5px;
-  font-weight: 800;
+  font-weight: 700;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: transform .2s, filter .2s;
+  transition: transform .2s, background .2s;
 }
-.navbar .btn-launch:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.navbar .btn-launch:hover { background: #0d9488; transform: translateY(-1px); }
 
 /* HERO SECTION */
 .hero {
@@ -170,15 +177,16 @@ body {
   gap: 8px;
   padding: 6px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border);
+  background: rgba(13, 148, 136, 0.1);
+  border: 1px solid rgba(13, 148, 136, 0.25);
   font-size: 11.5px;
   font-family: monospace;
-  color: var(--teal);
+  color: #0f766e;
   width: fit-content;
+  font-weight: 600;
 }
 .hero-tag .dot {
-  width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite;
+  width: 6px; height: 6px; border-radius: 50%; background: #0d9488; animation: pulse 2s infinite;
 }
 @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }
 
@@ -188,7 +196,7 @@ body {
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.8px;
-  color: #fff;
+  color: #0f172a;
 }
 .hero-title .grad {
   background: linear-gradient(100deg, var(--teal) 0%, var(--amber) 50%, var(--coral) 100%);
@@ -200,15 +208,15 @@ body {
 .scramble-char.spinning {
   color: var(--teal) !important;
   -webkit-text-fill-color: var(--teal) !important;
-  text-shadow: 0 0 12px rgba(47, 212, 200, 0.8);
+  text-shadow: 0 0 10px rgba(13, 148, 136, 0.4);
 }
 
 .hero-question {
   font-size: 17px;
   font-weight: 600;
   line-height: 1.35;
-  color: #edfffe;
-  border-left: 3px solid var(--teal);
+  color: #1e293b;
+  border-left: 4px solid var(--teal);
   padding-left: 14px;
 }
 .hero-desc {
@@ -217,24 +225,26 @@ body {
   line-height: 1.6;
 }
 
-/* 3 DIMENSION CARDS */
+/* 3 OBJECTIVE ACTION CARDS */
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 .feature-card {
-  background: rgba(18, 22, 31, 0.7);
+  background: #ffffff;
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 16px;
   transition: all .25s;
   cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .feature-card:hover {
   background: var(--surface-hover);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(0, 0, 0, 0.2);
   transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.06);
 }
 .feature-icon {
   width: 32px;
@@ -248,7 +258,19 @@ body {
 }
 .feature-card.c1 .feature-icon { background: var(--coral-soft); color: var(--coral); }
 .feature-card.c2 .feature-icon { background: var(--teal-soft); color: var(--teal); }
-.feature-card.c3 .feature-icon { background: var(--amber-soft); color: var(--amber); }
+.feature-card.c3 .feature-icon { background: var(--blue-soft); color: var(--blue); }
+
+.feature-badge {
+  font-size: 9.5px;
+  font-family: monospace;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: #475569;
+  display: inline-block;
+  margin-bottom: 4px;
+}
 
 .feature-card h3 {
   font-family: var(--font);
@@ -256,7 +278,7 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #fff;
+  color: #0f172a;
 }
 .feature-card p {
   font-size: 11px;
@@ -274,8 +296,8 @@ body {
   padding-top: 6px;
 }
 .btn-primary {
-  background: var(--teal);
-  color: #0a0c10;
+  background: #0f172a;
+  color: #ffffff;
   font-weight: 700;
   font-size: 13px;
   padding: 14px 24px;
@@ -284,19 +306,19 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 10px 24px rgba(47, 212, 200, 0.25);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.15);
   transition: all .2s;
   cursor: pointer;
   border: 0;
 }
 .btn-primary:hover {
-  background: #28bebe;
+  background: #0d9488;
   transform: translateY(-2px);
 }
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
+  background: #ffffff;
   border: 1px solid var(--border-strong);
-  color: #fff;
+  color: #0f172a;
   font-weight: 600;
   font-size: 13px;
   padding: 14px 20px;
@@ -307,17 +329,20 @@ body {
   gap: 8px;
   transition: all .2s;
 }
-.btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
+.btn-secondary:hover { background: #f8fafc; }
 
 /* FIELD TESTIMONY */
 .testimony {
-  background: rgba(20, 25, 34, 0.6);
-  border-left: 3px solid var(--teal);
+  background: rgba(254, 252, 247, 0.9);
+  border-left: 4px solid var(--coral);
   border-radius: 12px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
   padding: 14px 18px;
   font-size: 12.5px;
   line-height: 1.5;
-  color: #cbd5e1;
+  color: #334155;
   font-style: italic;
 }
 .testimony footer {
@@ -330,17 +355,17 @@ body {
 
 /* RIGHT VISUAL CARD */
 .hero-visual-card {
-  background: rgba(18, 22, 31, 0.95);
+  background: rgba(255, 255, 255, 0.95);
   border: 1px solid var(--border-strong);
   border-radius: 26px;
   padding: 24px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
   transition: transform .25s ease;
 }
 .visual-title {
   font-size: 14px;
-  font-weight: 600;
-  color: #edfffe;
+  font-weight: 700;
+  color: #0f172a;
   margin-bottom: 14px;
 }
 
@@ -350,7 +375,7 @@ body {
   align-items: center;
   gap: 16px;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.04);
+  background: #f8fafc;
   border: 1px solid var(--border);
   border-radius: 10px;
   font-size: 11px;
@@ -365,7 +390,7 @@ body {
   position: relative;
   width: 100%;
   aspect-ratio: 620 / 560;
-  background: #090c10;
+  background: #f8fafc;
   border-radius: 18px;
   border: 1px solid var(--border);
   overflow: hidden;
@@ -375,13 +400,13 @@ body {
 .network-svg .link-hit { fill: none; stroke: transparent; stroke-width: 24; cursor: pointer; }
 .network-svg .link-line {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.25);
-  stroke-width: 1.5;
+  stroke: rgba(51, 65, 85, 0.35);
+  stroke-width: 1.8;
   stroke-dasharray: 4 4;
   transition: stroke .2s, stroke-width .2s;
 }
-.network-svg .link-arrow { fill: rgba(255, 255, 255, 0.6); transition: fill .2s; }
-.network-svg .link:hover .link-line { stroke: var(--teal); stroke-width: 2.5; stroke-dasharray: 6 3; }
+.network-svg .link-arrow { fill: rgba(51, 65, 85, 0.7); transition: fill .2s; }
+.network-svg .link:hover .link-line { stroke: var(--teal); stroke-width: 2.8; stroke-dasharray: 6 3; }
 .network-svg .link:hover .link-arrow { fill: var(--teal); }
 
 /* NODE FLOATING PHYSICS */
@@ -399,7 +424,7 @@ body {
 
 .node text {
   font-family: var(--font);
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   fill: #fff;
   text-anchor: middle;
@@ -429,22 +454,10 @@ body {
 
 /* VEIL */
 .veil {
-  position: fixed; inset: 0; background: #0a0c10; opacity: 0; pointer-events: none; z-index: 9999;
+  position: fixed; inset: 0; background: #ffffff; opacity: 0; pointer-events: none; z-index: 9999;
   transition: opacity 1s ease;
 }
 .veil.active { opacity: 1; pointer-events: all; }
-
-/* MODAL */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px);
-  z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px;
-}
-.modal-card {
-  background: #12161f; border: 1px solid var(--border-strong); border-radius: 24px;
-  max-width: 620px; width: 100%; padding: 32px; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
-}
-.modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-.modal-close { background: none; border: 0; color: #fff; font-size: 20px; cursor: pointer; }
 
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; }
@@ -457,17 +470,17 @@ body {
 
 <div class="veil" id="veil"></div>
 
-<!-- Background Lights -->
+<!-- Background Soft Lights -->
 <div class="aura-a"></div>
 <div class="aura-b"></div>
 
 <!-- Gradients -->
 <svg width="0" height="0" style="position:absolute;overflow:hidden">
   <defs>
-    <linearGradient id="g-water" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#45d6c5"/><stop offset="100%" stop-color="#1f8f82"/></linearGradient>
-    <linearGradient id="g-territory" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff8f8f"/><stop offset="100%" stop-color="#d94f5c"/></linearGradient>
-    <linearGradient id="g-civic" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f5c26b"/><stop offset="100%" stop-color="#d9902e"/></linearGradient>
-    <linearGradient id="g-eco" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffb37a"/><stop offset="100%" stop-color="#e8763c"/></linearGradient>
+    <linearGradient id="g-oe04" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#14b8a6"/><stop offset="100%" stop-color="#0f766e"/></linearGradient>
+    <linearGradient id="g-oe01" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e06248"/><stop offset="100%" stop-color="#c86d51"/></linearGradient>
+    <linearGradient id="g-oe02" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#d97706"/></linearGradient>
+    <linearGradient id="g-oe03" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient>
   </defs>
 </svg>
 
@@ -475,7 +488,7 @@ body {
 <header class="navbar">
   <a class="brand" href="./">
     <div class="brand-icon">
-      <i class="fa-solid fa-water-ladder" style="color:var(--teal)"></i>
+      <i class="fa-solid fa-water-ladder"></i>
     </div>
     <div class="brand-text">
       <h1>TIERRABOMBA</h1>
@@ -484,9 +497,9 @@ body {
   </a>
 
   <ul class="menu">
-    <li class="active"><a href="./">INICIO</a></li>
+    <li class="active"><a href="./">PORTADA</a></li>
     <li><a href="./#module11">PREGUNTA CENTRAL</a></li>
-    <li><a href="./#framework">MARCO DE TESIS</a></li>
+    <li><a href="./#framework">MARCO DE OBJETIVOS</a></li>
     <li><a href="./#gis">DIAGNÓSTICO GIS</a></li>
     <li><a href="./#3dviewer">VISOR 3D BIM</a></li>
   </ul>
@@ -517,26 +530,29 @@ body {
     </h2>
 
     <p class="hero-desc">
-      Plan Maestro de relocalización comunitaria e infraestructura hídrica autosuficiente frente a la erosión costera crítica (1.8 m/año) en la Isla de Tierrabomba (Cartagena de Indias): 120 viviendas palafíticas progresivas y equipamiento educativo bioclimático dotado de macro-aljibe de 450.000 L.
+      Plan Maestro de relocalización comunitaria e infraestructura hídrica autosuficiente frente a la erosión costera de hasta 1.8 m/año en la Isla de Tierrabomba (Cartagena de Indias): reubicación de 120 familias hacia la meseta segura (+22.00 m.s.n.m.), equipamiento educativo bioclimático y macro-aljibe de 450.000 L.
     </p>
 
     <div class="feature-grid">
       <div class="feature-card c1">
+        <span class="feature-badge">OE-01 + OE-02</span>
         <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
         <h3>RELOCALIZA</h3>
-        <p>120 viviendas trasladadas de la socavación crítica a meseta +22m.</p>
+        <p>120 viviendas palafíticas a cota segura (+22m).</p>
       </div>
 
       <div class="feature-card c2">
+        <span class="feature-badge">OE-04</span>
         <div class="feature-icon"><i class="fa-solid fa-droplet"></i></div>
-        <h3>CAPTURA</h3>
-        <p>Macro-cubierta escolar 1.850 m² y reserva hídrica de 450.000 L.</p>
+        <h3>CAPTURA & AGUA</h3>
+        <p>Macro-cubierta 1.850 m² y aljibe de 450.000 L.</p>
       </div>
 
       <div class="feature-card c3">
+        <span class="feature-badge">OE-03</span>
         <div class="feature-icon"><i class="fa-solid fa-wind"></i></div>
         <h3>BIOCLIMÁTICA</h3>
-        <p>Confort pasivo (-5°C) en madera, BTC y talleres de oficios pesqueros.</p>
+        <p>Escuela 350 cupos en madera, BTC y ágora central.</p>
       </div>
     </div>
 
@@ -560,54 +576,62 @@ body {
   <div class="hero-visual">
     <div class="hero-visual-card" id="tiltCard">
       
-      <p class="visual-title">¿Cómo interactúan los cuatro sistemas de resiliencia y soberanía hídrica?</p>
+      <p class="visual-title">Articulación de los Objetivos Específicos (OE-01 a OE-04)</p>
 
       <div class="legend">
-        <span><b>CONVENCIONES:</b></span>
-        <span><i class="fa-solid fa-arrow-right" style="color:var(--teal)"></i> Flujo Hídrico</span>
+        <span><b>LEYENDA:</b></span>
+        <span><i class="fa-solid fa-arrow-right" style="color:var(--teal)"></i> Flujo Hídrico / Físico</span>
         <span><i class="fa-solid fa-arrows-left-right" style="color:var(--coral)"></i> Sinergia Comunal</span>
-        <span><i class="fa-solid fa-circle" style="color:var(--amber);font-size:8px"></i> Cota +22m</span>
+        <span><i class="fa-solid fa-circle" style="color:var(--amber);font-size:8px"></i> OE-01..04</span>
       </div>
 
       <div class="network-stage">
         <svg viewBox="0 0 620 560" class="network-svg" id="networkSvg">
           
+          <!-- Central General Objective Emblem -->
+          <g transform="translate(310, 295)">
+            <circle r="42" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 3"/>
+            <text text-anchor="middle" y="-6" fill="#0f172a" font-size="8.5" font-weight="800">OBJETIVO GENERAL</text>
+            <text text-anchor="middle" y="6" fill="#64748b" font-size="7.5">PLAN MAESTRO</text>
+            <text text-anchor="middle" y="16" fill="#0d9488" font-size="7" font-weight="700">+22.00 M.S.N.M.</text>
+          </g>
+
           <!-- Relations -->
           <g class="links">
             <g class="link"><path class="link-hit" d="M368,145 Q465,185 470,240"/><path class="link-line" d="M368,145 Q465,185 470,240"/><path class="link-arrow" d="M-13,-4 L0,0 L-13,4 Z" transform="translate(470,240) rotate(78)"/></g>
             <g class="link"><path class="link-hit" d="M252,145 Q155,185 150,240"/><path class="link-line" d="M252,145 Q155,185 150,240"/><path class="link-arrow" d="M-13,-4 L0,0 L-13,4 Z" transform="translate(150,240) rotate(102)"/></g>
-            <g class="link"><path class="link-hit" d="M202,300 Q310,345 418,300"/><path class="link-line" d="M202,300 Q310,345 418,300"/><path class="link-arrow" d="M-13,-4 L0,0 L-13,4 Z" transform="translate(418,300) rotate(-22)"/></g>
+            <g class="link"><path class="link-hit" d="M202,300 Q310,250 418,300"/><path class="link-line" d="M202,300 Q310,250 418,300"/><path class="link-arrow" d="M-13,-4 L0,0 L-13,4 Z" transform="translate(418,300) rotate(22)"/></g>
             <g class="link"><path class="link-hit" d="M460,358 Q425,435 365,455"/><path class="link-line" d="M460,358 Q425,435 365,455"/><path class="link-arrow" d="M-13,-4 L0,0 L-13,4 Z" transform="translate(365,455) rotate(162)"/></g>
             <g class="link"><path class="link-hit" d="M160,358 Q195,435 255,455"/><path class="link-line" d="M160,358 Q195,435 255,455"/><path class="link-arrow" d="M-13,-4 L0,0 L-13,4 Z" transform="translate(255,455) rotate(18)"/></g>
-            <g class="link"><path class="link-hit" d="M310,414 Q280,295 310,176"/><path class="link-line" d="M310,414 Q280,295 310,176"/><path class="link-arrow" d="M-13,-4 L0,0 L-13,4 Z" transform="translate(310,176) rotate(-85)"/></g>
+            <g class="link"><path class="link-hit" d="M310,414 Q275,295 310,176"/><path class="link-line" d="M310,414 Q275,295 310,176"/><path class="link-arrow" d="M-13,-4 L0,0 L-13,4 Z" transform="translate(310,176) rotate(-85)"/></g>
           </g>
 
-          <!-- Nodes -->
-          <g class="node" data-color="#2fd4c8" transform="translate(310,110)">
+          <!-- Nodes: OE-01 to OE-04 -->
+          <g class="node" data-color="#0d9488" transform="translate(310,110)">
             <g class="node-float">
-              <circle r="66" fill="url(#g-water)" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
-              <text y="-14">Soberanía<tspan x="0" dy="14">Hídrica Pluvial</tspan><tspan x="0" dy="14">450.000 Litros</tspan><tspan x="0" dy="14">Aljibe Central</tspan></text>
+              <circle r="66" fill="url(#g-oe04)" stroke="#ffffff" stroke-width="2.5"/>
+              <text y="-14">OE-04<tspan x="0" dy="14">Soberanía Hídrica</tspan><tspan x="0" dy="14">Aljibe 450.000 L</tspan><tspan x="0" dy="14">Captación Pluvial</tspan></text>
             </g>
           </g>
 
-          <g class="node" data-color="#ef6f6f" transform="translate(140,300)">
+          <g class="node" data-color="#c86d51" transform="translate(140,300)">
             <g class="node-float">
-              <circle r="62" fill="url(#g-territory)" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
-              <text y="-14">Relocalización<tspan x="0" dy="14">120 Viviendas</tspan><tspan x="0" dy="14">Cota Segura</tspan><tspan x="0" dy="14">+22.00 m.s.n.m.</tspan></text>
+              <circle r="62" fill="url(#g-oe01)" stroke="#ffffff" stroke-width="2.5"/>
+              <text y="-14">OE-01<tspan x="0" dy="14">Diagnóstico Territorial</tspan><tspan x="0" dy="14">Riesgo Costero</tspan><tspan x="0" dy="14">Cota Segura +22m</tspan></text>
             </g>
           </g>
 
-          <g class="node" data-color="#f5c26b" transform="translate(480,300)">
+          <g class="node" data-color="#d97706" transform="translate(480,300)">
             <g class="node-float">
-              <circle r="62" fill="url(#g-civic)" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
-              <text y="-14">Equipamiento<tspan x="0" dy="14">Educativo & Cívico</tspan><tspan x="0" dy="14">350 Alumnos</tspan><tspan x="0" dy="14">Ágora & Oficios</tspan></text>
+              <circle r="62" fill="url(#g-oe02)" stroke="#ffffff" stroke-width="2.5"/>
+              <text y="-14">OE-02<tspan x="0" dy="14">Vivienda Progresiva</tspan><tspan x="0" dy="14">120 Módulos Palafíticos</tspan><tspan x="0" dy="14">Madera & BTC</tspan></text>
             </g>
           </g>
 
-          <g class="node" data-color="#ef8b3c" transform="translate(310,480)">
+          <g class="node" data-color="#2563eb" transform="translate(310,480)">
             <g class="node-float">
-              <circle r="66" fill="url(#g-eco)" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
-              <text y="-14">Fitodepuración &<tspan x="0" dy="14">Paisaje Resiliente</tspan><tspan x="0" dy="14">Bio-Humedal</tspan><tspan x="0" dy="14">75% Recirculación</tspan></text>
+              <circle r="66" fill="url(#g-oe03)" stroke="#ffffff" stroke-width="2.5"/>
+              <text y="-14">OE-03<tspan x="0" dy="14">Equipamiento Cívico</tspan><tspan x="0" dy="14">Escuela 350 Alumnos</tspan><tspan x="0" dy="14">Ágora & Talleres</tspan></text>
             </g>
           </g>
 
@@ -665,7 +689,7 @@ body {
     const r = card.getBoundingClientRect();
     const px = (e.clientX - r.left) / r.width - 0.5;
     const py = (e.clientY - r.top) / r.height - 0.5;
-    card.style.transform = `perspective(900px) rotateY(${px * 6}deg) rotateX(${-py * 6}deg)`;
+    card.style.transform = `perspective(900px) rotateY(${px * 5}deg) rotateX(${-py * 5}deg)`;
   });
   card.addEventListener("mouseleave", () => {
     card.style.transform = "perspective(900px) rotateY(0deg) rotateX(0deg)";
@@ -683,12 +707,11 @@ body {
     svg.classList.add("is-shattering");
     const SVG_NS = "http://www.w3.org/2000/svg";
     
-    // Add satellite shards around each node
     const centers = [
-      { x: 310, y: 110, c: "#2fd4c8" },
-      { x: 140, y: 300, c: "#ef6f6f" },
-      { x: 480, y: 300, c: "#f5c26b" },
-      { x: 310, y: 480, c: "#ef8b3c" }
+      { x: 310, y: 110, c: "#0d9488" },
+      { x: 140, y: 300, c: "#c86d51" },
+      { x: 480, y: 300, c: "#d97706" },
+      { x: 310, y: 480, c: "#2563eb" }
     ];
 
     centers.forEach(pt => {

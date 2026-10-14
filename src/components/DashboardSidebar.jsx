@@ -71,20 +71,20 @@ export default function DashboardSidebar({
         {/* Top Logo / Brand Icon */}
         <div className="pt-3.5 pb-2 flex flex-col items-center">
           <button
-            onClick={() => setActiveModule('intro')}
+            onClick={() => setViewMode('index')}
             onMouseEnter={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               setTooltipPos({ top: rect.top + rect.height / 2 });
               setHoveredModule({
-                number: "00",
-                title: "Tierrabomba Resiliente",
-                desc: "Tesis de Grado en Arquitectura 2026 // Alejandra Gómez & Ana Casas",
-                badge: "Portada & Red Conceptual"
+                number: "INDEX",
+                title: "Volver a la Portada",
+                desc: "Regresar a la página de inicio e index animado",
+                badge: "Portada"
               });
             }}
             onMouseLeave={handleMouseLeave}
-            className="w-11 h-11 rounded-2xl bg-slate-900 hover:bg-terracotta-600 text-white flex items-center justify-center shadow-md transition-all hover:scale-105"
-            title="Tierrabomba Resiliente 2026"
+            className="w-11 h-11 rounded-2xl bg-slate-900 hover:bg-teal-700 text-white flex items-center justify-center shadow-md transition-all hover:scale-105"
+            title="Volver a la Portada Index"
           >
             <Building2 className="w-5 h-5" />
           </button>

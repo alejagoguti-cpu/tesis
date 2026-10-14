@@ -81,6 +81,16 @@ export default function DashboardHeader({
         {/* Center/Right: Action Buttons & Controls */}
         <div className="flex items-center space-x-2 sm:space-x-3">
           
+          {/* Back to Index Page */}
+          <button
+            onClick={() => setViewMode('index')}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-deepsea-800 bg-white dark:bg-deepsea-900 text-slate-800 dark:text-sand-100 hover:border-teal-500 text-xs font-mono transition-all shadow-xs"
+            title="Regresar a la Portada Index"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+            <span className="hidden sm:inline font-bold">Portada Index</span>
+          </button>
+
           {/* Quick View Mode Toggle (Dashboard vs Monograph) */}
           <div className="hidden md:flex p-1 rounded-xl bg-slate-100 dark:bg-deepsea-900 border border-slate-200 dark:border-deepsea-800 text-xs font-mono">
             <button

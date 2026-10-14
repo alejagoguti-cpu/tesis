@@ -233,25 +233,24 @@
 }
 
 .scramble-char.spinning {
-  color: #2fd4c8 !important;
-  -webkit-text-fill-color: #2fd4c8 !important;
-  text-shadow: 0 0 14px rgba(47, 212, 200, 0.7), 0 0 30px rgba(47, 212, 200, 0.35);
-  filter: drop-shadow(0 0 8px #2fd4c8);
+  color: #0d9488 !important;
+  -webkit-text-fill-color: #0d9488 !important;
+  text-shadow: 0 0 10px rgba(13, 148, 136, 0.4), 0 0 20px rgba(13, 148, 136, 0.2);
 }
 
-/* Hero card atmospheric aura */
+/* Hero card atmospheric aura (Light Theme) */
 .intro-hero-aura-a {
-  background: radial-gradient(circle, rgba(47, 212, 200, 0.16), transparent 70%);
+  background: radial-gradient(circle, rgba(13, 148, 136, 0.12), transparent 70%);
   animation: heroAuraDrift 16s ease-in-out infinite alternate;
 }
 
 .intro-hero-aura-b {
-  background: radial-gradient(circle, rgba(239, 111, 111, 0.14), transparent 70%);
+  background: radial-gradient(circle, rgba(200, 109, 81, 0.12), transparent 70%);
   animation: heroAuraDrift 20s ease-in-out infinite alternate-reverse;
 }
 
 .intro-hero-aura-c {
-  background: radial-gradient(circle, rgba(245, 185, 66, 0.12), transparent 70%);
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.10), transparent 70%);
   animation: heroAuraDrift 14s ease-in-out infinite alternate;
 }
 
@@ -305,7 +304,7 @@
   animation-play-state: paused;
 }
 
-/* Directed links styling */
+/* Directed links styling for light theme */
 .network-svg .link-hit {
   fill: none;
   stroke: transparent;
@@ -315,35 +314,35 @@
 
 .network-svg .link-line {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.28);
-  stroke-width: 1.6;
+  stroke: rgba(51, 65, 85, 0.35);
+  stroke-width: 1.8;
   stroke-dasharray: 4 4;
   transition: stroke 0.25s, stroke-width 0.25s, stroke-dasharray 0.25s;
 }
 
 .network-svg .link-arrow {
-  fill: rgba(255, 255, 255, 0.65);
+  fill: rgba(51, 65, 85, 0.75);
   transition: fill 0.25s, transform 0.25s;
 }
 
 .network-svg .link:hover .link-line,
 .network-svg .link.is-active .link-line {
-  stroke: #2fd4c8;
+  stroke: #0d9488;
   stroke-width: 2.8;
   stroke-dasharray: 6 3;
-  filter: drop-shadow(0 0 6px #2fd4c8);
+  filter: drop-shadow(0 0 6px rgba(13, 148, 136, 0.5));
 }
 
 .network-svg .link:hover .link-arrow,
 .network-svg .link.is-active .link-arrow {
-  fill: #2fd4c8;
-  filter: drop-shadow(0 0 6px #2fd4c8);
+  fill: #0d9488;
+  filter: drop-shadow(0 0 6px rgba(13, 148, 136, 0.5));
 }
 
 /* Shatter animation when clicking "Explorar el Modelo" */
 @keyframes shatterMainCircle {
   0% { transform: scale(1); opacity: 1; }
-  30% { transform: scale(1.12); opacity: 1; filter: brightness(1.3); }
+  30% { transform: scale(1.12); opacity: 1; filter: brightness(1.2); }
   100% { transform: scale(0.12); opacity: 0; }
 }
 
@@ -382,8 +381,8 @@
 }
 
 .network-svg .shard-link-line {
-  stroke: rgba(47, 212, 200, 0.6);
-  stroke-width: 1.2;
+  stroke: rgba(13, 148, 136, 0.7);
+  stroke-width: 1.4;
   stroke-dasharray: 3 3;
   animation: shardLinkFadeIn 1.2s ease forwards;
 }
@@ -395,11 +394,11 @@
   animation-delay: 1.2s;
 }
 
-/* Page Transition Veil */
+/* Page Transition Veil (Clean White) */
 .page-transition-veil {
   position: fixed;
   inset: 0;
-  background: #090d12;
+  background: #ffffff;
   opacity: 0;
   pointer-events: none;
   z-index: 9999;

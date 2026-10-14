@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowRight,
   Sparkles,
-  ShieldAlert,
+  ShieldCheck,
   Droplets,
   Wind,
   Layers,
@@ -14,9 +14,10 @@ import {
   Activity,
   Compass,
   Quote,
-  Maximize2,
   X,
-  RotateCcw
+  RotateCcw,
+  CheckCircle2,
+  Waves
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
@@ -38,7 +39,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
   const relations = thesisNetwork?.relations || [];
 
   // -------------------------------------------------------------
-  // 1. CASINO SCRAMBLE TEXT REVEAL ANIMATION (MODELAMIENTO2 STYLE)
+  // 1. CASINO SCRAMBLE TEXT REVEAL ANIMATION (LIGHT MODE ADAPTED)
   // -------------------------------------------------------------
   useEffect(() => {
     const CHARS = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz0123456789";
@@ -75,7 +76,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       if (item.ch === " ") return;
       item.span.classList.add("spinning");
       let ticks = 0;
-      const totalTicks = 8 + i * 2; // Cascade stop timing
+      const totalTicks = 8 + i * 2;
       const timer = setInterval(() => {
         if (ticks < totalTicks) {
           item.span.textContent = CHARS[Math.floor(Math.random() * CHARS.length)];
@@ -95,7 +96,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
   }, [scrambleKey]);
 
   // -------------------------------------------------------------
-  // 2. 3D PERSPECTIVE MOUSE TILT ON CARD (MODELAMIENTO2 STYLE)
+  // 2. 3D PERSPECTIVE MOUSE TILT ON CARD
   // -------------------------------------------------------------
   const handleMouseMove = (e) => {
     const card = cardRef.current;
@@ -103,7 +104,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
     const rect = card.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width - 0.5;
     const py = (e.clientY - rect.top) / rect.height - 0.5;
-    const MAX_TILT = 5.5; // degrees
+    const MAX_TILT = 5; // degrees
     card.style.transform = `perspective(900px) rotateY(${(px * MAX_TILT).toFixed(2)}deg) rotateX(${(-py * MAX_TILT).toFixed(2)}deg)`;
   };
 
@@ -124,7 +125,6 @@ export default function IntroLandingIndex({ onNavigateModule }) {
     if (svg) {
       svg.classList.add("is-shattering");
 
-      // Generate satellite shard elements dynamically
       const SVG_NS = "http://www.w3.org/2000/svg";
       nodes.forEach((node) => {
         const cx = node.cx;
@@ -147,7 +147,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
           shard.setAttribute("fill", color);
           shard.setAttribute("fill-opacity", "0.95");
           shard.setAttribute("stroke", "#ffffff");
-          shard.setAttribute("stroke-width", "1.2");
+          shard.setAttribute("stroke-width", "1.5");
           shard.setAttribute("class", "shard-grow");
           shard.style.setProperty("--dx", dx.toFixed(1) + "px");
           shard.style.setProperty("--dy", dy.toFixed(1) + "px");
@@ -155,7 +155,6 @@ export default function IntroLandingIndex({ onNavigateModule }) {
           shard.style.animationDelay = (idx * 120) + "ms";
           svg.appendChild(shard);
 
-          // Connection line to center
           const line = document.createElementNS(SVG_NS, "line");
           line.setAttribute("x1", cx);
           line.setAttribute("y1", cy);
@@ -167,7 +166,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       });
     }
 
-    // Activate transition veil after shards expand
+    // Activate clean white transition veil
     setTimeout(() => {
       setVeilActive(true);
     }, 1800);
@@ -189,115 +188,111 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       case 'Sparkles': return <Sparkles className="w-4 h-4" />;
       case 'Activity': return <Activity className="w-4 h-4" />;
       case 'Compass': return <Compass className="w-4 h-4" />;
+      case 'Waves': return <Waves className="w-4 h-4" />;
+      case 'Map': return <MapIcon className="w-4 h-4" />;
       default: return <Sparkles className="w-4 h-4" />;
     }
   };
 
   return (
-    <div className="relative min-h-screen bg-[#0a0c10] text-[#f3efe9] selection:bg-[#2fd4c8] selection:text-[#0a0c10] overflow-x-hidden font-sans">
+    <div className="relative min-h-screen bg-white text-slate-900 selection:bg-[#0d9488] selection:text-white overflow-x-hidden font-sans bg-editorial-grid">
       
-      {/* Page Transition Veil */}
+      {/* Page Transition Veil (Clean White) */}
       <div className={`page-transition-veil ${veilActive ? 'is-active' : ''}`} />
 
-      {/* SVG Gradient Defs for Network Nodes & Relations */}
+      {/* SVG Gradient Defs for Objective Nodes */}
       <svg width="0" height="0" className="absolute pointer-events-none" aria-hidden="true">
         <defs>
-          <linearGradient id="grad-water" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#45d6c5" />
-            <stop offset="100%" stopColor="#1f8f82" />
+          <linearGradient id="grad-oe04" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#14b8a6" />
+            <stop offset="100%" stopColor="#0f766e" />
           </linearGradient>
-          <linearGradient id="grad-territory" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#ff8f8f" />
-            <stop offset="100%" stopColor="#d94f5c" />
+          <linearGradient id="grad-oe01" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#e06248" />
+            <stop offset="100%" stopColor="#c86d51" />
           </linearGradient>
-          <linearGradient id="grad-civic" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#f5c26b" />
-            <stop offset="100%" stopColor="#d9902e" />
+          <linearGradient id="grad-oe02" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#f59e0b" />
+            <stop offset="100%" stopColor="#d97706" />
           </linearGradient>
-          <linearGradient id="grad-eco" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#ffb37a" />
-            <stop offset="100%" stopColor="#e8763c" />
-          </linearGradient>
-          <linearGradient id="grad-aurora" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#2fd4c8" />
-            <stop offset="50%" stopColor="#edfffe" />
-            <stop offset="100%" stopColor="#ef6f6f" />
+          <linearGradient id="grad-oe03" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#3b82f6" />
+            <stop offset="100%" stopColor="#1d4ed8" />
           </linearGradient>
         </defs>
       </svg>
 
-      {/* Ambient background auras drifting gracefully */}
+      {/* Atmospheric Soft Light Auras */}
       <div className="absolute -top-32 -left-32 w-[650px] h-[650px] intro-hero-aura-a rounded-full pointer-events-none" />
       <div className="absolute top-1/2 -right-40 w-[600px] h-[600px] intro-hero-aura-b rounded-full pointer-events-none" />
       <div className="absolute -bottom-40 left-1/3 w-[550px] h-[550px] intro-hero-aura-c rounded-full pointer-events-none" />
 
       {/* ========================================================= */}
-      {/* 1. TOP NAVBAR (RAPOT / MODELAMIENTO2 STYLE)               */}
+      {/* 1. TOP NAVBAR (CLEAN WHITE ARCHITECTURAL HEADER)         */}
       {/* ========================================================= */}
-      <header className="sticky top-0 z-40 bg-[#0e1218]/90 backdrop-blur-md border-b border-white/10 px-4 sm:px-8 py-3.5 transition-all">
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-8 py-3.5 transition-all shadow-xs">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           
-          {/* Logo Brand with Pulsing Nodes */}
+          {/* Brand Logo with Pulsing Node */}
           <div className="flex items-center space-x-3.5">
-            <div className="relative w-9 h-9 rounded-xl bg-white/5 border border-white/15 flex items-center justify-center p-1 shadow-sm">
-              <svg className="w-7 h-7" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="17" cy="17" r="15" stroke="rgba(47,212,200,0.55)" strokeWidth="1.4" />
-                <circle cx="17" cy="8" r="3" fill="#2fd4c8" className="animate-pulse" />
-                <circle cx="9" cy="22" r="3" fill="#ef6f6f" />
-                <circle cx="25" cy="22" r="3" fill="#f5c26b" />
-                <circle cx="17" cy="17" r="2" fill="#ffffff" />
+            <div className="relative w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center p-1 shadow-md">
+              <svg className="w-6 h-6" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="17" cy="17" r="15" stroke="rgba(255,255,255,0.4)" strokeWidth="1.4" />
+                <circle cx="17" cy="8" r="3.2" fill="#14b8a6" className="animate-pulse" />
+                <circle cx="9" cy="22" r="3.2" fill="#e06248" />
+                <circle cx="25" cy="22" r="3.2" fill="#f59e0b" />
+                <circle cx="17" cy="17" r="2.2" fill="#3b82f6" />
               </svg>
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h1 className="font-extrabold text-base sm:text-lg tracking-wide text-white font-display">
+                <h1 className="font-extrabold text-base sm:text-lg tracking-tight text-slate-950 font-display">
                   TIERRABOMBA
                 </h1>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#2fd4c8]/15 text-[#2fd4c8] border border-[#2fd4c8]/30">
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
                   TESIS 2026
                 </span>
               </div>
-              <p className="text-[11px] font-mono text-slate-400">
+              <p className="text-[11px] font-mono text-slate-500">
                 Hábitat Resiliente &bull; Arquitectura & Urbanismo
               </p>
             </div>
           </div>
 
           {/* Center Navigation Pills */}
-          <nav className="hidden lg:flex items-center p-1 rounded-full bg-[#161b22] border border-white/10 text-xs font-medium">
+          <nav className="hidden lg:flex items-center p-1 rounded-full bg-slate-100/90 border border-slate-200 text-xs font-medium">
             <button 
-              onClick={() => onNavigateModule('intro')}
-              className="px-3.5 py-1.5 rounded-full bg-white text-slate-900 font-bold shadow-sm transition-all"
+              className="px-3.5 py-1.5 rounded-full bg-white text-slate-950 font-bold shadow-xs transition-all"
             >
-              INICIO
+              PORTADA
             </button>
             <button 
               onClick={() => onNavigateModule('module11')}
-              className="px-3.5 py-1.5 rounded-full text-slate-300 hover:text-white transition-colors"
+              className="px-3.5 py-1.5 rounded-full text-slate-600 hover:text-slate-950 hover:bg-white/60 transition-colors"
             >
               PREGUNTA CENTRAL
             </button>
             <button 
               onClick={() => onNavigateModule('framework')}
-              className="px-3.5 py-1.5 rounded-full text-slate-300 hover:text-white transition-colors"
+              className="px-3.5 py-1.5 rounded-full text-slate-600 hover:text-slate-950 hover:bg-white/60 transition-colors"
             >
-              MARCO ACADÉMICO
+              MARCO DE OBJETIVOS
             </button>
             <button 
               onClick={() => onNavigateModule('gis')}
-              className="px-3.5 py-1.5 rounded-full text-slate-300 hover:text-white transition-colors"
+              className="px-3.5 py-1.5 rounded-full text-slate-600 hover:text-slate-950 hover:bg-white/60 transition-colors"
             >
               DIAGNÓSTICO GIS
             </button>
             <button 
               onClick={() => onNavigateModule('3dviewer')}
-              className="px-3.5 py-1.5 rounded-full text-slate-300 hover:text-white transition-colors"
+              className="px-3.5 py-1.5 rounded-full text-slate-600 hover:text-slate-950 hover:bg-white/60 transition-colors"
             >
               VISOR 3D BIM
             </button>
             <button 
               onClick={() => onNavigateModule('revit')}
-              className="px-3.5 py-1.5 rounded-full text-slate-300 hover:text-white transition-colors"
+              className="px-3.5 py-1.5 rounded-full text-slate-600 hover:text-slate-950 hover:bg-white/60 transition-colors"
             >
               MODELO REVIT
             </button>
@@ -307,7 +302,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
           <div className="flex items-center space-x-3">
             <button
               onClick={() => triggerShatterAndNavigate('3dviewer')}
-              className="inline-flex items-center space-x-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#2fd4c8] via-[#edfffe] to-[#ef6f6f] text-slate-950 font-bold text-xs sm:text-sm shadow-lg hover:shadow-cyan-500/20 hover:scale-[1.03] transition-all duration-200 active:scale-95"
+              className="inline-flex items-center space-x-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-slate-950 hover:bg-teal-700 text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-teal-700/20 hover:scale-[1.02] transition-all duration-200 active:scale-95"
             >
               <span>EXPLORAR MODELO 3D</span>
               <ArrowRight className="w-4 h-4 ml-0.5" />
@@ -318,7 +313,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       </header>
 
       {/* ========================================================= */}
-      {/* 2. HERO SPLIT SECTION (COPY + INTERACTIVE NETWORK CARD)   */}
+      {/* 2. HERO SPLIT SECTION (WHITE EDITORIAL COPY + NETWORK)    */}
       {/* ========================================================= */}
       <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 lg:py-14">
         
@@ -329,14 +324,14 @@ export default function IntroLandingIndex({ onNavigateModule }) {
             
             {/* Academic Tag & Re-animate trigger */}
             <div className="flex items-center justify-between">
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-[#2fd4c8]">
-                <span className="w-2 h-2 rounded-full bg-[#2fd4c8] animate-ping" />
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-50/80 border border-teal-200 text-xs font-mono text-teal-800">
+                <span className="w-2 h-2 rounded-full bg-teal-600 animate-ping" />
                 <span>Plan Maestro Insular &bull; Cota +22.00 m.s.n.m.</span>
               </div>
               <button
                 onClick={() => setScrambleKey(prev => prev + 1)}
                 title="Re-ejecutar animación de caracteres"
-                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors text-xs flex items-center space-x-1"
+                className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-950 transition-colors text-xs flex items-center space-x-1 border border-slate-200"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span className="text-[10px] font-mono">Re-animar</span>
@@ -345,12 +340,12 @@ export default function IntroLandingIndex({ onNavigateModule }) {
 
             {/* Casino Animated Main Title */}
             <div className="space-y-1">
-              <h1 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-[1.12] text-white">
+              <h1 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-[1.12] text-slate-950">
                 <span ref={titlePlainRef} className="inline-block">Hábitat Resiliente & </span>
                 <br className="hidden sm:inline" />
                 <span 
                   ref={titleGradRef}
-                  className="bg-gradient-to-r from-[#2fd4c8] via-[#f5c26b] to-[#ef6f6f] bg-clip-text text-transparent inline-block"
+                  className="bg-gradient-to-r from-teal-700 via-amber-600 to-rose-600 bg-clip-text text-transparent inline-block"
                 >
                   Reubicación Insular.
                 </span>
@@ -358,60 +353,69 @@ export default function IntroLandingIndex({ onNavigateModule }) {
             </div>
 
             {/* Central Entry Question */}
-            <h2 className="text-lg sm:text-xl font-medium text-[#edfffe] leading-snug border-l-2 border-[#2fd4c8] pl-3.5">
+            <h2 className="text-lg sm:text-xl font-medium text-slate-800 leading-snug border-l-4 border-teal-600 pl-3.5">
               ¿Qué ocurre cuando una comunidad comienza a perder las condiciones necesarias para permanecer en su propio territorio?
             </h2>
 
             {/* Lead Narrative Description */}
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
-              Investigación y propuesta proyectual frente a la erosión costera de hasta <b>1.8 m/año</b> en la <b>Isla de Tierrabomba</b> (Bahía de Cartagena): reubicación comunitaria de <b>120 familias</b> hacia la meseta segura, equipamiento educativo bioclimático y macro-aljibe de <b>450.000 L</b> para soberanía hídrica continua.
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+              Investigación y propuesta proyectual frente a la erosión costera de hasta <b>1.8 m/año</b> en la <b>Isla de Tierrabomba</b> (Cartagena de Indias): reubicación comunitaria de <b>120 familias</b> hacia la meseta segura (+22.00 m.s.n.m.), equipamiento educativo bioclimático y macro-aljibe de <b>450.000 L</b> para soberanía hídrica continua.
             </p>
 
-            {/* 3 Dimensional Action Blocks (Counterpart of DESCOMPONE, ORGANIZA, PRIORIZA) */}
+            {/* 3 Dimensional Action Blocks (Reflecting the Objectives) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
               
               <div 
-                onClick={() => setSelectedNode(nodes.find(n => n.id === 'territory'))}
-                className="p-4 rounded-2xl bg-[#161b22]/90 border border-white/10 hover:border-[#ef6f6f]/60 hover:bg-[#1a212b] transition-all cursor-pointer group shadow-sm"
+                onClick={() => setSelectedNode(nodes.find(n => n.id === 'oe01'))}
+                className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-rose-400 hover:bg-rose-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md"
               >
-                <div className="w-8 h-8 rounded-xl bg-[#ef6f6f]/15 text-[#ef6f6f] flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">
-                  <ShieldAlert className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform border border-rose-100">
+                  <ShieldCheck className="w-4 h-4" />
                 </div>
-                <h3 className="font-display font-bold text-xs uppercase tracking-wider text-white">
-                  RELOCALIZA
-                </h3>
-                <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                <div className="flex items-center space-x-1.5">
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">OE-01</span>
+                  <h3 className="font-display font-bold text-xs uppercase tracking-wider text-slate-900">
+                    RELOCALIZA
+                  </h3>
+                </div>
+                <p className="text-[11px] text-slate-600 mt-1 leading-snug">
                   120 viviendas palafíticas retiradas de la socavación a cota segura (+22m).
                 </p>
               </div>
 
               <div 
-                onClick={() => setSelectedNode(nodes.find(n => n.id === 'water'))}
-                className="p-4 rounded-2xl bg-[#161b22]/90 border border-white/10 hover:border-[#2fd4c8]/60 hover:bg-[#1a212b] transition-all cursor-pointer group shadow-sm"
+                onClick={() => setSelectedNode(nodes.find(n => n.id === 'oe04'))}
+                className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-teal-400 hover:bg-teal-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md"
               >
-                <div className="w-8 h-8 rounded-xl bg-[#2fd4c8]/15 text-[#2fd4c8] flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">
+                <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform border border-teal-100">
                   <Droplets className="w-4 h-4" />
                 </div>
-                <h3 className="font-display font-bold text-xs uppercase tracking-wider text-white">
-                  CAPTURA & ALMACENA
-                </h3>
-                <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                <div className="flex items-center space-x-1.5">
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-teal-100 text-teal-800">OE-04</span>
+                  <h3 className="font-display font-bold text-xs uppercase tracking-wider text-slate-900">
+                    CAPTURA & AGUA
+                  </h3>
+                </div>
+                <p className="text-[11px] text-slate-600 mt-1 leading-snug">
                   Macro-cubierta de 1.850 m², cisterna de 450.000 L y potabilización solar UV.
                 </p>
               </div>
 
               <div 
-                onClick={() => setSelectedNode(nodes.find(n => n.id === 'civic'))}
-                className="p-4 rounded-2xl bg-[#161b22]/90 border border-white/10 hover:border-[#f5c26b]/60 hover:bg-[#1a212b] transition-all cursor-pointer group shadow-sm"
+                onClick={() => setSelectedNode(nodes.find(n => n.id === 'oe03'))}
+                className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-400 hover:bg-blue-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md"
               >
-                <div className="w-8 h-8 rounded-xl bg-[#f5c26b]/15 text-[#f5c26b] flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform border border-blue-100">
                   <Wind className="w-4 h-4" />
                 </div>
-                <h3 className="font-display font-bold text-xs uppercase tracking-wider text-white">
-                  BIOCLIMÁTICA
-                </h3>
-                <p className="text-[11px] text-slate-400 mt-1 leading-snug">
-                  Confort pasivo (-5°C) con celosías de arcilla BTC, madera y talleres náuticos.
+                <div className="flex items-center space-x-1.5">
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">OE-03</span>
+                  <h3 className="font-display font-bold text-xs uppercase tracking-wider text-slate-900">
+                    BIOCLIMÁTICA
+                  </h3>
+                </div>
+                <p className="text-[11px] text-slate-600 mt-1 leading-snug">
+                  Escuela 350 cupos con celosías de BTC (-5°C pasivo), madera y talleres náuticos.
                 </p>
               </div>
 
@@ -422,7 +426,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
               <button
                 onClick={() => triggerShatterAndNavigate('3dviewer')}
                 disabled={isShattering}
-                className="inline-flex items-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-[#2fd4c8] hover:bg-[#28bebe] text-slate-950 font-bold text-sm shadow-lg shadow-teal-500/20 transition-all hover:-translate-y-0.5 active:translate-y-0"
+                className="inline-flex items-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-teal-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0"
               >
                 <Box className="w-4 h-4" />
                 <span>{isShattering ? 'Descomponiendo red...' : 'EXPLORAR EL MODELO 3D'}</span>
@@ -431,27 +435,27 @@ export default function IntroLandingIndex({ onNavigateModule }) {
 
               <button
                 onClick={() => onNavigateModule('module11')}
-                className="inline-flex items-center space-x-2 px-5 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/15 text-white font-semibold text-sm transition-all hover:-translate-y-0.5"
+                className="inline-flex items-center space-x-2 px-5 py-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-semibold text-sm transition-all hover:-translate-y-0.5 shadow-xs"
               >
                 <span>PREGUNTA CENTRAL</span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
               </button>
 
               <button
                 onClick={() => onNavigateModule('overview')}
-                className="inline-flex items-center space-x-2 px-4 py-3.5 rounded-2xl text-slate-400 hover:text-white font-mono text-xs transition-colors"
+                className="inline-flex items-center space-x-2 px-4 py-3.5 rounded-2xl text-slate-600 hover:text-slate-950 font-mono text-xs transition-colors hover:underline"
               >
                 <span>CENTRO DE CONTROL &bull; KPIs &rarr;</span>
               </button>
             </div>
 
-            {/* Testimonio Comunitario de Campo */}
-            <div className="p-4 rounded-2xl bg-[#141920]/80 border-l-4 border-[#2fd4c8] border-y border-r border-white/10 text-xs space-y-1.5 shadow-inner">
-              <div className="flex items-center space-x-2 text-[#2fd4c8] font-mono font-bold tracking-wider uppercase text-[11px]">
+            {/* Field Testimony Box */}
+            <div className="p-4 rounded-2xl bg-sand-50/70 border-l-4 border-rose-500 border-y border-r border-slate-200/90 text-xs space-y-1.5 shadow-xs">
+              <div className="flex items-center space-x-2 text-rose-700 font-mono font-bold tracking-wider uppercase text-[11px]">
                 <Quote className="w-3.5 h-3.5" />
                 <span>Memoria Social del Territorio</span>
               </div>
-              <p className="italic text-slate-300 font-serif leading-relaxed">
+              <p className="italic text-slate-700 font-serif leading-relaxed">
                 "{projectInfo.communityVoice.quote}"
               </p>
               <p className="text-[10px] font-mono text-slate-500">
@@ -460,64 +464,69 @@ export default function IntroLandingIndex({ onNavigateModule }) {
             </div>
 
             {/* Author and Academic Credentials */}
-            <div className="pt-2 border-t border-white/10 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-mono text-slate-400">
+            <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-mono text-slate-500">
               <div>
-                <span className="text-slate-200 font-bold">Tesistas:</span> {projectInfo.author}
+                <span className="text-slate-900 font-bold">Tesistas:</span> {projectInfo.author}
               </div>
               <div>
-                <span className="text-slate-200 font-bold">Año:</span> {projectInfo.year}
+                <span className="text-slate-900 font-bold">Año:</span> {projectInfo.year}
               </div>
               <div>
-                <span className="text-[#2fd4c8] font-bold">Coordenadas:</span> {projectInfo.coordinates}
+                <span className="text-teal-700 font-bold">Coordenadas:</span> {projectInfo.coordinates}
               </div>
             </div>
 
           </div>
 
-          {/* RIGHT: INTERACTIVE NETWORK DIAGRAM CARD WITH 3D TILT */}
+          {/* RIGHT: INTERACTIVE OBJECTIVES NETWORK CARD WITH 3D TILT */}
           <div className="lg:col-span-6">
             
             <div
               ref={cardRef}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
-              className="relative rounded-3xl p-5 sm:p-7 bg-[#12161f]/95 border border-white/15 shadow-2xl backdrop-blur-xl transition-all duration-300 group"
+              className="relative rounded-3xl p-5 sm:p-7 bg-white/95 border border-slate-200 shadow-xl backdrop-blur-xl transition-all duration-300 group"
             >
               
               {/* Question Banner */}
-              <p className="text-sm font-medium text-[#edfffe] mb-3 leading-snug">
-                ¿Cómo interactúan los cuatro sistemas de resiliencia territorial e hídrica?
-              </p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-bold text-slate-900 leading-snug">
+                  Articulación de los Objetivos Específicos (OE-01 a OE-04)
+                </p>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                  RED INTERACTIVA
+                </span>
+              </div>
 
               {/* Conventions Legend Bar */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 px-3 rounded-xl bg-white/5 border border-white/10 text-[11px] font-mono text-slate-300 mb-4">
-                <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Convenciones:</span>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 px-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-600 mb-4">
+                <span className="text-slate-800 font-bold uppercase tracking-wider text-[10px]">Leyenda:</span>
                 
                 <span className="flex items-center space-x-1.5">
                   <svg className="w-8 h-3" viewBox="0 0 38 12">
-                    <line x1="2" y1="6" x2="28" y2="6" stroke="#2fd4c8" strokeWidth="1.5" strokeDasharray="3 3" />
-                    <path d="M28,6 L22,2 L22,10 Z" fill="#2fd4c8" />
+                    <line x1="2" y1="6" x2="28" y2="6" stroke="#0d9488" strokeWidth="1.8" strokeDasharray="3 3" />
+                    <path d="M28,6 L22,2 L22,10 Z" fill="#0d9488" />
                   </svg>
-                  <span>Flujo Hídrico</span>
+                  <span>Flujo Hídrico / Físico</span>
                 </span>
 
                 <span className="flex items-center space-x-1.5">
                   <svg className="w-10 h-3" viewBox="0 0 46 12">
-                    <line x1="6" y1="6" x2="40" y2="6" stroke="#ef6f6f" strokeWidth="1.5" strokeDasharray="3 3" />
-                    <path d="M6,6 L12,2 L12,10 Z" fill="#ef6f6f" />
-                    <path d="M40,6 L34,2 L34,10 Z" fill="#ef6f6f" />
+                    <line x1="6" y1="6" x2="40" y2="6" stroke="#c86d51" strokeWidth="1.8" strokeDasharray="3 3" />
+                    <path d="M6,6 L12,2 L12,10 Z" fill="#c86d51" />
+                    <path d="M40,6 L34,2 L34,10 Z" fill="#c86d51" />
                   </svg>
-                  <span>Sinergia Comunal</span>
+                  <span>Sinergia Proyectual</span>
                 </span>
 
                 <span className="flex items-center space-x-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#f5c26b]" />
-                  <span>Cota +22m</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                  <span>OE-01..04</span>
                 </span>
               </div>
 
-              {/* Main SVG Diagram Container */}
-              <div className="relative w-full aspect-[620/560] max-h-[560px] rounded-2xl bg-[#090c10] border border-white/10 overflow-hidden flex items-center justify-center shadow-inner">
+              {/* Main SVG Diagram Container (Clean Light Blueprint) */}
+              <div className="relative w-full aspect-[620/560] max-h-[560px] rounded-2xl bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center shadow-inner">
                 
                 <svg
                   ref={svgRef}
@@ -526,6 +535,28 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   
+                  {/* Subtle Grid Background Pattern */}
+                  <defs>
+                    <pattern id="light-grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(148, 163, 184, 0.15)" strokeWidth="0.8" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#light-grid)" />
+
+                  {/* Central General Objective Watermark Badge */}
+                  <g transform="translate(310, 295)" className="select-none pointer-events-none">
+                    <circle r="42" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.2" strokeDasharray="3 3" opacity="0.9" />
+                    <text textAnchor="middle" y="-6" fill="#0f172a" fontSize="8.5" fontWeight="800" fontFamily="Space Grotesk, sans-serif" letterSpacing="0.8">
+                      OBJETIVO GENERAL
+                    </text>
+                    <text textAnchor="middle" y="6" fill="#64748b" fontSize="7.5" fontFamily="JetBrains Mono, monospace">
+                      PLAN MAESTRO
+                    </text>
+                    <text textAnchor="middle" y="16" fill="#0d9488" fontSize="7" fontWeight="700" fontFamily="JetBrains Mono, monospace">
+                      +22.00 M.S.N.M.
+                    </text>
+                  </g>
+
                   {/* RELATIONAL DIRECTED & BIDIRECTIONAL LINKS */}
                   <g className="links">
                     {relations.map((rel) => {
@@ -545,17 +576,17 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                     })}
                   </g>
 
-                  {/* 4 MAIN FLOATING STRUCTURAL NODES */}
+                  {/* 4 MAIN OBJECTIVE NODES (OE-01 to OE-04) */}
                   {nodes.map((node) => {
                     const isHovered = hoveredNode === node.id;
                     const isSelected = selectedNode?.id === node.id;
-                    const fillGradient = `url(#grad-${node.colorKey})`;
+                    const fillGradient = `url(#grad-${node.id})`;
 
                     return (
                       <g
                         key={node.id}
                         className="node cursor-pointer"
-                        data-node={node.colorKey}
+                        data-node={node.id}
                         transform={`translate(${node.cx}, ${node.cy})`}
                         onClick={() => setSelectedNode(node)}
                         onMouseEnter={() => setHoveredNode(node.id)}
@@ -568,8 +599,8 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                             r={node.r + 8}
                             fill="none"
                             stroke={node.color}
-                            strokeWidth={isHovered || isSelected ? "2.5" : "0"}
-                            opacity={isHovered || isSelected ? "0.7" : "0"}
+                            strokeWidth={isHovered || isSelected ? "3" : "0"}
+                            opacity={isHovered || isSelected ? "0.6" : "0"}
                             className="transition-all duration-300"
                           />
 
@@ -577,23 +608,29 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                           <circle
                             r={node.r}
                             fill={fillGradient}
-                            stroke="rgba(255,255,255,0.45)"
-                            strokeWidth="1.5"
-                            className="shadow-lg transition-transform duration-300 hover:scale-105"
+                            stroke="#ffffff"
+                            strokeWidth="2.5"
+                            className="shadow-md transition-transform duration-300 hover:scale-105"
                           />
 
-                          {/* Node Text Label (Multi-line) */}
+                          {/* Node Text Label (Multi-line) with drop shadow */}
                           <text
                             textAnchor="middle"
-                            y={-node.shortLines.length * 7 + 4}
+                            y={-node.shortLines.length * 6.5 + 4}
                             fill="#ffffff"
-                            fontSize="11.5"
+                            fontSize="11"
                             fontWeight="700"
                             fontFamily="Space Grotesk, sans-serif"
-                            className="pointer-events-none select-none drop-shadow"
+                            className="pointer-events-none select-none drop-shadow-md"
                           >
                             {node.shortLines.map((line, idx) => (
-                              <tspan key={idx} x="0" dy={idx === 0 ? 0 : 14}>
+                              <tspan 
+                                key={idx} 
+                                x="0" 
+                                dy={idx === 0 ? 0 : 13.5}
+                                fontWeight={idx === 0 ? "800" : "600"}
+                                fontSize={idx === 0 ? "12" : "10"}
+                              >
                                 {line}
                               </tspan>
                             ))}
@@ -608,12 +645,12 @@ export default function IntroLandingIndex({ onNavigateModule }) {
 
                 {/* Hover Relation Tooltip Overlay */}
                 {hoveredRelation && (
-                  <div className="absolute bottom-3 left-3 right-3 p-2.5 rounded-xl bg-[#161b22]/95 border border-[#2fd4c8]/50 text-xs text-[#edfffe] backdrop-blur-md shadow-xl flex items-center justify-between">
+                  <div className="absolute bottom-3 left-3 right-3 p-2.5 rounded-xl bg-white/95 border border-teal-500/50 text-xs text-slate-800 backdrop-blur-md shadow-lg flex items-center justify-between">
                     <div>
-                      <p className="font-bold text-[#2fd4c8] font-mono text-[11px]">
+                      <p className="font-bold text-teal-800 font-mono text-[11px]">
                         {relations.find(r => r.id === hoveredRelation)?.name}
                       </p>
-                      <p className="text-[11px] text-slate-300 leading-tight">
+                      <p className="text-[11px] text-slate-600 leading-tight">
                         {relations.find(r => r.id === hoveredRelation)?.desc}
                       </p>
                     </div>
@@ -623,16 +660,16 @@ export default function IntroLandingIndex({ onNavigateModule }) {
               </div>
 
               {/* Bottom Card Footer Actions */}
-              <div className="mt-4 flex items-center justify-between text-xs text-slate-400 font-mono">
+              <div className="mt-4 flex items-center justify-between text-xs text-slate-500 font-mono">
                 <span className="flex items-center space-x-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Haz clic en un nodo para inspeccionar capas</span>
+                  <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+                  <span>Haz clic en OE-01..04 para ver el desglose</span>
                 </span>
                 <button
                   onClick={() => triggerShatterAndNavigate('3dviewer')}
-                  className="text-[#2fd4c8] hover:text-white font-bold flex items-center space-x-1 hover:underline"
+                  className="text-teal-700 hover:text-teal-900 font-bold flex items-center space-x-1 hover:underline"
                 >
-                  <span>Ver Despiece 3D &rarr;</span>
+                  <span>Explorar Despiece 3D &rarr;</span>
                 </button>
               </div>
 
@@ -645,59 +682,64 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       </section>
 
       {/* ========================================================= */}
-      {/* 3. NODE DETAIL MODAL (REDES-MODAL-OVERLAY IN MODELAMIENTO2) */}
+      {/* 3. OBJECTIVE DETAIL MODAL (CLEAN LIGHT THEME)            */}
       {/* ========================================================= */}
       {selectedNode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-2xl bg-[#12161f] border border-white/20 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
             
             {/* Modal Header */}
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <span 
-                  className="text-xs font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md border inline-block"
-                  style={{
-                    backgroundColor: `${selectedNode.color}20`,
-                    borderColor: `${selectedNode.color}50`,
-                    color: selectedNode.color
-                  }}
-                >
-                  {selectedNode.badge} &bull; {selectedNode.metric}
-                </span>
-                <h3 className="text-xl sm:text-2xl font-bold font-display text-white">
+                <div className="flex items-center space-x-2">
+                  <span 
+                    className="text-xs font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md border inline-block"
+                    style={{
+                      backgroundColor: `${selectedNode.color}15`,
+                      borderColor: `${selectedNode.color}40`,
+                      color: selectedNode.color
+                    }}
+                  >
+                    {selectedNode.code} &bull; {selectedNode.badge}
+                  </span>
+                  <span className="text-xs font-mono font-bold text-slate-500">
+                    Meta: {selectedNode.metric}
+                  </span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold font-display text-slate-900">
                   {selectedNode.title}
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedNode(null)}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Description */}
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200">
               {selectedNode.desc}
             </p>
 
             {/* Sub-components / Satellites List */}
             <div className="space-y-2.5">
-              <h4 className="text-xs font-mono font-bold uppercase text-slate-400 tracking-wider">
-                Capas Técnicas & Componentes Proyectuales:
+              <h4 className="text-xs font-mono font-bold uppercase text-slate-500 tracking-wider">
+                Entregables Proyectuales & Componentes del Objetivo:
               </h4>
               <div className="grid sm:grid-cols-2 gap-3">
                 {selectedNode.satellites?.map((sat, i) => (
-                  <div key={i} className="p-3.5 rounded-xl bg-white/5 border border-white/10 flex items-start space-x-3">
+                  <div key={i} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 flex items-start space-x-3">
                     <div 
                       className="p-2 rounded-lg shrink-0 mt-0.5"
-                      style={{ backgroundColor: `${selectedNode.color}25`, color: selectedNode.color }}
+                      style={{ backgroundColor: `${selectedNode.color}20`, color: selectedNode.color }}
                     >
                       {getIconComponent(sat.icon)}
                     </div>
                     <div>
-                      <p className="font-bold text-xs text-white">{sat.name}</p>
-                      <p className="text-[11px] text-slate-400 leading-snug mt-0.5">{sat.detail}</p>
+                      <p className="font-bold text-xs text-slate-900">{sat.name}</p>
+                      <p className="text-[11px] text-slate-600 leading-snug mt-0.5">{sat.detail}</p>
                     </div>
                   </div>
                 ))}
@@ -705,9 +747,9 @@ export default function IntroLandingIndex({ onNavigateModule }) {
             </div>
 
             {/* Modal Action CTA */}
-            <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-white/10">
-              <span className="text-xs font-mono text-slate-400">
-                Área / Capacidad: <b className="text-white">{selectedNode.area}</b>
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200">
+              <span className="text-xs font-mono text-slate-500">
+                Área / Capacidad: <b className="text-slate-900">{selectedNode.area}</b>
               </span>
               <div className="flex items-center space-x-3">
                 <button
@@ -715,16 +757,16 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                     setSelectedNode(null);
                     onNavigateModule('framework');
                   }}
-                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-200"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-medium text-slate-700"
                 >
-                  Ver en Marco Académico
+                  Ver en Marco de Tesis
                 </button>
                 <button
                   onClick={() => {
                     setSelectedNode(null);
                     triggerShatterAndNavigate('3dviewer');
                   }}
-                  className="px-5 py-2.5 rounded-xl font-bold text-xs bg-[#2fd4c8] hover:bg-[#28bebe] text-slate-950 flex items-center space-x-1.5"
+                  className="px-5 py-2.5 rounded-xl font-bold text-xs bg-slate-950 hover:bg-teal-700 text-white flex items-center space-x-1.5 shadow-md"
                 >
                   <span>Explorar en Visor 3D</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -739,7 +781,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       {/* ========================================================= */}
       {/* 4. FOOTER NOTE                                            */}
       {/* ========================================================= */}
-      <footer className="relative z-10 border-t border-white/10 bg-[#090c10] py-6 px-4 text-center text-xs font-mono text-slate-500">
+      <footer className="relative z-10 border-t border-slate-200 bg-white py-6 px-4 text-center text-xs font-mono text-slate-500">
         <p>
           TIERRABOMBA: HÁBITAT RESILIENTE &bull; Alejandra Gómez & Ana Casas &bull; Tesis de Grado en Arquitectura y Urbanismo (2026)
         </p>

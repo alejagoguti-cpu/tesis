@@ -277,7 +277,6 @@ export const projectInfo = {
 
   // 11. NAVEGACIÓN DEL DASHBOARD
   dashboardModules: [
-    { id: "intro", number: "00", title: "Portada Introductoria", icon: "Sparkles", badge: "Inicio", desc: "Red conceptual animada y presentación interactiva de la tesis" },
     { id: "overview", number: "01", title: "Centro de Control & KPIs", icon: "LayoutDashboard", badge: "Ejecutivo", desc: "Monitoreo general, métricas de impacto y telemetría" },
     { id: "module11", number: "1.1", title: "¿Qué ocurre cuando una comunidad comienza a perder las condiciones necesarias para permanecer en su propio territorio?", icon: "AlertTriangle", badge: "Pregunta Central", desc: "Diagnóstico de arraigo y habitabilidad en Tierrabomba" },
     { id: "framework", number: "02", title: "Marco de Tesis", icon: "BookOpen", badge: "Académico", desc: "Problema, Justificación y Objetivos OE-01 a OE-04" },
@@ -286,152 +285,166 @@ export const projectInfo = {
     { id: "revit", number: "05", title: "Modelo Revit Tierrabomba", icon: "Building2", badge: "BIM", desc: "Carga del .rvt + visor del modelo exportado" },
   ],
 
-  // 12. SISTEMA DE RED CONCEPTUAL (INSPIRADO EN MODELAMIENTO2 / RAPOT)
+  // 12. SISTEMA DE RED CONCEPTUAL DE OBJETIVOS (TESIS 2026)
   thesisNetwork: {
+    generalObjective: "Formular un Plan Maestro de Reubicación Territorial en la meseta segura de Tierrabomba (+22.00 m.s.n.m.), desarrollando el diseño arquitectónico de prototipos de vivienda progresiva resiliente y un equipamiento educativo bioclimático dotado de infraestructura de autosuficiencia hídrica.",
     nodes: [
       {
-        id: "water",
+        id: "oe04",
+        code: "OE-04",
         colorKey: "water",
-        color: "#2fbfae",
-        title: "Soberanía Hídrica Pluvial",
-        shortLines: ["Soberanía", "Hídrica Pluvial", "450.000 Litros", "Aljibe Central"],
+        color: "#0d9488",
+        gradientStart: "#14b8a6",
+        gradientEnd: "#0f766e",
+        title: "OE-04: Soberanía Hídrica Circular",
+        shortLines: ["OE-04", "Soberanía Hídrica", "Aljibe 450.000 L", "Captación Pluvial"],
         cx: 310,
         cy: 110,
         r: 66,
-        badge: "Macro-Embudo Pluvial",
-        metric: "450.000 L",
-        area: "1.850 m² Captación",
-        desc: "Captación pluvial macro en cubierta del equipamiento escolar, desarenador centrífugo, aljibe subterráneo compartimentado y potabilización solar fotovoltaica UV.",
+        badge: "Objetivo Hidráulico",
+        metric: "450.000 Litros",
+        area: "1.850 m² Macro-Cubierta",
+        desc: "Implementar un sistema de captación pluvial en macro-cubierta, aljibe central inmune de 450.000 L y bio-humedales para fitodepuración de aguas grises.",
         satellites: [
-          { name: "Aljibe Térmico 450.000 L", icon: "Droplets", detail: "Tanque ciclópeo a +20m de cota protegido contra salinidad marina." },
-          { name: "Macro-Cubierta 1.850 m²", icon: "Building2", detail: "Canalizaciones de alto caudal con rendimiento de 6.200 m³/año." },
-          { name: "Tren de Filtrado UV", icon: "Sparkles", detail: "Desinfección solar fotovoltaica con Resolución 2115 de agua potable." },
-          { name: "12 Tomas Comunitarias", icon: "Activity", detail: "Dispensario público continuo libre de especulación de barcazas." }
+          { name: "Aljibe Térmico 450.000 L", icon: "Droplets", detail: "Tanque ciclópeo a +20m de cota protegido contra salinidad marina y sequía." },
+          { name: "Macro-Cubierta Captadora", icon: "Building2", detail: "1.850 m² en escuela: ~6.200 m³ pluviales cosechados anualmente." },
+          { name: "Desinfección Solar UV", icon: "Sparkles", detail: "Tren de potabilización fotovoltaica bajo Resolución 2115 de agua potable." },
+          { name: "Fitodepuración & Bio-Humedal", icon: "Activity", detail: "Recirculación del 75% de aguas grises mediante plantas macrófitas." }
         ]
       },
       {
-        id: "territory",
+        id: "oe01",
+        code: "OE-01",
         colorKey: "territory",
-        color: "#ef6f6f",
-        title: "Relocalización 120 Viviendas",
-        shortLines: ["Relocalización", "120 Viviendas", "Cota Segura", "+22.00 m.s.n.m."],
+        color: "#c86d51",
+        gradientStart: "#e06248",
+        gradientEnd: "#b85438",
+        title: "OE-01: Diagnóstico Territorial & Riesgo",
+        shortLines: ["OE-01", "Diagnóstico Territorial", "Riesgo & Cota Segura", "+22.00 m.s.n.m."],
         cx: 140,
         cy: 300,
         r: 62,
-        badge: "Cota de Impregnación Cero",
-        metric: "120 Familias",
-        area: "+22.00 m.s.n.m.",
-        desc: "Traslado planificado de 120 hogares de la franja costera crítica en Punta Arena hacia la meseta insular segura, protegida ante 100 años de cambio climático.",
+        badge: "Objetivo Territorial",
+        metric: "+22.00 m.s.n.m.",
+        area: "Meseta Central Segura",
+        desc: "Mapear la cota de socavación marina y marea de leva, delimitando la meseta central no inundable para la nueva implantación comunitaria.",
         satellites: [
-          { name: "Elevación Palafítica +0.60m", icon: "Home", detail: "Estructuras en madera tratada que permiten flujo de aire y humedad cero." },
-          { name: "Patios de Sombra Pasivos", icon: "Wind", detail: "Porches bioclimáticos para convivencia y secado de artes de pesca." },
-          { name: "Módulos Progresivos (54-86 m²)", icon: "Box", detail: "Crecimiento planificado con bloques de tierra comprimida (BTC)." },
-          { name: "Tanques Domésticos 2.500 L", icon: "Droplet", detail: "Autonomía hídrica primaria por unidad habitacional." }
+          { name: "Cota de Socavación Marina", icon: "Waves", detail: "Monitoreo del retroceso costero de hasta 1.8 metros por año en playa." },
+          { name: "Delimitación Meseta (+22m)", icon: "Compass", detail: "Suelo firme protegido del aumento del nivel del mar por 100 años." },
+          { name: "Teledetección & GIS Espectral", icon: "Map", detail: "5 bandas satelitales (NDVI, NDWI, Falso Color, Manglar, LST)." },
+          { name: "Censo de Vulnerabilidad", icon: "Home", detail: "120 viviendas identificadas en línea crítica de derrumbe marino." }
         ]
       },
       {
-        id: "civic",
-        colorKey: "civic",
-        color: "#f5c26b",
-        title: "Equipamiento Educativo & Cívico",
-        shortLines: ["Equipamiento", "Educativo & Cívico", "350 Alumnos", "Ágora & Oficios"],
+        id: "oe02",
+        code: "OE-02",
+        colorKey: "housing",
+        color: "#d97706",
+        gradientStart: "#f59e0b",
+        gradientEnd: "#b45309",
+        title: "OE-02: Vivienda Progresiva Resiliente",
+        shortLines: ["OE-02", "Vivienda Progresiva", "120 Módulos Palafíticos", "Madera & BTC"],
         cx: 480,
         cy: 300,
         r: 62,
-        badge: "Nodo Comunal Caribe",
-        metric: "350 Estudiantes",
-        area: "1.850 m² Construidos",
-        desc: "Complejo pedagógico bioclimático con aulas orientadas a los vientos alisios, talleres náuticos, biblioteca pública y ágora central techada de 400 m².",
+        badge: "Objetivo Habitacional",
+        metric: "120 Viviendas",
+        area: "54 a 86 m² Modulares",
+        desc: "Diseñar tipologías de vivienda modular (54 m² a 86 m²) con elevación palafítica (+0.60 m), patios de sombra y autoconstrucción comunitaria en madera y BTC.",
         satellites: [
-          { name: "6 Aulas Bioclimáticas", icon: "BookOpen", detail: "Celosías BTC que reducen -5°C la temperatura interior de forma pasiva." },
-          { name: "Taller Náutico & Ribereño", icon: "Compass", detail: "Formación de jóvenes en carpintería marina y preservación pesquera." },
-          { name: "Ágora Techada 400 m²", icon: "Layers", detail: "Espacio asambleario cívico resguardado del sol cenital ecuatorial." },
-          { name: "Biblioteca & Mediateca", icon: "Building2", detail: "Punto de conectividad digital y memoria oral isleña." }
+          { name: "Elevación Palafítica +0.60m", icon: "Home", detail: "Circulación de brisas caribeñas y cimientos aislados de humedad." },
+          { name: "Patios de Convección y Sombra", icon: "Wind", detail: "Microclima pasivo (-5°C) y espacio de secado de redes de pesca." },
+          { name: "Bloques de Tierra Comprimida", icon: "Box", detail: "BTC elaborado con áridos locales y alta inercia térmica." },
+          { name: "Tanques de 2.500 L por Hogar", icon: "Droplets", detail: "Autonomía de recolección de aguas lluvias en cubiertas domiciliarias." }
         ]
       },
       {
-        id: "eco",
-        colorKey: "eco",
-        color: "#ef8b3c",
-        title: "Fitodepuración & Paisajismo Resiliente",
-        shortLines: ["Fitodepuración &", "Paisajismo Resiliente", "Bio-Humedal", "75% Recirculación"],
+        id: "oe03",
+        code: "OE-03",
+        colorKey: "civic",
+        color: "#2563eb",
+        gradientStart: "#3b82f6",
+        gradientEnd: "#1d4ed8",
+        title: "OE-03: Equipamiento Educativo & Cívico",
+        shortLines: ["OE-03", "Equipamiento Cívico", "Escuela 350 Alumnos", "Ágora & Talleres"],
         cx: 310,
         cy: 480,
         r: 66,
-        badge: "Sistemas Naturales",
-        metric: "75% Recirculado",
-        area: "Bio-Humedal 650 m²",
-        desc: "Infraestructura verde basada en la naturaleza para tratamiento de aguas grises con plantas macrófitas y pasto vetiver que fijan la meseta contra escorrentías.",
+        badge: "Objetivo Dotacional",
+        metric: "350 Alumnos",
+        area: "1.850 m² Bioclimáticos",
+        desc: "Proyectar un complejo escolar para 350 estudiantes con aulas de ventilación pasiva, talleres náuticos, biblioteca y plaza central de acopio comunitario.",
         satellites: [
-          { name: "Bio-Humedal Macrófitas", icon: "Sparkles", detail: "Fitodepuración natural sin químicos para aguas grises del colegio." },
-          { name: "Barreras de Vetiver", icon: "Activity", detail: "Raíces profundas de 3 metros que blindan taludes contra socavación." },
-          { name: "Huerto Agroecológico", icon: "Home", detail: "Producción de alimentos comunitarios irrigados con agua tratada." },
-          { name: "Zanjas de Bio-Retención", icon: "Droplets", detail: "Infiltración controlada que frena la salinización del suelo interior." }
+          { name: "6 Aulas Bioclimáticas BTC", icon: "BookOpen", detail: "Celosías cerámicas cruzadas y aleros de 2.5m que bloquean el sol cenital." },
+          { name: "Taller de Artes Pesqueras", icon: "Compass", detail: "Preservación de la cultura marina tradicional de Tierrabomba." },
+          { name: "Ágora Central Cubierta 400 m²", icon: "Layers", detail: "Espacio de asamblea cívica comunitaria y refugio insular de emergencia." },
+          { name: "Biblioteca & Mediateca Pública", icon: "Building2", detail: "Punto público de conectividad digital y mediateca cultural isleña." }
         ]
       }
     ],
     relations: [
       {
-        id: "rel-water-civic",
-        from: "water",
-        to: "civic",
-        name: "Abastecimiento Hídrico Educativo",
+        id: "rel-oe01-oe02",
+        from: "oe01",
+        to: "oe02",
+        name: "Articulación OE-01 → OE-02: Suelo Seguro a Hábitat",
+        type: "directed",
+        pathD: "M202,300 Q310,250 418,300",
+        arrowTransform: "translate(418,300) rotate(22)",
+        desc: "La delimitación de la meseta no inundable (+22m) provee el trazado urbanístico seguro para las 120 viviendas relocalizadas."
+      },
+      {
+        id: "rel-oe04-oe03",
+        from: "oe04",
+        to: "oe03",
+        name: "Articulación OE-04 → OE-03: Célula Hídrica en Escuela",
+        type: "bidirectional",
+        pathD: "M310,176 Q275,295 310,414",
+        arrowTransform: "translate(310,414) rotate(90)",
+        desc: "La cubierta del equipamiento escolar actúa como macro-captador pluvial de 1.850 m² conectado al aljibe comunal de 450.000 L."
+      },
+      {
+        id: "rel-oe04-oe02",
+        from: "oe04",
+        to: "oe02",
+        name: "Articulación OE-04 → OE-02: Distribución Domiciliaria",
         type: "directed",
         pathD: "M368,145 Q465,185 470,240",
         arrowTransform: "translate(470,240) rotate(78)",
-        desc: "La reserva de 450.000 L alimenta por gravedad las baterías sanitarias, comedores escolares y las 12 tomas del dispensario público."
+        desc: "Línea de conducción por gravedad que abastece las cisternas domiciliarias de 2.500 L de las 120 viviendas relocalizadas."
       },
       {
-        id: "rel-water-territory",
-        from: "water",
-        to: "territory",
-        name: "Red de Seguridad Doméstica",
-        type: "directed",
-        pathD: "M252,145 Q155,185 150,240",
-        arrowTransform: "translate(150,240) rotate(102)",
-        desc: "Línea matriz de refuerzo hídrico hacia los depósitos de las 120 viviendas para temporadas de sequía prolongada."
-      },
-      {
-        id: "rel-territory-civic",
-        from: "territory",
-        to: "civic",
-        name: "Eje Cívico & Peatonal de Sombra",
-        type: "bidirectional",
-        pathD: "M202,300 Q310,345 418,300",
-        arrowTransform: "translate(418,300) rotate(-22)",
-        desc: "Corredor bioclimático sombreado que conecta las manzanas residenciales con la escuela y la plaza de asambleas."
-      },
-      {
-        id: "rel-civic-eco",
-        from: "civic",
-        to: "eco",
-        name: "Efluentes Grises a Fitodepuración",
-        type: "directed",
-        pathD: "M460,358 Q425,435 365,455",
-        arrowTransform: "translate(365,455) rotate(162)",
-        desc: "Las aguas de lavado y cocinas del equipamiento se dirigen hacia el humedal artificial de macrófitas para su depuración biológica."
-      },
-      {
-        id: "rel-territory-eco",
-        from: "territory",
-        to: "eco",
-        name: "Zanjas de Drenaje & Vetiver",
+        id: "rel-oe01-oe03",
+        from: "oe01",
+        to: "oe03",
+        name: "Articulación OE-01 → OE-03: Implantación Bioclimática",
         type: "directed",
         pathD: "M160,358 Q195,435 255,455",
         arrowTransform: "translate(255,455) rotate(18)",
-        desc: "Escorrentía superficial canalizada hacia terrazas de vetiver que frenan la erosión de laderas y recargan el estrato fértil."
+        desc: "Orientación del equipamiento escolar de acuerdo al azimut y vientos alisios N-NE identificados en el diagnóstico de sitio."
       },
       {
-        id: "rel-eco-water",
-        from: "eco",
-        to: "water",
-        name: "Ciclo Circular & Recarga Hídrica",
+        id: "rel-oe02-oe03",
+        from: "oe02",
+        to: "oe03",
+        name: "Articulación OE-02 ↔ OE-03: Eje Cívico & Peatonal",
         type: "bidirectional",
-        pathD: "M310,414 Q280,295 310,176",
-        arrowTransform: "translate(310,176) rotate(-85)",
-        desc: "El 75% de las aguas tratadas se recircula para riego y mantenimiento, cerrando el ciclo metabólico del hábitat sin vertimientos al mar."
+        pathD: "M460,358 Q425,435 365,455",
+        arrowTransform: "translate(365,455) rotate(162)",
+        desc: "Corredor continuo de sombra bioclimática que integra el barrio de viviendas con el ágora y la escuela."
+      },
+      {
+        id: "rel-oe04-oe01",
+        from: "oe04",
+        to: "oe01",
+        name: "Articulación OE-04 → OE-01: Blindaje ante la Salinización",
+        type: "directed",
+        pathD: "M252,145 Q155,185 150,240",
+        arrowTransform: "translate(150,240) rotate(102)",
+        desc: "Resuelve el problema diagnosticado de salinización de pozos costeros captando agua pura de lluvia en la cota alta."
       }
     ]
   }
 };
+
 

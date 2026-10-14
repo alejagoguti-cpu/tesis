@@ -42,11 +42,11 @@ class SafeSection extends Component {
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [activeModule, setActiveModule] = useState('intro');
+  const [activeModule, setActiveModule] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
-  const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' | 'monograph'
+  const [viewMode, setViewMode] = useState('index'); // 'index' | 'dashboard' | 'monograph'
 
   // Apply dark mode class to html document
   useEffect(() => {
@@ -64,8 +64,22 @@ export default function App() {
     }
   };
 
+  // TRUE INDEX LANDING PAGE VIEW (FULL-SCREEN, NO SIDEBAR, CLEAN WHITE EDITORIAL)
+  if (viewMode === 'index') {
+    return (
+      <div className="min-h-screen bg-white text-slate-900 font-sans">
+        <IntroLandingIndex 
+          onNavigateModule={(modId) => {
+            setActiveModule(modId);
+            setViewMode('dashboard');
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#0a0c10] text-slate-100 font-sans transition-colors duration-300 flex flex-col">
+    <div className="min-h-screen bg-white text-slate-900 font-sans transition-colors duration-300 flex flex-col">
       
       {/* Sidebar Navigation */}
       {!presentationMode && (
@@ -87,39 +101,26 @@ export default function App() {
           presentationMode ? 'pl-0' : 'lg:pl-16'
         }`}
       >
-        {/* Dynamic Viewport Container (Show header on inner modules) */}
-        {activeModule !== 'intro' && (
-          <DashboardHeader
-            activeModule={activeModule}
-            setActiveModule={setActiveModule}
-            sidebarCollapsed={sidebarCollapsed}
-            setMobileSidebarOpen={setMobileSidebarOpen}
-            darkMode={darkMode}
-            setDarkMode={setDarkMode}
-            presentationMode={presentationMode}
-            setPresentationMode={setPresentationMode}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-          />
-        )}
+        {/* Dynamic Viewport Container */}
+        <DashboardHeader
+          activeModule={activeModule}
+          setActiveModule={setActiveModule}
+          sidebarCollapsed={sidebarCollapsed}
+          setMobileSidebarOpen={setMobileSidebarOpen}
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+          presentationMode={presentationMode}
+          setPresentationMode={setPresentationMode}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+        />
 
         <main className="flex-1 w-full h-full p-0 overflow-hidden relative">
           
           {/* 1. DASHBOARD MODULAR VIEW (Active module focused view) */}
           {viewMode === 'dashboard' && (
-            <div className={`w-full h-full relative transition-all duration-300 ${
-              activeModule === 'intro' ? 'overflow-y-auto' : 'overflow-hidden'
-            }`}>
+            <div className="w-full h-full relative overflow-hidden transition-all duration-300">
               
-              {/* Module 00: Portada Introductoria Animada (Estilo Modelamiento2) */}
-              {activeModule === 'intro' && (
-                <SafeSection name="Portada Introductoria">
-                  <IntroLandingIndex 
-                    onNavigateModule={(modId) => setActiveModule(modId)} 
-                  />
-                </SafeSection>
-              )}
-
               {/* Module 01: Centro de Control & KPIs */}
               {activeModule === 'overview' && (
                 <SafeSection name="Centro de Control & KPIs">
