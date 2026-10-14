@@ -74,168 +74,132 @@ export const TIMELINE_EPOCHS = [
     year: 1589,
     type: "historical",
     mapId: "map_1589",
-    title: "1589: Cartagena tras Drake",
-    tagline: "Cartografía Isabelina // Siglo XVI",
-    description: "Primera planta de la ciudad: damero fundacional, flota inglesa fondeada y Tierrabomba como cierre natural de la bahía.",
-    story: [
-      { icon: "ShieldCheck", text: "La isla resguarda la entrada a la bahía: escudo natural de Cartagena." },
-      { icon: "Fish", text: "Isla de Cárex o Codego: del cacique Cárex y los mocanáes, pescadores concheros en canoas." },
-      { icon: "Mountain", text: "Desde 1533: canteras de coralina y hornos de cal para levantar las murallas." },
-      { icon: "Users", text: "Mano de obra esclavizada africana: primeros asentamientos forzados a la orilla del mar." }
-    ],
+    title: "1589: Ocupación militar y ausencia de planificación urbana",
+    tagline: "Años 1500 a 1700 // Ocupación Defensiva",
+    description: "Durante este periodo, España ocupó la isla únicamente con fines defensivos militares, construyendo fortalezas como los Fuertes de San Fernando y San Luis. Al ser una plataforma de piedra coralina que no tiene ríos ni manantiales, las tropas militares dependían exclusivamente de juntar agua de lluvia en aljibes de piedra o de traerla en barcos desde el continente. Como el territorio solo albergaba soldados de forma temporal, nunca se planificó un pueblo ni una infraestructura para la vida civil.",
     color: "#7c4a12",
     metrics: [
-      { label: "Período", value: "Siglo XVI" },
-      { label: "Flota", value: "Expedición Drake" },
-      { label: "Traza", value: "Damero fundacional" },
-      { label: "Rol Insular", value: "Cierre de bahía" }
+      { label: "Período", value: "Años 1500–1700" },
+      { label: "Ocupación", value: "Solo militar" },
+      { label: "Fuentes Agua", value: "0 ríos / aljibes" },
+      { label: "Planificación", value: "Sin pueblo civil" }
     ]
   },
   {
     year: 1740,
     type: "historical",
     mapId: "map_1740",
-    title: "1740: Sitio inglés de Vernon",
-    tagline: "Bahía Artillada // Guerra del Asiento",
-    description: "El mayor ataque naval del XVIII: Bocachica y Tierrabomba como llave de Indias frente a la escuadra de Vernon.",
-    story: [
-      { icon: "Waves", text: "1640: arena y sedimento taponan Bocagrande; la “tierra abombada” que nombra a la isla." },
-      { icon: "Landmark", text: "1646: Somovilla construye el Castillo San Luis para cerrar el canal." },
-      { icon: "Flame", text: "1741: Vernon destruye San Luis; la isla sostiene el sitio como escudo militar." },
-      { icon: "Users", text: "Isla-cuartel: tropas, canteranos y esclavizados." }
-    ],
+    title: "1740: Ocupación militar y ausencia de planificación urbana",
+    tagline: "Años 1500 a 1700 // Fortificaciones Defensivas",
+    description: "Durante este periodo, España ocupó la isla únicamente con fines defensivos militares, construyendo fortalezas como los Fuertes de San Fernando y San Luis. Al ser una plataforma de piedra coralina que no tiene ríos ni manantiales, las tropas militares dependían exclusivamente de juntar agua de lluvia en aljibes de piedra o de traerla en barcos desde el continente. Como el territorio solo albergaba soldados de forma temporal, nunca se planificó un pueblo ni una infraestructura para la vida civil.",
     color: "#b45309",
     metrics: [
-      { label: "Escuadra", value: "Vernon 1741" },
-      { label: "Defensa", value: "S. Luis / Bocachica" },
-      { label: "Bahía", value: "Artillada" },
-      { label: "Rol", value: "Llave de Indias" }
+      { label: "Período", value: "Años 1500–1700" },
+      { label: "Defensa", value: "Fuertes S. Luis / S. Fernando" },
+      { label: "Abastecimiento", value: "Aljibes y barcos" },
+      { label: "Vida Civil", value: "Inexistente" }
     ]
   },
   {
     year: 1780,
     type: "historical",
     mapId: "map_1780",
-    title: "1780: Derrotero de Chastenet",
-    tagline: "Hidrografía Científica // Marina Francesa",
-    description: "Primer levantamiento moderno con sondas: canales de Bocagrande y Bocachica y derrota de entrada a la bahía.",
-    story: [
-      { icon: "Landmark", text: "1753–1759: el Castillo San Fernando en herradura reemplaza a San Luis." },
-      { icon: "ShieldCheck", text: "Defensa en profundidad: la isla, eslabón del sistema amurallado." },
-      { icon: "Ship", text: "Derrotero científico francés: la bahía medida braza a braza." },
-      { icon: "Mountain", text: "Las canteras siguen vistiendo de piedra a la ciudad." }
-    ],
+    title: "1780: El origen de la erosión costera",
+    tagline: "Años 1755 a 1758 // Escollera Submarina de Bocagrande",
+    description: "Entre los años 1755 y 1758, el ingeniero Antonio de Arévalo construyó la Escollera Submarina de Bocagrande, un muro sumergido de piedra que cerró el paso del agua para impedir la entrada de barcos enemigos a la bahía. Esta obra cambió las corrientes del mar y desvió la fuerza del oleaje del Caribe directamente contra la orilla de Tierrabomba, dando inicio al fenómeno de erosión costera que comenzó a carcomer sus playas.",
     color: "#c2410c",
     metrics: [
-      { label: "Levantamiento", value: "Chastenet 1783" },
-      { label: "Técnica", value: "Sonda a plomo" },
-      { label: "Canales", value: "2 accesos" },
-      { label: "Bahía", value: "Derrotero total" }
+      { label: "Período", value: "Años 1755–1758" },
+      { label: "Obra", value: "Escollera Bocagrande" },
+      { label: "Ingeniero", value: "Antonio de Arévalo" },
+      { label: "Fenómeno", value: "Erosión costera" }
     ]
   },
   {
     year: 1820,
     type: "historical",
     mapId: "map_1820",
-    title: "1820: Bahía y puerto (M. Paz)",
-    tagline: "Topografía Republicana // Comisión Corográfica",
-    description: "Plano con 16 referencias: del Pastelillo a Santa Rita, con Tierra Bomba (M) y Bocachica (N) ya pobladas.",
-    story: [
-      { icon: "Hospital", text: "1796: el Hospital San Lázaro se muda a la isla: nace el Lazareto de Caño de Loro." },
-      { icon: "Users", text: "Más de 600 enfermos de lepra y sus familias confinados en chozas." },
-      { icon: "Droplets", text: "Sin agua potable ni atención médica: segregación sanitaria oficial." },
-      { icon: "Flag", text: "De escudo militar a zona de aislamiento." }
-    ],
+    title: "1820: El asentamiento de la comunidad raizal",
+    tagline: "Años 1800 // Poblamiento Orgánico Post-Independencia",
+    description: "Tras la independencia, familias afrodescendientes y pescadores nativos poblaron la isla de forma orgánica, estableciéndose alrededor de las ruinas de las antiguas fortalezas por su cercanía al mar y su vocación pesquera. Los caseríos crecieron adaptándose al territorio de manera espontánea.",
     color: "#9a3412",
     metrics: [
-      { label: "Autor", value: "Manuel M. Paz" },
-      { label: "Referencias", value: "16 hitos (A–P)" },
-      { label: "Isla", value: "Tierra Bomba (M)" },
-      { label: "Puerto", value: "Uso comercial" }
+      { label: "Período", value: "Años 1800" },
+      { label: "Pobladores", value: "Familias raizales" },
+      { label: "Asentamiento", value: "Alrededor de ruinas" },
+      { label: "Vocación", value: "Pesca artesanal" }
     ]
   },
   {
     year: 1831,
     type: "historical",
     mapId: "map_1831",
-    title: "1831: Puerto y costa firme",
-    tagline: "Carta Náutica // Sondas en Brazas",
-    description: "Carta de navegación con batimetría completa y la isla relevada con su relieve: base de la meseta segura.",
-    story: [
-      { icon: "Home", text: "Pueblos pescadores en el plano: Bocagrande, Tierra Bomba y Bocachica." },
-      { icon: "Landmark", text: "Fuertes en ruina tras la independencia: del cañón a la cantera." },
-      { icon: "Ship", text: "La bahía se vuelve puerto comercial; la isla, su periferia rural." },
-      { icon: "Fish", text: "Pesca artesanal y cal: economía de subsistencia." }
-    ],
+    title: "1831: El asentamiento de la comunidad raizal",
+    tagline: "Años 1800 // Crecimiento Espontáneo de Caseríos",
+    description: "Tras la independencia, familias afrodescendientes y pescadores nativos poblaron la isla de forma orgánica, estableciéndose alrededor de las ruinas de las antiguas fortalezas por su cercanía al mar y su vocación pesquera. Los caseríos crecieron adaptándose al territorio de manera espontánea.",
     color: "#0369a1",
     metrics: [
-      { label: "Costa", value: "Tierra Firme" },
-      { label: "Sonda", value: "Millas marinas" },
-      { label: "Paso", value: "Bocachica" },
-      { label: "Relieve", value: "Meseta insular" }
+      { label: "Período", value: "Años 1800" },
+      { label: "Comunidad", value: "Pescadores nativos" },
+      { label: "Crecimiento", value: "Espontáneo" },
+      { label: "Borde Costero", value: "Cercanía al mar" }
     ]
   },
   {
     year: 1900,
     type: "historical",
     mapId: "map_1900",
-    title: "1900: Carta de la bahía artillada",
-    tagline: "Entresiglos // Escollera de Bocagrande",
-    description: "Bahía cerrada por la escollera, fuertes de San Luis y San José sobre Tierrabomba: la foto fija del siglo XX.",
-    story: [
-      { icon: "Home", text: "Cuatro caseríos: Tierra Bomba, Punta Arena, Caño del Oro y Bocachica." },
-      { icon: "Droplets", text: "Periferia olvidada por la República: sin acueducto ni alcantarillado." },
-      { icon: "Plane", text: "Septiembre de 1950: la FAC bombardea Caño de Loro con 14.000 lb de TNT." },
-      { icon: "Users", text: "Poblado destruido y sobrevivientes dispersos hacia las playas." }
-    ],
+    title: "1900: La brecha del agua potable",
+    tagline: "Años 1900 // Desconexión de Redes & Pimpinas",
+    description: "A lo largo de los años 1900, la falta de agua se convirtió en una brecha de infraestructura: mientras la Cartagena continental construía su red de acueducto trayendo agua desde el Canal del Dique, el Estado no instaló la tubería submarina hacia la isla. Esto obligó a los pobladores a abastecerse comprando agua traída en pimpinas y lanchas desde el continente.",
     color: "#0d9488",
     metrics: [
-      { label: "Obra", value: "Escollera total" },
-      { label: "Fuertes", value: "S. Luis / S. José" },
-      { label: "Entrada", value: "Solo Bocachica" },
-      { label: "Isla", value: "Base militar" }
+      { label: "Período", value: "Años 1900" },
+      { label: "Acueducto", value: "0% red a la isla" },
+      { label: "Cartagena", value: "Red Canal del Dique" },
+      { label: "Abastecimiento", value: "Pimpinas en lancha" }
     ]
   },
   {
     year: 1980,
     type: "modern",
-    title: "1980: Línea Base Tradicional",
-    tagline: "Pesca Artesanal & Costa Natural",
-    description: "Tierrabomba mantiene su bosque seco y costa arenosa con mínima erosión antes de la intensificación del canal industrial de Mamonal.",
+    title: "1980: La brecha del agua potable",
+    tagline: "Años 1900 // Subsistencia sin Red Submarina",
+    description: "A lo largo de los años 1900, la falta de agua se convirtió en una brecha de infraestructura: mientras la Cartagena continental construía su red de acueducto trayendo agua desde el Canal del Dique, el Estado no instaló la tubería submarina hacia la isla. Esto obligó a los pobladores a abastecerse comprando agua traída en pimpinas y lanchas desde el continente.",
     color: "#0284c7",
     metrics: [
-      { label: "Población", value: "~1.800 hab." },
-      { label: "Tráfico Buques", value: "Bajo (Calado 8m)" },
-      { label: "Tasa Erosión", value: "0.3 m/año" },
-      { label: "Cobertura Agua", value: "Aljibes y lluvia" }
+      { label: "Período", value: "Años 1900" },
+      { label: "Red Submarina", value: "0% Instalada" },
+      { label: "Dependencia", value: "Compra en lanchas" },
+      { label: "Vulnerabilidad", value: "Aislamiento hídrico" }
     ]
   },
   {
     year: 2026,
     type: "modern",
-    title: "2026: Diagnóstico Crítico Actual",
-    tagline: "Contraste Territorial & Vulnerabilidad",
-    description: "Cartagena moderna frente a una isla sin red de acueducto (0%), 1.8 m/año de retroceso costero y 120 viviendas con cimientos socavados.",
+    title: "2026: La aceleración del colapso costero",
+    tagline: "Años 2000 a la actualidad // Dragado, Oleaje & Crisis Hídrica",
+    description: "En los años 2000 y hasta el presente, las obras de profundización y dragado en el mar para el paso de grandes buques comerciales, sumadas al ascenso del nivel del mar por el cambio climático, aumentaron la fuerza de las olas sobre la orilla. Esto aceleró la pérdida de playa y la destrucción de las primeras manzanas de viviendas, llevando a la crisis actual donde más de 10.000 habitantes sufren el avance del mar sobre sus casas y la falta de agua potable y red sanitaria.",
     color: "#dc2626",
     metrics: [
-      { label: "Población", value: "4.300 hab." },
-      { label: "Acueducto Formal", value: "0% Red Pública" },
-      { label: "Erosión Borde", value: "1.8 m/año (Crítico)" },
-      { label: "Viviendas en Riesgo", value: "120 Hogares" }
+      { label: "Período", value: "Años 2000–Actual" },
+      { label: "Causas", value: "Dragados + Cambio Climático" },
+      { label: "Población Afectada", value: "+10.000 habitantes" },
+      { label: "Crisis", value: "Mar sobre viviendas" }
     ]
   },
   {
     year: 2050,
     type: "modern",
     title: "2050: Masterplan Resiliente (Tesis)",
-    tagline: "Soberanía Hídrica + Reubicación +22m",
-    description: "Reasentamiento de 120 familias a cota segura (+22m), colegio bioclimático de 350 plazas y macro-aljibe ciclópeo de 450.000 L.",
+    tagline: "Respuesta Proyectual // Soberanía Hídrica + Reubicación +22m",
+    description: "Frente al colapso acumulado de erosión costera y desabastecimiento hídrico, la tesis propone el reasentamiento seguro en la meseta (+22m), colegio bioclimático de 350 plazas y macro-aljibe de 450.000 L para garantizar la permanencia y dignidad de la comunidad en su territorio ancestral.",
     color: "#0d9488",
     metrics: [
       { label: "Cota Seguridad", value: "+22.00 m.s.n.m." },
       { label: "Reserva Hídrica", value: "450.000 Litros" },
-      { label: "Riesgo Marino", value: "0% Inmune" },
-      { label: "Energía Solar", value: "100% Renovable" }
+      { label: "Viviendas", value: "120 Familias" },
+      { label: "Respuesta", value: "Masterplan Resiliente" }
     ]
   }
 ];
@@ -1114,26 +1078,16 @@ export default function HistoricalAtlas({ onSelectModule, extraControls }) {
               </h3>
             </div>
 
-            {/* Historia insular en bullets con iconos (épocas históricas) */}
-            {isHistoricalMode && currentTimelineData.story ? (
-              <ul className="space-y-2">
-                {currentTimelineData.story.map((s, idx) => {
-                  const StoryIcon = STORY_ICONS[s.icon] || Info;
-                  return (
-                    <li key={idx} className="flex items-start space-x-2.5 p-2.5 rounded-2xl bg-amber-50/80 border border-amber-200/70">
-                      <span className="p-1.5 rounded-xl bg-white text-amber-700 border border-amber-200 shadow-xs shrink-0">
-                        <StoryIcon className="w-3.5 h-3.5" />
-                      </span>
-                      <span className="text-[11px] text-slate-700 font-sans leading-snug">{s.text}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className="text-xs text-slate-600 font-sans leading-relaxed font-light">
+            {/* Guion Histórico Causal continuo */}
+            <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/70 space-y-1.5 shadow-xs">
+              <div className="flex items-center space-x-1.5 text-amber-900 font-mono text-[10px] font-bold uppercase tracking-wider">
+                <BookOpen className="w-3.5 h-3.5 text-amber-700" />
+                <span>Guion Histórico Causal</span>
+              </div>
+              <p className="text-xs text-slate-800 font-sans leading-relaxed text-justify">
                 {currentTimelineData.description}
               </p>
-            )}
+            </div>
 
             {/* 4 CAD Telemetry Metrics */}
             <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-200">
