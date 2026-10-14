@@ -16,8 +16,6 @@ function ensureTopUVs(geo, tile = 40) {
   const bb = geo.boundingBox;
   const p = geo.attributes.position;
   const uv = new Float32Array(p.count * 2);
-  const sx = Math.max(0.001, bb.max.x - bb.min.x);
-  const sy = Math.max(0.001, bb.max.y - bb.min.y);
   for (let i = 0; i < p.count; i++) {
     uv[i * 2] = (p.getX(i) - bb.min.x) / tile;
     uv[i * 2 + 1] = (p.getY(i) - bb.min.y) / tile;
@@ -26,84 +24,24 @@ function ensureTopUVs(geo, tile = 40) {
   geo.attributes.uv.needsUpdate = true;
 }
 
-// Shader personalizado para Agua de Mar Hiper-Realista Oscura con oleaje animado y reflejo solar
-const WaterShader = {
-  vertexShader: `
-    varying vec2 vUv;
-    varying vec3 vWorldPosition;
-    varying vec3 vWorldNormal;
-    uniform float uTime;
-    uniform float uWaveIntensity;
-
-    void main() {
-      vUv = uv;
-      vec3 pos = position;
-
-      // Ondulaciones oceánicas compuestas (oleaje físico tridimensional)
-      float w1 = sin(pos.x * 0.08 + uTime * 1.5) * cos(pos.y * 0.07 + uTime * 1.1) * 0.42 * uWaveIntensity;
-      float w2 = sin(pos.x * 0.19 - uTime * 2.1 + pos.y * 0.14) * 0.20 * uWaveIntensity;
-      float w3 = cos(pos.x * 0.42 + pos.y * 0.32 + uTime * 2.9) * 0.09 * uWaveIntensity;
-      pos.z += w1 + w2 + w3;
-
-      vec4 worldPos = modelMatrix * vec4(pos, 1.0);
-      vWorldPosition = worldPos.xyz;
-
-      // Derivada analítica para normales dinámicas
-      vec3 n = vec3(0.0, 0.0, 1.0);
-      n.x -= (cos(pos.x * 0.08 + uTime * 1.5) * 0.08 * 0.42 + cos(pos.x * 0.19 - uTime * 2.1) * 0.19 * 0.20) * uWaveIntensity;
-      n.y -= (sin(pos.y * 0.07 + uTime * 1.1) * 0.07 * 0.42 + cos(pos.y * 0.32 + uTime * 2.9) * 0.32 * 0.09) * uWaveIntensity;
-      vWorldNormal = normalize((modelMatrix * vec4(normalize(n), 0.0)).xyz);
-
-      gl_Position = projectionMatrix * viewMatrix * worldPos;
+// Búsqueda del terreno principal (hijo directo de mayor área XZ)
+function findTerrain(root) {
+  const kids = root.children || [];
+  let best = null;
+  let bestArea = -1;
+  const box = new THREE.Box3();
+  kids.forEach((k) => {
+    box.setFromObject(k);
+    const sx = box.max.x - box.min.x;
+    const sz = box.max.z - box.min.z;
+    const area = sx * sz;
+    if (isFinite(area) && area > bestArea && sx > 0 && sz > 0) {
+      bestArea = area;
+      best = k;
     }
-  `,
-  fragmentShader: `
-    varying vec2 vUv;
-    varying vec3 vWorldPosition;
-    varying vec3 vWorldNormal;
-    uniform float uTime;
-    uniform vec3 uDeepColor;
-    uniform vec3 uShallowColor;
-    uniform vec3 uSunDirection;
-    uniform vec3 uSunColor;
-    uniform vec3 uCameraPos;
-    uniform sampler2D uWaterTex;
-
-    void main() {
-      vec3 viewDir = normalize(uCameraPos - vWorldPosition);
-      vec3 baseNorm = normalize(vWorldNormal);
-
-      // Micro-olas con desplazamiento dual de textura en dos direcciones
-      vec2 flow1 = vUv * 28.0 + vec2(uTime * 0.035, uTime * 0.022);
-      vec2 flow2 = vUv * 42.0 - vec2(uTime * 0.028, -uTime * 0.032);
-      vec4 t1 = texture2D(uWaterTex, flow1);
-      vec4 t2 = texture2D(uWaterTex, flow2);
-      vec3 dNorm = (t1.rgb + t2.rgb - 1.0) * 0.38;
-
-      vec3 N = normalize(baseNorm + vec3(dNorm.x, dNorm.y, dNorm.z * 0.45));
-
-      // Efecto Fresnel para reflejo en ángulos rasantes
-      float fresnel = clamp(1.0 - max(dot(viewDir, N), 0.0), 0.0, 1.0);
-      float fPow = pow(fresnel, 3.8);
-
-      // Degradado oceánico profundo y oscuro (caribe profundo)
-      vec3 waterColor = mix(uDeepColor, uShallowColor, fPow * 0.65 + 0.12);
-
-      // Reflejo especular del sol (destello brillante en crestas de olas)
-      vec3 halfVec = normalize(viewDir + uSunDirection);
-      float spec = pow(max(dot(N, halfVec), 0.0), 95.0);
-      float broadSpec = pow(max(dot(N, halfVec), 0.0), 18.0) * 0.28;
-      vec3 specular = (spec + broadSpec) * uSunColor * 1.8;
-
-      // Sutil brillo de espuma en las crestas
-      float crest = clamp(dNorm.z * 1.7 - 0.55, 0.0, 1.0);
-      vec3 crestColor = vec3(0.55, 0.68, 0.78) * crest * 0.18;
-
-      vec3 finalColor = waterColor + specular + crestColor;
-      gl_FragColor = vec4(finalColor, 0.96);
-    }
-  `
-};
+  });
+  return best;
+}
 
 // Generador de vegetación arquitectónica determinista (árboles costeros de render)
 function plantRenderVegetation(islandMeshes, count = 280) {
@@ -174,11 +112,12 @@ function plantRenderVegetation(islandMeshes, count = 280) {
   return grp;
 }
 
-function RenderViewer({ onStats, preset, presetNonce, fitNonce, waveActive }) {
+function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitNonce, waveActive, localFile }) {
   const mountRef = useRef(null);
   const applyViewRef = useRef(null);
   const modelRef = useRef(null);
   const fitCtl = useRef(null);
+  const loadCustomFileRef = useRef(null);
   const waveActiveRef = useRef(waveActive);
   waveActiveRef.current = waveActive;
 
@@ -189,7 +128,7 @@ function RenderViewer({ onStats, preset, presetNonce, fitNonce, waveActive }) {
     // Escena 3D configurada para Render Arquitectónico
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0a141e); // Atmósfera marina crepuscular
-    scene.fog = new THREE.FogExp2(0x0a141e, 0.0035);
+    scene.fog = new THREE.FogExp2(0x0a141e, 0.0032);
 
     const camera = new THREE.PerspectiveCamera(42, container.clientWidth / container.clientHeight, 0.1, 3000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -233,25 +172,24 @@ function RenderViewer({ onStats, preset, presetNonce, fitNonce, waveActive }) {
     // Carga de texturas PBR realistas
     const texLoader = new THREE.TextureLoader();
 
-    // 1. Textura de mar
+    // 1. Textura de agua para mar
     const aguaTex = texLoader.load(aguaTexImg);
     aguaTex.wrapS = THREE.RepeatWrapping;
     aguaTex.wrapT = THREE.RepeatWrapping;
-    aguaTex.repeat.set(6, 6);
+    aguaTex.repeat.set(12, 12);
     aguaTex.anisotropy = 8;
     aguaTex.colorSpace = THREE.SRGBColorSpace;
 
-    // 2. Textura de pasto (verde oscuro terroso natural)
+    // 2. Textura de pasto (verde oscuro terroso natural, nada fosforescente)
     const pastoTex = texLoader.load(pastoTexImg);
     pastoTex.wrapS = THREE.RepeatWrapping;
     pastoTex.wrapT = THREE.RepeatWrapping;
-    pastoTex.repeat.set(35, 35);
+    pastoTex.repeat.set(8, 8);
     pastoTex.anisotropy = 8;
     pastoTex.colorSpace = THREE.SRGBColorSpace;
-    // Verde pasto oscurito arquitectónico (cero fosforescente)
     const grassMat = new THREE.MeshStandardMaterial({
       map: pastoTex,
-      color: 0x223a1c,
+      color: 0x243e1d, // Pasto oscurito arquitectónico natural
       roughness: 0.94,
       metalness: 0.02
     });
@@ -260,53 +198,38 @@ function RenderViewer({ onStats, preset, presetNonce, fitNonce, waveActive }) {
     const arenaTex = texLoader.load(arenaTexImg);
     arenaTex.wrapS = THREE.RepeatWrapping;
     arenaTex.wrapT = THREE.RepeatWrapping;
-    arenaTex.repeat.set(20, 20);
+    arenaTex.repeat.set(4, 4);
     arenaTex.anisotropy = 8;
     arenaTex.colorSpace = THREE.SRGBColorSpace;
     const sandMat = new THREE.MeshStandardMaterial({
       map: arenaTex,
-      color: 0xc8b292,
-      roughness: 0.95,
+      bumpMap: arenaTex,
+      bumpScale: 0.25,
+      color: 0xc8b292, // Textura cálida de arena costera
+      roughness: 0.96,
       metalness: 0.01,
       polygonOffset: true,
       polygonOffsetFactor: -3,
       polygonOffsetUnits: -3
     });
 
-    // 4. Edificaciones y masas arquitectónicas del Revit (piedra/blanco calizo mate)
+    // 4. Edificaciones y masas arquitectónicas del Revit (piedra caliza blanca)
     const buildingMat = new THREE.MeshStandardMaterial({
       color: 0xedebe4,
       roughness: 0.72,
       metalness: 0.05
     });
 
-    // 5. Plano de agua viva circundante con Shader de oleaje realista
-    const waterUniforms = {
-      uTime: { value: 0 },
-      uWaveIntensity: { value: 1.0 },
-      uDeepColor: { value: new THREE.Color(0x061726) }, // Mar caribe profundo oscuro
-      uShallowColor: { value: new THREE.Color(0x0c2c3d) }, // Azul marino de oleaje
-      uSunDirection: { value: sun.position.clone().normalize() },
-      uSunColor: { value: new THREE.Color(0xfff2dc) },
-      uCameraPos: { value: new THREE.Vector3() },
-      uWaterTex: { value: aguaTex }
-    };
-
-    const waterMat = new THREE.ShaderMaterial({
-      vertexShader: WaterShader.vertexShader,
-      fragmentShader: WaterShader.fragmentShader,
-      uniforms: waterUniforms,
-      transparent: true,
-      depthWrite: true
+    // 5. Material de agua PBR realista con oleaje animado y reflejos
+    const waterMat = new THREE.MeshStandardMaterial({
+      map: aguaTex,
+      bumpMap: aguaTex,
+      bumpScale: 0.55,
+      color: 0x071e2e, // Mar caribe profundo oscuro y elegante
+      roughness: 0.12,
+      metalness: 0.26,
+      envMapIntensity: 1.8
     });
-
-    // Gran superficie oceánica alrededor de la isla
-    const oceanGeo = new THREE.PlaneGeometry(380, 380, 160, 160);
-    const oceanMesh = new THREE.Mesh(oceanGeo, waterMat);
-    oceanMesh.rotation.x = -Math.PI / 2;
-    oceanMesh.position.y = 0.05;
-    oceanMesh.receiveShadow = true;
-    root.add(oceanMesh);
 
     // Sistema de cámara orbital
     const sph = { radius: 76, theta: Math.PI / 4, phi: Math.PI / 3.2 };
@@ -337,7 +260,7 @@ function RenderViewer({ onStats, preset, presetNonce, fitNonce, waveActive }) {
       const maxDim = Math.max(size.x, size.y, size.z);
       if (!isFinite(maxDim) || maxDim <= 0) return;
 
-      const s = 36 / maxDim;
+      const s = 34 / maxDim;
       obj.scale.setScalar(s);
       obj.position.set(-center.x * s, -box.min.y * s, -center.z * s);
       obj.updateMatrixWorld(true);
@@ -346,133 +269,168 @@ function RenderViewer({ onStats, preset, presetNonce, fitNonce, waveActive }) {
       target.x = c2.x;
       target.y = c2.y * 0.7;
       target.z = c2.z;
-      sph.radius = 82;
+      sph.radius = 80;
       placeCamera();
-
-      // Ajustar altura de la lámina de agua al borde costero inferior de la isla
-      oceanMesh.position.y = 0.28;
     };
 
     // Procesamiento y asignación de materiales PBR realistas al FBX de Revit
     const setupRevitModel = (obj) => {
       if (cancelled) return;
+      // Limpiar modelo previo si existe
+      if (modelRef.current) {
+        root.remove(modelRef.current);
+      }
       modelRef.current = obj;
       obj.updateMatrixWorld(true);
 
-      const islandMeshes = [];
+      let island = null;
+      try { island = findTerrain(obj); } catch (e) {}
 
+      // Mallas grandes (Toposolid de terreno y lámina de agua exterior)
+      const bigMeshes = [];
+      {
+        const bb = new THREE.Box3();
+        obj.traverse((c) => {
+          if (!c.isMesh || !c.geometry || !c.geometry.attributes || !c.geometry.attributes.position) return;
+          bb.setFromObject(c);
+          const a = (bb.max.x - bb.min.x) * (bb.max.y - bb.min.y);
+          if (a > 500000 && !bigMeshes.includes(c)) bigMeshes.push(c);
+        });
+        if (bigMeshes.length === 0 && island) {
+          island.traverse((c) => {
+            if (c.isMesh && c.geometry && c.geometry.attributes && c.geometry.attributes.position) bigMeshes.push(c);
+          });
+        }
+      }
+
+      // Separar por altura las caras del terreno: lámina de agua baja vs tierra de la isla
+      const splitMeshes = new Set();
+      const tmpV = new THREE.Vector3();
+      bigMeshes.forEach((tm) => {
+        const g = tm.geometry;
+        g.computeBoundingBox();
+        const bb = g.boundingBox;
+        const seaZ = bb.min.z + (bb.max.z - bb.min.z) * 0.085;
+        const posA = g.attributes.position;
+        const idx = g.index ? g.index.array : null;
+        const faceCount = idx ? idx.length / 3 : posA.count / 3;
+        const groups = [];
+        let runMat = -1;
+        let runStart = 0;
+        let runCount = 0;
+
+        for (let f = 0; f < faceCount; f++) {
+          const getZ = (k) => {
+            const vi = idx ? idx[f * 3 + k] : f * 3 + k;
+            tmpV.fromBufferAttribute(posA, vi);
+            return tmpV.z;
+          };
+          const avgZ = (getZ(0) + getZ(1) + getZ(2)) / 3;
+          const matIdx = avgZ < seaZ ? 0 : 1; // 0: agua marina oscura, 1: pasto oscuro
+
+          if (matIdx !== runMat) {
+            if (runCount > 0) groups.push([runStart, runCount, runMat]);
+            runMat = matIdx;
+            runStart = f * 3;
+            runCount = 0;
+          }
+          runCount += 3;
+        }
+        if (runCount > 0) groups.push([runStart, runCount, runMat]);
+
+        if (groups.length > 0) {
+          g.clearGroups();
+          groups.forEach(([s, cc, mi]) => g.addGroup(s, cc, mi));
+          ensureTopUVs(tm.geometry, 50);
+          tm.material = [waterMat, grassMat];
+          splitMeshes.add(tm);
+        } else {
+          ensureTopUVs(tm.geometry, 50);
+          tm.material = grassMat;
+        }
+      });
+
+      // Procesar todas las demás mallas (Vías de arena y edificaciones)
+      const mBox = new THREE.Box3();
       obj.traverse((c) => {
         if (!c.isMesh) return;
         c.castShadow = true;
         c.receiveShadow = true;
+        if (splitMeshes.has(c)) return;
 
         const name = (c.name || '').toLowerCase();
+        mBox.setFromObject(c);
+        const sx = mBox.max.x - mBox.min.x;
+        const sy = mBox.max.y - mBox.min.y;
+        const sz = mBox.max.z - mBox.min.z;
+        const footprint = sx * sy;
+        const wide = Math.max(sx, sy);
+        const narrow = Math.max(Math.min(sx, sy), 0.001);
 
-        // 1. Detección de las Vías en el modelo Revit (Sólido topográfico subdividido o mallas de suelo)
-        if (name.includes('sólido topográfico 1') || name.includes('solido topografico 1') || name.includes('164695') || name.includes('via') || name.includes('camino') || name.includes('road')) {
+        // 1. Detección de las Vías en arena (Sólido topográfico subdividido o caminos alargados)
+        if (
+          name.includes('sólido') || name.includes('solido') || name.includes('164695') ||
+          name.includes('via') || name.includes('camino') || name.includes('road') ||
+          (wide > 25 && narrow >= 1.8 && narrow <= 25 && wide / narrow > 2.5 && sz <= 10)
+        ) {
           c.material = sandMat;
           c.renderOrder = 3;
           ensureTopUVs(c.geometry, 20);
         }
-        // 2. Detección del Terreno Principal de la Isla (Toposolid de Revit)
-        else if (name.includes('toposolid') || name.includes('terrain') || name.includes('terreno') || name.includes('149111')) {
-          islandMeshes.push(c);
-          ensureTopUVs(c.geometry, 35);
-
-          // Partición de caras por elevación: el zócalo sumergido usa material agua, la tierra usa pasto oscuro
-          const g = c.geometry;
-          g.computeBoundingBox();
-          const bb = g.boundingBox;
-          const seaHeight = bb.min.z + (bb.max.z - bb.min.z) * 0.085;
-          const posA = g.attributes.position;
-          const idx = g.index ? g.index.array : null;
-          const faceCount = idx ? idx.length / 3 : posA.count / 3;
-          const groups = [];
-          let runMat = -1;
-          let runStart = 0;
-          let runCount = 0;
-          const tmpV = new THREE.Vector3();
-
-          for (let f = 0; f < faceCount; f++) {
-            const getZ = (k) => {
-              const vi = idx ? idx[f * 3 + k] : f * 3 + k;
-              tmpV.fromBufferAttribute(posA, vi);
-              return tmpV.z;
-            };
-            const avgZ = (getZ(0) + getZ(1) + getZ(2)) / 3;
-            const matIdx = avgZ < seaHeight ? 0 : 1; // 0: agua costera, 1: pasto oscuro
-
-            if (matIdx !== runMat) {
-              if (runCount > 0) groups.push([runStart, runCount, runMat]);
-              runMat = matIdx;
-              runStart = f * 3;
-              runCount = 0;
-            }
-            runCount += 3;
-          }
-          if (runCount > 0) groups.push([runStart, runCount, runMat]);
-
-          if (groups.length > 0) {
-            g.clearGroups();
-            groups.forEach(([s, cc, mi]) => g.addGroup(s, cc, mi));
-            // Material costero sumergido + Pasto oscurito arquitectónico
-            const coastWaterMat = new THREE.MeshStandardMaterial({
-              color: 0x071e2e,
-              roughness: 0.25,
-              metalness: 0.2
-            });
-            c.material = [coastWaterMat, grassMat];
-          } else {
-            c.material = grassMat;
-          }
-        }
-        // 3. Edificaciones, casas y muros arquitectónicos
-        else {
+        // 2. Edificaciones y casas de Revit
+        else if (sz > 2 && footprint < 40000) {
+          c.material = buildingMat;
+        } else {
           c.material = buildingMat;
         }
       });
 
       root.add(obj);
 
-      // Si por alguna razón la subdivisión de vías no era una malla separada,
-      // buscamos mallas de huella baja plana sobre la isla para aplicar arena
-      const bb = new THREE.Box3();
-      obj.traverse((c) => {
-        if (c.isMesh && c.material === buildingMat) {
-          bb.setFromObject(c);
-          const sz = bb.max.z - bb.min.z;
-          const sx = bb.max.x - bb.min.x;
-          const sy = bb.max.y - bb.min.y;
-          const ratio = Math.max(sx, sy) / Math.max(0.1, Math.min(sx, sy));
-          // Trazos alargados aplanados = caminos de arena
-          if (sz < 1.8 && ratio > 3.0) {
-            c.material = sandMat;
-            ensureTopUVs(c.geometry, 15);
-          }
-        }
-      });
-
       let meshCount = 0;
       obj.traverse((c) => { if (c.isMesh) meshCount++; });
       if (onStats) onStats({ meshes: meshCount });
+      if (onLoaded) onLoaded();
 
       frameModel();
 
       // Agregar vegetación sutil de render sobre las colinas
       try {
-        const trees = plantRenderVegetation(islandMeshes, 280);
+        const trees = plantRenderVegetation(bigMeshes, 280);
         if (trees) root.add(trees);
       } catch (e) {
         console.warn('Vegetation scattering note:', e);
       }
     };
 
-    // Carga asíncrona del modelo FBX exportado del Revit
+    // Función para cargar un archivo local del usuario (arrastrar y soltar o selector)
+    loadCustomFileRef.current = (arrayBuffer) => {
+      try {
+        const loader = new FBXLoader();
+        const loadedObj = loader.parse(arrayBuffer, '');
+        setupRevitModel(loadedObj);
+      } catch (err) {
+        console.error('Error parseando FBX local:', err);
+      }
+    };
+
+    // Carga inicial del modelo FBX desde URL
     new FBXLoader().load(
       DEFAULT_MODEL_URL,
       (loadedObj) => setupRevitModel(loadedObj),
-      undefined,
-      (err) => console.error('Error cargando modelo Revit:', err)
+      (xhr) => {
+        if (onProgress && xhr.total) {
+          const p = Math.round((xhr.loaded / xhr.total) * 100);
+          onProgress(p);
+        } else if (onProgress && xhr.loaded) {
+          const p = Math.min(99, Math.round((xhr.loaded / 27704704) * 100));
+          onProgress(p);
+        }
+      },
+      (err) => {
+        console.error('Error cargando modelo Revit desde URL:', err);
+        if (onLoaded) onLoaded();
+      }
     );
 
     // Ajustes de vistas de cámara predeterminadas
@@ -480,7 +438,7 @@ function RenderViewer({ onStats, preset, presetNonce, fitNonce, waveActive }) {
       if (mode === 'axon') {
         sph.phi = Math.PI / 3.2;
         sph.theta = Math.PI / 4;
-        sph.radius = 82;
+        sph.radius = 80;
       } else if (mode === 'top') {
         sph.phi = 0.08;
         sph.radius = 95;
@@ -532,18 +490,18 @@ function RenderViewer({ onStats, preset, presetNonce, fitNonce, waveActive }) {
     };
     window.addEventListener('resize', onResize);
 
-    // Bucle de renderizado continuo con animación de olas
+    // Bucle de renderizado continuo con oleaje en tiempo real
     const clock = new THREE.Clock();
     let rafId = 0;
     const animate = () => {
       rafId = requestAnimationFrame(animate);
       const elapsed = clock.getElapsedTime();
 
-      // Ondulación marina en tiempo real
-      if (waveActiveRef.current) {
-        waterUniforms.uTime.value = elapsed;
+      // Animación continua del oleaje del mar
+      if (waveActiveRef.current && aguaTex) {
+        aguaTex.offset.x = (elapsed * 0.035) % 1;
+        aguaTex.offset.y = (elapsed * 0.022) % 1;
       }
-      waterUniforms.uCameraPos.value.copy(camera.position);
 
       renderer.render(scene, camera);
     };
@@ -570,6 +528,19 @@ function RenderViewer({ onStats, preset, presetNonce, fitNonce, waveActive }) {
     if (fitCtl.current) fitCtl.current();
   }, [fitNonce]);
 
+  // Si el usuario sube un archivo local (drag and drop o file input)
+  useEffect(() => {
+    if (localFile && loadCustomFileRef.current) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target && e.target.result) {
+          loadCustomFileRef.current(e.target.result);
+        }
+      };
+      reader.readAsArrayBuffer(localFile);
+    }
+  }, [localFile]);
+
   return <div ref={mountRef} className="w-full h-full min-h-[580px] cursor-grab active:cursor-grabbing select-none" />;
 }
 
@@ -580,6 +551,11 @@ export default function RevitModule() {
   const [modelStats, setModelStats] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [waveActive, setWaveActive] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [localFile, setLocalFile] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
 
   const pickView = (name) => {
     setViewPreset(name);
@@ -600,24 +576,104 @@ export default function RevitModule() {
     return () => window.removeEventListener('keydown', onKey);
   }, [isFullscreen]);
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsLoading(true);
+      setLoadingProgress(100);
+      setLocalFile(file);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      setIsLoading(true);
+      setLoadingProgress(100);
+      setLocalFile(file);
+    }
+  };
+
   return (
-    <div className={`w-full h-full relative overflow-hidden bg-slate-950 font-sans ${isFullscreen ? 'fixed inset-0 z-[9999]' : ''}`}>
+    <div
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`w-full h-full relative overflow-hidden bg-slate-950 font-sans ${isFullscreen ? 'fixed inset-0 z-[9999]' : ''}`}
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".fbx"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
       {/* Visor 3D de Render a pantalla completa */}
       <div className="absolute inset-0 w-full h-full">
         <RenderViewer
           onStats={setModelStats}
+          onProgress={(p) => setLoadingProgress(p)}
+          onLoaded={() => setIsLoading(false)}
           preset={viewPreset}
           presetNonce={presetNonce}
           fitNonce={fitNonce}
           waveActive={waveActive}
+          localFile={localFile}
         />
       </div>
+
+      {/* Pantalla de Carga interactiva para los 27.7 MB */}
+      {isLoading && (
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-950/85 backdrop-blur-md space-y-4">
+          <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shadow-2xl animate-pulse">
+            <span className="text-3xl">🏝️</span>
+          </div>
+          <div className="text-center space-y-1">
+            <p className="text-white font-extrabold text-base tracking-wide">
+              {localFile ? 'Procesando archivo FBX local...' : 'Cargando Modelo Revit · Tierrabomba'}
+            </p>
+            <p className="text-xs font-mono text-emerald-400 font-bold">
+              {loadingProgress > 0 ? `${loadingProgress}% descargado` : 'Iniciando descarga (27.7 MB)...'}
+            </p>
+          </div>
+          <div className="w-72 h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/60 p-0.5">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 rounded-full transition-all duration-300"
+              style={{ width: `${Math.max(6, loadingProgress)}%` }}
+            />
+          </div>
+          <p className="text-[11px] font-mono text-slate-400 text-center max-w-sm">
+            5.185 masas arquitectónicas, Toposolid de la isla, vías de arena y océano dinámico.
+          </p>
+        </div>
+      )}
+
+      {/* Overlay al arrastrar archivo local */}
+      {isDragging && (
+        <div className="absolute inset-0 z-40 bg-emerald-950/70 border-4 border-dashed border-emerald-400 flex flex-col items-center justify-center backdrop-blur-sm pointer-events-none">
+          <span className="text-5xl mb-2">📥</span>
+          <p className="text-white font-bold text-lg">Suelta tu archivo FBX de Revit aquí</p>
+          <p className="text-emerald-300 text-xs font-mono">Se cargará directamente en el visor 3D</p>
+        </div>
+      )}
 
       {/* Header flotante: elegante, minimalista y transparente */}
       <div className="absolute top-4 left-4 z-10 pointer-events-none flex flex-col space-y-1">
         <div className="flex items-center space-x-2">
           <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[10px] font-bold tracking-wider uppercase backdrop-blur-md">
-            MÓDULO 05 · RENDER BIM REALISTA
+            MÓDULO 05 · RENDER BIM REVIT
           </span>
           {waveActive && (
             <span className="flex items-center space-x-1.5 px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono text-[10px] backdrop-blur-md">
@@ -636,6 +692,14 @@ export default function RevitModule() {
 
       {/* Botones de acción superior derecha */}
       <div className="absolute top-4 right-4 z-10 flex items-center space-x-2">
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-900/80 hover:bg-slate-800 text-emerald-300 border border-emerald-500/30 backdrop-blur-md transition-all shadow-lg flex items-center space-x-1.5"
+          title="Subir archivo FBX de Revit desde tu computador"
+        >
+          <span>📁 Cargar FBX</span>
+        </button>
+
         <button
           onClick={() => setWaveActive((w) => !w)}
           className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-lg ${
@@ -691,7 +755,7 @@ export default function RevitModule() {
           {modelStats && (
             <div className="pl-2 border-l border-slate-800/80 hidden md:flex items-center space-x-2 text-[11px] font-mono text-slate-400">
               <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
-              <span>{modelStats.meshes.toLocaleString()} elementos BIM cargados</span>
+              <span>{modelStats.meshes.toLocaleString()} elementos BIM de Revit cargados</span>
             </div>
           )}
         </div>
