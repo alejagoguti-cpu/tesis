@@ -148,11 +148,12 @@ function buildContours(terrain) {
   return { lines, levels: LEVELS - 1, segments: segs.length / 6 };
 }
 
-function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce, viewClass }) {
+function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce, viewClass, wireframe }) {
   const mountRef = useRef(null);
   const applyViewRef = useRef(null);
   const modelRef = useRef(null);
   const baseRef = useRef(null);
+  const rootRef = useRef(null);
   const fitCtl = useRef(null);
   const axisFlipRef = useRef(axisFlip);
   axisFlipRef.current = axisFlip;
@@ -198,6 +199,7 @@ function ModelViewer({ onStats, preset, presetNonce, axisFlip, fitNonce, viewCla
     scene.add(sun);
 
     const root = new THREE.Group();
+    rootRef.current = root;
     scene.add(root);
 
     const sph = { radius: 72, theta: Math.PI / 4, phi: Math.PI / 3.1 };
@@ -440,6 +442,17 @@ function ensureTopUVs(geo, tile) {
     if (fitCtl.current) fitCtl.current();
   }, [fitNonce, axisFlip]);
 
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    root.traverse((c) => {
+      if (c.isMesh) {
+        const mats = Array.isArray(c.material) ? c.material : [c.material];
+        mats.forEach((m) => { if (m && 'wireframe' in m) m.wireframe = wireframe; });
+      }
+    });
+  }, [wireframe]);
+
   return <div ref={mountRef} className={viewClass || 'w-full h-[76vh] min-h-[540px] cursor-grab active:cursor-grabbing'} />;
 }
 
@@ -450,6 +463,7 @@ export default function RevitModule() {
   const [fitNonce, setFitNonce] = useState(0);
   const [modelStats, setModelStats] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [wireframe, setWireframe] = useState(true); // vista wireframe como en Revit
   const pickView = (name) => { setViewPreset(name); setPresetNonce((n) => n + 1); };
 
   useEffect(() => {
@@ -487,7 +501,7 @@ export default function RevitModule() {
             </button>
           </div>
           <div className={isFullscreen ? 'flex-1 min-h-0' : ''}>
-          <ModelViewer onStats={setModelStats} preset={viewPreset} presetNonce={presetNonce} axisFlip={axisFlip} fitNonce={fitNonce} viewClass={isFullscreen ? 'w-full h-full min-h-[480px] cursor-grab active:cursor-grabbing' : undefined} />
+          <ModelViewer onStats={setModelStats} preset={viewPreset} presetNonce={presetNonce} axisFlip={axisFlip} fitNonce={fitNonce} wireframe={wireframe} viewClass={isFullscreen ? 'w-full h-full min-h-[480px] cursor-grab active:cursor-grabbing' : undefined} />
           </div>
           <div className="flex flex-wrap items-center gap-1.5 px-4 py-2.5 border-t border-slate-200">
             <span className="text-[10px] font-mono font-bold text-slate-500 uppercase mr-1">Vista:</span>
@@ -515,6 +529,13 @@ export default function RevitModule() {
               className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all ${axisFlip ? 'bg-amber-500 text-slate-950' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
             >
               Plano / Parado
+            </button>
+            <button
+              onClick={() => setWireframe((v) => !v)}
+              className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all ${wireframe ? 'bg-slate-900 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
+              title="Ver como wireframe o sombreado"
+            >
+              Wireframe
             </button>
             {modelStats ? (
               <span className="text-[10px] font-mono text-slate-400 ml-auto">
