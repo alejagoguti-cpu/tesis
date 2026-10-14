@@ -117,7 +117,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
   // -------------------------------------------------------------
   // 3. SHATTER EXPLOSION TRANSITION ("ROMPER LA BOLA")
   // -------------------------------------------------------------
-  const triggerShatterAndNavigate = (targetModuleId = 'module11') => {
+  const triggerShatterAndNavigate = (targetModuleId = 'framework') => {
     if (isShattering) return;
     setIsShattering(true);
 
@@ -334,22 +334,30 @@ export default function IntroLandingIndex({ onNavigateModule }) {
             {/* CTA Buttons Row */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
-                onClick={() => triggerShatterAndNavigate('module11')}
+                onClick={() => triggerShatterAndNavigate('framework')}
                 disabled={isShattering}
                 className="inline-flex items-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-teal-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0"
               >
-                <Compass className="w-4 h-4 text-teal-400" />
-                <span>{isShattering ? 'Iniciando investigación...' : 'MÓDULO 01: PREGUNTA CENTRAL'}</span>
+                <BookOpen className="w-4 h-4 text-teal-400" />
+                <span>{isShattering ? 'Accediendo al marco...' : 'MÓDULO 01: MARCO DE TESIS'}</span>
                 <ArrowRight className="w-4 h-4 ml-1" />
               </button>
 
               <button
-                onClick={() => onNavigateModule('framework')}
+                onClick={() => onNavigateModule('module11')}
                 className="inline-flex items-center space-x-2 px-5 py-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-semibold text-sm transition-all hover:-translate-y-0.5 shadow-xs"
               >
-                <BookOpen className="w-4 h-4 text-slate-600" />
-                <span>MÓDULO 02: MARCO DE TESIS</span>
+                <Compass className="w-4 h-4 text-amber-600" />
+                <span>MÓDULO 1.1: PLANOS HISTÓRICOS</span>
                 <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+              </button>
+
+              <button
+                onClick={() => onNavigateModule('3dviewer')}
+                className="inline-flex items-center space-x-2 px-4 py-3.5 rounded-2xl text-slate-600 hover:text-slate-950 font-mono text-xs transition-colors hover:underline"
+              >
+                <Box className="w-4 h-4 text-slate-700" />
+                <span>MÓDULO 02: VISOR 3D &rarr;</span>
               </button>
             </div>
 

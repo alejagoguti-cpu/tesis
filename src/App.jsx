@@ -41,7 +41,7 @@ class SafeSection extends Component {
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [activeModule, setActiveModule] = useState('module11');
+  const [activeModule, setActiveModule] = useState('framework');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
@@ -120,37 +120,37 @@ export default function App() {
           {viewMode === 'dashboard' && (
             <div className="w-full h-full relative overflow-hidden transition-all duration-300">
               
-              {/* Module 01: Pregunta Central */}
-              {activeModule === 'module11' && (
-                <SafeSection name="Módulo 01">
-                  <Module11Territory onNavigateModule={(modId) => setActiveModule(modId)} />
-                </SafeSection>
-              )}
-
-              {/* Module 02: Marco Académico */}
+              {/* Módulo 01: Marco Académico */}
               {activeModule === 'framework' && (
-                <SafeSection name="Marco Académico">
+                <SafeSection name="Módulo 01: Marco de Tesis">
                   <ThesisFramework onSelectModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
-              {/* Module 03: GIS & Diagnóstico */}
+              {/* Módulo 1.1: Diagnóstico Territorial & Planos Históricos */}
+              {activeModule === 'module11' && (
+                <SafeSection name="Módulo 1.1: Planos Históricos & Evidencias">
+                  <Module11Territory onNavigateModule={(modId) => setActiveModule(modId)} />
+                </SafeSection>
+              )}
+
+              {/* Módulo 1.2: Teledetección & GIS Espectral */}
               {activeModule === 'gis' && (
-                <SafeSection name="Diagnóstico Territorial">
+                <SafeSection name="Módulo 1.2: GIS & Teledetección">
                   <DiagnosisMap onNavigateModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
-              {/* Módulo 04: Visor 3D WebGL / BIM */}
+              {/* Módulo 02: Visor 3D WebGL / BIM */}
               {activeModule === '3dviewer' && (
-                <SafeSection name="Visor 3D BIM">
+                <SafeSection name="Módulo 02: Visor 3D BIM">
                   <ModelViewer3D onSelectModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
-              {/* Módulo 05: Modelo Revit Tierrabomba */}
+              {/* Módulo 03: Modelo Revit Tierrabomba */}
               {activeModule === 'revit' && (
-                <SafeSection name="Modelo Revit">
+                <SafeSection name="Módulo 03: Modelo Revit">
                   <RevitModule />
                 </SafeSection>
               )}

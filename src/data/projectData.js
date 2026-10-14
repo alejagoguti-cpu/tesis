@@ -277,11 +277,11 @@ export const projectInfo = {
 
   // 11. NAVEGACIÓN DEL DASHBOARD
   dashboardModules: [
-    { id: "module11", number: "01", title: "¿Qué ocurre cuando una comunidad comienza a perder las condiciones necesarias para permanecer en su propio territorio?", icon: "AlertTriangle", badge: "Pregunta Central", desc: "Diagnóstico de arraigo y habitabilidad en Tierrabomba" },
-    { id: "framework", number: "02", title: "Marco de Tesis", icon: "BookOpen", badge: "Académico", desc: "Problema, Justificación y Objetivos OE-01 a OE-04" },
-    { id: "gis", number: "03", title: "Teledetección & GIS Espectral", icon: "Map", badge: "Territorial", desc: "5 Bandas satelitales (NDVI, NDWI, Falso Color, Manglar, LST)" },
-    { id: "3dviewer", number: "04", title: "Visor 3D WebGL / BIM", icon: "Box", badge: "Interactivo", desc: "Territorio, Colegio, Vivienda, Masterplan + Despiece & Speckle" },
-    { id: "revit", number: "05", title: "Modelo Revit Tierrabomba", icon: "Building2", badge: "BIM", desc: "Carga del .rvt + visor del modelo exportado" },
+    { id: "framework", number: "01", title: "Marco de Tesis", icon: "BookOpen", badge: "Académico", desc: "Problema, Justificación y Objetivos OE-01 a OE-04" },
+    { id: "module11", number: "1.1", title: "Planos Históricos & Evidencias Territoriales", icon: "Map", badge: "Módulo 1.1", desc: "Atlas de 6 Planos Históricos (1589–1900) y Evidencias de Habitabilidad en Sitio" },
+    { id: "gis", number: "1.2", title: "Teledetección & GIS Espectral", icon: "Layers", badge: "GIS", desc: "5 Bandas satelitales (NDVI, NDWI, Manglar) y Shaders CSS" },
+    { id: "3dviewer", number: "02", title: "Visor 3D WebGL / BIM", icon: "Box", badge: "Interactivo", desc: "Territorio, Colegio, Vivienda, Masterplan + Despiece & Speckle" },
+    { id: "revit", number: "03", title: "Modelo Revit Tierrabomba", icon: "Building2", badge: "BIM", desc: "Carga del .rvt + visor del modelo exportado" },
   ],
 
   // 12. SISTEMA DE RED CONCEPTUAL DE OBJETIVOS (TESIS 2026)
