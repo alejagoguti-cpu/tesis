@@ -772,40 +772,94 @@ export async function buildCartagenaTerritoryScene({
   animatedObjects.hotspotRings = hotspotRings;
 
   // -------------------------------------------------------------
+  // -------------------------------------------------------------
   // 8. ÁRBOLES REALES DE SKETCHUP EN TIERRA BOMBA (C:\sketch\tree+300.skp)
+  // Distribución densa directamente sobre los vértices interiores de la isla de Tierra Bomba
+  // con diferentes tamaños (pequeños, medianos y grandes) para un aspecto natural y exuberante.
   // -------------------------------------------------------------
   const treesGroup = new THREE.Group();
   treesGroup.name = "Vegetation";
 
-  const tierrabombaTreeCoords = [
-    // Punta Arenas y Borde Norte Costero
+  // Recolectar puntos 3D reales situados dentro de la masa insular de Tierra Bomba
+  const tierrabombaTreePoints = [];
+
+  // A. Extraer vértices de las masas de tierra oficiales de Tierra Bomba
+  if (catastroData.landmasses && Array.isArray(catastroData.landmasses)) {
+    catastroData.landmasses.forEach((ring) => {
+      if (!ring || ring.length < 3) return;
+      // Verificar si el anillo pertenece a Tierra Bomba
+      const xs = ring.map(p => p[0]);
+      const ys = ring.map(p => p[1]);
+      const minX = Math.min(...xs), maxX = Math.max(...xs);
+      const minY = Math.min(...ys), maxY = Math.max(...ys);
+
+      if (minX >= -95 && maxX <= 38 && minY >= -135 && maxY <= 25) {
+        // Muestrear vértices de la isla
+        const step = Math.max(1, Math.floor(ring.length / 45));
+        for (let i = 0; i < ring.length; i += step) {
+          tierrabombaTreePoints.push({
+            x: ring[i][0] + (Math.random() - 0.5) * 1.8,
+            y: 0.08,
+            z: ring[i][1] + (Math.random() - 0.5) * 1.8
+          });
+        }
+      }
+    });
+  }
+
+  // B. Extraer vértices interiores de manzanas y áreas abiertas de Tierra Bomba
+  if (catastroData.manzanas && Array.isArray(catastroData.manzanas)) {
+    catastroData.manzanas.forEach((m) => {
+      const ring = m.r;
+      if (!ring || ring.length < 3) return;
+      const cX = ring[0][0], cY = ring[0][1];
+      if (cX >= -90 && cX <= 35 && cY >= -130 && cY <= 20) {
+        if (Math.random() > 0.40) {
+          tierrabombaTreePoints.push({
+            x: cX + (Math.random() - 0.5) * 1.5,
+            y: 0.08,
+            z: cY + (Math.random() - 0.5) * 1.5
+          });
+        }
+      }
+    });
+  }
+
+  // C. Puntos adicionales en las zonas estratégicas insulares (Punta Arenas, Meseta +22m, Caño de Oro, Bocachica)
+  const keyAreas = [
     [-75.5760, 10.3815], [-75.5775, 10.3820], [-75.5750, 10.3810], [-75.5785, 10.3805], [-75.5738, 10.3822],
     [-75.5792, 10.3795], [-75.5765, 10.3802], [-75.5755, 10.3828], [-75.5742, 10.3798], [-75.5780, 10.3788],
-    // Franja de Amortiguación y Reforestación (500m)
     [-75.5750, 10.3800], [-75.5768, 10.3792], [-75.5735, 10.3790], [-75.5782, 10.3782], [-75.5720, 10.3785],
     [-75.5760, 10.3775], [-75.5740, 10.3770], [-75.5775, 10.3765], [-75.5728, 10.3768], [-75.5790, 10.3772],
-    // Meseta Central Resiliente (+22m) y Parque Ecológico Central
     [-75.5745, 10.3745], [-75.5760, 10.3735], [-75.5730, 10.3752], [-75.5770, 10.3725], [-75.5750, 10.3715],
     [-75.5725, 10.3738], [-75.5765, 10.3755], [-75.5740, 10.3728], [-75.5755, 10.3748], [-75.5735, 10.3718],
     [-75.5768, 10.3712], [-75.5748, 10.3732], [-75.5722, 10.3722], [-75.5758, 10.3762], [-75.5732, 10.3742],
-    // Corredores Ecológicos y Caño de Oro (Ladera Este / Bahía)
     [-75.5685, 10.3730], [-75.5672, 10.3718], [-75.5698, 10.3745], [-75.5668, 10.3690], [-75.5682, 10.3665],
     [-75.5690, 10.3710], [-75.5702, 10.3735], [-75.5678, 10.3725], [-75.5710, 10.3740], [-75.5695, 10.3680],
-    // Costa Occidental Balneario y Laderas Abiertas al Mar Caribe
     [-75.5815, 10.3740], [-75.5828, 10.3715], [-75.5802, 10.3685], [-75.5812, 10.3655], [-75.5798, 10.3625],
     [-75.5822, 10.3730], [-75.5808, 10.3700], [-75.5832, 10.3670], [-75.5818, 10.3640], [-75.5805, 10.3610],
-    // Zona Central Interior y Colinas de Tierra Bomba
     [-75.5735, 10.3655], [-75.5752, 10.3625], [-75.5715, 10.3605], [-75.5745, 10.3585], [-75.5765, 10.3565],
     [-75.5728, 10.3635], [-75.5748, 10.3610], [-75.5710, 10.3590], [-75.5738, 10.3570], [-75.5758, 10.3550],
-    // Tierra Bomba Pueblo (Sureste) y Laderas Circundantes
     [-75.5710, 10.3520], [-75.5692, 10.3505], [-75.5732, 10.3485], [-75.5702, 10.3465], [-75.5742, 10.3445],
     [-75.5718, 10.3510], [-75.5698, 10.3490], [-75.5725, 10.3470], [-75.5708, 10.3450], [-75.5735, 10.3430],
-    // Bocachica, Bosque Seco Tropical y Fuerte San Fernando (Sur)
     [-75.5800, 10.3385], [-75.5822, 10.3365], [-75.5812, 10.3345], [-75.5832, 10.3355], [-75.5792, 10.3335],
-    [-75.5808, 10.3375], [-75.5828, 10.3350], [-75.5798, 10.3360], [-75.5818, 10.3338], [-75.5838, 10.3342],
-    // Parques continentales (Parque Centenario, Laderas Popa)
-    [-75.5460, 10.4225], [-75.5470, 10.4215], [-75.5380, 10.4240], [-75.5390, 10.4230], [-75.5370, 10.4250]
+    [-75.5808, 10.3375], [-75.5828, 10.3350], [-75.5798, 10.3360], [-75.5818, 10.3338], [-75.5838, 10.3342]
   ];
+  keyAreas.forEach(([lon, lat]) => {
+    const p = lonLatToVector3(lon, lat, 0.08);
+    tierrabombaTreePoints.push({ x: p.x, y: p.y, z: -p.z });
+    // Agregar un clúster de árboles alrededor de cada punto clave
+    for (let k = 0; k < 3; k++) {
+      tierrabombaTreePoints.push({
+        x: p.x + (Math.random() - 0.5) * 4.0,
+        y: p.y,
+        z: -p.z + (Math.random() - 0.5) * 4.0
+      });
+    }
+  });
+
+  // Limitar a una cantidad abundante y de alto rendimiento (450 árboles)
+  const finalTreePoints = tierrabombaTreePoints.slice(0, 480);
 
   try {
     const gltfLoader = new GLTFLoader();
@@ -830,7 +884,7 @@ export async function buildCartagenaTerritoryScene({
         });
 
         if (meshes.length > 0) {
-          const count = tierrabombaTreeCoords.length;
+          const count = finalTreePoints.length;
           const instancedList = meshes.map((m) => {
             const inst = new THREE.InstancedMesh(m.geometry, m.material, count);
             inst.castShadow = true;
@@ -839,18 +893,25 @@ export async function buildCartagenaTerritoryScene({
           });
 
           const dummy = new THREE.Object3D();
-          // tree.glb mide ~6m de altura y ~5m de diámetro de copa.
-          // Con TREE_SCALE = 0.38, cada árbol mide ~2.3 unidades de altura (12-15m escala territorial),
-          // siendo inmediatamente visible, nítido y con frondosidad desde la vista axonométrica y cenital.
-          const TREE_SCALE = 0.38;
+          // Escalas variadas: árboles pequeños (arbustos/jóvenes), medianos y grandes
+          // Distribución de escalas desde 0.18 (pequeños) hasta 0.48 (grandes frondosos)
+          finalTreePoints.forEach((pt, idx) => {
+            // Factor de tamaño aleatorio variado: 35% pequeños, 45% medianos, 20% grandes
+            const rand = Math.random();
+            let baseScale;
+            if (rand < 0.35) {
+              baseScale = 0.16 + Math.random() * 0.09; // Pequeños (1.0m - 1.5m)
+            } else if (rand < 0.80) {
+              baseScale = 0.28 + Math.random() * 0.10; // Medianos (1.8m - 2.4m)
+            } else {
+              baseScale = 0.42 + Math.random() * 0.12; // Grandes (2.6m - 3.4m)
+            }
 
-          tierrabombaTreeCoords.forEach(([lon, lat], idx) => {
-            const pos = lonLatToVector3(lon, lat, 0.08);
-            const s = TREE_SCALE * (0.85 + Math.random() * 0.35);
-            dummy.position.set(pos.x, pos.y, pos.z);
+            dummy.position.set(pt.x, pt.y || 0.08, -pt.z);
             dummy.rotation.y = Math.random() * Math.PI * 2;
             dummy.rotation.x = (Math.random() - 0.5) * 0.04;
-            dummy.scale.set(s, s, s);
+            dummy.rotation.z = (Math.random() - 0.5) * 0.04;
+            dummy.scale.set(baseScale, baseScale, baseScale);
             dummy.updateMatrix();
 
             instancedList.forEach((inst) => {
@@ -869,17 +930,18 @@ export async function buildCartagenaTerritoryScene({
         console.warn("Could not load tree.glb, using procedural fallback:", err);
         const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.9 });
         const foliageMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 0.5 });
-        tierrabombaTreeCoords.forEach(([lon, lat], i) => {
-          const pos = lonLatToVector3(lon, lat, 0.08);
+        finalTreePoints.forEach((pt) => {
+          const rand = Math.random();
+          const s = rand < 0.35 ? 0.5 : rand < 0.8 ? 0.9 : 1.4;
           const t = new THREE.Group();
-          const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 1.4, 8), trunkMat);
-          tr.position.y = 0.7;
-          const fol = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2 + (i % 3) * 0.2), foliageMat);
-          fol.position.y = 1.9;
+          const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * s, 0.18 * s, 0.9 * s, 8), trunkMat);
+          tr.position.y = (0.9 * s) / 2;
+          const fol = new THREE.Mesh(new THREE.DodecahedronGeometry(0.75 * s), foliageMat);
+          fol.position.y = 1.1 * s;
           fol.castShadow = true;
           t.add(tr);
           t.add(fol);
-          t.position.copy(pos);
+          t.position.set(pt.x, pt.y || 0.08, -pt.z);
           treesGroup.add(t);
         });
       }

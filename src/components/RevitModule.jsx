@@ -376,20 +376,15 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
         const islandPoints = [];
         const v = new THREE.Vector3();
         const n = new THREE.Vector3();
-        const step = Math.max(1, Math.floor(posAttr.count / 260));
+        // Muestrear vértices de la isla de Revit con alta densidad
+        const step = Math.max(1, Math.floor(posAttr.count / 480));
 
         for (let i = 0; i < posAttr.count; i += step) {
           v.set(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
           terrainMesh.localToWorld(v);
-          if (v.y > 0.12 && v.y < 3.2) {
-            if (normAttr) {
-              n.set(normAttr.getX(i), normAttr.getY(i), normAttr.getZ(i));
-              if (Math.abs(n.z) > 0.35 || Math.abs(n.y) > 0.35) {
-                islandPoints.push(v.clone());
-              }
-            } else {
-              islandPoints.push(v.clone());
-            }
+          // Vértices dentro del cuerpo de la isla por encima del nivel del mar
+          if (v.y > 0.08 && v.y < 3.2) {
+            islandPoints.push(v.clone());
           }
         }
 
@@ -419,7 +414,7 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
               });
 
               if (meshes.length > 0) {
-                const count = Math.min(islandPoints.length, 220);
+                const count = Math.min(islandPoints.length, 450);
                 const instancedList = meshes.map((m) => {
                   const inst = new THREE.InstancedMesh(m.geometry, m.material, count);
                   inst.castShadow = true;
@@ -428,15 +423,24 @@ function RenderViewer({ onStats, onProgress, onLoaded, preset, presetNonce, fitN
                 });
 
                 const dummy = new THREE.Object3D();
-                // Escala de árboles de SketchUp visible sobre la topografía de Revit
-                const TREE_SCALE = 0.12;
 
                 for (let i = 0; i < count; i++) {
                   const pt = islandPoints[i];
-                  const s = TREE_SCALE * (0.85 + Math.random() * 0.35);
+                  // Diferentes tamaños: pequeños (arbustos), medianos y grandes
+                  const rand = Math.random();
+                  let s;
+                  if (rand < 0.35) {
+                    s = 0.05 + Math.random() * 0.04; // Pequeños
+                  } else if (rand < 0.80) {
+                    s = 0.10 + Math.random() * 0.05; // Medianos
+                  } else {
+                    s = 0.16 + Math.random() * 0.06; // Grandes
+                  }
+
                   dummy.position.set(pt.x, pt.y, pt.z);
                   dummy.rotation.y = Math.random() * Math.PI * 2;
                   dummy.rotation.x = (Math.random() - 0.5) * 0.05;
+                  dummy.rotation.z = (Math.random() - 0.5) * 0.05;
                   dummy.scale.set(s, s, s);
                   dummy.updateMatrix();
 
