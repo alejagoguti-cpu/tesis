@@ -1348,7 +1348,7 @@ export default function ThesisFramework({ onSelectModule }) {
       iconAnchor: [100, 42]
     });
 
-    const vulnerableHousesCallout = L.marker([10.3768, -75.5786], {
+    const vulnerableHousesCallout = L.marker([10.3775, -75.5745], {
       icon: housesCalloutIcon,
       interactive: true,
       zIndexOffset: 2500
