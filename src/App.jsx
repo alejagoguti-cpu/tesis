@@ -7,6 +7,7 @@ import DiagnosisMap from './components/DiagnosisMap';
 import ModelViewer3D from './components/ModelViewer3D';
 import RevitModule from './components/RevitModule';
 import Module11Territory from './components/Module11Territory';
+import IntroLandingIndex from './components/IntroLandingIndex';
 import Hero from './components/Hero';
 import Footer from './components/Footer';
 
@@ -41,7 +42,7 @@ class SafeSection extends Component {
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [activeModule, setActiveModule] = useState('overview');
+  const [activeModule, setActiveModule] = useState('intro');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
@@ -64,7 +65,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans transition-colors duration-300 flex flex-col">
+    <div className="min-h-screen bg-[#0a0c10] text-slate-100 font-sans transition-colors duration-300 flex flex-col">
       
       {/* Sidebar Navigation */}
       {!presentationMode && (
@@ -86,26 +87,40 @@ export default function App() {
           presentationMode ? 'pl-0' : 'lg:pl-16'
         }`}
       >
-        {/* Dynamic Viewport Container (Full-Bleed 100vh Map Dashboard) */}
-        <DashboardHeader
-          activeModule={activeModule}
-          setActiveModule={setActiveModule}
-          sidebarCollapsed={sidebarCollapsed}
-          setMobileSidebarOpen={setMobileSidebarOpen}
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-          presentationMode={presentationMode}
-          setPresentationMode={setPresentationMode}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-        />
+        {/* Dynamic Viewport Container (Show header on inner modules) */}
+        {activeModule !== 'intro' && (
+          <DashboardHeader
+            activeModule={activeModule}
+            setActiveModule={setActiveModule}
+            sidebarCollapsed={sidebarCollapsed}
+            setMobileSidebarOpen={setMobileSidebarOpen}
+            darkMode={darkMode}
+            setDarkMode={setDarkMode}
+            presentationMode={presentationMode}
+            setPresentationMode={setPresentationMode}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+          />
+        )}
+
         <main className="flex-1 w-full h-full p-0 overflow-hidden relative">
           
           {/* 1. DASHBOARD MODULAR VIEW (Active module focused view) */}
           {viewMode === 'dashboard' && (
-            <div className="w-full h-full relative overflow-hidden transition-all duration-300">
+            <div className={`w-full h-full relative transition-all duration-300 ${
+              activeModule === 'intro' ? 'overflow-y-auto' : 'overflow-hidden'
+            }`}>
               
-              {/* Module 00: Centro de Control & KPIs */}
+              {/* Module 00: Portada Introductoria Animada (Estilo Modelamiento2) */}
+              {activeModule === 'intro' && (
+                <SafeSection name="Portada Introductoria">
+                  <IntroLandingIndex 
+                    onNavigateModule={(modId) => setActiveModule(modId)} 
+                  />
+                </SafeSection>
+              )}
+
+              {/* Module 01: Centro de Control & KPIs */}
               {activeModule === 'overview' && (
                 <SafeSection name="Centro de Control & KPIs">
                   <ExecutiveControlCenter 
@@ -121,21 +136,21 @@ export default function App() {
                 </SafeSection>
               )}
 
-              {/* Module 01: Marco Académico */}
+              {/* Module 02: Marco Académico */}
               {activeModule === 'framework' && (
                 <SafeSection name="Marco Académico">
                   <ThesisFramework onSelectModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
-              {/* Module 02: GIS & Diagnóstico */}
+              {/* Module 03: GIS & Diagnóstico */}
               {activeModule === 'gis' && (
                 <SafeSection name="Diagnóstico Territorial">
                   <DiagnosisMap onNavigateModule={(modId) => setActiveModule(modId)} />
                 </SafeSection>
               )}
 
-              {/* Módulo 04 (rediseño): Visor 3D WebGL / BIM */}
+              {/* Módulo 04: Visor 3D WebGL / BIM */}
               {activeModule === '3dviewer' && (
                 <SafeSection name="Visor 3D BIM">
                   <ModelViewer3D onSelectModule={(modId) => setActiveModule(modId)} />
@@ -148,8 +163,6 @@ export default function App() {
                   <RevitModule />
                 </SafeSection>
               )}
-
-            
             </div>
           )}
 

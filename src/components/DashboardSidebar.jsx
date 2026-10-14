@@ -29,7 +29,8 @@ const iconMap = {
   Printer,
   Droplets,
   Activity,
-  Building2
+  Building2,
+  Sparkles
 };
 
 export default function DashboardSidebar({
@@ -70,15 +71,15 @@ export default function DashboardSidebar({
         {/* Top Logo / Brand Icon */}
         <div className="pt-3.5 pb-2 flex flex-col items-center">
           <button
-            onClick={() => setActiveModule('overview')}
+            onClick={() => setActiveModule('intro')}
             onMouseEnter={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               setTooltipPos({ top: rect.top + rect.height / 2 });
               setHoveredModule({
-                number: "01",
+                number: "00",
                 title: "Tierrabomba Resiliente",
                 desc: "Tesis de Grado en Arquitectura 2026 // Alejandra Gómez & Ana Casas",
-                badge: "Masterplan +22m"
+                badge: "Portada & Red Conceptual"
               });
             }}
             onMouseLeave={handleMouseLeave}

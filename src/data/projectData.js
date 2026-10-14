@@ -277,11 +277,161 @@ export const projectInfo = {
 
   // 11. NAVEGACIÓN DEL DASHBOARD
   dashboardModules: [
+    { id: "intro", number: "00", title: "Portada Introductoria", icon: "Sparkles", badge: "Inicio", desc: "Red conceptual animada y presentación interactiva de la tesis" },
     { id: "overview", number: "01", title: "Centro de Control & KPIs", icon: "LayoutDashboard", badge: "Ejecutivo", desc: "Monitoreo general, métricas de impacto y telemetría" },
     { id: "module11", number: "1.1", title: "¿Qué ocurre cuando una comunidad comienza a perder las condiciones necesarias para permanecer en su propio territorio?", icon: "AlertTriangle", badge: "Pregunta Central", desc: "Diagnóstico de arraigo y habitabilidad en Tierrabomba" },
     { id: "framework", number: "02", title: "Marco de Tesis", icon: "BookOpen", badge: "Académico", desc: "Problema, Justificación y Objetivos OE-01 a OE-04" },
     { id: "gis", number: "03", title: "Teledetección & GIS Espectral", icon: "Map", badge: "Territorial", desc: "5 Bandas satelitales (NDVI, NDWI, Falso Color, Manglar, LST)" },
     { id: "3dviewer", number: "04", title: "Visor 3D WebGL / BIM", icon: "Box", badge: "Interactivo", desc: "Territorio, Colegio, Vivienda, Masterplan + Despiece & Speckle" },
     { id: "revit", number: "05", title: "Modelo Revit Tierrabomba", icon: "Building2", badge: "BIM", desc: "Carga del .rvt + visor del modelo exportado" },
-  ]
+  ],
+
+  // 12. SISTEMA DE RED CONCEPTUAL (INSPIRADO EN MODELAMIENTO2 / RAPOT)
+  thesisNetwork: {
+    nodes: [
+      {
+        id: "water",
+        colorKey: "water",
+        color: "#2fbfae",
+        title: "Soberanía Hídrica Pluvial",
+        shortLines: ["Soberanía", "Hídrica Pluvial", "450.000 Litros", "Aljibe Central"],
+        cx: 310,
+        cy: 110,
+        r: 66,
+        badge: "Macro-Embudo Pluvial",
+        metric: "450.000 L",
+        area: "1.850 m² Captación",
+        desc: "Captación pluvial macro en cubierta del equipamiento escolar, desarenador centrífugo, aljibe subterráneo compartimentado y potabilización solar fotovoltaica UV.",
+        satellites: [
+          { name: "Aljibe Térmico 450.000 L", icon: "Droplets", detail: "Tanque ciclópeo a +20m de cota protegido contra salinidad marina." },
+          { name: "Macro-Cubierta 1.850 m²", icon: "Building2", detail: "Canalizaciones de alto caudal con rendimiento de 6.200 m³/año." },
+          { name: "Tren de Filtrado UV", icon: "Sparkles", detail: "Desinfección solar fotovoltaica con Resolución 2115 de agua potable." },
+          { name: "12 Tomas Comunitarias", icon: "Activity", detail: "Dispensario público continuo libre de especulación de barcazas." }
+        ]
+      },
+      {
+        id: "territory",
+        colorKey: "territory",
+        color: "#ef6f6f",
+        title: "Relocalización 120 Viviendas",
+        shortLines: ["Relocalización", "120 Viviendas", "Cota Segura", "+22.00 m.s.n.m."],
+        cx: 140,
+        cy: 300,
+        r: 62,
+        badge: "Cota de Impregnación Cero",
+        metric: "120 Familias",
+        area: "+22.00 m.s.n.m.",
+        desc: "Traslado planificado de 120 hogares de la franja costera crítica en Punta Arena hacia la meseta insular segura, protegida ante 100 años de cambio climático.",
+        satellites: [
+          { name: "Elevación Palafítica +0.60m", icon: "Home", detail: "Estructuras en madera tratada que permiten flujo de aire y humedad cero." },
+          { name: "Patios de Sombra Pasivos", icon: "Wind", detail: "Porches bioclimáticos para convivencia y secado de artes de pesca." },
+          { name: "Módulos Progresivos (54-86 m²)", icon: "Box", detail: "Crecimiento planificado con bloques de tierra comprimida (BTC)." },
+          { name: "Tanques Domésticos 2.500 L", icon: "Droplet", detail: "Autonomía hídrica primaria por unidad habitacional." }
+        ]
+      },
+      {
+        id: "civic",
+        colorKey: "civic",
+        color: "#f5c26b",
+        title: "Equipamiento Educativo & Cívico",
+        shortLines: ["Equipamiento", "Educativo & Cívico", "350 Alumnos", "Ágora & Oficios"],
+        cx: 480,
+        cy: 300,
+        r: 62,
+        badge: "Nodo Comunal Caribe",
+        metric: "350 Estudiantes",
+        area: "1.850 m² Construidos",
+        desc: "Complejo pedagógico bioclimático con aulas orientadas a los vientos alisios, talleres náuticos, biblioteca pública y ágora central techada de 400 m².",
+        satellites: [
+          { name: "6 Aulas Bioclimáticas", icon: "BookOpen", detail: "Celosías BTC que reducen -5°C la temperatura interior de forma pasiva." },
+          { name: "Taller Náutico & Ribereño", icon: "Compass", detail: "Formación de jóvenes en carpintería marina y preservación pesquera." },
+          { name: "Ágora Techada 400 m²", icon: "Layers", detail: "Espacio asambleario cívico resguardado del sol cenital ecuatorial." },
+          { name: "Biblioteca & Mediateca", icon: "Building2", detail: "Punto de conectividad digital y memoria oral isleña." }
+        ]
+      },
+      {
+        id: "eco",
+        colorKey: "eco",
+        color: "#ef8b3c",
+        title: "Fitodepuración & Paisajismo Resiliente",
+        shortLines: ["Fitodepuración &", "Paisajismo Resiliente", "Bio-Humedal", "75% Recirculación"],
+        cx: 310,
+        cy: 480,
+        r: 66,
+        badge: "Sistemas Naturales",
+        metric: "75% Recirculado",
+        area: "Bio-Humedal 650 m²",
+        desc: "Infraestructura verde basada en la naturaleza para tratamiento de aguas grises con plantas macrófitas y pasto vetiver que fijan la meseta contra escorrentías.",
+        satellites: [
+          { name: "Bio-Humedal Macrófitas", icon: "Sparkles", detail: "Fitodepuración natural sin químicos para aguas grises del colegio." },
+          { name: "Barreras de Vetiver", icon: "Activity", detail: "Raíces profundas de 3 metros que blindan taludes contra socavación." },
+          { name: "Huerto Agroecológico", icon: "Home", detail: "Producción de alimentos comunitarios irrigados con agua tratada." },
+          { name: "Zanjas de Bio-Retención", icon: "Droplets", detail: "Infiltración controlada que frena la salinización del suelo interior." }
+        ]
+      }
+    ],
+    relations: [
+      {
+        id: "rel-water-civic",
+        from: "water",
+        to: "civic",
+        name: "Abastecimiento Hídrico Educativo",
+        type: "directed",
+        pathD: "M368,145 Q465,185 470,240",
+        arrowTransform: "translate(470,240) rotate(78)",
+        desc: "La reserva de 450.000 L alimenta por gravedad las baterías sanitarias, comedores escolares y las 12 tomas del dispensario público."
+      },
+      {
+        id: "rel-water-territory",
+        from: "water",
+        to: "territory",
+        name: "Red de Seguridad Doméstica",
+        type: "directed",
+        pathD: "M252,145 Q155,185 150,240",
+        arrowTransform: "translate(150,240) rotate(102)",
+        desc: "Línea matriz de refuerzo hídrico hacia los depósitos de las 120 viviendas para temporadas de sequía prolongada."
+      },
+      {
+        id: "rel-territory-civic",
+        from: "territory",
+        to: "civic",
+        name: "Eje Cívico & Peatonal de Sombra",
+        type: "bidirectional",
+        pathD: "M202,300 Q310,345 418,300",
+        arrowTransform: "translate(418,300) rotate(-22)",
+        desc: "Corredor bioclimático sombreado que conecta las manzanas residenciales con la escuela y la plaza de asambleas."
+      },
+      {
+        id: "rel-civic-eco",
+        from: "civic",
+        to: "eco",
+        name: "Efluentes Grises a Fitodepuración",
+        type: "directed",
+        pathD: "M460,358 Q425,435 365,455",
+        arrowTransform: "translate(365,455) rotate(162)",
+        desc: "Las aguas de lavado y cocinas del equipamiento se dirigen hacia el humedal artificial de macrófitas para su depuración biológica."
+      },
+      {
+        id: "rel-territory-eco",
+        from: "territory",
+        to: "eco",
+        name: "Zanjas de Drenaje & Vetiver",
+        type: "directed",
+        pathD: "M160,358 Q195,435 255,455",
+        arrowTransform: "translate(255,455) rotate(18)",
+        desc: "Escorrentía superficial canalizada hacia terrazas de vetiver que frenan la erosión de laderas y recargan el estrato fértil."
+      },
+      {
+        id: "rel-eco-water",
+        from: "eco",
+        to: "water",
+        name: "Ciclo Circular & Recarga Hídrica",
+        type: "bidirectional",
+        pathD: "M310,414 Q280,295 310,176",
+        arrowTransform: "translate(310,176) rotate(-85)",
+        desc: "El 75% de las aguas tratadas se recircula para riego y mantenimiento, cerrando el ciclo metabólico del hábitat sin vertimientos al mar."
+      }
+    ]
+  }
 };
+
