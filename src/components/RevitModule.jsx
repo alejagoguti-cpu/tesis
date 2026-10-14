@@ -51,8 +51,8 @@ const HOUSES_DATA = [
   {
     id: 1,
     meshName: 'Mesh_House_1',
-    title: 'Vivienda 01 · Borde Costero (Punta Arenas)',
-    sector: 'Punta Arenas — Frente Marítimo',
+    title: 'Vivienda 01 · Borde Costero',
+    sector: 'Punta Arenas',
     coordsLocal: [-586.76, -582.5, 3.95],
     area: '68 m²',
     altura: '1 nivel (3.2 m)',
@@ -60,31 +60,37 @@ const HOUSES_DATA = [
     sistemaConstructivo: 'Mampostería simple sin confinar, postes de mangle y cubierta de zinc',
     vulnerabilidad: 'Crítica ante mareas de tormenta e intemperie salina costera',
     tabs: {
-      axono: {
-        title: 'Axonometría — Diagnóstico Tridimensional',
-        desc: 'Despiece axonométrico del volumen habitacional: retranqueos informales, muros autoportantes desalineados y ausencia de viga de corona perimetral.',
-        img: `${cleanBase}assets/vivienda_costa_tierrabomba.png`,
-        tag: 'Axonometría del Estado Actual'
+      foto: {
+        title: 'Lámina Completa — Levantamiento Integral',
+        desc: 'Lámina técnica completa a escala 1:50 con levantamiento planimétrico en planta, axonometría isométrica y corte estructural.',
+        img: `${cleanBase}assets/vivienda_01_completa.png`,
+        tag: 'Lámina Integral 1:50'
       },
       planta: {
-        title: 'Planta Arquitectónica — Distribución Espacial',
-        desc: 'Planta de distribución: 3 recintos continuos con ventilación cruzada precaria hacia el mar, núcleo sanitario húmedo externo y patio posterior de gravilla.',
-        img: `${cleanBase}assets/vivienda_planta_12.png`,
-        tag: 'Levantamiento de Muros y Vanos'
+        title: 'Planta Arquitectónica — Distribución y Cotas 1:50',
+        desc: 'Planta arquitectónica acotada a escala 1:50: distribución de 3 recintos, áreas húmedas, mobiliario y ventilación.',
+        img: `${cleanBase}assets/vivienda_01_planta.png`,
+        tag: 'Planta Escala 1:50'
+      },
+      axono: {
+        title: 'Axonometría — Diagnóstico Tridimensional',
+        desc: 'Despiece axonométrico tridimensional: volumetría exterior, muros autoportantes y cubierta inclinada de asbesto/zinc.',
+        img: `${cleanBase}assets/vivienda_01_axono.png`,
+        tag: 'Axonometría Isométrica'
       },
       corte: {
-        title: 'Corte Longitudinal — Socavación y Terreno',
-        desc: 'Sección arquitectónica longitudinal: desnivel topográfico con relleno inestable de escombros, cimentación superficial socavada por acción del oleaje.',
-        img: `${cleanBase}assets/boceto_vivienda_corte.png`,
-        tag: 'Corte Geotécnico / Estructural'
+        title: 'Corte Longitudinal — Interior y Cimentación',
+        desc: 'Sección constructiva que muestra altura interior libre, vigas de cubierta, mobiliario y condiciones de habitabilidad.',
+        img: `${cleanBase}assets/vivienda_01_corte.png`,
+        tag: 'Corte Constructivo'
       }
     }
   },
   {
     id: 2,
     meshName: 'Mesh_House_2',
-    title: 'Vivienda 02 · Núcleo Urbano Tradicional (Centro)',
-    sector: 'Centro Comunitario — Calle Principal',
+    title: 'Vivienda 02 · Núcleo Urbano Tradicional',
+    sector: 'Centro Comunitario',
     coordsLocal: [-144.64, 177.22, 26.14],
     area: '82 m²',
     altura: '1 nivel + mezanina (3.8 m)',
@@ -92,22 +98,28 @@ const HOUSES_DATA = [
     sistemaConstructivo: 'Bloque de concreto artesanal, solera de madera reciclada y viguetas de pino',
     vulnerabilidad: 'Media-Alta por hacinamiento y falta de red hidrosanitaria pluvial',
     tabs: {
-      axono: {
-        title: 'Axonometría — Estado de Consolidación',
-        desc: 'Vista axonométrica del tejido interior: densidad medianera compacta, patios de luz interiores y desarrollo progresivo por etapas familiares.',
-        img: `${cleanBase}assets/vivienda_axonometria_12.png`,
-        tag: 'Axonometría Isométrica'
+      foto: {
+        title: 'Lámina Completa — Levantamiento Integral',
+        desc: 'Lámina técnica completa a escala 1:50 con levantamiento planimétrico en planta, axonometría isométrica y corte estructural.',
+        img: `${cleanBase}assets/vivienda_02_completa.png`,
+        tag: 'Lámina Integral 1:50'
       },
       planta: {
         title: 'Planta Arquitectónica — Trama de Habitabilidad',
-        desc: 'Levantamiento planimétrico del núcleo habitacional: zaguán de acceso, sala-taller multifuncional, dos alcobas y área de cocina colectiva.',
-        img: `${cleanBase}assets/vivienda_muros_12.png`,
-        tag: 'Planta de Muros Portantes'
+        desc: 'Levantamiento planimétrico acotado a escala 1:50: zaguán de acceso, sala multifuncional, alcobas y área de cocina.',
+        img: `${cleanBase}assets/vivienda_02_planta.png`,
+        tag: 'Planta Escala 1:50'
+      },
+      axono: {
+        title: 'Axonometría — Estado de Consolidación',
+        desc: 'Vista axonométrica del tejido volumétrico: cubierta a dos aguas, porche frontal con postes y vanos de fachada.',
+        img: `${cleanBase}assets/vivienda_02_axono.png`,
+        tag: 'Axonometría Isométrica'
       },
       corte: {
         title: 'Corte Longitudinal — Sistema de Cubierta y Pendiente',
-        desc: 'Corte transversal y longitudinal: cerchas artesanales de madera con luz de 4.5m, cámara de aire reducida y aislamiento térmico deficitario.',
-        img: `${cleanBase}assets/boceto_colegio_corte.png`,
+        desc: 'Corte transversal y longitudinal: cerchas artesanales, muros con fisuración térmica e iluminación natural.',
+        img: `${cleanBase}assets/vivienda_02_corte.png`,
         tag: 'Corte Constructivo'
       }
     }
@@ -115,8 +127,8 @@ const HOUSES_DATA = [
   {
     id: 3,
     meshName: 'Mesh_House_3',
-    title: 'Vivienda 03 · Sector Norte (Bahía Interior)',
-    sector: 'Sector Norte — Mirador de Bocagrande',
+    title: 'Vivienda 03 · Sector Norte',
+    sector: 'Sector Norte',
     coordsLocal: [38.92, 654.19, 7.15],
     area: '74 m²',
     altura: '1 nivel con pilotes de borde (3.5 m)',
@@ -124,23 +136,29 @@ const HOUSES_DATA = [
     sistemaConstructivo: 'Estructura mixta madera náutica / bloques sobre plataforma de palafito seco',
     vulnerabilidad: 'Alta por escorrentía pluvial descendente y salpicadura marina directa',
     tabs: {
-      axono: {
-        title: 'Axonometría — Volumetría y Entorno Costero',
-        desc: 'Despiece axonométrico: plataforma elevada sobre el terreno natural para mitigar inundaciones por escorrentía, aleros protectores y pórtico frontal.',
-        img: `${cleanBase}assets/vivienda_erosion_ruinas.png`,
-        tag: 'Axonometría de Vulnerabilidad'
+      foto: {
+        title: 'Lámina Completa — Levantamiento Integral',
+        desc: 'Lámina técnica completa a escala 1:50 con levantamiento planimétrico en planta, axonometría isométrica y corte estructural.',
+        img: `${cleanBase}assets/vivienda_03_completa.png`,
+        tag: 'Lámina Integral 1:50'
       },
       planta: {
         title: 'Planta Arquitectónica — Zonificación y Accesos',
-        desc: 'Esquema en planta: pasarela perimetral de acceso, estancia comunitaria abierta a la brisa marina y dormitorios modulares orientados al norte.',
-        img: `${cleanBase}assets/vivienda_planta_12.png`,
-        tag: 'Planta General de Vivienda'
+        desc: 'Esquema en planta acotado a escala 1:50: pasarela de acceso, estancia comunitaria y dormitorios modulares.',
+        img: `${cleanBase}assets/vivienda_03_planta.png`,
+        tag: 'Planta Escala 1:50'
+      },
+      axono: {
+        title: 'Axonometría — Volumetría y Entorno Costero',
+        desc: 'Despiece axonométrico: volumetría sobre el terreno natural, aleros protectores y pórtico posterior.',
+        img: `${cleanBase}assets/vivienda_03_axono.png`,
+        tag: 'Axonometría Isométrica'
       },
       corte: {
-        title: 'Corte Longitudinal — Relación Muelle y Nivel Freático',
-        desc: 'Corte transversal y longitudinal: anclaje de pilotes en estrato rocoso superficial, socavación de talud y gradiente de escorrentía pluvial.',
-        img: `${cleanBase}assets/vivienda_borde_socavacion.jpg`,
-        tag: 'Corte de Talud Costero'
+        title: 'Corte Longitudinal — Sección Habitacional',
+        desc: 'Corte arquitectónico longitudinal: tabiquería interior, estructura de cubierta y gradiente de ventilación.',
+        img: `${cleanBase}assets/vivienda_03_corte.png`,
+        tag: 'Corte Constructivo'
       }
     }
   }
@@ -1737,7 +1755,7 @@ export default function RevitModule() {
 
   // Estados para la interacción con las 3 viviendas y popup animado
   const [selectedHouseId, setSelectedHouseId] = useState(null);
-  const [activeModalTab, setActiveModalTab] = useState('axono');
+  const [activeModalTab, setActiveModalTab] = useState('foto');
   const [saveToast, setSaveToast] = useState(false);
   const pdfInputRef = useRef(null);
 
@@ -1849,7 +1867,7 @@ export default function RevitModule() {
           selectedHouseId={selectedHouseId}
           onSelectHouse={(id) => {
             setSelectedHouseId(id);
-            setActiveModalTab('axono');
+            setActiveModalTab('foto');
           }}
           onSaveCurrentViewTrigger={saveViewTriggerRef}
           onResetViewTrigger={resetViewTriggerRef}
@@ -2214,7 +2232,7 @@ export default function RevitModule() {
       {/* SELECTOR DIRECTO DE LAS 3 VIVIENDAS EN LA ISLA */}
       <div className="absolute top-32 left-4 z-10 flex flex-col space-y-2 pointer-events-none">
         <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800 bg-white/80 backdrop-blur px-2 py-0.5 rounded-md border border-slate-300 w-fit">
-          Diagnóstico de Viviendas (Rojo Suave)
+          Diagnóstico de Viviendas
         </span>
         <div className="flex flex-col space-y-1.5 pointer-events-auto">
           {HOUSES_DATA.map((h) => (
@@ -2222,7 +2240,7 @@ export default function RevitModule() {
               key={h.id}
               onClick={() => {
                 setSelectedHouseId(h.id);
-                setActiveModalTab('axono');
+                setActiveModalTab('foto');
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center space-x-2 shadow-md cursor-pointer ${
                 selectedHouseId === h.id
@@ -2232,7 +2250,6 @@ export default function RevitModule() {
             >
               <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping inline-block" />
               <span>{h.title.split('·')[0].trim()}</span>
-              <span className="text-[10px] opacity-75">({h.sector.split('—')[0].trim()})</span>
             </button>
           ))}
         </div>
@@ -2304,7 +2321,7 @@ export default function RevitModule() {
       {/* POPUP DE ANIMACIÓN DINÁMICO: ESTADO ACTUAL DE LA VIVIENDA */}
       {activeHouse && (
         <div className="absolute inset-0 z-50 flex items-center justify-end p-4 sm:p-8 pointer-events-none bg-slate-950/40 backdrop-blur-sm">
-          <div className="pointer-events-auto w-full max-w-xl max-h-[92vh] flex flex-col rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-rose-500/40 shadow-2xl backdrop-blur-2xl overflow-hidden animate-in slide-in-from-right-4 duration-300">
+          <div className="pointer-events-auto w-full max-w-2xl max-h-[94vh] flex flex-col rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-rose-500/40 shadow-2xl backdrop-blur-2xl overflow-hidden animate-in slide-in-from-right-4 duration-300">
             {/* Cabecera */}
             <div className="p-4 sm:p-5 bg-gradient-to-r from-rose-950/90 via-slate-900 to-slate-900 border-b border-rose-500/30 flex items-start justify-between">
               <div className="flex items-center space-x-3">
@@ -2321,10 +2338,10 @@ export default function RevitModule() {
                     </span>
                   </div>
                   <h3 className="text-white font-extrabold text-base sm:text-lg tracking-tight mt-0.5">
-                    {activeHouse.title}
+                    {activeHouse.title.split('·')[0].trim()}
                   </h3>
                   <p className="text-rose-200 text-xs font-mono">
-                    📍 {activeHouse.sector}
+                    📍 {activeHouse.sector.split('—')[0].trim()}
                   </p>
                 </div>
               </div>
@@ -2339,16 +2356,17 @@ export default function RevitModule() {
             </div>
 
             {/* Selector de pestañas */}
-            <div className="flex items-center border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-950/50 p-1.5 gap-1">
+            <div className="flex items-center border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-950/50 p-1.5 gap-1 overflow-x-auto">
               {[
+                { id: 'foto', label: '🖼️ Lámina Completa', desc: '1 Foto Integral' },
+                { id: 'planta', label: '📑 Planta', desc: 'Cotas 1:50' },
                 { id: 'axono', label: '📐 Axonometría', desc: 'Isométrica 3D' },
-                { id: 'planta', label: '📑 Planta', desc: 'Distribución' },
                 { id: 'corte', label: '✂️ Corte', desc: 'Sección' }
               ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveModalTab(tab.id)}
-                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-mono font-bold transition-all flex flex-col items-center cursor-pointer ${
+                  className={`flex-1 min-w-[95px] py-2 px-2 rounded-xl text-xs font-mono font-bold transition-all flex flex-col items-center cursor-pointer ${
                     activeModalTab === tab.id
                       ? 'bg-rose-600 text-white shadow-md'
                       : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
@@ -2362,17 +2380,17 @@ export default function RevitModule() {
 
             {/* Contenido técnico */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-              <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white flex items-center justify-center min-h-[220px] max-h-[340px] shadow-inner group">
+              <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white flex items-center justify-center min-h-[260px] max-h-[460px] shadow-inner group p-2">
                 <img
-                  src={activeHouse.tabs[activeModalTab].img}
-                  alt={activeHouse.tabs[activeModalTab].title}
-                  className="max-h-[320px] w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                  src={activeHouse.tabs[activeModalTab]?.img || activeHouse.tabs['foto']?.img}
+                  alt={activeHouse.tabs[activeModalTab]?.title || activeHouse.title}
+                  className="max-h-[440px] w-auto max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                   }}
                 />
-                <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-slate-950/80 text-white font-mono text-[10px] font-bold backdrop-blur-md">
-                  {activeHouse.tabs[activeModalTab].tag}
+                <span className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-slate-950/80 text-white font-mono text-[10px] font-bold backdrop-blur-md">
+                  {activeHouse.tabs[activeModalTab]?.tag || 'Levantamiento'}
                 </span>
               </div>
 
