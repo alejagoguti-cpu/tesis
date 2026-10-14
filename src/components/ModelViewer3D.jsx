@@ -702,7 +702,11 @@ export default function ModelViewer3D({ onSelectModule }) {
     const animate = () => {
       reqId = requestAnimationFrame(animate);
       if (cartagenaTerritoryRef.current?.update) {
-        cartagenaTerritoryRef.current.update(isPlayingSimulationRef.current ? simulationSpeedRef.current : 0.8, performance.now());
+        try {
+          cartagenaTerritoryRef.current.update(isPlayingSimulationRef.current ? simulationSpeedRef.current : 0.8, performance.now());
+        } catch (e) {
+          console.warn("Territory animation error:", e);
+        }
       }
       renderer.render(scene, camera);
     };

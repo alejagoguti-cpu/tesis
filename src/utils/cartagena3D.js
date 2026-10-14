@@ -1,9 +1,5 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import pastoTextureImg from '../assets/textura_pasto_m5.png';
-import waterTextureImg from '../assets/textura_agua_m5.jpg';
-import pisoTextureImg from '../assets/textura_piso_m5.png';
-import viaTextureImg from '../assets/textura_via.jpg';
 
 /**
  * Generador 3D Territorial: Bahía de Cartagena & Isla de Tierra Bomba
@@ -727,16 +723,7 @@ export async function buildCartagenaTerritoryScene({
     animatedObjects,
     mats,
     update: (speedMultiplier = 1.0, elapsed = null) => {
-      waterUniforms.uTime.value += 0.018 * speedMultiplier;
       const t = elapsed !== null ? elapsed : performance.now();
-      if (waterTex) {
-        waterTex.offset.x = (t * 0.000018 * speedMultiplier) % 1;
-        waterTex.offset.y = (t * 0.000012 * speedMultiplier) % 1;
-      }
-      if (bumpTex) {
-        bumpTex.offset.x = (t * -0.000027 * speedMultiplier) % 1;
-        bumpTex.offset.y = (t * 0.000021 * speedMultiplier) % 1;
-      }
       // Pulsate hotspot rings
       if (hotspotRings && hotspotRings.length > 0) {
         const pulse = 1.0 + 0.35 * Math.sin(t * 0.004);
