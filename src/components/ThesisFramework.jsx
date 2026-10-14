@@ -255,7 +255,7 @@ export const DEFAULT_DELIMITATIONS = {
     [10.38049, -75.57590],
     [10.38059, -75.57592]
   ],
-  vulnerableHouses: VULNERABLE_HOUSES_POLYGON,
+  vulnerableHouses: [],
   plateau: [
     [10.37487, -75.57396],
     [10.37523, -75.57534],
@@ -419,6 +419,15 @@ export const ZONE_CONFIG = {
     fillColor: "#ef4444",
     badge: "Cota +1.5m Vulnerable",
     desc: "Polígono de implantación del colegio actual en riesgo de inundación."
+  },
+  vulnerableHouses: {
+    id: "vulnerableHouses",
+    name: "3B. 500 Viviendas en Riesgo",
+    type: "polygon",
+    color: "#dc2626",
+    fillColor: "#dc2626",
+    badge: "500 Viviendas en Riesgo",
+    desc: "Polígono de delimitación de viviendas en riesgo de inundación y socavación marina."
   },
   plateau: {
     id: "plateau",
@@ -708,6 +717,9 @@ export default function ThesisFramework({ onSelectModule }) {
           } else {
             parsed.roads = norm;
           }
+        }
+        if (parsed.vulnerableHouses && parsed.vulnerableHouses.length > 25) {
+          parsed.vulnerableHouses = [];
         }
         return { ...DEFAULT_DELIMITATIONS, ...parsed };
       }
@@ -1126,12 +1138,16 @@ export default function ThesisFramework({ onSelectModule }) {
         return;
       }
 
-      // Trazado de polígonos / líneas estándar
       let rawCoords = [];
       if (stepIdx === 0) rawCoords = delimitations.island || DEFAULT_DELIMITATIONS.island || [];
       else if (stepIdx === 1) rawCoords = delimitations.erosion || DEFAULT_DELIMITATIONS.erosion || [];
-      else if (stepIdx === 2) rawCoords = delimitations.vulnerableHouses || VULNERABLE_HOUSES_POLYGON;
+      else if (stepIdx === 2) rawCoords = delimitations.vulnerableHouses || [];
       else if (stepIdx === 3) rawCoords = delimitations.plateau || DEFAULT_DELIMITATIONS.plateau || [];
+
+      if (!rawCoords || rawCoords.length < 2) {
+        setIsIntroAnimating(false);
+        return;
+      }
 
       runTracer(rawCoords, isPolygon, mainColor, glowColor, () => {
         if (stepIdx === 0 && islandLayer) {
@@ -1472,7 +1488,7 @@ export default function ThesisFramework({ onSelectModule }) {
   // 2. SYNCHRONIZE LEAFLET GEOMETRY WITH DELIMITATION STATE
   // =========================================================================
   useEffect(() => {
-    const { islandLayer, erosionLayer, schoolLayer, masterplanLayer, roadsLayer, customLayer, marker3 } = layersRef.current;
+    const { islandLayer, erosionLayer, schoolLayer, vulnerableHousesLayer, masterplanLayer, roadsLayer, customLayer, marker3 } = layersRef.current;
     const hideOthers = showCalque && hideOtherLayersOnCalque;
 
     if (islandLayer && delimitations.island) {
@@ -1498,6 +1514,21 @@ export default function ThesisFramework({ onSelectModule }) {
       schoolLayer.setLatLngs(delimitations.school);
       if (hideOthers && activeZoneKey !== 'school') {
         schoolLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      }
+    }
+    if (vulnerableHousesLayer && delimitations.vulnerableHouses) {
+      vulnerableHousesLayer.setLatLngs(delimitations.vulnerableHouses);
+      if (hideOthers && activeZoneKey !== 'vulnerableHouses') {
+        vulnerableHousesLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+      } else if (isEditMode && activeZoneKey === 'vulnerableHouses') {
+        const hasPts = delimitations.vulnerableHouses.length > 0;
+        vulnerableHousesLayer.setStyle({ 
+          opacity: hasPts ? 1 : 0, 
+          fillOpacity: hasPts ? 0.35 : 0, 
+          weight: 3.5, 
+          color: '#dc2626', 
+          dashArray: '6, 6' 
+        });
       }
     }
     if (marker3 && delimitations.school && delimitations.school.length > 0) {
@@ -1794,32 +1825,20 @@ export default function ThesisFramework({ onSelectModule }) {
         if (vulnerableHousesMarkersGroup) vulnerableHousesMarkersGroup.clearLayers();
       } else {
         if (schoolLayer) schoolLayer.setStyle({ opacity: 0.15, fillOpacity: 0 });
-        if (vulnerableHousesLayer) vulnerableHousesLayer.setStyle({ opacity: 1, fillOpacity: 0.40, weight: 3.5, color: '#dc2626', dashArray: '6, 6' });
+        if (vulnerableHousesLayer) {
+          const hasPoints = (delimitations.vulnerableHouses || []).length > 0;
+          vulnerableHousesLayer.setStyle({ 
+            opacity: hasPoints ? 1 : 0, 
+            fillOpacity: hasPoints ? 0.35 : 0, 
+            weight: 3.5, 
+            color: '#dc2626', 
+            dashArray: '6, 6' 
+          });
+        }
         
+        // Eliminar todos los puntos de viviendas para permitir el dibujo libre del usuario
         if (vulnerableHousesMarkersGroup) {
           vulnerableHousesMarkersGroup.clearLayers();
-          
-          // Icono Cuadradito Rojo Nítido para cada una de las 500 viviendas
-          const houseIcon = L.divIcon({
-            className: 'custom-vuln-house-pin',
-            html: `
-              <div class="relative flex items-center justify-center group" title="Vivienda en Riesgo de Inundación">
-                <div class="w-2.5 h-2.5 bg-red-600 border border-white shadow-sm rounded-[1px] transition-transform hover:scale-150"></div>
-              </div>
-            `,
-            iconSize: [10, 10],
-            iconAnchor: [5, 5]
-          });
-
-          // 500 Viviendas reales en riesgo situadas estrictamente dentro de la franja de cota de inundación
-          VULNERABLE_HOUSES_COORDS.forEach((pt, idx) => {
-            const m = L.marker(pt, { 
-              icon: houseIcon, 
-              interactive: true,
-              title: `Vivienda #${idx + 1} en Riesgo de Inundación (Cota +1.5m)`
-            });
-            vulnerableHousesMarkersGroup.addLayer(m);
-          });
         }
       }
     } else if (currentStepIndex === 3) {
@@ -2299,11 +2318,13 @@ export default function ThesisFramework({ onSelectModule }) {
       )}
 
       {/* Interactive Sub-Selector for Step 3: Colegio Actual vs 500 Viviendas en Riesgo */}
-      {currentStepIndex === 2 && !isEditMode && (
+      {currentStepIndex === 2 && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[450] flex flex-wrap items-center justify-center gap-2 p-1.5 glass-hud rounded-2xl shadow-2xl border border-rose-500/50 animate-scale-up text-slate-900 pointer-events-auto">
           <button
             onClick={() => {
               setVulnerabilitySubTab('school');
+              setActiveZoneKey('school');
+              setIsEditMode(false);
               startZoneTraceAnimation(2);
             }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
@@ -2318,6 +2339,9 @@ export default function ThesisFramework({ onSelectModule }) {
           <button
             onClick={() => {
               setVulnerabilitySubTab('houses');
+              setActiveZoneKey('vulnerableHouses');
+              setIsEditMode(true);
+              setToolMode('add');
               const map = mapInstanceRef.current;
               if (map) map.flyTo([10.3765, -75.5780], 16.5, { duration: 1.2 });
             }}
@@ -2328,8 +2352,43 @@ export default function ThesisFramework({ onSelectModule }) {
             }`}
           >
             <Home className="w-3.5 h-3.5" />
-            <span>2. 500 Viviendas en Riesgo (Franja de Inundación)</span>
+            <span>2. 500 Viviendas en Riesgo (Dibujar Polígono)</span>
           </button>
+        </div>
+      )}
+
+      {/* Floating Drawing Status & Quick Actions Bar for 500 Viviendas */}
+      {currentStepIndex === 2 && vulnerabilitySubTab === 'houses' && (
+        <div className="absolute top-32 left-1/2 -translate-x-1/2 z-[450] flex flex-wrap items-center justify-center gap-2 px-3.5 py-1.5 bg-slate-900/90 text-white rounded-2xl shadow-2xl border border-red-500/60 backdrop-blur-md animate-scale-up pointer-events-auto">
+          <div className="flex items-center space-x-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+            <span className="text-xs font-mono font-bold">
+              Haz clic en el mapa para trazar el polígono ({delimitations.vulnerableHouses?.length || 0} pts)
+            </span>
+          </div>
+          <div className="flex items-center space-x-1.5 border-l border-white/20 pl-2">
+            <button
+              onClick={() => {
+                setDelimitations(prev => ({ ...prev, vulnerableHouses: [] }));
+                setSelectedNodeIndex(null);
+              }}
+              disabled={!delimitations.vulnerableHouses || delimitations.vulnerableHouses.length === 0}
+              className="px-2.5 py-1 rounded-xl bg-red-600/80 hover:bg-red-600 disabled:opacity-40 text-[11px] font-mono font-bold flex items-center space-x-1 transition-all"
+              title="Borrar puntos trazados"
+            >
+              <Trash2 className="w-3 h-3" />
+              <span>Limpiar</span>
+            </button>
+            <button
+              onClick={handleUndoLastNode}
+              disabled={!delimitations.vulnerableHouses || delimitations.vulnerableHouses.length === 0}
+              className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-[11px] font-mono font-bold flex items-center space-x-1 transition-all"
+              title="Deshacer el último nodo"
+            >
+              <Undo2 className="w-3 h-3" />
+              <span>Deshacer</span>
+            </button>
+          </div>
         </div>
       )}
 
