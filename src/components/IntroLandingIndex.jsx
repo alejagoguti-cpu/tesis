@@ -359,20 +359,6 @@ export default function IntroLandingIndex({ onNavigateModule }) {
               </button>
             </div>
 
-            {/* Field Testimony Box */}
-            <div className="p-4 rounded-2xl bg-sand-50/70 border-l-4 border-rose-500 border-y border-r border-slate-200/90 text-xs space-y-1.5 shadow-xs">
-              <div className="flex items-center space-x-2 text-rose-700 font-mono font-bold tracking-wider uppercase text-[11px]">
-                <Quote className="w-3.5 h-3.5" />
-                <span>Memoria Social del Territorio</span>
-              </div>
-              <p className="italic text-slate-700 font-serif leading-relaxed">
-                "{projectInfo.communityVoice.quote}"
-              </p>
-              <p className="text-[10px] font-mono text-slate-500">
-                &mdash; {projectInfo.communityVoice.author} &bull; {projectInfo.communityVoice.context}
-              </p>
-            </div>
-
             {/* Author and Academic Credentials */}
             <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-mono text-slate-500">
               <div>
