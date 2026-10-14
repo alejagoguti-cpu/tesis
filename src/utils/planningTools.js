@@ -142,7 +142,7 @@ export function buildHeightField(meshes, res = 640) {
     return null;
   };
 
-  return { heightAt, pickRay };
+  return { heightAt, pickRay, grid: { data, nx, nz, minX, minZ, cx, cz } };
 }
 
 // -----------------------------------------------------------------------------

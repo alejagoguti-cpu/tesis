@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { Sky } from 'three/examples/jsm/objects/Sky.js';
 
 // =============================================================================
 // Territorio real de Tierrabomba: imagen satelital georreferenciada y vegetación
@@ -183,4 +184,96 @@ export async function loadTreeTemplates() {
     out.push(wrap);
   }
   return out;
+}
+
+// ---- Reutilizables (módulo 02): especies normalizadas a 1 unidad de alto + instanciado por bloques ----
+export async function prepareTreeSpecies() {
+  const species = [];
+  for (const id of ['island_tree_01', 'island_tree_02']) {
+    const [leaves, wood] = await Promise.all([
+      loadGLB(`${BASE}models/arboles/${id}_L1_hojas.glb`),
+      loadGLB(`${BASE}models/arboles/${id}_L1_madera.glb`)
+    ]);
+    const parts = [...bakeParts(leaves.scene).map((p) => ({ ...p, kind: 'leaf' })), ...bakeParts(wood.scene).map((p) => ({ ...p, kind: 'wood' }))];
+    const box = new THREE.Box3();
+    parts.forEach((p) => {
+      p.geometry.computeBoundingBox();
+      box.union(p.geometry.boundingBox);
+    });
+    const h = box.max.y - box.min.y || 1;
+    const norm = new THREE.Matrix4()
+      .makeScale(1 / h, 1 / h, 1 / h)
+      .multiply(new THREE.Matrix4().makeTranslation(-(box.min.x + box.max.x) / 2, -box.min.y, -(box.min.z + box.max.z) / 2));
+    parts.forEach((p) => {
+      p.geometry.applyMatrix4(norm);
+      p.material = p.material.clone();
+      p.material.side = THREE.DoubleSide;
+      p.material.envMapIntensity = 0.7;
+      if (p.kind === 'leaf') p.material.alphaTest = Math.max(p.material.alphaTest || 0, 0.4);
+    });
+    species.push(parts);
+  }
+  return species;
+}
+
+/** list: [{x, y, z, rot, height, tone}] en coordenadas de mundo; cell = tamaño del bloque para el recorte por cámara */
+export function instanceTrees(species, list, cell = 6, castShadow = true) {
+  const chunks = new Map();
+  list.forEach((t, i) => {
+    const sp = (Math.imul(i + 1, 2654435761) >>> 0) % species.length;
+    const key = sp + ':' + Math.floor(t.x / cell) + ':' + Math.floor(t.z / cell);
+    if (!chunks.has(key)) chunks.set(key, []);
+    chunks.get(key).push(t);
+  });
+  const group = new THREE.Group();
+  const m4 = new THREE.Matrix4();
+  const q = new THREE.Quaternion();
+  const up = new THREE.Vector3(0, 1, 0);
+  const sc = new THREE.Vector3();
+  const pos = new THREE.Vector3();
+  const col = new THREE.Color();
+  for (const [key, items] of chunks) {
+    const sp = parseInt(key.split(':')[0], 10);
+    species[sp].forEach((part) => {
+      const mesh = new THREE.InstancedMesh(part.geometry, part.material, items.length);
+      items.forEach((t, k) => {
+        q.setFromAxisAngle(up, t.rot);
+        sc.set(t.height, t.height, t.height);
+        pos.set(t.x, t.y, t.z);
+        m4.compose(pos, q, sc);
+        mesh.setMatrixAt(k, m4);
+        if (part.kind === 'leaf') {
+          const v = 0.82 + t.tone * 0.3;
+          col.setRGB(v, v * (0.96 + t.tone * 0.08), v * 0.9);
+          mesh.setColorAt(k, col);
+        }
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+      mesh.castShadow = castShadow;
+      mesh.receiveShadow = true;
+      mesh.computeBoundingSphere();
+      group.add(mesh);
+    });
+  }
+  return group;
+}
+
+// Iluminación de entorno a partir de un cielo físico (la misma del módulo 05)
+export function createSkyEnvironment(renderer) {
+  const sunDir = new THREE.Vector3(75, 100, 65).normalize();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envScene = new THREE.Scene();
+  const sky = new Sky();
+  sky.scale.setScalar(90);
+  const u = sky.material.uniforms;
+  u.turbidity.value = 3.4;
+  u.rayleigh.value = 1.15;
+  u.mieCoefficient.value = 0.0045;
+  u.mieDirectionalG.value = 0.82;
+  u.sunPosition.value.copy(sunDir);
+  envScene.add(sky);
+  const rt = pmrem.fromScene(envScene, 0, 0.1, 200);
+  pmrem.dispose();
+  return rt.texture;
 }

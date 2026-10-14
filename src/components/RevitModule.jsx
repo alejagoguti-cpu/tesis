@@ -6,6 +6,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { Water } from 'three/examples/jsm/objects/Water.js';
 import PlanningToolbar from './PlanningToolbar';
+import { buildGroundSolid } from '../utils/groundSolid';
 import { USOS, loadUserTags, saveUserTags, useColor, iconSprite } from '../utils/usosTerritorio';
 import { DATA_URL, loadSatelliteMap, loadSatelliteTexture, applySatelliteUV, loadRealTrees, loadTreeTemplates } from '../utils/realTerritory';
 import {
@@ -207,6 +208,7 @@ function RenderViewer({
   onSectionChangeRef.current = onSectionChange;
   const applySectionRef = useRef(null);
   const secStateRef = useRef(null);
+  const groundSolidRef = useRef(null);
   const buildingMeshesRef = useRef([]);
   const buildingMatRef = useRef(null);
   const buildingUseMatRef = useRef(null);
@@ -600,9 +602,11 @@ function RenderViewer({
       const box = boxFromSection();
       if (!sc || !sc.on || !box) {
         secGroup.visible = false;
+        if (groundSolidRef.current) groundSolidRef.current.visible = false;
         applyClipToScene(false);
         return;
       }
+      if (groundSolidRef.current) groundSolidRef.current.visible = true;
       planeX0.constant = -box.min.x; planeX1.constant = box.max.x;
       planeY0.constant = -box.min.y; planeY1.constant = box.max.y;
       planeZ0.constant = -box.min.z; planeZ1.constant = box.max.z;
@@ -610,7 +614,7 @@ function RenderViewer({
       const center = box.min.clone().add(box.max).multiplyScalar(0.5);
       secLines.position.copy(center); secLines.scale.copy(size);
       secFill.position.copy(center); secFill.scale.copy(size);
-      const r = Math.max(0.28, Math.max(secState.bounds.max.x - secState.bounds.min.x, secState.bounds.max.z - secState.bounds.min.z) * 0.012);
+      const r = Math.max(0.12, Math.max(secState.bounds.max.x - secState.bounds.min.x, secState.bounds.max.z - secState.bounds.min.z) * 0.0036);
       handles.forEach((h) => {
         const { axis, side } = h.userData;
         const pos = center.clone();
@@ -925,6 +929,15 @@ function RenderViewer({
         console.warn('No se pudo construir el mapa de alturas:', err);
       }
       setHfNonce((n) => n + 1);
+      try {
+        if (heightFieldRef.current && heightFieldRef.current.grid) {
+          if (groundSolidRef.current) root.remove(groundSolidRef.current);
+          groundSolidRef.current = buildGroundSolid(heightFieldRef.current.grid);
+          root.add(groundSolidRef.current);
+        }
+      } catch (err) {
+        console.warn('No se pudo construir el sólido del terreno:', err);
+      }
       if (secStateRef.current && secStateRef.current.refresh) secStateRef.current.refresh();
       terrainMeshesRef.current = terrainMeshes;
       fetch(`${DATA_URL}edificios.json`)

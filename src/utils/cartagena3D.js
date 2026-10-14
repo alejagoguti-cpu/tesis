@@ -7,6 +7,9 @@ import waterTextureImg from '../assets/textura_agua_m5.jpg';
 import pisoTextureImg from '../assets/textura_piso_m5.png';
 import viaTextureImg from '../assets/textura_via.jpg';
 import { loadCleanTreeTemplate, buildTreeObject, BASE_TREE_SCALE } from './treeTool.js';
+import { buildRealTierrabomba } from './tierrabombaReal.js';
+import { buildSatelliteGround } from './satelliteGround.js';
+import { BASE as TB_BASE } from './realTerritory.js';
 
 /**
  * Generador 3D Territorial: Bahía de Cartagena & Isla de Tierra Bomba
@@ -112,15 +115,19 @@ export async function buildCartagenaTerritoryScene({
     uTime: { value: 0.0 },
   };
 
-  const waterMat = new THREE.MeshStandardMaterial({
-    map: waterTex,
-    bumpMap: bumpTex,
-    bumpScale: 0.025,
-    color: new THREE.Color(colors.water || '#8dc8d2'),
-    roughness: 0.15,
-    metalness: 0.10,
-    transparent: true,
-    opacity: 0.95,
+  // Mar del módulo 05: turquesa caribeño, ondas finas animadas y brillo especular del cielo
+  const waterNormalTex = texLoader.load(`${TB_BASE}textures/water_normals_fine.jpg`);
+  waterNormalTex.wrapS = THREE.RepeatWrapping;
+  waterNormalTex.wrapT = THREE.RepeatWrapping;
+  waterNormalTex.repeat.set(260, 260);
+  waterNormalTex.anisotropy = 8;
+  const waterMat = new THREE.MeshPhysicalMaterial({
+    color: new THREE.Color(colors.water || '#14a0c4'),
+    normalMap: waterNormalTex,
+    normalScale: new THREE.Vector2(0.35, 0.35),
+    roughness: 0.22,
+    metalness: 0.0,
+    envMapIntensity: 0.38,
     side: THREE.DoubleSide,
     clippingPlanes,
   });
@@ -877,26 +884,7 @@ export async function buildCartagenaTerritoryScene({
   }
 
   // 52 coordenadas estrictamente dentro del centro verde de la isla (meseta y parque ecológico, lejos del mar)
-  const defaultCenterTreesCoords = [
-    [-75.5752, 10.3742, 1.25], [-75.5758, 10.3738, 0.70], [-75.5748, 10.3735, 1.45],
-    [-75.5762, 10.3745, 0.60], [-75.5755, 10.3728, 1.10], [-75.5766, 10.3732, 0.90],
-    [-75.5742, 10.3740, 1.35], [-75.5750, 10.3748, 0.75], [-75.5760, 10.3722, 1.55],
-    [-75.5753, 10.3718, 1.05], [-75.5768, 10.3725, 0.85], [-75.5745, 10.3725, 1.20],
-    [-75.5757, 10.3752, 0.65], [-75.5764, 10.3750, 1.15], [-75.5740, 10.3732, 0.95],
-    [-75.5772, 10.3728, 1.30], [-75.5759, 10.3712, 0.70], [-75.5765, 10.3718, 1.00],
-    [-75.5746, 10.3746, 1.40], [-75.5752, 10.3758, 0.80], [-75.5760, 10.3762, 1.25],
-    [-75.5754, 10.3766, 0.60], [-75.5748, 10.3754, 1.10], [-75.5768, 10.3738, 1.35],
-    [-75.5736, 10.3736, 0.85], [-75.5738, 10.3744, 1.15], [-75.5744, 10.3750, 0.70],
-    [-75.5770, 10.3746, 1.45], [-75.5775, 10.3735, 0.90], [-75.5762, 10.3756, 1.20],
-    [-75.5750, 10.3762, 0.65], [-75.5743, 10.3756, 1.30], [-75.5735, 10.3748, 0.75],
-    [-75.5766, 10.3712, 1.10], [-75.5771, 10.3720, 0.85], [-75.5758, 10.3708, 1.40],
-    [-75.5763, 10.3705, 0.95], [-75.5752, 10.3710, 1.25], [-75.5747, 10.3715, 0.70],
-    [-75.5742, 10.3720, 1.15], [-75.5738, 10.3726, 0.80], [-75.5734, 10.3730, 1.35],
-    [-75.5774, 10.3740, 0.65], [-75.5778, 10.3730, 1.10], [-75.5776, 10.3722, 0.90],
-    [-75.5770, 10.3715, 1.25], [-75.5765, 10.3760, 0.75], [-75.5758, 10.3768, 1.05],
-    [-75.5750, 10.3770, 1.30], [-75.5745, 10.3764, 0.85], [-75.5740, 10.3758, 1.15],
-    [-75.5735, 10.3752, 0.60]
-  ];
+  const defaultCenterTreesCoords = []; // la vegetación real se detecta en la imagen satelital (ver tierrabombaReal.js)
 
   if (treeTemplate) {
     defaultCenterTreesCoords.forEach(([lon, lat, scale], idx) => {
@@ -915,6 +903,26 @@ export async function buildCartagenaTerritoryScene({
   }
 
   territoryGroup.add(treesGroup);
+
+  // Suelo satelital de toda la escena (reemplaza pasto, manzanas y vías dibujadas)
+  try {
+    const satGround = await buildSatelliteGround({ lonLatToVector3, layers: activeLayers });
+    territoryGroup.add(satGround);
+    ['Landmasses', 'Manzanas'].forEach((n) => {
+      const m = territoryGroup.getObjectByName(n);
+      if (m) m.visible = false;
+    });
+  } catch (err) {
+    console.warn('Suelo satelital no disponible:', err);
+  }
+
+  // Tierrabomba real: satélite georreferenciado, árboles detectados en la imagen y edificios del modelo
+  try {
+    const realTB = await buildRealTierrabomba({ lonLatToVector3, SCALE_3D, layers: activeLayers, onProgress });
+    territoryGroup.add(realTB);
+  } catch (err) {
+    console.warn('Tierrabomba real no disponible:', err);
+  }
 
   // Add all to root scene
   sceneRoot.add(territoryGroup);
@@ -936,6 +944,8 @@ export async function buildCartagenaTerritoryScene({
         bumpTex.offset.x = (t * -0.0000045 * speedMultiplier) % 1;
         bumpTex.offset.y = (t * 0.0000032 * speedMultiplier) % 1;
       }
+      waterNormalTex.offset.x = (t * 0.000012 * speedMultiplier) % 1;
+      waterNormalTex.offset.y = (t * 0.000008 * speedMultiplier) % 1;
       // Pulsate hotspot rings
       if (hotspotRings && hotspotRings.length > 0) {
         const pulse = 1.0 + 0.35 * Math.sin(t * 0.004);

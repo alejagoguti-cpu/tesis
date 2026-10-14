@@ -7,6 +7,7 @@ import ModelViewer3D from './components/ModelViewer3D';
 import RevitModule from './components/RevitModule';
 import Module11Territory from './components/Module11Territory';
 import RedColaborativa from './components/RedColaborativa';
+import RedRizoma from './components/RedRizoma';
 import IntroLandingIndex from './components/IntroLandingIndex';
 import Hero from './components/Hero';
 import Footer from './components/Footer';
@@ -142,8 +143,14 @@ export default function App() {
               )}
 
               {activeModule === 'red' && (
-                <SafeSection name="Módulo 1.3: Red Vivienda Colaborativa">
+                <SafeSection name="Módulo 1.3: Red Diseño Colaborativo">
                   <RedColaborativa />
+                </SafeSection>
+              )}
+
+              {activeModule === 'rizoma' && (
+                <SafeSection name="Módulo 1.4: Vivienda Progresiva · Rizoma">
+                  <RedRizoma />
                 </SafeSection>
               )}
 

@@ -50,7 +50,7 @@ export default function RedColaborativa() {
       <div className="w-full max-w-6xl flex items-end justify-between gap-4 mb-3">
         <div>
           <p className="text-[11px] font-mono font-bold tracking-[0.18em] text-teal-700 uppercase">Marco conceptual · Módulo 1.3</p>
-          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">Vivienda colaborativa</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">Diseño colaborativo</h2>
         </div>
         <button onClick={() => setOpen([])} className="h-9 px-4 rounded-full bg-white border border-slate-200 shadow-sm text-slate-700 text-xs font-semibold hover:border-slate-400 flex items-center gap-1.5"><RotateCcw className="w-3.5 h-3.5" /><span>Reiniciar</span></button>
       </div>
@@ -84,8 +84,8 @@ export default function RedColaborativa() {
               ...fade(true, 0)
             }}>
             <div>
-              <p className="font-serif font-bold text-white leading-tight" style={{ fontSize: '2.1cqw' }}>Vivienda</p>
-              <p className="font-serif font-bold text-white leading-tight" style={{ fontSize: '2.1cqw' }}>colaborativa</p>
+              <p className="font-serif font-bold text-white leading-tight" style={{ fontSize: '2.1cqw' }}>Diseño</p>
+              <p className="font-serif font-bold text-white leading-tight" style={{ fontSize: '2.1cqw' }}>colaborativo</p>
               <div className="mx-auto mt-[0.6cqw] h-[2px] w-[3cqw] rounded bg-teal-300/80" />
             </div>
           </div>

@@ -5,6 +5,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { buildCartagenaTerritoryScene } from '../utils/cartagena3D.js';
+import { createSkyEnvironment } from '../utils/realTerritory.js';
 import TierrabombaFutureModal from './TierrabombaFutureModal.jsx';
 import pastoTextureImg from '../assets/textura_pasto_m5.png';
 import waterTextureImg from '../assets/textura_agua_m5.jpg';
@@ -91,7 +92,7 @@ class LocalSafeComponent extends React.Component {
 
 export const DEFAULT_M5_PALETTE = {
   grass: '#ffffff',
-  water: '#b5ebf5', // Celeste cristalino más clarito y luminoso
+  water: '#1ea4c8', // Turquesa caribeño (igual al mar del módulo 05)
   pavement: '#f8fafc',
   building: '#ffffff',
   roof: '#ffffff', // 100% blanco
@@ -104,7 +105,7 @@ export const getSavedM5Palette = () => {
     if (saved) {
       const parsed = JSON.parse(saved);
       // Forzar tono celeste clarito solicitado por el usuario y edificios blancos
-      parsed.water = '#b5ebf5';
+      parsed.water = '#1ea4c8';
       parsed.roof = '#ffffff';
       parsed.building = '#ffffff';
       return { ...DEFAULT_M5_PALETTE, ...parsed };
@@ -122,7 +123,7 @@ export default function ModelViewer3D({ onSelectModule }) {
 
   // Tonos de Materialidad Personalizables (Mar, Pasto, Piso, Edificios, Techos, Vías)
   const [initialPalette] = useState(getSavedM5Palette);
-  const [waterColor, setWaterColor] = useState('#b5ebf5');
+  const [waterColor, setWaterColor] = useState('#1ea4c8');
   const [grassColor, setGrassColor] = useState(initialPalette.grass);
   const [pavementColor, setPavementColor] = useState(initialPalette.pavement);
   const [buildingColor, setBuildingColor] = useState('#ffffff');
@@ -317,7 +318,7 @@ export default function ModelViewer3D({ onSelectModule }) {
   const [customModel, setCustomModel] = useState(null);
   const [activeLayers, setActiveLayers] = useState({
     terrain: true,
-    walls: true,
+    walls: false,
     buildings: true,
     water: true,
     boats: true,
@@ -420,6 +421,13 @@ export default function ModelViewer3D({ onSelectModule }) {
         rootContainer.position.set(-center.x, -box.min.y, -center.z);
 
         scene.add(rootContainer);
+        try {
+          if (!scene.userData.skyEnv) scene.userData.skyEnv = createSkyEnvironment(rendererRef.current);
+          scene.environment = scene.userData.skyEnv;
+          scene.environmentIntensity = 0.9;
+        } catch (e) {
+          console.warn('Entorno de cielo no disponible:', e);
+        }
         currentModelGroupRef.current = rootContainer;
       } catch (err) {
         console.error("Error building cartagena territory:", err);
@@ -1084,8 +1092,14 @@ export default function ModelViewer3D({ onSelectModule }) {
       const waterM = cartagenaTerritoryRef.current.animatedObjects.waterMeshes;
       waterM.forEach(w => { if (w) w.visible = !!activeLayers.water; });
 
+      const satGround = grp.getObjectByName("SatelliteGround");
       const land = grp.getObjectByName("Landmasses");
-      if (land) land.visible = !!activeLayers.terrain;
+      if (satGround) {
+        satGround.visible = !!activeLayers.terrain;
+        if (land) land.visible = false;
+      } else if (land) {
+        land.visible = !!activeLayers.terrain;
+      }
 
       const forts = grp.getObjectByName("Fortresses");
       if (forts) forts.visible = !!activeLayers.buildings;
@@ -1098,6 +1112,16 @@ export default function ModelViewer3D({ onSelectModule }) {
 
       const veg = grp.getObjectByName("Vegetation");
       if (veg) veg.visible = !!activeLayers.trees;
+
+      const tbReal = grp.getObjectByName("TierrabombaReal");
+      if (tbReal) {
+        const sat = tbReal.getObjectByName("TB_Satelite");
+        const tbTrees = tbReal.getObjectByName("TB_Arboles");
+        const tbBld = tbReal.getObjectByName("TB_Edificios");
+        if (sat) sat.visible = !!activeLayers.terrain;
+        if (tbTrees) tbTrees.visible = !!activeLayers.trees;
+        if (tbBld) tbBld.visible = !!activeLayers.buildings;
+      }
 
       const rts = grp.getObjectByName("MaritimeRoutes");
       if (rts) rts.visible = !!activeLayers.boats;
