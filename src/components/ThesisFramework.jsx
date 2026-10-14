@@ -1327,6 +1327,8 @@ export default function ThesisFramework({ onSelectModule }) {
       fillOpacity: 0,
       opacity: 0,
       interactive: false
+    }).addTo(map);
+
     const vulnerableHousesMarkersGroup = L.layerGroup().addTo(map);
 
     // 3C. Flecha indicadora "500 Viviendas en Riesgo"
