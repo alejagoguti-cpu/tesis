@@ -6,7 +6,8 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { Water } from 'three/examples/jsm/objects/Water.js';
 import PlanningToolbar from './PlanningToolbar';
-import { loadSatelliteMap, loadSatelliteTexture, applySatelliteUV, loadRealTrees, loadTreeTemplates } from '../utils/realTerritory';
+import { USOS, loadUserTags, saveUserTags, useColor, iconSprite } from '../utils/usosTerritorio';
+import { DATA_URL, loadSatelliteMap, loadSatelliteTexture, applySatelliteUV, loadRealTrees, loadTreeTemplates } from '../utils/realTerritory';
 import {
   STORAGE_ROADS, STORAGE_ZONES, ZONE_TYPES, loadList, saveList, buildHeightField,
   createRoadMaterials, buildRoadObject, buildZoneObject, buildDraftObject, disposeObject
@@ -193,8 +194,31 @@ function RenderViewer({
   onPlanPoint,
   onPlanFinish,
   layers,
-  onRealTrees
+  onRealTrees,
+  usos,
+  onTagBuilding,
+  onUsosStats,
+  section,
+  onSectionChange
 }) {
+  const sectionRef = useRef(section);
+  sectionRef.current = section;
+  const onSectionChangeRef = useRef(onSectionChange);
+  onSectionChangeRef.current = onSectionChange;
+  const applySectionRef = useRef(null);
+  const secStateRef = useRef(null);
+  const buildingMeshesRef = useRef([]);
+  const buildingMatRef = useRef(null);
+  const buildingUseMatRef = useRef(null);
+  const edificiosRef = useRef(null);
+  const useIconsRef = useRef(null);
+  const [usosNonce, setUsosNonce] = useState(0);
+  const usosRef = useRef(usos);
+  usosRef.current = usos;
+  const onTagBuildingRef = useRef(onTagBuilding);
+  onTagBuildingRef.current = onTagBuilding;
+  const onUsosStatsRef = useRef(onUsosStats);
+  onUsosStatsRef.current = onUsosStats;
   const terrainMeshesRef = useRef([]);
   const satMatRef = useRef(null);
   const realTreesRef = useRef(null);
@@ -493,6 +517,125 @@ function RenderViewer({
     root.add(hoverRing);
     hoverRingRef.current = hoverRing;
 
+    // ---------------- SECTION BOX (tipo Revit) ----------------
+    renderer.localClippingEnabled = true;
+    const secGroup = new THREE.Group();
+    secGroup.name = 'SectionBox';
+    secGroup.visible = false;
+    secGroup.userData.noClip = true;
+    root.add(secGroup);
+    const unitBox = new THREE.BoxGeometry(1, 1, 1);
+    const secLines = new THREE.LineSegments(
+      new THREE.EdgesGeometry(unitBox),
+      new THREE.LineBasicMaterial({ color: 0xf59e0b, depthTest: false, transparent: true, opacity: 0.95 })
+    );
+    secLines.renderOrder = 70;
+    secLines.userData.noClip = true;
+    secGroup.add(secLines);
+    const secFill = new THREE.Mesh(
+      unitBox,
+      new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.045, side: THREE.BackSide, depthWrite: false })
+    );
+    secFill.userData.noClip = true;
+    secGroup.add(secFill);
+    const handles = [];
+    ['x', 'y', 'z'].forEach((axis) => ['min', 'max'].forEach((side) => {
+      const h = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 20, 14),
+        new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.98 })
+      );
+      h.userData = { noClip: true, axis, side };
+      h.renderOrder = 75;
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(1.25, 1.75, 28),
+        new THREE.MeshBasicMaterial({ color: 0xf59e0b, depthTest: false, side: THREE.DoubleSide })
+      );
+      ring.userData.noClip = true;
+      ring.renderOrder = 74;
+      h.add(ring);
+      secGroup.add(h);
+      handles.push(h);
+    }));
+    const secState = { bounds: null, dragging: null, planes: [], lastClip: 0 };
+    const planeX0 = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
+    const planeX1 = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0);
+    const planeY0 = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const planeY1 = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+    const planeZ0 = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    const planeZ1 = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0);
+    const clipPlanes = [planeX0, planeX1, planeY0, planeY1, planeZ0, planeZ1];
+
+    const boxFromSection = () => {
+      const b = secState.bounds;
+      const sc = sectionRef.current;
+      if (!b || !sc) return null;
+      const lerp = (a, c, t) => a + (c - a) * t;
+      return {
+        min: new THREE.Vector3(lerp(b.min.x, b.max.x, sc.x[0]), lerp(b.min.y, b.max.y, sc.y[0]), lerp(b.min.z, b.max.z, sc.z[0])),
+        max: new THREE.Vector3(lerp(b.min.x, b.max.x, sc.x[1]), lerp(b.min.y, b.max.y, sc.y[1]), lerp(b.min.z, b.max.z, sc.z[1]))
+      };
+    };
+
+    const applyClipToScene = (enable) => {
+      root.traverse((o) => {
+        if (!o.isMesh && !o.isLine && !o.isPoints && !o.isSprite) return;
+        let n = o;
+        while (n) { if (n.userData && n.userData.noClip) return; n = n.parent; }
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        mats.forEach((m) => {
+          if (!m || m.isShaderMaterial) return;
+          const want = enable ? clipPlanes : null;
+          if (m.clippingPlanes !== want) {
+            const changed = (m.clippingPlanes === null) !== (want === null);
+            m.clippingPlanes = want;
+            m.clipShadows = true;
+            if (changed) m.needsUpdate = true;
+          }
+        });
+      });
+    };
+
+    const applySection = () => {
+      const sc = sectionRef.current;
+      const box = boxFromSection();
+      if (!sc || !sc.on || !box) {
+        secGroup.visible = false;
+        applyClipToScene(false);
+        return;
+      }
+      planeX0.constant = -box.min.x; planeX1.constant = box.max.x;
+      planeY0.constant = -box.min.y; planeY1.constant = box.max.y;
+      planeZ0.constant = -box.min.z; planeZ1.constant = box.max.z;
+      const size = box.max.clone().sub(box.min);
+      const center = box.min.clone().add(box.max).multiplyScalar(0.5);
+      secLines.position.copy(center); secLines.scale.copy(size);
+      secFill.position.copy(center); secFill.scale.copy(size);
+      const r = Math.max(0.28, Math.max(secState.bounds.max.x - secState.bounds.min.x, secState.bounds.max.z - secState.bounds.min.z) * 0.012);
+      handles.forEach((h) => {
+        const { axis, side } = h.userData;
+        const pos = center.clone();
+        pos[axis] = side === 'min' ? box.min[axis] : box.max[axis];
+        h.position.copy(pos);
+        h.scale.setScalar(r);
+        h.children[0].quaternion.copy(camera.quaternion);
+      });
+      secGroup.visible = true;
+      applyClipToScene(true);
+    };
+    applySectionRef.current = applySection;
+    secState.refresh = () => {
+      const m = modelRef.current;
+      if (!m) return;
+      const b = new THREE.Box3().setFromObject(m);
+      secState.bounds = new THREE.Box3(
+        new THREE.Vector3(b.min.x, 0, b.min.z),
+        new THREE.Vector3(b.max.x, Math.max(b.max.y * 1.6, 1.4), b.max.z)
+      );
+      applySection();
+    };
+    secState.handles = handles;
+    secStateRef.current = secState;
+
 
     // Sistema de cámara orbital y pan
     let initialSph = { radius: 76, theta: Math.PI / 4, phi: Math.PI / 3.2 };
@@ -660,6 +803,8 @@ function RenderViewer({
 
       roadsMeshRef.current = [];
       housesMeshesRef.current = {};
+      buildingMeshesRef.current = [];
+      buildingMatRef.current = buildingMat;
       const terrainMeshes = [];
 
       try {
@@ -728,6 +873,7 @@ function RenderViewer({
           // D. TODOS LOS DEMÁS CUBOS Y CASAS: ¡BLANCO PURO RADIANTE!
           else {
             c.material = buildingMat;
+            buildingMeshesRef.current.push(c);
           }
         });
 
@@ -779,7 +925,16 @@ function RenderViewer({
         console.warn('No se pudo construir el mapa de alturas:', err);
       }
       setHfNonce((n) => n + 1);
+      if (secStateRef.current && secStateRef.current.refresh) secStateRef.current.refresh();
       terrainMeshesRef.current = terrainMeshes;
+      fetch(`${DATA_URL}edificios.json`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (!d || cancelled) return;
+          edificiosRef.current = d;
+          setUsosNonce((n) => n + 1);
+        })
+        .catch(() => {});
       (async () => {
         try {
           const map = await loadSatelliteMap();
@@ -921,6 +1076,20 @@ function RenderViewer({
       py = e.clientY;
       startX = e.clientX;
       startY = e.clientY;
+
+      // Section box: agarrar una cara/asa para moverla
+      const ss = secStateRef.current;
+      if (ss && sectionRef.current?.on && ss.bounds && e.button === 0) {
+        const rect0 = dom.getBoundingClientRect();
+        const mv = new THREE.Vector2(((e.clientX - rect0.left) / rect0.width) * 2 - 1, -((e.clientY - rect0.top) / rect0.height) * 2 + 1);
+        raycaster.setFromCamera(mv, camera);
+        const hit = raycaster.intersectObjects(ss.handles, false)[0];
+        if (hit) {
+          ss.dragging = { axis: hit.object.userData.axis, side: hit.object.userData.side, grab: hit.object.position.clone() };
+          dom.style.cursor = 'grabbing';
+          return;
+        }
+      }
       if (e.button === 2 || e.button === 1) {
         // Click derecho o central -> MOVER LA ISLA (PAN)
         isPanning = true;
@@ -935,6 +1104,33 @@ function RenderViewer({
       const dy = e.clientY - py;
       px = e.clientX;
       py = e.clientY;
+
+      const ssd = secStateRef.current;
+      if (ssd && ssd.dragging) {
+        const rect1 = dom.getBoundingClientRect();
+        const mv = new THREE.Vector2(((e.clientX - rect1.left) / rect1.width) * 2 - 1, -((e.clientY - rect1.top) / rect1.height) * 2 + 1);
+        raycaster.setFromCamera(mv, camera);
+        const ray = raycaster.ray;
+        const axisDir = new THREE.Vector3();
+        axisDir[ssd.dragging.axis] = 1;
+        const P = ssd.dragging.grab;
+        const w0 = P.clone().sub(ray.origin);
+        const b = axisDir.dot(ray.direction);
+        const d0 = axisDir.dot(w0);
+        const e0 = ray.direction.dot(w0);
+        const den = 1 - b * b;
+        if (Math.abs(den) > 1e-4) {
+          const t = (b * e0 - d0) / den;
+          const val = P[ssd.dragging.axis] + t;
+          const bd = ssd.bounds;
+          const ax = ssd.dragging.axis;
+          const norm = Math.max(0, Math.min(1, (val - bd.min[ax]) / (bd.max[ax] - bd.min[ax])));
+          const cur = sectionRef.current[ax];
+          const next = ssd.dragging.side === 'min' ? [Math.min(norm, cur[1] - 0.02), cur[1]] : [cur[0], Math.max(norm, cur[0] + 0.02)];
+          if (onSectionChangeRef.current) onSectionChangeRef.current({ ...sectionRef.current, [ax]: next });
+        }
+        return;
+      }
 
       // Anillo guía sobre el terreno mientras se dibuja
       if (!isRotating && !isPanning && hoverRingRef.current) {
@@ -980,6 +1176,11 @@ function RenderViewer({
     const onPointerUp = (e) => {
       isRotating = false;
       isPanning = false;
+      if (secStateRef.current && secStateRef.current.dragging) {
+        secStateRef.current.dragging = null;
+        dom.style.cursor = '';
+        return;
+      }
 
       const distMoved = Math.hypot(e.clientX - startX, e.clientY - startY);
       if (distMoved < 6) {
@@ -999,6 +1200,16 @@ function RenderViewer({
               return;
             }
           }
+        }
+
+        // 1a. Modo marcar uso del suelo: clic sobre un edificio
+        if (usosRef.current?.paint && edificiosRef.current && buildingMeshesRef.current.length && e.target === dom) {
+          const hits = raycaster.intersectObjects(buildingMeshesRef.current, false);
+          if (hits.length > 0 && hits[0].face) {
+            const id = edificiosRef.current.vert[hits[0].face.a];
+            if (id !== undefined && onTagBuildingRef.current) onTagBuildingRef.current(id);
+          }
+          return;
         }
 
         // 1b. Modo dibujo de vías / zonas: marcar punto sobre el terreno
@@ -1091,6 +1302,10 @@ function RenderViewer({
         if (waveActiveRef.current) oceanMesh.material.uniforms.time.value = elapsed * 0.55;
       }
 
+      const ssn = secStateRef.current;
+      if (ssn && sectionRef.current?.on && ++ssn.lastClip % 45 === 0) applySectionRef.current && applySectionRef.current();
+      if (ssn && sectionRef.current?.on) ssn.handles.forEach((h) => h.children[0].quaternion.copy(camera.quaternion));
+
       const pulse = 0.25 + 0.12 * Math.sin(elapsed * 3.5);
       if (houseRedSoftMat) {
         houseRedSoftMat.emissiveIntensity = pulse;
@@ -1158,6 +1373,76 @@ function RenderViewer({
     if (realTreesRef.current) realTreesRef.current.visible = layers.realTrees !== false;
     roadsMeshRef.current.forEach((m) => { if (m) m.visible = !!layers.modelRoads; });
   }, [layers, hfNonce, templatesNonce]);
+
+  // Usos del suelo: color por edificio + iconos de equipamientos
+  useEffect(() => {
+    const data = edificiosRef.current;
+    const meshes = buildingMeshesRef.current;
+    const root = rootRef.current;
+    if (!data || !meshes.length || !root) return;
+    const tags = {};
+    Object.entries(data.usosOSM || {}).forEach(([id, v]) => { tags[id] = v.u; });
+    Object.entries(usos?.tags || {}).forEach(([id, u]) => { if (u === 'none') delete tags[id]; else tags[id] = u; });
+
+    meshes.forEach((m) => {
+      const n = m.geometry.attributes.position.count;
+      if (n !== data.vert.length) return;
+      let colAttr = m.geometry.attributes.color;
+      if (!colAttr) {
+        colAttr = new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3);
+        m.geometry.setAttribute('color', colAttr);
+      }
+      const arr = colAttr.array;
+      const cache = {};
+      for (let v = 0; v < n; v++) {
+        const id = data.vert[v];
+        const u = tags[id];
+        let c;
+        if (u) { c = cache[u] || (cache[u] = useColor(u)); arr[v * 3] = c.r; arr[v * 3 + 1] = c.g; arr[v * 3 + 2] = c.b; }
+        else { arr[v * 3] = arr[v * 3 + 1] = arr[v * 3 + 2] = 1; }
+      }
+      colAttr.needsUpdate = true;
+      if (!buildingUseMatRef.current) {
+        buildingUseMatRef.current = buildingMatRef.current.clone();
+        buildingUseMatRef.current.vertexColors = true;
+        buildingUseMatRef.current.emissiveIntensity = 0.04;
+        buildingUseMatRef.current.needsUpdate = true;
+      }
+      m.material = usos?.enabled ? buildingUseMatRef.current : buildingMatRef.current;
+    });
+
+    // iconos de equipamientos (todo lo marcado distinto de vivienda)
+    if (useIconsRef.current) {
+      root.remove(useIconsRef.current);
+      useIconsRef.current.traverse((o) => { if (o.material?.map) o.material.map.dispose(); if (o.material) o.material.dispose(); });
+    }
+    const grp = new THREE.Group();
+    grp.name = 'IconosUsos';
+    const counts = {};
+    const parent = modelRef.current;
+    const tmp = new THREE.Vector3();
+    Object.entries(tags).forEach(([id, u]) => {
+      counts[u] = (counts[u] || 0) + 1;
+      if (u === 'vivienda' || !parent) return;
+      const info = USOS.find((x) => x.id === u);
+      const c = data.centroides[id];
+      if (!info || !c || !info.icon) return;
+      tmp.set(c[0], c[1], c[2] + 6);
+      parent.localToWorld(tmp);
+      const sp = iconSprite(info.icon, info.color);
+      sp.position.copy(tmp);
+      grp.add(sp);
+    });
+    grp.visible = !!usos?.enabled;
+    root.add(grp);
+    useIconsRef.current = grp;
+    if (onUsosStatsRef.current) onUsosStatsRef.current(counts);
+  }, [usos?.tags, usos?.enabled, usosNonce]);
+
+  // Section box
+  useEffect(() => {
+    if (applySectionRef.current) applySectionRef.current();
+  }, [section]);
 
   // Visibilidad de árboles
   useEffect(() => {
@@ -1272,6 +1557,49 @@ export default function RevitModule() {
   const [plantScale, setPlantScale] = useState(1.0);
   const [selectedTreeId, setSelectedTreeId] = useState(null);
   const [showTreeToolbar, setShowTreeToolbar] = useState(false);
+
+  // Section box (corte tipo Revit)
+  const SECTION_FULL = { on: false, x: [0, 1], y: [0, 1], z: [0, 1] };
+  const [section, setSection] = useState(SECTION_FULL);
+  const [showSectionPanel, setShowSectionPanel] = useState(false);
+  const setAxis = (axis, i, v) => setSection((s) => {
+    const a = [...s[axis]];
+    a[i] = v;
+    if (i === 0 && a[0] > a[1] - 0.02) a[0] = a[1] - 0.02;
+    if (i === 1 && a[1] < a[0] + 0.02) a[1] = a[0] + 0.02;
+    return { ...s, [axis]: a };
+  });
+  const quickSection = (kind) => {
+    if (kind === 'ew') setSection({ on: true, x: [0, 1], y: [0, 1], z: [0.44, 0.5] });
+    if (kind === 'ns') setSection({ on: true, x: [0.44, 0.5], y: [0, 1], z: [0, 1] });
+    if (kind === 'plan') setSection({ on: true, x: [0, 1], y: [0, 0.16], z: [0, 1] });
+    if (kind === 'reset') setSection({ ...SECTION_FULL, on: true });
+  };
+
+  // Usos del suelo marcados por el equipo (se guardan en el navegador)
+  const [userTags, setUserTags] = useState(() => loadUserTags());
+  const [usosOn, setUsosOn] = useState(false);
+  const [paintUse, setPaintUse] = useState(null);
+  const [usoCounts, setUsoCounts] = useState({});
+  const tagBuilding = (id) => {
+    const target = paintUseRef.current;
+    if (!target) return;
+    setUserTags((prev) => {
+      const next = { ...prev };
+      if (target === 'none') next[id] = 'none'; else next[id] = target;
+      saveUserTags(next);
+      return next;
+    });
+  };
+  const paintUseRef = useRef(null);
+  paintUseRef.current = paintUse;
+  const exportUsos = () => {
+    const blob = new Blob([JSON.stringify({ fuente: 'Levantamiento de usos Tierrabomba (tesis 2026)', usos: userTags }, null, 1)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'usos_tierrabomba.json';
+    a.click();
+  };
 
   // Capas territoriales (datos reales)
   const [layers, setLayers] = useState({ satellite: true, realTrees: true, modelRoads: false });
@@ -1502,6 +1830,11 @@ export default function RevitModule() {
           onPlanFinish={handlePlanFinish}
           layers={layers}
           onRealTrees={setRealTreeCount}
+          usos={{ enabled: usosOn, tags: userTags, paint: paintUse }}
+          onTagBuilding={tagBuilding}
+          onUsosStats={setUsoCounts}
+          section={section}
+          onSectionChange={setSection}
         />
       </div>
 
@@ -1584,6 +1917,19 @@ export default function RevitModule() {
           title="Mostrar u ocultar los árboles de render distribuidos por la isla"
         >
           <span>{treesVisible ? '🌲 Árboles Render ON' : '🌱 Árboles OFF'}</span>
+        </button>
+
+        {/* Section Box tipo Revit */}
+        <button
+          onClick={() => {
+            const v = !showSectionPanel;
+            setShowSectionPanel(v);
+            setSection((s) => ({ ...s, on: v }));
+          }}
+          className={'px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md flex items-center space-x-1.5 cursor-pointer ' + (showSectionPanel ? 'bg-orange-600 text-white border-orange-400' : 'bg-white/90 hover:bg-white text-slate-800 border-slate-300')}
+          title="Caja de sección para hacer cortes del modelo, como en Revit"
+        >
+          <span>{showSectionPanel ? 'Cerrar Section Box' : '✂️ Section Box'}</span>
         </button>
 
         {/* Herramienta de vías y zonificación */}
@@ -1690,6 +2036,40 @@ export default function RevitModule() {
         <div className="absolute top-16 right-4 z-40 bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-2xl font-mono text-xs font-bold flex items-center space-x-2 animate-bounce border border-emerald-400">
           <span>✨</span>
           <span>¡Vista guardada para siempre! Esta será la perspectiva al abrir el visor.</span>
+        </div>
+      )}
+
+      {showSectionPanel && (
+        <div className="absolute right-4 bottom-24 z-30 w-72 rounded-2xl bg-white/95 border border-slate-200 shadow-2xl backdrop-blur-md p-3 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-mono font-bold tracking-widest text-orange-600 uppercase">Section Box</p>
+              <p className="text-[11px] text-slate-500 leading-snug">Arrastra las asas blancas de la caja o usa los controles</p>
+            </div>
+            <button
+              onClick={() => setSection((s) => ({ ...s, on: !s.on }))}
+              className={'px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer ' + (section.on ? 'bg-orange-600 text-white' : 'bg-slate-200 text-slate-700')}
+            >{section.on ? 'Activo' : 'Apagado'}</button>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            <button onClick={() => quickSection('ew')} className="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-white border border-slate-200 text-slate-800 cursor-pointer">Corte E–O</button>
+            <button onClick={() => quickSection('ns')} className="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-white border border-slate-200 text-slate-800 cursor-pointer">Corte N–S</button>
+            <button onClick={() => quickSection('plan')} className="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-white border border-slate-200 text-slate-800 cursor-pointer">Planta (nivel bajo)</button>
+            <button onClick={() => quickSection('reset')} className="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-white border border-slate-200 text-slate-800 cursor-pointer">Mostrar todo</button>
+          </div>
+          {[
+            ['x', 'Oeste', 'Este'],
+            ['z', 'Norte', 'Sur'],
+            ['y', 'Base', 'Tope']
+          ].map(([axis, a, b]) => (
+            <div key={axis} className="space-y-0.5">
+              <div className="flex justify-between text-[10px] font-mono text-slate-500"><span>{a}</span><span>{b}</span></div>
+              <div className="grid grid-cols-2 gap-2">
+                <input type="range" min="0" max="1" step="0.005" value={section[axis][0]} onChange={(e) => setAxis(axis, 0, parseFloat(e.target.value))} className="w-full accent-orange-500" />
+                <input type="range" min="0" max="1" step="0.005" value={section[axis][1]} onChange={(e) => setAxis(axis, 1, parseFloat(e.target.value))} className="w-full accent-orange-500" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -1805,7 +2185,7 @@ export default function RevitModule() {
       </div>
 
       {/* CAPAS TERRITORIALES (DATOS REALES) */}
-      <div className="absolute left-4 bottom-24 z-10 w-72 rounded-2xl bg-white/95 border border-slate-200 shadow-xl backdrop-blur-md p-3 space-y-2">
+      <div className="absolute left-4 bottom-24 z-10 w-72 max-h-[calc(100%-23rem)] overflow-y-auto rounded-2xl bg-white/95 border border-slate-200 shadow-xl backdrop-blur-md p-3 space-y-2">
         <div>
           <p className="text-[10px] font-mono font-bold tracking-widest text-teal-700 uppercase">Capas territoriales</p>
           <p className="text-[11px] text-slate-500 leading-snug">Datos reales de Tierrabomba</p>
@@ -1827,6 +2207,43 @@ export default function RevitModule() {
             </span>
           </button>
         ))}
+        <button
+          onClick={() => { setUsosOn((v) => !v); if (usosOn) setPaintUse(null); }}
+          className={'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left transition-all cursor-pointer border ' + (usosOn ? 'bg-teal-50 border-teal-300' : 'bg-slate-50 border-slate-200 hover:bg-white')}
+        >
+          <span className={'w-4 h-4 rounded-md border-2 shrink-0 grid place-items-center text-[10px] font-black ' + (usosOn ? 'bg-teal-600 border-teal-600 text-white' : 'border-slate-300 text-transparent')}>✓</span>
+          <span className="min-w-0">
+            <span className="block text-xs font-semibold text-slate-900">Usos del suelo</span>
+            <span className="block text-[10px] text-slate-500">Edificios por uso y equipamientos</span>
+          </span>
+        </button>
+        {usosOn && (
+          <div className="space-y-1.5 pt-1">
+            <p className="text-[10px] text-slate-500 leading-snug">Elige un uso y haz clic en los edificios del modelo para marcarlos. Solo escuela y hoteles vienen de OpenStreetMap; el resto lo marca el equipo.</p>
+            <div className="grid grid-cols-1 gap-1 max-h-52 overflow-y-auto pr-1">
+              {USOS.map((u) => (
+                <button
+                  key={u.id}
+                  onClick={() => { setPaintUse(paintUse === u.id ? null : u.id); setPlanMode('none'); setDraftPoints([]); setIsPlantingTree(false); }}
+                  className={'flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-left cursor-pointer transition-all ' + (paintUse === u.id ? 'bg-white shadow ring-2' : 'hover:bg-white bg-slate-50')}
+                  style={paintUse === u.id ? { '--tw-ring-color': u.color } : undefined}
+                >
+                  <span className="w-3 h-3 rounded-sm shrink-0" style={{ background: u.color }} />
+                  <span className="flex-1 font-medium text-slate-800 truncate">{u.icon} {u.name}</span>
+                  <span className="text-[10px] font-mono text-slate-500">{usoCounts[u.id] || 0}</span>
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                onClick={() => setPaintUse(paintUse === 'none' ? null : 'none')}
+                className={'px-2 py-1.5 rounded-lg text-[11px] font-semibold cursor-pointer ' + (paintUse === 'none' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-white border border-slate-200')}
+              >Quitar uso</button>
+              <button onClick={exportUsos} className="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700 hover:bg-white border border-slate-200 cursor-pointer">Exportar JSON</button>
+            </div>
+            {paintUse && <p className="text-[10px] font-semibold text-amber-700">Modo marcar activo: clic en un edificio · clic de nuevo en el uso para salir</p>}
+          </div>
+        )}
         <p className="text-[9px] leading-snug text-slate-400">Fuentes: Esri World Imagery · © OpenStreetMap contributors · modelos de árbol Poly Haven (CC0)</p>
       </div>
 
