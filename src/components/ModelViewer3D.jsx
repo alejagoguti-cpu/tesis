@@ -44,7 +44,12 @@ import {
   Activity,
   Save,
   Copy,
-  Check
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  ShieldCheck,
+  TreePine,
+  Map
 } from 'lucide-react';
 
 export const DEFAULT_M5_PALETTE = {
@@ -100,6 +105,10 @@ export default function ModelViewer3D({ onSelectModule }) {
   const [simulationSpeed, setSimulationSpeed] = useState(0.4);
   const simulationSpeedRef = useRef(0.4);
   const cartagenaTerritoryRef = useRef(null);
+
+  // Módulo Interactivo: Plan Maestro Territorial (Articulación, Parque Ecológico, Colegio y Senderos)
+  const [showMasterplanPanel, setShowMasterplanPanel] = useState(true);
+  const [activeMasterplanStep, setActiveMasterplanStep] = useState(0);
 
   // Parámetros Solares Fijados (Acimut 48°, Altura 23°, Intensidad 1.7x)
   const [sunAzimuth, setSunAzimuth] = useState(48);
@@ -1542,6 +1551,213 @@ export default function ModelViewer3D({ onSelectModule }) {
           </div>
         )}
       </div>
+
+      {/* ========================================================================= */}
+      {/* 3. TOOLTIP & TARJETA INTERACTIVA ANIMADA: PLAN MAESTRO & PARQUE ECOLÓGICO */}
+      {/* ========================================================================= */}
+      {showMasterplanPanel && (
+        <div className="absolute top-4 right-4 z-[450] w-96 max-w-[calc(100vw-2rem)] pointer-events-auto animate-fade-in font-sans">
+          <div className="glass-dark rounded-3xl p-5 text-white shadow-2xl border border-white/15 backdrop-blur-2xl transition-all duration-300">
+            
+            {/* Header con Badge y Botón de Minimizar */}
+            <div className="flex items-start justify-between border-b border-white/10 pb-3 mb-3">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-400 flex items-center justify-center text-teal-300 shadow-sm animate-pulse">
+                  <Compass className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-teal-400 font-bold block">
+                    Propuesta Territorial 2026
+                  </span>
+                  <h3 className="font-bold text-sm text-white">
+                    Plan Maestro Tierra Bomba
+                  </h3>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowMasterplanPanel(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer text-xs font-mono"
+                title="Minimizar panel del Plan Maestro"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Párrafo Introductorio Oficial */}
+            <p className="text-[11px] leading-relaxed text-slate-200 mb-3 bg-white/5 p-2.5 rounded-xl border border-white/5">
+              El <b>plan maestro</b> representa la articulación territorial de nuestra propuesta: organiza áreas residenciales, equipamiento educativo y espacios colectivos en relación con los asentamientos existentes evaluando la seguridad del suelo, topografía, accesibilidad y condiciones ambientales.
+            </p>
+
+            {/* Tabs / Pasos del Tour con Iconos */}
+            <div className="grid grid-cols-5 gap-1 mb-3 p-1 rounded-xl bg-black/30 border border-white/5">
+              {[
+                { label: 'Eje', icon: Home, idx: 0, title: 'Organización' },
+                { label: 'Riesgo', icon: ShieldCheck, idx: 1, title: 'Reubicación' },
+                { label: 'Rutas', icon: Map, idx: 2, title: 'Senderos' },
+                { label: 'Parque', icon: TreePine, idx: 3, title: 'Parque Ecológico' },
+                { label: 'Colegio', icon: GraduationCap, idx: 4, title: 'Articulación' },
+              ].map(tab => {
+                const Icon = tab.icon;
+                const isActive = activeMasterplanStep === tab.idx;
+                return (
+                  <button
+                    key={tab.idx}
+                    onClick={() => setActiveMasterplanStep(tab.idx)}
+                    className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-lg text-[10px] font-mono transition-all cursor-pointer ${
+                      isActive 
+                        ? 'bg-teal-500 text-slate-950 font-bold shadow-md scale-102' 
+                        : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    }`}
+                    title={tab.title}
+                  >
+                    <Icon className="w-3.5 h-3.5 mb-0.5" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Contenido Dinámico según el Paso Seleccionado */}
+            <div className="space-y-2.5 min-h-[140px]">
+              {activeMasterplanStep === 0 && (
+                <div className="animate-fade-in space-y-2 text-xs">
+                  <div className="flex items-center space-x-2 text-teal-300 font-bold font-mono text-[11px]">
+                    <span className="w-2 h-2 rounded-full bg-teal-400 animate-ping" />
+                    <span>1. Organización Territorial & Suelo Seguro</span>
+                  </div>
+                  <ul className="space-y-1.5 text-slate-200 text-[11px] leading-snug">
+                    <li className="flex items-start space-x-1.5">
+                      <span className="text-teal-400 font-bold">➔</span>
+                      <span><b>Localización estratégica:</b> Evaluación de seguridad del suelo, topografía (+22m cota resiliente) y accesibilidad.</span>
+                    </li>
+                    <li className="flex items-start space-x-1.5">
+                      <span className="text-teal-400 font-bold">➔</span>
+                      <span><b>Disponibilidad de servicios:</b> Proximidad a las actividades cotidianas, pesca responsable y dinámica comunitaria.</span>
+                    </li>
+                  </ul>
+                </div>
+              )}
+
+              {activeMasterplanStep === 1 && (
+                <div className="animate-fade-in space-y-2 text-xs">
+                  <div className="flex items-center space-x-2 text-rose-300 font-bold font-mono text-[11px]">
+                    <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping" />
+                    <span>2. Reubicación y Mitigación de Riesgo</span>
+                  </div>
+                  <ul className="space-y-1.5 text-slate-200 text-[11px] leading-snug">
+                    <li className="flex items-start space-x-1.5">
+                      <span className="text-rose-400 font-bold">➔</span>
+                      <span><b>Hogares en riesgo:</b> Reubicación respaldada de familias cuyas viviendas no puedan mantenerse seguras por erosión costera (franja 500m).</span>
+                    </li>
+                    <li className="flex items-start space-x-1.5">
+                      <span className="text-rose-400 font-bold">➔</span>
+                      <span><b>Criterio de suelo liberado:</b> Las áreas desalojadas se integran al parque ecológico de conservación y <b>no volverán a ser ocupadas</b>.</span>
+                    </li>
+                  </ul>
+                </div>
+              )}
+
+              {activeMasterplanStep === 2 && (
+                <div className="animate-fade-in space-y-2 text-xs">
+                  <div className="flex items-center space-x-2 text-cyan-300 font-bold font-mono text-[11px]">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                    <span>3. Senderos Peatonales & Espacio Colectivo</span>
+                  </div>
+                  <ul className="space-y-1.5 text-slate-200 text-[11px] leading-snug">
+                    <li className="flex items-start space-x-1.5">
+                      <span className="text-cyan-400 font-bold">➔</span>
+                      <span><b>Recorridos peatonales claros:</b> Conectan las viviendas con el colegio, plazas colectivas y el muelle de conectividad limpia.</span>
+                    </li>
+                    <li className="flex items-start space-x-1.5">
+                      <span className="text-cyan-400 font-bold">➔</span>
+                      <span><b>Gradiente de privacidad:</b> Clara diferenciación entre espacios privados, áreas educativas de acceso controlado y lugares de encuentro común.</span>
+                    </li>
+                  </ul>
+                </div>
+              )}
+
+              {activeMasterplanStep === 3 && (
+                <div className="animate-fade-in space-y-2 text-xs">
+                  <div className="flex items-center space-x-2 text-emerald-300 font-bold font-mono text-[11px]">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span>4. Visión de Futuro: Parque Ecológico Insular</span>
+                  </div>
+                  <ul className="space-y-1.5 text-slate-200 text-[11px] leading-snug">
+                    <li className="flex items-start space-x-1.5">
+                      <span className="text-emerald-400 font-bold">➔</span>
+                      <span><b>Barreras naturales:</b> Protección y restauración de ecosistemas costeros (manglares, playas y vegetación nativa frente al mar).</span>
+                    </li>
+                    <li className="flex items-start space-x-1.5">
+                      <span className="text-emerald-400 font-bold">➔</span>
+                      <span><b>Ecoturismo y pesca:</b> Oportunidades sostenibles para los habitantes sin desplazar a la comunidad.</span>
+                    </li>
+                  </ul>
+                </div>
+              )}
+
+              {activeMasterplanStep === 4 && (
+                <div className="animate-fade-in space-y-2 text-xs">
+                  <div className="flex items-center space-x-2 text-purple-300 font-bold font-mono text-[11px]">
+                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
+                    <span>5. El Colegio como Nodo de Articulación</span>
+                  </div>
+                  <ul className="space-y-1.5 text-slate-200 text-[11px] leading-snug">
+                    <li className="flex items-start space-x-1.5">
+                      <span className="text-purple-400 font-bold">➔</span>
+                      <span><b>Punto de encuentro:</b> Articula la comunidad con el parque ecológico: un lugar desde donde se aprende a cuidar el territorio.</span>
+                    </li>
+                    <li className="flex items-start space-x-1.5">
+                      <span className="text-purple-400 font-bold">➔</span>
+                      <span><b>Estructura integrada:</b> Vivienda, educación, espacio público y naturaleza como un <b>mismo sistema simbiótico</b>.</span>
+                    </li>
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Navegación Siguiente / Anterior */}
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/10">
+              <button
+                onClick={() => setActiveMasterplanStep(s => (s > 0 ? s - 1 : 4))}
+                className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 text-[11px] font-mono flex items-center space-x-1 cursor-pointer transition-colors"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Anterior</span>
+              </button>
+              <div className="flex items-center space-x-1">
+                {[0, 1, 2, 3, 4].map(idx => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveMasterplanStep(idx)}
+                    className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
+                      activeMasterplanStep === idx ? 'bg-teal-400 w-4' : 'bg-white/20'
+                    }`}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={() => setActiveMasterplanStep(s => (s < 4 ? s + 1 : 0))}
+                className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-bold text-[11px] font-mono flex items-center space-x-1 cursor-pointer transition-colors shadow-sm"
+              >
+                <span>Siguiente</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Botón flotante para reabrir panel si fue cerrado */}
+      {!showMasterplanPanel && (
+        <button
+          onClick={() => setShowMasterplanPanel(true)}
+          className="absolute top-4 right-4 z-[400] glass-dark px-3 py-1.5 rounded-xl text-xs font-mono font-bold text-teal-300 border border-teal-400/40 shadow-2xl flex items-center space-x-1.5 hover:bg-white/20 transition-all cursor-pointer animate-fade-in"
+        >
+          <Compass className="w-3.5 h-3.5 text-teal-400" />
+          <span>📍 Ver Plan Maestro & Puntos Clave</span>
+        </button>
+      )}
 
       {/* Floating Bottom Center: Orbit & Zoom Instruction Pill */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[400] pointer-events-none hidden md:block">

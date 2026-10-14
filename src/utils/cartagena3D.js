@@ -634,29 +634,30 @@ export async function buildCartagenaTerritoryScene({
     masterplanGroup.add(dot);
   });
 
-  // D. Corredores Ecológicos (Flechas 3D Verdes de Conexión Meseta -> Mar)
+  // D. Corredores Ecológicos y Senderos Peatonales (Flechas 3D Animadas con Brillo)
   function create3DArrow(fromLonLat, toLonLat, colorHex = 0x10b981) {
-    const p1 = lonLatToVector3(fromLonLat[0], fromLonLat[1], 0.5);
-    const p2 = lonLatToVector3(toLonLat[0], toLonLat[1], 0.5);
+    const p1 = lonLatToVector3(fromLonLat[0], fromLonLat[1], 0.6);
+    const p2 = lonLatToVector3(toLonLat[0], toLonLat[1], 0.6);
     const dir = new THREE.Vector3().subVectors(p2, p1);
     const len = dir.length();
     
-    const shaftLen = len * 0.75;
-    const headLen = len * 0.25;
+    const shaftLen = len * 0.76;
+    const headLen = len * 0.24;
 
-    const shaftGeo = new THREE.CylinderGeometry(0.12, 0.12, shaftLen, 8);
+    const shaftGeo = new THREE.CylinderGeometry(0.18, 0.18, shaftLen, 10);
     shaftGeo.translate(0, shaftLen / 2, 0);
     shaftGeo.rotateX(Math.PI / 2);
 
-    const headGeo = new THREE.ConeGeometry(0.35, headLen, 12);
+    const headGeo = new THREE.ConeGeometry(0.55, headLen, 14);
     headGeo.translate(0, headLen / 2, 0);
     headGeo.rotateX(Math.PI / 2);
 
     const arrowMat = new THREE.MeshStandardMaterial({
       color: colorHex,
       emissive: colorHex,
-      emissiveIntensity: 0.5,
-      roughness: 0.3,
+      emissiveIntensity: 0.9,
+      roughness: 0.2,
+      metalness: 0.2
     });
 
     const arrowGroup = new THREE.Group();
@@ -672,49 +673,58 @@ export async function buildCartagenaTerritoryScene({
     return arrowGroup;
   }
 
-  // Corredor 1: Meseta -> Borde Norte / Punta Arenas
-  masterplanGroup.add(create3DArrow([-75.5745, 10.3745], [-75.5760, 10.3810], 0x10b981));
-  // Corredor 2: Meseta -> Bahía Este / Caño de Oro
-  masterplanGroup.add(create3DArrow([-75.5730, 10.3745], [-75.5685, 10.3730], 0x059669));
-  // Corredor 3: Meseta -> Costa Occidental / Balneario
-  masterplanGroup.add(create3DArrow([-75.5760, 10.3740], [-75.5815, 10.3740], 0x14b8a6));
+  // 1. Sendero Conexión: Asentamiento Punta Arenas -> Equipamiento Educativo & Cisterna
+  masterplanGroup.add(create3DArrow([-75.5760, 10.3810], [-75.5745, 10.3755], 0x06b6d4));
+  // 2. Sendero Conexión: Colegio / Equipamiento -> Viviendas Reubicadas en Suelo Seguro
+  masterplanGroup.add(create3DArrow([-75.5745, 10.3755], [-75.5725, 10.3770], 0x3b82f6));
+  // 3. Corredor Ecológico: Meseta Segura -> Parque Ecológico Central & Reserva
+  masterplanGroup.add(create3DArrow([-75.5745, 10.3755], [-75.5760, 10.3730], 0x10b981));
+  // 4. Conexión Paisajística y Productiva: Meseta -> Caño de Oro / Ecoturismo & Pesca
+  masterplanGroup.add(create3DArrow([-75.5730, 10.3745], [-75.5685, 10.3730], 0x14b8a6));
+  // 5. Conexión de Seguridad: Borde en Riesgo (500m) -> Meseta Resiliente (+22m)
+  masterplanGroup.add(create3DArrow([-75.5780, 10.3770], [-75.5745, 10.3745], 0xf59e0b));
 
-  // E. Beacons / Hotspots 3D Estratégicos con Anillos Luminosos
+  // E. Beacons / Hotspots 3D Estratégicos del Plan Maestro
   const hotspotsData = [
     {
-      id: "colegio",
-      title: "Colegio & Cisterna 450.000 L",
+      id: "organizacion",
+      title: "Organización Territorial & Suelo Seguro",
       coords: [-75.5745, 10.3755],
       color: 0x0d9488,
-      height: 3.5,
+      height: 4.2,
+      category: "Eje Central"
     },
     {
-      id: "viviendas",
-      title: "120 Viviendas Palafíticas",
-      coords: [-75.5725, 10.3770],
-      color: 0xe11d48,
-      height: 3.0,
+      id: "reubicacion",
+      title: "Reubicación & Franja de Riesgo (500m)",
+      coords: [-75.5775, 10.3785],
+      color: 0xef4444,
+      height: 3.8,
+      category: "Seguridad y Adaptación"
     },
     {
-      id: "reserva",
-      title: "Parque Ecológico Central",
-      coords: [-75.5760, 10.3730],
-      color: 0x16a34a,
-      height: 2.8,
+      id: "conectividad",
+      title: "Senderos Peatonales & Espacio Colectivo",
+      coords: [-75.5730, 10.3765],
+      color: 0x3b82f6,
+      height: 3.6,
+      category: "Recorridos y Conexión"
     },
     {
-      id: "borde_erosion",
-      title: "Franja 500m & Reforestación Manglar",
-      coords: [-75.5750, 10.3800],
-      color: 0xf59e0b,
-      height: 2.5,
+      id: "parque",
+      title: "Parque Ecológico & Barreras Naturales",
+      coords: [-75.5760, 10.3725],
+      color: 0x10b981,
+      height: 4.0,
+      category: "Conservación y Manglares"
     },
     {
-      id: "muelle",
-      title: "Muelle & Conectividad Limpia",
-      coords: [-75.5715, 10.3820],
-      color: 0x0284c7,
-      height: 2.5,
+      id: "colegio_articulador",
+      title: "Colegio como Nodo de Articulación",
+      coords: [-75.5740, 10.3748],
+      color: 0x8b5cf6,
+      height: 4.5,
+      category: "Educación y Comunidad"
     }
   ];
 
@@ -723,39 +733,41 @@ export async function buildCartagenaTerritoryScene({
   hotspotsData.forEach((spot) => {
     const spotPos = lonLatToVector3(spot.coords[0], spot.coords[1], 0.3);
     const spotGroup = new THREE.Group();
+    spotGroup.name = `Hotspot_${spot.id}`;
     spotGroup.position.copy(spotPos);
+    spotGroup.userData = spot;
 
-    // Vertical Pillar
-    const pillarGeo = new THREE.CylinderGeometry(0.08, 0.08, spot.height, 8);
+    // Vertical Glowing Pillar
+    const pillarGeo = new THREE.CylinderGeometry(0.12, 0.12, spot.height, 10);
     pillarGeo.translate(0, spot.height / 2, 0);
     const pillarMat = new THREE.MeshBasicMaterial({
       color: spot.color,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.90,
     });
     const pillar = new THREE.Mesh(pillarGeo, pillarMat);
     spotGroup.add(pillar);
 
-    // Top Orb
-    const orbGeo = new THREE.SphereGeometry(0.35, 16, 16);
+    // Glowing Beacon Orb
+    const orbGeo = new THREE.SphereGeometry(0.48, 16, 16);
     orbGeo.translate(0, spot.height, 0);
     const orbMat = new THREE.MeshStandardMaterial({
       color: spot.color,
       emissive: spot.color,
-      emissiveIntensity: 0.9,
-      roughness: 0.2,
+      emissiveIntensity: 1.2,
+      roughness: 0.1,
     });
     const orb = new THREE.Mesh(orbGeo, orbMat);
     spotGroup.add(orb);
 
     // Pulsating Ground Ring
-    const ringGeo = new THREE.RingGeometry(0.4, 0.7, 32);
+    const ringGeo = new THREE.RingGeometry(0.5, 0.95, 32);
     ringGeo.rotateX(-Math.PI / 2);
-    ringGeo.translate(0, 0.1, 0);
+    ringGeo.translate(0, 0.12, 0);
     const ringMat = new THREE.MeshBasicMaterial({
       color: spot.color,
       transparent: true,
-      opacity: 0.7,
+      opacity: 0.8,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
@@ -766,7 +778,7 @@ export async function buildCartagenaTerritoryScene({
     masterplanGroup.add(spotGroup);
   });
 
-  masterplanGroup.visible = !!activeLayers.masterplan;
+  masterplanGroup.visible = true;
   territoryGroup.add(masterplanGroup);
   animatedObjects.masterplanGroup = masterplanGroup;
   animatedObjects.hotspotRings = hotspotRings;
