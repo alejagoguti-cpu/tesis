@@ -36,8 +36,8 @@ export default function PlanningToolbar({
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <Btn active={mode === 'road'} onClick={() => setMode(mode === 'road' ? 'none' : 'road')}>🛣️ Dibujar vía</Btn>
-        <Btn active={mode === 'zone'} onClick={() => setMode(mode === 'zone' ? 'none' : 'zone')}>🗺️ Dibujar zona</Btn>
+        <Btn active={mode === 'road'} onClick={() => setMode(mode === 'road' ? 'none' : 'road')}>Dibujar vía</Btn>
+        <Btn active={mode === 'zone'} onClick={() => setMode(mode === 'zone' ? 'none' : 'zone')}>Dibujar zona</Btn>
       </div>
 
       {mode === 'road' && (
@@ -111,7 +111,7 @@ export default function PlanningToolbar({
             <div key={z.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
               <span className="w-3 h-3 rounded-full shrink-0" style={{ background: t.color }} />
               <span className="flex-1 text-xs font-medium text-slate-800 truncate">{z.name || t.name}</span>
-              <button onClick={() => onDeleteZone(z.id)} className="text-rose-600 hover:text-rose-800 text-xs cursor-pointer" title="Eliminar zona">🗑</button>
+              <button onClick={() => onDeleteZone(z.id)} className="text-rose-600 hover:text-rose-800 text-xs font-bold cursor-pointer px-1" title="Eliminar zona">X</button>
             </div>
           );
         })}
@@ -119,7 +119,7 @@ export default function PlanningToolbar({
           <div key={r.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
             <span className="w-3 h-1.5 rounded-full shrink-0 bg-amber-500" />
             <span className="flex-1 text-xs font-medium text-slate-800 truncate">Vía {i + 1} · {(r.width * metersPerUnit).toFixed(0)} m</span>
-            <button onClick={() => onDeleteRoad(r.id)} className="text-rose-600 hover:text-rose-800 text-xs cursor-pointer" title="Eliminar vía">🗑</button>
+            <button onClick={() => onDeleteRoad(r.id)} className="text-rose-600 hover:text-rose-800 text-xs font-bold cursor-pointer px-1" title="Eliminar vía">X</button>
           </div>
         ))}
       </div>

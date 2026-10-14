@@ -47,13 +47,16 @@ function saveTrees(key, list) {
   } catch (err) {}
 }
 
-// Datos de diagnóstico arquitectónico para las 3 viviendas analizadas
+// Datos de diagnóstico arquitectónico y territorial (Viviendas, Colegio y Conclusiones)
 const HOUSES_DATA = [
   {
     id: 1,
     meshName: 'Mesh_House_1',
-    title: 'Vivienda 01 · Borde Costero',
-    sector: 'Punta Arenas',
+    title: 'Vivienda 01',
+    buttonLabel: 'Vivienda 01',
+    sector: '',
+    subtitle: 'Diagnóstico Arquitectónico y Estructural',
+    badge: 'ESTADO ACTUAL DE LA VIVIENDA',
     coordsLocal: [-586.76, -582.5, 3.95],
     area: '68 m²',
     altura: '1 nivel (3.2 m)',
@@ -90,8 +93,11 @@ const HOUSES_DATA = [
   {
     id: 2,
     meshName: 'Mesh_House_2',
-    title: 'Vivienda 02 · Núcleo Urbano Tradicional',
-    sector: 'Centro Comunitario',
+    title: 'Vivienda 02',
+    buttonLabel: 'Vivienda 02',
+    sector: '',
+    subtitle: 'Diagnóstico Arquitectónico y Estructural',
+    badge: 'ESTADO ACTUAL DE LA VIVIENDA',
     coordsLocal: [-144.64, 177.22, 26.14],
     area: '82 m²',
     altura: '1 nivel + mezanina (3.8 m)',
@@ -128,8 +134,11 @@ const HOUSES_DATA = [
   {
     id: 3,
     meshName: 'Mesh_House_3',
-    title: 'Vivienda 03 · Sector Norte',
-    sector: 'Sector Norte',
+    title: 'Vivienda 03',
+    buttonLabel: 'Vivienda 03',
+    sector: '',
+    subtitle: 'Diagnóstico Arquitectónico y Estructural',
+    badge: 'ESTADO ACTUAL DE LA VIVIENDA',
     coordsLocal: [38.92, 654.19, 7.15],
     area: '74 m²',
     altura: '1 nivel con pilotes de borde (3.5 m)',
@@ -160,6 +169,106 @@ const HOUSES_DATA = [
         desc: 'Corte arquitectónico longitudinal: tabiquería interior, estructura de cubierta y gradiente de ventilación.',
         img: `${cleanBase}assets/vivienda_03_corte.png`,
         tag: 'Corte Constructivo'
+      }
+    }
+  },
+  {
+    id: 4,
+    meshName: 'Mesh_School',
+    title: 'Colegio (Primaria y Secundaria)',
+    buttonLabel: 'Colegio (Primaria y Secundaria)',
+    sector: '',
+    subtitle: 'Institución Educativa de Tierrabomba — Diagnóstico del Estado Actual',
+    badge: 'DIAGNÓSTICO EQUIPAMIENTO EDUCATIVO',
+    coordsLocal: [-250.0, 50.0, 15.0],
+    area: '1.250 m²',
+    altura: '2 niveles (6.4 m)',
+    patologiaPrincipal: 'Severa corrosión del acero estructural en columnas y losas, pérdida total de recubrimiento y riesgo de desplome',
+    sistemaConstructivo: 'Pórticos de concreto armado, mampostería de bloque calado y cubierta metálica sin aislamiento térmico',
+    vulnerabilidad: 'Crítica por cota inundable (+1.5 m.s.n.m.), calor extremo en aulas (>33°C), déficit de espacios y ausencia de acueducto',
+    tabs: {
+      foto: {
+        title: 'Edificio Escolar Existente — Fachada y Borde Costero',
+        desc: 'Edificio de dos niveles frente a la costa sobre suelo arenoso no consolidado. Enfrenta la erosión marítima y la intemperie salina permanente.',
+        img: `${cleanBase}assets/colegio_deterioro_1.jpg`,
+        tag: 'Edificio Principal'
+      },
+      planta: {
+        title: 'Corrosión Estructural — Columnas y Vigas',
+        desc: 'Desprendimiento total del recubrimiento de concreto y corrosión avanzada en aceros de refuerzo y estribos con cintas de acordonamiento preventivo.',
+        img: `${cleanBase}assets/colegio_deterioro_columnas.jpg`,
+        tag: 'Patología Estructural'
+      },
+      axono: {
+        title: 'Condición de Aulas y Confort Térmico',
+        desc: 'Hacinamiento de estudiantes de primaria y secundaria en aulas con temperaturas superiores a 33°C, ventilación deficiente y mobiliario deteriorado.',
+        img: `${cleanBase}assets/diag_colegio_aula.jpg`,
+        tag: 'Habitabilidad Escolar'
+      },
+      corte: {
+        title: 'Déficit de Aulas — Clases al Aire Libre',
+        desc: 'Sobrecupo estudiantil (350 alumnos) que obliga a dictar clases a la intemperie bajo la sombra de la fachada sobre el suelo sin pavimentar.',
+        img: `${cleanBase}assets/diag_colegio_clase_exterior.jpg`,
+        tag: 'Déficit Espacial'
+      }
+    }
+  },
+  {
+    id: 5,
+    meshName: 'Mesh_Conclusions',
+    title: 'Conclusiones: Territorio de Transición',
+    buttonLabel: 'Conclusiones: Territorio de Transición',
+    sector: '',
+    subtitle: 'Tierra Bomba · Análisis Habitacional y Dinámicas Territoriales',
+    badge: 'SÍNTESIS DE INVESTIGACIÓN TERRITORIAL',
+    coordsLocal: [0, 0, 0],
+    isConclusions: true,
+    conclusionesList: [
+      {
+        titulo: 'Adaptación a la falta de servicios',
+        texto: 'Desarrollan estrategias cotidianas para acceder y utilizar el agua en las actividades domésticas y productivas.'
+      },
+      {
+        titulo: 'Almacenamiento',
+        texto: 'Acumulación y reserva familiar continua en pimpinas ante la ausencia histórica de una red submarina de acueducto potable.'
+      },
+      {
+        titulo: 'Crecimiento de la vivienda',
+        texto: 'Se amplía y transforma progresivamente según las necesidades de cada familia y los recursos disponibles a lo largo del tiempo.'
+      },
+      {
+        titulo: 'Relación interior-exterior',
+        texto: 'La isla no puede analizarse únicamente desde sus límites físicos. Su territorio se extiende también a través de las rutas marítimas, los intercambios cotidianos, las relaciones familiares, las actividades económicas y los vínculos históricos que conectan sus asentamientos con Cartagena y con otros lugares del sistema insular.'
+      },
+      {
+        titulo: 'Uso del porche y Espacio público',
+        texto: 'El espacio entre casa y casa genera sombra bioclimática y se convierte en el lugar fundamental donde ocurre gran parte de la vida social de la comunidad.'
+      }
+    ],
+    tabs: {
+      foto: {
+        title: 'Lámina de Síntesis — Territorio de Transición',
+        desc: 'Levantamiento analítico integral: relaciones espaciales del hábitat, dinámicas de crecimiento progresivo y articulación territorial insular.',
+        img: `${cleanBase}assets/territorio_transicion_conclusiones.jpg`,
+        tag: 'Lámina Territorial'
+      },
+      planta: {
+        title: 'Adaptación Hídrica y Almacenamiento en Pimpinas',
+        desc: 'Estrategias de subsistencia cotidiana: acarreo marítimo y terrestre de agua y almacenamiento descentralizado en tanques y pimpinas.',
+        img: `${cleanBase}assets/territorio_transicion_conclusiones.jpg`,
+        tag: 'Servicios & Agua'
+      },
+      axono: {
+        title: 'Crecimiento Progresivo de la Vivienda',
+        desc: 'Esquema de autoconstrucción por etapas que responde a los ciclos económicos familiares y al incremento de habitantes por predio.',
+        img: `${cleanBase}assets/territorio_transicion_conclusiones.jpg`,
+        tag: 'Hábitat Progresivo'
+      },
+      corte: {
+        title: 'Porche, Callejón y Conexión Insular',
+        desc: 'El callejón sombreado y el porche exterior como centros de cohesión vecinal articulados a las rutas marítimas hacia Cartagena.',
+        img: `${cleanBase}assets/territorio_transicion_conclusiones.jpg`,
+        tag: 'Espacio Público'
       }
     }
   }
@@ -929,7 +1038,7 @@ function RenderViewer({
         });
 
         // 4. CREAR LAS 3 VIVIENDAS DIAGNÓSTICO EN COLOR ROJO SUAVE CON VOLUMETRÍA Y MARCADORES BEACON
-        HOUSES_DATA.forEach((house) => {
+        HOUSES_DATA.filter((h) => h.id <= 3).forEach((house) => {
           const [hx, hy, hz] = house.coordsLocal;
           const group = new THREE.Group();
           group.name = `Group_${house.meshName}`;
@@ -1945,8 +2054,8 @@ export default function RevitModule() {
       {/* Pantalla de Carga interactiva */}
       {isLoading && (
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-md space-y-4">
-          <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shadow-2xl animate-pulse">
-            <span className="text-3xl">🏝️</span>
+          <div className="w-14 h-14 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shadow-2xl">
+            <div className="w-8 h-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
           </div>
           <div className="text-center space-y-1">
             <p className="text-white font-extrabold text-base tracking-wide">
@@ -1963,7 +2072,7 @@ export default function RevitModule() {
             />
           </div>
           <p className="text-[11px] font-mono text-slate-300 text-center max-w-sm">
-            Isla orgánica en pasto natural claro, cubos en blanco puro, vías de arena, árboles de render y 3 viviendas diagnósticas.
+            Isla orgánica en pasto natural claro, cubos en blanco puro, vías de arena, árboles de render y diagnósticos de vivienda y equipamiento.
           </p>
         </div>
       )}
@@ -1972,11 +2081,11 @@ export default function RevitModule() {
       <div className="absolute top-4 left-4 z-10 pointer-events-none flex flex-col space-y-1">
         <div className="flex items-center space-x-2">
           <span className="px-2.5 py-0.5 rounded-md bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-emerald-400 border border-slate-300 dark:border-slate-700 font-mono text-[10px] font-bold tracking-wider uppercase backdrop-blur-md shadow-sm">
-            MÓDULO 05 · RENDER REVIT BIM (DIURNO)
+            MÓDULO 03 · MODELO REVIT TIERRA BOMBA
           </span>
           <span className="px-2 py-0.5 rounded-md bg-rose-900/80 text-rose-200 border border-rose-700 font-mono text-[10px] backdrop-blur-md shadow-sm flex items-center space-x-1">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
-            <span>3 Viviendas Analizadas</span>
+            <span>Diagnóstico Arquitectónico</span>
           </span>
         </div>
         <h1 className="text-slate-900 font-extrabold text-xl sm:text-2xl tracking-tight drop-shadow-sm">
@@ -2020,7 +2129,7 @@ export default function RevitModule() {
           }`}
           title="Mostrar u ocultar los árboles de render distribuidos por la isla"
         >
-          <span>{treesVisible ? '🌲 Árboles Render ON' : '🌱 Árboles OFF'}</span>
+          <span>{treesVisible ? 'Árboles Render ON' : 'Árboles OFF'}</span>
         </button>
 
         {/* Propuesta territorial */}
@@ -2029,7 +2138,7 @@ export default function RevitModule() {
           className={'px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md flex items-center space-x-1.5 cursor-pointer ' + (showMasterplan ? 'bg-amber-500 text-white border-amber-300' : 'bg-white/90 hover:bg-white text-slate-800 border-slate-300')}
           title="Propuesta territorial 2026 · Plan Maestro Tierra Bomba"
         >
-          <span>{showMasterplan ? 'Cerrar Propuesta' : '📍 Propuesta territorial'}</span>
+          <span>{showMasterplan ? 'Cerrar Propuesta' : 'Propuesta territorial'}</span>
         </button>
 
         {/* Section Box tipo Revit */}
@@ -2042,7 +2151,7 @@ export default function RevitModule() {
           className={'px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border transition-all shadow-md flex items-center space-x-1.5 cursor-pointer ' + (showSectionPanel ? 'bg-orange-600 text-white border-orange-400' : 'bg-white/90 hover:bg-white text-slate-800 border-slate-300')}
           title="Caja de sección para hacer cortes del modelo, como en Revit"
         >
-          <span>{showSectionPanel ? 'Cerrar Section Box' : '✂️ Section Box'}</span>
+          <span>{showSectionPanel ? 'Cerrar Section Box' : 'Section Box'}</span>
         </button>
 
         {/* Herramienta de vías y zonificación */}
@@ -2059,7 +2168,7 @@ export default function RevitModule() {
           }`}
           title="Dibujar vías nuevas y zonificar el territorio"
         >
-          <span>{showPlanToolbar ? 'Cerrar Planeación' : '🗺️ Vías y Zonas'}</span>
+          <span>{showPlanToolbar ? 'Cerrar Planeación' : 'Vías y Zonas'}</span>
         </button>
 
         {/* Herramienta de Vegetación */}
@@ -2072,7 +2181,7 @@ export default function RevitModule() {
           }`}
           title="Herramienta interactiva para plantar y escalar árboles"
         >
-          <span>{showTreeToolbar ? 'Cerrar Vegetación' : '🌱 Plantar Árboles'}</span>
+          <span>{showTreeToolbar ? 'Cerrar Vegetación' : 'Plantar Árboles'}</span>
         </button>
 
         {/* BOTÓN: DEJAR ASÍ PARA SIEMPRE (GUARDAR VISTA) */}
@@ -2081,7 +2190,7 @@ export default function RevitModule() {
           className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 border border-amber-300 backdrop-blur-md transition-all shadow-lg flex items-center space-x-1.5 cursor-pointer"
           title="Fijar y guardar esta perspectiva como la vista predeterminada para siempre"
         >
-          <span>📌 Dejar así para siempre</span>
+          <span>Dejar así para siempre</span>
         </button>
 
         {/* Botón para alternar color de las vías: Arena Realista / Azul Revit */}
@@ -2094,7 +2203,7 @@ export default function RevitModule() {
           }`}
           title="Alternar textura de las vías entre Arena Realista y Azul de selección de Revit"
         >
-          <span>🛣️ Vías: {roadColorMode === 'blue' ? 'Azul Revit' : 'Arena Realista'}</span>
+          <span>Vías: {roadColorMode === 'blue' ? 'Azul Revit' : 'Arena Realista'}</span>
         </button>
 
         <button
@@ -2106,7 +2215,7 @@ export default function RevitModule() {
           }`}
           title="Pausar o activar movimiento del mar"
         >
-          {waveActive ? '🌊 Oleaje Activo' : '⏸ Mar Pausado'}
+          {waveActive ? 'Oleaje Activo' : 'Mar Pausado'}
         </button>
 
         {/* Tono del Mar Caribe */}
@@ -2120,7 +2229,7 @@ export default function RevitModule() {
           className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold backdrop-blur-md border border-cyan-300 bg-cyan-500/80 hover:bg-cyan-500 text-white transition-all shadow-md flex items-center space-x-1.5 cursor-pointer"
           title="Alternar tono caribeño del agua"
         >
-          <span>💧 Tono Mar Caribe</span>
+          <span>Tono Mar Caribe</span>
         </button>
 
         <button
@@ -2140,15 +2249,14 @@ export default function RevitModule() {
           className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 backdrop-blur-md transition-all shadow-md cursor-pointer"
           title={isFullscreen ? 'Salir de pantalla completa (Esc)' : 'Expandir a pantalla completa'}
         >
-          {isFullscreen ? '✕ Salir' : '⛶ Pantalla completa'}
+          {isFullscreen ? 'Salir pantalla completa' : 'Pantalla completa'}
         </button>
       </div>
 
       {/* TOAST NOTIFICACIÓN AL GUARDAR VISTA */}
       {saveToast && (
         <div className="absolute top-16 right-4 z-40 bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-2xl font-mono text-xs font-bold flex items-center space-x-2 animate-bounce border border-emerald-400">
-          <span>✨</span>
-          <span>¡Vista guardada para siempre! Esta será la perspectiva al abrir el visor.</span>
+          <span>Vista guardada para siempre. Esta será la perspectiva al abrir el visor.</span>
         </div>
       )}
 
@@ -2217,9 +2325,8 @@ export default function RevitModule() {
       {showTreeToolbar && (
         <div className="absolute top-32 right-4 z-30 flex flex-col space-y-2 bg-white/95 dark:bg-slate-900/95 p-3 rounded-2xl border border-emerald-500/40 shadow-2xl backdrop-blur-md w-72">
           <div className="flex items-center justify-between pb-1 border-b border-slate-200 dark:border-slate-800">
-            <span className="text-xs font-mono font-bold text-slate-800 dark:text-emerald-400 flex items-center space-x-1.5">
-              <span>🌱</span>
-              <span>Herramienta Vegetación</span>
+            <span className="text-xs font-mono font-bold text-slate-800 dark:text-emerald-400">
+              Herramienta Vegetación
             </span>
             <span className="text-[10px] font-mono text-slate-500">{treesList.length} plantados</span>
           </div>
@@ -2232,7 +2339,7 @@ export default function RevitModule() {
                 : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100'
             }`}
           >
-            <span>{isPlantingTree ? '✓ Modo Plantar Activo' : '➕ Click para Plantar'}</span>
+            <span>{isPlantingTree ? 'Modo Plantar Activo' : 'Click para Plantar'}</span>
           </button>
 
           <div className="space-y-1">
@@ -2258,7 +2365,7 @@ export default function RevitModule() {
                 onClick={() => handleDeleteTree(selectedTreeId)}
                 className="w-full py-1 text-center rounded-lg text-[11px] font-mono font-bold bg-rose-600 hover:bg-rose-500 text-white cursor-pointer"
               >
-                🗑 Eliminar seleccionado
+                Eliminar seleccionado
               </button>
             </div>
           )}
@@ -2274,10 +2381,10 @@ export default function RevitModule() {
         </div>
       )}
 
-      {/* SELECTOR DIRECTO DE LAS 3 VIVIENDAS EN LA ISLA */}
+      {/* SELECTOR DIRECTO DE DIAGNÓSTICOS EN LA ISLA */}
       <div className="absolute top-32 left-4 z-10 flex flex-col space-y-2 pointer-events-none">
         <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800 bg-white/80 backdrop-blur px-2 py-0.5 rounded-md border border-slate-300 w-fit">
-          Diagnóstico de Viviendas
+          Diagnósticos y Análisis
         </span>
         <div className="flex flex-col space-y-1.5 pointer-events-auto">
           {HOUSES_DATA.map((h) => (
@@ -2293,8 +2400,16 @@ export default function RevitModule() {
                   : 'bg-white/90 hover:bg-white text-slate-800 border border-slate-200 hover:border-rose-300'
               }`}
             >
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping inline-block" />
-              <span>{h.title.split('·')[0].trim()}</span>
+              <span className={`w-2 h-2 rounded-full inline-block ${
+                selectedHouseId === h.id
+                  ? 'bg-white'
+                  : h.id <= 3
+                  ? 'bg-rose-500'
+                  : h.id === 4
+                  ? 'bg-amber-500'
+                  : 'bg-teal-500'
+              }`} />
+              <span>{h.buttonLabel || h.title}</span>
             </button>
           ))}
         </div>
@@ -2317,7 +2432,9 @@ export default function RevitModule() {
             onClick={() => toggleLayer(key)}
             className={'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left transition-all cursor-pointer border ' + (layers[key] ? 'bg-teal-50 border-teal-300' : 'bg-slate-50 border-slate-200 hover:bg-white')}
           >
-            <span className={'w-4 h-4 rounded-md border-2 shrink-0 grid place-items-center text-[10px] font-black ' + (layers[key] ? 'bg-teal-600 border-teal-600 text-white' : 'border-slate-300 text-transparent')}>✓</span>
+            <span className={'w-4 h-4 rounded-md border-2 shrink-0 grid place-items-center ' + (layers[key] ? 'bg-teal-600 border-teal-600' : 'border-slate-300')}>
+              {layers[key] && <span className="w-1.5 h-1.5 rounded-full bg-white block" />}
+            </span>
             <span className="min-w-0">
               <span className="block text-xs font-semibold text-slate-900 truncate">{label}</span>
               <span className="block text-[10px] text-slate-500 truncate">{sub}</span>
@@ -2328,7 +2445,9 @@ export default function RevitModule() {
           onClick={() => { setUsosOn((v) => !v); if (usosOn) setPaintUse(null); }}
           className={'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left transition-all cursor-pointer border ' + (usosOn ? 'bg-teal-50 border-teal-300' : 'bg-slate-50 border-slate-200 hover:bg-white')}
         >
-          <span className={'w-4 h-4 rounded-md border-2 shrink-0 grid place-items-center text-[10px] font-black ' + (usosOn ? 'bg-teal-600 border-teal-600 text-white' : 'border-slate-300 text-transparent')}>✓</span>
+          <span className={'w-4 h-4 rounded-md border-2 shrink-0 grid place-items-center ' + (usosOn ? 'bg-teal-600 border-teal-600' : 'border-slate-300')}>
+            {usosOn && <span className="w-1.5 h-1.5 rounded-full bg-white block" />}
+          </span>
           <span className="min-w-0">
             <span className="block text-xs font-semibold text-slate-900">Usos del suelo</span>
             <span className="block text-[10px] text-slate-500">Edificios por uso y equipamientos</span>
@@ -2346,7 +2465,7 @@ export default function RevitModule() {
                   style={paintUse === u.id ? { '--tw-ring-color': u.color } : undefined}
                 >
                   <span className="w-3 h-3 rounded-sm shrink-0" style={{ background: u.color }} />
-                  <span className="flex-1 font-medium text-slate-800 truncate">{u.icon} {u.name}</span>
+                  <span className="flex-1 font-medium text-slate-800 truncate">{u.name}</span>
                   <span className="text-[10px] font-mono text-slate-500">{usoCounts[u.id] || 0}</span>
                 </button>
               ))}
@@ -2364,50 +2483,68 @@ export default function RevitModule() {
         <p className="text-[9px] leading-snug text-slate-400">Fuentes: Esri World Imagery · © OpenStreetMap contributors · modelos de árbol Poly Haven (CC0)</p>
       </div>
 
-      {/* POPUP DE ANIMACIÓN DINÁMICO: ESTADO ACTUAL DE LA VIVIENDA */}
+      {/* POPUP DE ANIMACIÓN DINÁMICO: ESTADO ACTUAL */}
       {activeHouse && (
         <div className="absolute inset-0 z-50 flex items-center justify-end p-4 sm:p-8 pointer-events-none bg-slate-950/40 backdrop-blur-sm">
-          <div className="pointer-events-auto w-full max-w-2xl max-h-[94vh] flex flex-col rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-rose-500/40 shadow-2xl backdrop-blur-2xl overflow-hidden animate-in slide-in-from-right-4 duration-300">
+          <div className="pointer-events-auto w-full max-w-2xl max-h-[94vh] flex flex-col rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700 shadow-2xl backdrop-blur-2xl overflow-hidden animate-in slide-in-from-right-4 duration-300">
             {/* Cabecera */}
-            <div className="p-4 sm:p-5 bg-gradient-to-r from-rose-950/90 via-slate-900 to-slate-900 border-b border-rose-500/30 flex items-start justify-between">
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 border-b border-slate-700 flex items-start justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 text-lg shadow-inner">
-                  🏠
+                <div className="w-10 h-10 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 text-xs font-mono font-bold shadow-inner">
+                  {activeHouse.id <= 3 ? `V0${activeHouse.id}` : activeHouse.id === 4 ? 'COL' : 'CON'}
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="px-2 py-0.5 rounded-md bg-rose-500 text-white font-mono text-[10px] font-black uppercase tracking-wider">
-                      ESTADO ACTUAL DE LA VIVIENDA
+                    <span className="px-2 py-0.5 rounded-md bg-rose-600 text-white font-mono text-[10px] font-black uppercase tracking-wider">
+                      {activeHouse.badge || 'ESTADO ACTUAL'}
                     </span>
                     <span className="text-slate-400 font-mono text-xs">
                       #{activeHouse.id}
                     </span>
                   </div>
                   <h3 className="text-white font-extrabold text-base sm:text-lg tracking-tight mt-0.5">
-                    {activeHouse.title.split('·')[0].trim()}
+                    {activeHouse.title}
                   </h3>
-                  <p className="text-rose-200 text-xs font-mono">
-                    📍 {activeHouse.sector.split('—')[0].trim()}
-                  </p>
+                  {activeHouse.subtitle && (
+                    <p className="text-rose-200 text-xs font-mono">
+                      {activeHouse.subtitle}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <button
                 onClick={() => setSelectedHouseId(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center transition-all shadow-md cursor-pointer"
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center transition-all shadow-md cursor-pointer font-bold text-sm"
                 title="Cerrar diagnóstico (Esc)"
               >
-                ✕
+                X
               </button>
             </div>
 
             {/* Selector de pestañas */}
             <div className="flex items-center border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-950/50 p-1.5 gap-1 overflow-x-auto">
               {[
-                { id: 'foto', label: '🖼️ Lámina Completa', desc: '1 Foto Integral' },
-                { id: 'planta', label: '📑 Planta', desc: 'Cotas 1:50' },
-                { id: 'axono', label: '📐 Axonometría', desc: 'Isométrica 3D' },
-                { id: 'corte', label: '✂️ Corte', desc: 'Sección' }
+                {
+                  id: 'foto',
+                  label: activeHouse.id === 4 ? 'Sede Principal' : activeHouse.id === 5 ? 'Lámina Síntesis' : 'Lámina Completa',
+                  desc: activeHouse.id === 4 ? 'Edificio Costero' : activeHouse.id === 5 ? 'Territorio Transición' : '1 Foto Integral'
+                },
+                {
+                  id: 'planta',
+                  label: activeHouse.id === 4 ? 'Estructura' : activeHouse.id === 5 ? 'Servicios y Agua' : 'Planta',
+                  desc: activeHouse.id === 4 ? 'Vigas y Columnas' : activeHouse.id === 5 ? 'Pimpinas' : 'Cotas 1:50'
+                },
+                {
+                  id: 'axono',
+                  label: activeHouse.id === 4 ? 'Aulas' : activeHouse.id === 5 ? 'Hábitat Progresivo' : 'Axonometría',
+                  desc: activeHouse.id === 4 ? 'Habitabilidad' : activeHouse.id === 5 ? 'Evolución' : 'Isométrica 3D'
+                },
+                {
+                  id: 'corte',
+                  label: activeHouse.id === 4 ? 'Exterior' : activeHouse.id === 5 ? 'Espacio Público' : 'Corte',
+                  desc: activeHouse.id === 4 ? 'Clases al Sol' : activeHouse.id === 5 ? 'Porche y Callejón' : 'Sección'
+                }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -2443,40 +2580,72 @@ export default function RevitModule() {
               <div className="space-y-3">
                 <div>
                   <h4 className="text-slate-900 dark:text-white font-bold text-sm">
-                    {activeHouse.tabs[activeModalTab].title}
+                    {activeHouse.tabs[activeModalTab]?.title}
                   </h4>
                   <p className="text-slate-600 dark:text-slate-300 text-xs mt-1 leading-relaxed">
-                    {activeHouse.tabs[activeModalTab].desc}
+                    {activeHouse.tabs[activeModalTab]?.desc}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-[11px] font-mono">
-                  <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50">
-                    <span className="text-slate-500 block text-[10px]">ÁREA CONSTRUIDA</span>
-                    <span className="font-bold text-slate-800 dark:text-emerald-400">{activeHouse.area} · {activeHouse.altura}</span>
+                {activeHouse.conclusionesList ? (
+                  <div className="space-y-2.5 pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <h5 className="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-emerald-400">
+                      Conclusiones de la Investigación en Sitio
+                    </h5>
+                    <div className="grid grid-cols-1 gap-2">
+                      {activeHouse.conclusionesList.map((c, idx) => (
+                        <div key={idx} className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60">
+                          <p className="font-bold text-xs text-rose-700 dark:text-rose-400 mb-0.5">
+                            {idx + 1}. {c.titulo}
+                          </p>
+                          <p className="text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
+                            {c.texto}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50">
-                    <span className="text-slate-500 block text-[10px]">SISTEMA CONSTRUCTIVO</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-200">{activeHouse.sistemaConstructivo}</span>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-[11px] font-mono">
+                    <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50">
+                      <span className="text-slate-500 block text-[10px]">
+                        {activeHouse.id === 4 ? 'ÁREA / CAPACIDAD' : 'ÁREA CONSTRUIDA'}
+                      </span>
+                      <span className="font-bold text-slate-800 dark:text-emerald-400">
+                        {activeHouse.area} · {activeHouse.altura}
+                      </span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50">
+                      <span className="text-slate-500 block text-[10px]">SISTEMA CONSTRUCTIVO</span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200">
+                        {activeHouse.sistemaConstructivo}
+                      </span>
+                    </div>
+                    <div className="p-2 col-span-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40">
+                      <span className="text-rose-600 dark:text-rose-400 font-bold block text-[10px]">
+                        PATOLOGÍA & VULNERABILIDAD
+                      </span>
+                      <span className="text-rose-900 dark:text-rose-200 leading-tight block">
+                        {activeHouse.patologiaPrincipal}
+                      </span>
+                    </div>
                   </div>
-                  <div className="p-2 col-span-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40">
-                    <span className="text-rose-600 dark:text-rose-400 font-bold block text-[10px]">PATOLOGÍA & VULNERABILIDAD</span>
-                    <span className="text-rose-900 dark:text-rose-200 leading-tight block">{activeHouse.patologiaPrincipal}</span>
-                  </div>
-                </div>
+                )}
 
-                <div className="pt-2 flex items-center justify-between border-t border-slate-200 dark:border-slate-800">
-                  <button
-                    onClick={() => pdfInputRef.current?.click()}
-                    className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 hover:bg-rose-500 hover:text-white text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition-all flex items-center space-x-1.5 cursor-pointer"
-                    title="Subir PDF de 3 páginas para actualizar las fotos de las casas"
-                  >
-                    <span>📁 Subir PDF con tus láminas</span>
-                  </button>
-                  <span className="text-[10px] font-mono text-slate-500">
-                    1 PDF · 3 hojas (Axono, Planta, Corte)
-                  </span>
-                </div>
+                {activeHouse.id <= 3 && (
+                  <div className="pt-2 flex items-center justify-between border-t border-slate-200 dark:border-slate-800">
+                    <button
+                      onClick={() => pdfInputRef.current?.click()}
+                      className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 hover:bg-rose-500 hover:text-white text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition-all flex items-center space-x-1.5 cursor-pointer"
+                      title="Subir PDF de 3 páginas para actualizar las fotos de las casas"
+                    >
+                      <span>Subir PDF con láminas</span>
+                    </button>
+                    <span className="text-[10px] font-mono text-slate-500">
+                      1 PDF · 3 hojas (Axono, Planta, Corte)
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -2511,7 +2680,7 @@ export default function RevitModule() {
             className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-amber-700 dark:text-amber-300 border border-amber-500/30 transition-all cursor-pointer"
             title="Centrar y enfocar la isla de Tierrabomba"
           >
-            🎯 Centrar Isla
+            Centrar Isla
           </button>
 
           <button
@@ -2519,7 +2688,7 @@ export default function RevitModule() {
             className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition-all cursor-pointer"
             title="Restablecer la vista inicial por defecto si habías fijado una personalizada"
           >
-            ↺ Restablecer
+            Restablecer
           </button>
 
           {modelStats && (

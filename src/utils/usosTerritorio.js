@@ -4,14 +4,14 @@ import * as THREE from 'three';
 // (escuela, hoteles); el resto lo marca el equipo de tesis edificio por edificio (levantamiento en sitio).
 export const USOS = [
   { id: 'vivienda', name: 'Vivienda', color: '#f5b83d', icon: '' },
-  { id: 'comercio', name: 'Comercio / tiendas', color: '#e0483e', icon: '🏪' },
-  { id: 'culto', name: 'Iglesia / culto', color: '#8b5cf6', icon: '⛪' },
-  { id: 'educativo', name: 'Educación', color: '#2f7de1', icon: '🏫' },
-  { id: 'salud', name: 'Salud', color: '#17a673', icon: '🏥' },
-  { id: 'institucional', name: 'Institucional / comunal', color: '#0e9fb8', icon: '🏛️' },
-  { id: 'turismo', name: 'Turismo / alojamiento', color: '#e0559a', icon: '🏨' },
-  { id: 'productivo', name: 'Productivo / depósito', color: '#8a7f73', icon: '🏭' },
-  { id: 'recreativo', name: 'Recreación / deporte', color: '#7cb518', icon: '⚽' }
+  { id: 'comercio', name: 'Comercio / tiendas', color: '#e0483e', icon: '' },
+  { id: 'culto', name: 'Iglesia / culto', color: '#8b5cf6', icon: '' },
+  { id: 'educativo', name: 'Educación', color: '#2f7de1', icon: '' },
+  { id: 'salud', name: 'Salud', color: '#17a673', icon: '' },
+  { id: 'institucional', name: 'Institucional / comunal', color: '#0e9fb8', icon: '' },
+  { id: 'turismo', name: 'Turismo / alojamiento', color: '#e0559a', icon: '' },
+  { id: 'productivo', name: 'Productivo / depósito', color: '#8a7f73', icon: '' },
+  { id: 'recreativo', name: 'Recreación / deporte', color: '#7cb518', icon: '' }
 ];
 
 export const STORAGE_USOS = 'tesis_m5_usos_v1';
