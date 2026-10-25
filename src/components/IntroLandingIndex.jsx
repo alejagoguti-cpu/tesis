@@ -1,47 +1,45 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowRight,
-  ShieldCheck,
-  Droplets,
-  Wind,
-  Layers,
-  Map as MapIcon,
-  Box,
-  Building2,
-  BookOpen,
   Home,
-  Activity,
-  Compass,
+  BookOpen,
+  Box,
+  Map as MapIcon,
+  Ship,
   Waves,
+  Droplets,
+  Building2,
+  Leaf,
+  Trash2,
+  Users,
+  MapPin,
+  Anchor,
   ChevronLeft,
   ChevronRight,
   Image as ImageIcon,
-  Ship,
-  Trash2,
-  Leaf,
-  Users,
-  MapPin,
-  Anchor
+  Activity,
+  Compass,
+  Wind
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
 // Datos de rutas marítimas (lanchas) entre Cartagena y puntos de la isla
 const BOAT_ROUTES = [
-  { name: "Cartagena → Punta Arena", color: "#0d9488", coords: [[10.41, -75.55], [10.39, -75.56], [10.38, -75.57], [10.37, -75.58]], frequency: "Cada 30 min" },
-  { name: "Cartagena → Tierrabomba", color: "#2563eb", coords: [[10.41, -75.55], [10.39, -75.56], [10.38, -75.57], [10.37, -75.58], [10.36, -75.59]], frequency: "Cada 15 min" },
-  { name: "Cartagena → Bocachica", color: "#dc2626", coords: [[10.41, -75.55], [10.35, -75.53], [10.32, -75.58]], frequency: "Cada 1 hora" },
-  { name: "Cartagena → Caño del Oro", color: "#d97706", coords: [[10.41, -75.55], [10.39, -75.56], [10.37, -75.57], [10.36, -75.58], [10.35, -75.59]], frequency: "Cada 45 min" },
+  { name: "Cartagena → Punta Arena", color: "#0d9488", frequency: "Cada 30 min", stops: ["Cartagena", "Punta Arena"] },
+  { name: "Cartagena → Tierrabomba", color: "#2563eb", frequency: "Cada 15 min", stops: ["Cartagena", "Tierrabomba"] },
+  { name: "Cartagena → Bocachica", color: "#dc2626", frequency: "Cada 1 hora", stops: ["Cartagena", "Bocachica"] },
+  { name: "Cartagena → Caño del Oro", color: "#d97706", frequency: "Cada 45 min", stops: ["Cartagena", "Caño del Oro"] },
 ];
 
-// Puntos de concentración de basura (simulados para visualización)
+// Puntos de concentración de basura
 const WASTE_POINTS = [
-  { name: "Punta Arena - Borde costero", lat: 10.375, lng: -75.582, severity: "high", waste: "Plásticos, envases, escombros" },
-  { name: "Caño del Oro - Muelle", lat: 10.362, lng: -75.585, severity: "high", waste: "Orgánicos, plásticos, residuos pesqueros" },
-  { name: "Tierrabomba - Borde sur", lat: 10.355, lng: -75.588, severity: "medium", waste: "Plásticos, vidrio" },
-  { name: "Bocachica - Frente a fuerte", lat: 10.325, lng: -75.585, severity: "medium", waste: "Residuos pesqueros" },
+  { name: "Punta Arena - Borde costero", severity: "high", waste: "Plásticos, envases, escombros" },
+  { name: "Caño del Oro - Muelle", severity: "high", waste: "Orgánicos, plásticos, residuos pesqueros" },
+  { name: "Tierrabomba - Borde sur", severity: "medium", waste: "Plásticos, vidrio" },
+  { name: "Bocachica - Frente a fuerte", severity: "medium", waste: "Residuos pesqueros" },
 ];
 
-// Datos ambientales (biomasa, NDVI, etc.)
+// Datos ambientales
 const ENV_DATA = [
   { name: "Biomasa Meseta (+22m)", value: "65 ha", status: "Saludable", color: "#16a34a", icon: "Leaf" },
   { name: "Biomasa Borde Costero", value: "0%", status: "Crítico", color: "#dc2626", icon: "Leaf" },
@@ -62,21 +60,9 @@ const PROBLEM_GALLERIES = {
     context: "El avance marino, el oleaje directo y las mareas de leva socavan aceleradamente la línea costera de Tierrabomba con tasas de retroceso de hasta 1.8 m/año. Viviendas tradicionales construidas sobre cimientos precarios presentan descalces, fracturas estructurales y peligro inminente de colapso.",
     source: "Expediente Judicial de Gestión del Riesgo & Registro en Sitio (2022–2026)",
     images: [
-      {
-        url: `${import.meta.env.BASE_URL}assets/vivienda_erosion_ruinas.png`,
-        caption: "Ruinas de viviendas socavadas por el oleaje frente a la bahía de Cartagena. Estructuras fracturadas y desmanteladas por el avance marino.",
-        tag: "Colapso Estructural por Socavación"
-      },
-      {
-        url: `${import.meta.env.BASE_URL}assets/vivienda_borde_socavacion.jpg`,
-        caption: "Asentamientos en el borde costero crítico de Tierrabomba. Viviendas autoconstruidas sobre cimientos socavados y muros precarios de contención.",
-        tag: "Viviendas en Peligro Inminente"
-      },
-      {
-        url: `${import.meta.env.BASE_URL}assets/vivienda_costa_tierrabomba.png`,
-        caption: "Franja habitacional de borde en Tierrabomba frente al agua: exposición directa a pleamar, mareas de leva e impacto de trenes de olas.",
-        tag: "Exposición Territorial Costera"
-      }
+      { url: `${import.meta.env.BASE_URL}assets/vivienda_erosion_ruinas.png`, caption: "Ruinas de viviendas socavadas por el oleaje frente a la bahía de Cartagena.", tag: "Colapso Estructural por Socavación" },
+      { url: `${import.meta.env.BASE_URL}assets/vivienda_borde_socavacion.jpg`, caption: "Asentamientos en el borde costero crítico de Tierrabomba.", tag: "Viviendas en Peligro Inminente" },
+      { url: `${import.meta.env.BASE_URL}assets/vivienda_costa_tierrabomba.png`, caption: "Franja habitacional de borde en Tierrabomba frente al agua.", tag: "Exposición Territorial Costera" }
     ]
   },
   agua: {
@@ -86,19 +72,11 @@ const PROBLEM_GALLERIES = {
     badgeLabel: "Déficit Estructural Hídrico",
     title: "Falta de agua potable y alcantarillado",
     description: "La isla no tiene red de agua ni desagües, lo que obliga a la población a comprar agua traída en lanchas.",
-    context: "Tierrabomba sufre un 0% de cobertura en red formal de acueducto y alcantarillado. Los acuíferos locales padecen salinización por intrusión marina, obligando a las familias a comprar pimpinas traídas en lanchas desde Cartagena a costos desproporcionados, acarreándolas a pie por calles sin pavimentar.",
+    context: "Tierrabomba sufre un 0% de cobertura en red formal de acueducto y alcantarillado. Los acuíferos locales padecen salinización por intrusión marina, obligando a las familias a comprar pimpinas traídas en lanchas desde Cartagena a costos desproporcionados.",
     source: "Reportaje Especial Publimetro & Sentencias Corte Constitucional",
     images: [
-      {
-        url: `${import.meta.env.BASE_URL}assets/tierrabomba_acarreo_pimpina.png`,
-        caption: "Acarreo cotidiano de pimpinas de agua dulce al hombro por las calles de Tierrabomba ante la falta absoluta de red de acueducto.",
-        tag: "Acarreo Manual de Agua"
-      },
-      {
-        url: `${import.meta.env.BASE_URL}assets/tierrabomba_publimetro_agua.jpg`,
-        caption: "El diario vivir de las familias de Tierra Bomba: compra y traslado precario de agua dulce traída en barcazas desde Cartagena.",
-        tag: "0% Red Formal de Acueducto"
-      }
+      { url: `${import.meta.env.BASE_URL}assets/tierrabomba_acarreo_pimpina.png`, caption: "Acarreo cotidiano de pimpinas de agua dulce al hombro por las calles de Tierrabomba.", tag: "Acarreo Manual de Agua" },
+      { url: `${import.meta.env.BASE_URL}assets/tierrabomba_publimetro_agua.jpg`, caption: "El diario vivir de las familias de Tierra Bomba: compra y traslado precario de agua dulce traída en barcazas.", tag: "0% Red Formal de Acueducto" }
     ]
   },
   servicios: {
@@ -108,145 +86,93 @@ const PROBLEM_GALLERIES = {
     badgeLabel: "Vulnerabilidad Institucional",
     title: "Falta de servicios públicos y colegios",
     description: "Existe un abandono en la infraestructura de la isla, afectando la educación, la salud y los espacios comunitarios.",
-    context: "El Informe de Calidad de Vida clasifica la infraestructura educativa y comunitaria de Tierra Bomba como deficiente (37,3 puntos). La sede escolar actual sufre severa corrosión de acero estructural en columnas y losas por el ambiente salino, con áreas acordonadas por peligro de desplome y falta de condiciones higiénicas continuas.",
+    context: "El Informe de Calidad de Vida clasifica la infraestructura educativa y comunitaria de Tierra Bomba como deficiente (37,3 puntos). La sede escolar actual sufre severa corrosión de acero estructural en columnas y losas por el ambiente salino.",
     source: "Informe de Calidad de Vida Cartagena (2025) & Diagnóstico en Sitio",
     images: [
-      {
-        url: `${import.meta.env.BASE_URL}assets/colegio_deterioro_columnas.jpg`,
-        caption: "Severa corrosión del acero estructural en columnas y voladizos, pérdida total del recubrimiento de concreto y cintas de acordonamiento por riesgo inminente de colapso.",
-        tag: "Riesgo Estructural & Acordonamiento"
-      },
-      {
-        url: `${import.meta.env.BASE_URL}assets/colegio_deterioro_1.jpg`,
-        caption: "Desprendimiento de mampostería, corrosión de armaduras y cerramiento provisional con madera aglomerada.",
-        tag: "Deterioro Físico Crítico"
-      },
-      {
-        url: `${import.meta.env.BASE_URL}assets/colegio_deterioro_2.png`,
-        caption: "Viga de concreto con acero de refuerzo totalmente expuesto a la salinidad marina y fisuras en elementos portantes.",
-        tag: "Falla Estructural Portante"
-      }
+      { url: `${import.meta.env.BASE_URL}assets/colegio_deterioro_columnas.jpg`, caption: "Severa corrosión del acero estructural en columnas y voladizos.", tag: "Riesgo Estructural & Acordonamiento" },
+      { url: `${import.meta.env.BASE_URL}assets/colegio_deterioro_1.jpg`, caption: "Desprendimiento de mampostería, corrosión de armaduras.", tag: "Deterioro Físico Crítico" },
+      { url: `${import.meta.env.BASE_URL}assets/colegio_deterioro_2.png`, caption: "Viga de concreto con acero de refuerzo totalmente expuesto.", tag: "Falla Estructural Portante" }
     ]
   }
 };
 
 export default function IntroLandingIndex({ onNavigateModule }) {
-  const [selectedNode, setSelectedNode] = useState(null);
   const [activeProblemKey, setActiveProblemKey] = useState(null);
   const [problemSlideIndex, setProblemSlideIndex] = useState(0);
-  const [hoveredNode, setHoveredNode] = useState(null);
-  const [hoveredRelation, setHoveredRelation] = useState(null);
-  const [isShattering, setIsShattering] = useState(false);
-  const [veilActive, setVeilActive] = useState(false);
-  const [scrambleKey, setScrambleKey] = useState(0);
-  const [activeTab, setActiveTab] = useState('territorio'); // 'territorio' | 'problemas' | 'propuesta' | 'datos'
   const [activeEnvTab, setActiveEnvTab] = useState('biomasa');
 
-  const cardRef = useRef(null);
-  const titlePlainRef = useRef(null);
-  const titleGradRef = useRef(null);
-  const svgRef = useRef(null);
-
-  const { thesisNetwork } = projectInfo;
-  const nodes = thesisNetwork?.nodes || [];
-  const relations = thesisNetwork?.relations || [];
-
-  // Keyboard navigation for problem photo gallery modal
-  useEffect(() => {
-    if (!activeProblemKey) return;
-    const activeProb = PROBLEM_GALLERIES[activeProblemKey];
-    if (!activeProb) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        setActiveProblemKey(null);
-      } else if (e.key === 'ArrowLeft') {
-        setProblemSlideIndex((prev) => (prev > 0 ? prev - 1 : activeProb.images.length - 1));
-      } else if (e.key === 'ArrowRight') {
-        setProblemSlideIndex((prev) => (prev < activeProb.images.length - 1 ? prev + 1 : 0));
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeProblemKey]);
-
-  const triggerShatterAndNavigate = (targetModuleId = 'territorio') => {
-    if (isShattering) return;
-    setIsShattering(true);
-    setTimeout(() => {
-      onNavigateModule(targetModuleId);
-    }, 800);
-  };
-
   return (
-    <div className="relative min-h-screen bg-white text-slate-900 selection:bg-[#0d9488] selection:text-white overflow-x-hidden font-sans">
+    <div className="relative min-h-screen bg-white text-slate-900 overflow-x-hidden font-sans">
       
-      {/* Page Transition Veil */}
-      <div className={`page-transition-veil ${veilActive ? 'is-active' : ''}`} />
-
       {/* ========================================================= */}
       {/* HERO SECTION - COMMUNITY FOCUSED                          */}
       {/* ========================================================= */}
-      <section className="relative z-10 bg-gradient-to-br from-teal-50 via-white to-amber-50 py-12 sm:py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+      <section className="relative overflow-hidden bg-gradient-to-br from-teal-600 via-teal-700 to-teal-800 text-white py-12 sm:py-16 lg:py-20">
+        {/* Animated background pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-full h-full" style={{
+            backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+            backgroundSize: '40px 40px'
+          }} />
+        </div>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Title */}
           <div className="text-center mb-8 sm:mb-12">
-            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-teal-100 border border-teal-200 text-sm font-bold text-teal-800 mb-4">
-              <span className="w-2 h-2 rounded-full bg-teal-600 animate-ping" />
-              <span>Plan para la isla de Tierrabomba</span>
+            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 text-sm font-bold text-white mb-4">
+              <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+              <span>Tierra Bomba &bull; Bahía de Cartagena</span>
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 text-white">
               Tierra Bomba:<br />
-              <span className="text-teal-700">un lugar para quedarse</span>
+              <span className="text-amber-300">un lugar para quedarse</span>
             </h1>
-            <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-teal-100 max-w-2xl mx-auto">
               Conoce tu territorio, sus problemas y la propuesta para que la comunidad pueda quedarse en la isla de forma segura.
             </p>
           </div>
 
           {/* Quick Navigation Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
             <button
               onClick={() => onNavigateModule('territorio')}
-              className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-teal-500 hover:shadow-lg transition-all group text-left"
+              className="p-4 rounded-2xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
             >
-              <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                 <Home className="w-5 h-5" />
               </div>
-              <p className="font-bold text-sm text-slate-900">Conoce la isla</p>
-              <p className="text-[11px] text-slate-500">Tu territorio y su gente</p>
+              <p className="font-bold text-sm text-white">Conoce la isla</p>
+              <p className="text-[11px] text-teal-100">Tu territorio y su gente</p>
             </button>
             <button
               onClick={() => onNavigateModule('module11')}
-              className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-amber-500 hover:shadow-lg transition-all group text-left"
+              className="p-4 rounded-2xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
             >
-              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                 <Compass className="w-5 h-5" />
               </div>
-              <p className="font-bold text-sm text-slate-900">Mira su historia</p>
-              <p className="text-[11px] text-slate-500">Mapas y fotos antiguas</p>
+              <p className="font-bold text-sm text-white">Mira su historia</p>
+              <p className="text-[11px] text-teal-100">Mapas y fotos antiguas</p>
             </button>
             <button
               onClick={() => onNavigateModule('3dviewer')}
-              className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-blue-500 hover:shadow-lg transition-all group text-left"
+              className="p-4 rounded-2xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
             >
-              <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                 <Box className="w-5 h-5" />
               </div>
-              <p className="font-bold text-sm text-slate-900">Recorre la propuesta</p>
-              <p className="text-[11px] text-slate-500">El nuevo barrio en 3D</p>
+              <p className="font-bold text-sm text-white">Recorre la propuesta</p>
+              <p className="text-[11px] text-teal-100">El nuevo barrio en 3D</p>
             </button>
             <button
               onClick={() => onNavigateModule('framework')}
-              className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-rose-500 hover:shadow-lg transition-all group text-left"
+              className="p-4 rounded-2xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
             >
-              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                 <MapIcon className="w-5 h-5" />
               </div>
-              <p className="font-bold text-sm text-slate-900">El mapa de riesgos</p>
-              <p className="text-[11px] text-slate-500">Dónde se inunda</p>
+              <p className="font-bold text-sm text-white">El mapa de riesgos</p>
+              <p className="text-[11px] text-teal-100">Dónde se inunda</p>
             </button>
           </div>
         </div>
@@ -261,22 +187,19 @@ export default function IntroLandingIndex({ onNavigateModule }) {
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Tu territorio en el mapa</h2>
             <p className="text-sm text-slate-600 mt-1">Conoce la isla de Tierrabomba y cómo está tu comunidad</p>
           </div>
-          <div className="relative bg-slate-100 min-h-[400px] sm:min-h-[500px]">
-            {/* Map placeholder - will be replaced with actual map */}
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-teal-50 to-blue-50">
-              <div className="text-center p-6">
-                <MapIcon className="w-16 h-16 mx-auto text-teal-600 mb-4" />
-                <p className="text-lg font-bold text-slate-900 mb-2">Mapa interactivo de Tierrabomba</p>
-                <p className="text-sm text-slate-600 max-w-md mx-auto">
-                  Explora tu territorio, los barrios, las rutas de lanchas y las zonas de riesgo.
-                </p>
-                <button
-                  onClick={() => onNavigateModule('territorio')}
-                  className="mt-4 px-6 py-3 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md transition-all"
-                >
-                  Abrir mapa completo
-                </button>
-              </div>
+          <div className="relative bg-gradient-to-br from-teal-50 to-blue-50 min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
+            <div className="text-center p-6">
+              <MapIcon className="w-16 h-16 mx-auto text-teal-600 mb-4" />
+              <p className="text-lg font-bold text-slate-900 mb-2">Mapa interactivo de Tierrabomba</p>
+              <p className="text-sm text-slate-600 max-w-md mx-auto">
+                Explora tu territorio, los barrios, las rutas de lanchas y las zonas de riesgo.
+              </p>
+              <button
+                onClick={() => onNavigateModule('territorio')}
+                className="mt-4 px-6 py-3 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md transition-all"
+              >
+                Abrir mapa completo
+              </button>
             </div>
           </div>
         </div>
