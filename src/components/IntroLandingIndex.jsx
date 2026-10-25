@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowRight,
-  Sparkles,
   ShieldCheck,
   Droplets,
   Wind,
@@ -13,16 +12,44 @@ import {
   Home,
   Activity,
   Compass,
-  Quote,
-  X,
-  RotateCcw,
-  CheckCircle2,
   Waves,
   ChevronLeft,
   ChevronRight,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Ship,
+  Trash2,
+  Leaf,
+  Users,
+  MapPin,
+  Anchor
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
+
+// Datos de rutas marítimas (lanchas) entre Cartagena y puntos de la isla
+const BOAT_ROUTES = [
+  { name: "Cartagena → Punta Arena", color: "#0d9488", coords: [[10.41, -75.55], [10.39, -75.56], [10.38, -75.57], [10.37, -75.58]], frequency: "Cada 30 min" },
+  { name: "Cartagena → Tierrabomba", color: "#2563eb", coords: [[10.41, -75.55], [10.39, -75.56], [10.38, -75.57], [10.37, -75.58], [10.36, -75.59]], frequency: "Cada 15 min" },
+  { name: "Cartagena → Bocachica", color: "#dc2626", coords: [[10.41, -75.55], [10.35, -75.53], [10.32, -75.58]], frequency: "Cada 1 hora" },
+  { name: "Cartagena → Caño del Oro", color: "#d97706", coords: [[10.41, -75.55], [10.39, -75.56], [10.37, -75.57], [10.36, -75.58], [10.35, -75.59]], frequency: "Cada 45 min" },
+];
+
+// Puntos de concentración de basura (simulados para visualización)
+const WASTE_POINTS = [
+  { name: "Punta Arena - Borde costero", lat: 10.375, lng: -75.582, severity: "high", waste: "Plásticos, envases, escombros" },
+  { name: "Caño del Oro - Muelle", lat: 10.362, lng: -75.585, severity: "high", waste: "Orgánicos, plásticos, residuos pesqueros" },
+  { name: "Tierrabomba - Borde sur", lat: 10.355, lng: -75.588, severity: "medium", waste: "Plásticos, vidrio" },
+  { name: "Bocachica - Frente a fuerte", lat: 10.325, lng: -75.585, severity: "medium", waste: "Residuos pesqueros" },
+];
+
+// Datos ambientales (biomasa, NDVI, etc.)
+const ENV_DATA = [
+  { name: "Biomasa Meseta (+22m)", value: "65 ha", status: "Saludable", color: "#16a34a", icon: "Leaf" },
+  { name: "Biomasa Borde Costero", value: "0%", status: "Crítico", color: "#dc2626", icon: "Leaf" },
+  { name: "NDVI Meseta", value: "0.5-0.7", status: "Buena", color: "#16a34a", icon: "Activity" },
+  { name: "Manglar Protegido", value: "14.2 ha", status: "Activo", color: "#16a34a", icon: "Leaf" },
+  { name: "Bosque Seco", value: "38 ha", status: "Activo", color: "#16a34a", icon: "Leaf" },
+  { name: "Temperatura Meseta", value: "31.2°C", status: "Moderada", color: "#eab308", icon: "Wind" },
+];
 
 const PROBLEM_GALLERIES = {
   erosion: {
@@ -105,13 +132,15 @@ const PROBLEM_GALLERIES = {
 
 export default function IntroLandingIndex({ onNavigateModule }) {
   const [selectedNode, setSelectedNode] = useState(null);
-  const [activeProblemKey, setActiveProblemKey] = useState(null); // 'erosion' | 'agua' | 'servicios'
+  const [activeProblemKey, setActiveProblemKey] = useState(null);
   const [problemSlideIndex, setProblemSlideIndex] = useState(0);
   const [hoveredNode, setHoveredNode] = useState(null);
   const [hoveredRelation, setHoveredRelation] = useState(null);
   const [isShattering, setIsShattering] = useState(false);
   const [veilActive, setVeilActive] = useState(false);
   const [scrambleKey, setScrambleKey] = useState(0);
+  const [activeTab, setActiveTab] = useState('territorio'); // 'territorio' | 'problemas' | 'propuesta' | 'datos'
+  const [activeEnvTab, setActiveEnvTab] = useState('biomasa');
 
   const cardRef = useRef(null);
   const titlePlainRef = useRef(null);
@@ -121,63 +150,6 @@ export default function IntroLandingIndex({ onNavigateModule }) {
   const { thesisNetwork } = projectInfo;
   const nodes = thesisNetwork?.nodes || [];
   const relations = thesisNetwork?.relations || [];
-
-  // -------------------------------------------------------------
-  // 1. CASINO SCRAMBLE TEXT REVEAL ANIMATION (LIGHT MODE ADAPTED)
-  // -------------------------------------------------------------
-  useEffect(() => {
-    const CHARS = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz0123456789";
-    const plainEl = titlePlainRef.current;
-    const gradEl = titleGradRef.current;
-    if (!plainEl || !gradEl) return;
-
-    const originalPlain = "Hábitat Resiliente & ";
-    const originalGrad = "Reubicación Insular.";
-
-    plainEl.textContent = "";
-    gradEl.textContent = "";
-
-    const plainItems = [...originalPlain].map((ch) => {
-      const span = document.createElement("span");
-      span.className = "scramble-char";
-      span.textContent = ch === " " ? "\u00A0" : ch;
-      plainEl.appendChild(span);
-      return { span, ch };
-    });
-
-    const gradItems = [...originalGrad].map((ch) => {
-      const span = document.createElement("span");
-      span.className = "scramble-char";
-      span.textContent = ch === " " ? "\u00A0" : ch;
-      gradEl.appendChild(span);
-      return { span, ch };
-    });
-
-    const allItems = [...plainItems, ...gradItems];
-    const timers = [];
-
-    allItems.forEach((item, i) => {
-      if (item.ch === " ") return;
-      item.span.classList.add("spinning");
-      let ticks = 0;
-      const totalTicks = 8 + i * 2;
-      const timer = setInterval(() => {
-        if (ticks < totalTicks) {
-          item.span.textContent = CHARS[Math.floor(Math.random() * CHARS.length)];
-          ticks++;
-        } else {
-          item.span.textContent = item.ch;
-          item.span.classList.remove("spinning");
-          clearInterval(timer);
-        }
-      }, 35);
-      timers.push(timer);
-    });
-
-    return () => {
-      timers.forEach(clearInterval);
-    };
-  }, [scrambleKey]);
 
   // Keyboard navigation for problem photo gallery modal
   useEffect(() => {
@@ -199,651 +171,340 @@ export default function IntroLandingIndex({ onNavigateModule }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeProblemKey]);
 
-  // -------------------------------------------------------------
-  // 2. 3D PERSPECTIVE MOUSE TILT ON CARD
-  // -------------------------------------------------------------
-  const handleMouseMove = (e) => {
-    const card = cardRef.current;
-    if (!card) return;
-    const rect = card.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width - 0.5;
-    const py = (e.clientY - rect.top) / rect.height - 0.5;
-    const MAX_TILT = 5; // degrees
-    card.style.transform = `perspective(900px) rotateY(${(px * MAX_TILT).toFixed(2)}deg) rotateX(${(-py * MAX_TILT).toFixed(2)}deg)`;
-  };
-
-  const handleMouseLeave = () => {
-    const card = cardRef.current;
-    if (!card) return;
-    card.style.transform = "perspective(900px) rotateY(0deg) rotateX(0deg)";
-  };
-
-  // -------------------------------------------------------------
-  // 3. SHATTER EXPLOSION TRANSITION ("ROMPER LA BOLA")
-  // -------------------------------------------------------------
-  const triggerShatterAndNavigate = (targetModuleId = 'framework') => {
+  const triggerShatterAndNavigate = (targetModuleId = 'territorio') => {
     if (isShattering) return;
     setIsShattering(true);
-
-    const svg = svgRef.current;
-    if (svg) {
-      svg.classList.add("is-shattering");
-
-      const SVG_NS = "http://www.w3.org/2000/svg";
-      nodes.forEach((node) => {
-        const cx = node.cx;
-        const cy = node.cy;
-        const color = node.color;
-        const satellites = node.satellites || [];
-        const count = satellites.length || 4;
-
-        satellites.forEach((sat, idx) => {
-          const angle = (Math.PI * 2 * idx) / count + (Math.PI / count);
-          const dist = node.r * 1.55;
-          const dx = Math.cos(angle) * dist;
-          const dy = Math.sin(angle) * dist;
-          const rFinal = 18;
-
-          const shard = document.createElementNS(SVG_NS, "circle");
-          shard.setAttribute("cx", cx);
-          shard.setAttribute("cy", cy);
-          shard.setAttribute("r", "3");
-          shard.setAttribute("fill", color);
-          shard.setAttribute("fill-opacity", "0.95");
-          shard.setAttribute("stroke", "#ffffff");
-          shard.setAttribute("stroke-width", "1.5");
-          shard.setAttribute("class", "shard-grow");
-          shard.style.setProperty("--dx", dx.toFixed(1) + "px");
-          shard.style.setProperty("--dy", dy.toFixed(1) + "px");
-          shard.style.setProperty("--r-final", rFinal.toString());
-          shard.style.animationDelay = (idx * 120) + "ms";
-          svg.appendChild(shard);
-
-          const line = document.createElementNS(SVG_NS, "line");
-          line.setAttribute("x1", cx);
-          line.setAttribute("y1", cy);
-          line.setAttribute("x2", cx + dx);
-          line.setAttribute("y2", cy + dy);
-          line.setAttribute("class", "shard-link-line");
-          svg.insertBefore(line, shard);
-        });
-      });
-    }
-
-    // Activate clean white transition veil
-    setTimeout(() => {
-      setVeilActive(true);
-    }, 1800);
-
-    // Smooth navigation into destination module
     setTimeout(() => {
       onNavigateModule(targetModuleId);
-    }, 2800);
-  };
-
-  const getIconComponent = (iconName) => {
-    switch (iconName) {
-      case 'Droplets': return <Droplets className="w-4 h-4" />;
-      case 'Home': return <Home className="w-4 h-4" />;
-      case 'Wind': return <Wind className="w-4 h-4" />;
-      case 'Layers': return <Layers className="w-4 h-4" />;
-      case 'Building2': return <Building2 className="w-4 h-4" />;
-      case 'BookOpen': return <BookOpen className="w-4 h-4" />;
-      case 'Sparkles': return <Sparkles className="w-4 h-4" />;
-      case 'Activity': return <Activity className="w-4 h-4" />;
-      case 'Compass': return <Compass className="w-4 h-4" />;
-      case 'Waves': return <Waves className="w-4 h-4" />;
-      case 'Map': return <MapIcon className="w-4 h-4" />;
-      default: return <Sparkles className="w-4 h-4" />;
-    }
+    }, 800);
   };
 
   return (
-    <div className="relative min-h-screen bg-white text-slate-900 selection:bg-[#0d9488] selection:text-white overflow-x-hidden font-sans bg-editorial-grid">
+    <div className="relative min-h-screen bg-white text-slate-900 selection:bg-[#0d9488] selection:text-white overflow-x-hidden font-sans">
       
-      {/* Page Transition Veil (Clean White) */}
+      {/* Page Transition Veil */}
       <div className={`page-transition-veil ${veilActive ? 'is-active' : ''}`} />
 
-      {/* SVG Gradient Defs for Objective Nodes */}
-      <svg width="0" height="0" className="absolute pointer-events-none" aria-hidden="true">
-        <defs>
-          <linearGradient id="grad-oe01" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#14b8a6" />
-            <stop offset="100%" stopColor="#0f766e" />
-          </linearGradient>
-          <linearGradient id="grad-oe02" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#f59e0b" />
-            <stop offset="100%" stopColor="#d97706" />
-          </linearGradient>
-          <linearGradient id="grad-oe03" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#1d4ed8" />
-          </linearGradient>
-          <linearGradient id="grad-oe04" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#e06248" />
-            <stop offset="100%" stopColor="#c86d51" />
-          </linearGradient>
-        </defs>
-      </svg>
-
-      {/* Atmospheric Soft Light Auras */}
-      <div className="absolute -top-32 -left-32 w-[650px] h-[650px] intro-hero-aura-a rounded-full pointer-events-none" />
-      <div className="absolute top-1/2 -right-40 w-[600px] h-[600px] intro-hero-aura-b rounded-full pointer-events-none" />
-      <div className="absolute -bottom-40 left-1/3 w-[550px] h-[550px] intro-hero-aura-c rounded-full pointer-events-none" />
-
       {/* ========================================================= */}
-      {/* HERO SPLIT SECTION (WHITE EDITORIAL COPY + NETWORK)       */}
+      {/* HERO SECTION - COMMUNITY FOCUSED                          */}
       {/* ========================================================= */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 pb-16 lg:py-16">
-        
-        <div className="grid lg:grid-cols-12 gap-10 xl:gap-14 items-center">
+      <section className="relative z-10 bg-gradient-to-br from-teal-50 via-white to-amber-50 py-12 sm:py-16 lg:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* LEFT: COPY COLUMN */}
-          <div className="lg:col-span-6 space-y-6">
-            
-            {/* Etiqueta de contexto */}
-            <div className="flex items-center justify-between">
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-50/80 border border-teal-200 text-xs font-mono text-teal-800">
-                <span className="w-2 h-2 rounded-full bg-teal-600 animate-ping" />
-                <span>Plan para la isla &bull; zona segura a +22 metros</span>
-              </div>
+          {/* Hero Title */}
+          <div className="text-center mb-8 sm:mb-12">
+            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-teal-100 border border-teal-200 text-sm font-bold text-teal-800 mb-4">
+              <span className="w-2 h-2 rounded-full bg-teal-600 animate-ping" />
+              <span>Plan para la isla de Tierrabomba</span>
             </div>
-
-            {/* Casino Animated Main Title */}
-            <div className="space-y-1">
-              <h1 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-[1.12] text-slate-950">
-                <span ref={titlePlainRef} className="inline-block">Hábitat Resiliente & </span>
-                <br className="hidden sm:inline" />
-                <span 
-                  ref={titleGradRef}
-                  className="bg-gradient-to-r from-teal-700 via-amber-600 to-rose-600 bg-clip-text text-transparent inline-block"
-                >
-                  Reubicación Insular.
-                </span>
-              </h1>
-            </div>
-
-            {/* Central Entry Question */}
-            <h2 className="text-lg sm:text-xl font-medium text-slate-800 leading-snug border-l-4 border-teal-600 pl-3.5">
-              ¿Qué ocurre cuando una comunidad comienza a perder las condiciones necesarias para permanecer en su propio territorio?
-            </h2>
-
-            {/* General Research Goal Phrase */}
-            <div className="p-4 rounded-2xl bg-teal-50/70 border border-teal-200/80 text-xs text-slate-800 leading-relaxed shadow-xs space-y-1">
-              <span className="font-mono text-[10px] font-bold text-teal-800 uppercase tracking-wider block">
-                Objetivo General de la Investigación
-              </span>
-              <p className="font-medium text-slate-800 text-[13px] leading-snug">
-                &ldquo;Desarrollar una propuesta progresiva de vivienda y colegio en Tierrabomba que responda a las dinámicas comunitarias locales y permita la expansión de ambos proyectos en el tiempo.&rdquo;
-              </p>
-            </div>
-
-            {/* 3 Dimensional Action Blocks: Problemática Diagnosticada */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
-              
-              <div 
-                onClick={() => {
-                  setActiveProblemKey('erosion');
-                  setProblemSlideIndex(0);
-                }}
-                className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-rose-400 hover:bg-rose-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md flex flex-col justify-between"
-              >
-                <div>
-                  <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform border border-rose-100">
-                    <Waves className="w-4 h-4" />
-                  </div>
-                  <div className="flex items-center space-x-1.5">
-                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">PROBLEMA 01</span>
-                  </div>
-                  <h3 className="font-display font-bold text-xs uppercase tracking-wider text-slate-900 mt-1.5 leading-snug">
-                    Erosión de las costas y riesgo en las viviendas
-                  </h3>
-                </div>
-                <div>
-                  <p className="text-[11px] text-slate-600 mt-1.5 leading-snug">
-                    El golpe del mar destruye la orilla y pone en peligro las casas construidas cerca del agua.
-                  </p>
-                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono font-bold text-rose-700 group-hover:text-rose-900 transition-colors">
-                    <span className="flex items-center space-x-1">
-                      <ImageIcon className="w-3.5 h-3.5" />
-                      <span>Ver fotos en sitio ({PROBLEM_GALLERIES.erosion.images.length})</span>
-                    </span>
-                    <span>&rarr;</span>
-                  </div>
-                </div>
-              </div>
-
-              <div 
-                onClick={() => {
-                  setActiveProblemKey('agua');
-                  setProblemSlideIndex(0);
-                }}
-                className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-amber-400 hover:bg-amber-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md flex flex-col justify-between"
-              >
-                <div>
-                  <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform border border-amber-100">
-                    <Droplets className="w-4 h-4" />
-                  </div>
-                  <div className="flex items-center space-x-1.5">
-                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">PROBLEMA 02</span>
-                  </div>
-                  <h3 className="font-display font-bold text-xs uppercase tracking-wider text-slate-900 mt-1.5 leading-snug">
-                    Falta de agua potable y alcantarillado
-                  </h3>
-                </div>
-                <div>
-                  <p className="text-[11px] text-slate-600 mt-1.5 leading-snug">
-                    La isla no tiene red de agua ni desagües, lo que obliga a la población a comprar agua traída en lanchas.
-                  </p>
-                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono font-bold text-amber-700 group-hover:text-amber-900 transition-colors">
-                    <span className="flex items-center space-x-1">
-                      <ImageIcon className="w-3.5 h-3.5" />
-                      <span>Ver fotos en sitio ({PROBLEM_GALLERIES.agua.images.length})</span>
-                    </span>
-                    <span>&rarr;</span>
-                  </div>
-                </div>
-              </div>
-
-              <div 
-                onClick={() => {
-                  setActiveProblemKey('servicios');
-                  setProblemSlideIndex(0);
-                }}
-                className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-400 hover:bg-blue-50/20 transition-all cursor-pointer group shadow-sm hover:shadow-md flex flex-col justify-between"
-              >
-                <div>
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform border border-blue-100">
-                    <Building2 className="w-4 h-4" />
-                  </div>
-                  <div className="flex items-center space-x-1.5">
-                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">PROBLEMA 03</span>
-                  </div>
-                  <h3 className="font-display font-bold text-xs uppercase tracking-wider text-slate-900 mt-1.5 leading-snug">
-                    Falta de servicios públicos y colegios
-                  </h3>
-                </div>
-                <div>
-                  <p className="text-[11px] text-slate-600 mt-1.5 leading-snug">
-                    Existe un abandono en la infraestructura de la isla, afectando la educación, la salud y los espacios comunitarios.
-                  </p>
-                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono font-bold text-blue-700 group-hover:text-blue-900 transition-colors">
-                    <span className="flex items-center space-x-1">
-                      <ImageIcon className="w-3.5 h-3.5" />
-                      <span>Ver fotos en sitio ({PROBLEM_GALLERIES.servicios.images.length})</span>
-                    </span>
-                    <span>&rarr;</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* CTA Buttons Row — lenguaje comunitario */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
-                onClick={() => onNavigateModule('territorio')}
-                className="inline-flex items-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-teal-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0"
-              >
-                <Home className="w-4 h-4 text-teal-400" />
-                <span>Conoce la isla</span>
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </button>
-
-              <button
-                onClick={() => onNavigateModule('module11')}
-                className="inline-flex items-center space-x-2 px-5 py-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-semibold text-sm transition-all hover:-translate-y-0.5 shadow-xs"
-              >
-                <Compass className="w-4 h-4 text-amber-600" />
-                <span>Mira su historia</span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
-              </button>
-
-              <button
-                onClick={() => onNavigateModule('3dviewer')}
-                className="inline-flex items-center space-x-2 px-4 py-3.5 rounded-2xl text-slate-700 hover:text-slate-950 font-semibold text-sm transition-colors hover:underline"
-              >
-                <Box className="w-4 h-4 text-slate-700" />
-                <span>Recorre la propuesta &rarr;</span>
-              </button>
-            </div>
-
-            {/* Autoría */}
-            <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-500">
-              <div>
-                <span className="text-slate-900 font-bold">Hecho por:</span> {projectInfo.author}
-              </div>
-              <div>
-                <span className="text-slate-900 font-bold">Año:</span> {projectInfo.year}
-              </div>
-            </div>
-
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight mb-4">
+              Tierra Bomba:<br />
+              <span className="text-teal-700">un lugar para quedarse</span>
+            </h1>
+            <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto">
+              Conoce tu territorio, sus problemas y la propuesta para que la comunidad pueda quedarse en la isla de forma segura.
+            </p>
           </div>
 
-          {/* RIGHT: INTERACTIVE OBJECTIVES NETWORK CARD WITH 3D TILT */}
-          <div className="lg:col-span-6">
-            
-            <div
-              ref={cardRef}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
-              className="relative rounded-3xl p-5 sm:p-7 bg-white/95 border border-slate-200 shadow-xl backdrop-blur-xl transition-all duration-300 group"
+          {/* Quick Navigation Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mb-8">
+            <button
+              onClick={() => onNavigateModule('territorio')}
+              className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-teal-500 hover:shadow-lg transition-all group text-left"
             >
-              
-              {/* Question Banner */}
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-bold text-slate-900 leading-snug">
-                  Los cuatro objetivos del proyecto
-                </p>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                  RED INTERACTIVA
-                </span>
+              <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <Home className="w-5 h-5" />
               </div>
-
-              {/* Conventions Legend Bar */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 px-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-600 mb-4">
-                <span className="text-slate-800 font-bold uppercase tracking-wider text-[10px]">Leyenda:</span>
-                
-                <span className="flex items-center space-x-1.5">
-                  <svg className="w-8 h-3" viewBox="0 0 38 12">
-                    <line x1="2" y1="6" x2="28" y2="6" stroke="#0d9488" strokeWidth="1.8" strokeDasharray="3 3" />
-                    <path d="M28,6 L22,2 L22,10 Z" fill="#0d9488" />
-                  </svg>
-                  <span>Flujo Hídrico / Físico</span>
-                </span>
-
-                <span className="flex items-center space-x-1.5">
-                  <svg className="w-10 h-3" viewBox="0 0 46 12">
-                    <line x1="6" y1="6" x2="40" y2="6" stroke="#c86d51" strokeWidth="1.8" strokeDasharray="3 3" />
-                    <path d="M6,6 L12,2 L12,10 Z" fill="#c86d51" />
-                    <path d="M40,6 L34,2 L34,10 Z" fill="#c86d51" />
-                  </svg>
-                  <span>Sinergia Proyectual</span>
-                </span>
-
-                <span className="flex items-center space-x-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                  <span>OE-01..04</span>
-                </span>
+              <p className="font-bold text-sm text-slate-900">Conoce la isla</p>
+              <p className="text-[11px] text-slate-500">Tu territorio y su gente</p>
+            </button>
+            <button
+              onClick={() => onNavigateModule('module11')}
+              className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-amber-500 hover:shadow-lg transition-all group text-left"
+            >
+              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <Compass className="w-5 h-5" />
               </div>
-
-              {/* Main SVG Diagram Container (Clean Light Blueprint) */}
-              <div className="relative w-full aspect-[620/560] max-h-[560px] rounded-2xl bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center shadow-inner">
-                
-                <svg
-                  ref={svgRef}
-                  viewBox="0 0 620 560"
-                  className="network-svg w-full h-full select-none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  
-                  {/* Subtle Grid Background Pattern */}
-                  <defs>
-                    <pattern id="light-grid" width="30" height="30" patternUnits="userSpaceOnUse">
-                      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(148, 163, 184, 0.15)" strokeWidth="0.8" />
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#light-grid)" />
-
-                  {/* Central General Objective Watermark Badge */}
-                  <g transform="translate(310, 295)" className="select-none pointer-events-none">
-                    <circle r="46" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.2" strokeDasharray="3 3" opacity="0.95" />
-                    <text textAnchor="middle" y="-12" fill="#0f172a" fontSize="8" fontWeight="800" fontFamily="Space Grotesk, sans-serif" letterSpacing="0.8">
-                      OBJETIVO GENERAL
-                    </text>
-                    <text textAnchor="middle" y="2" fill="#64748b" fontSize="7" fontWeight="600" fontFamily="JetBrains Mono, monospace">
-                      PROPUESTA PROGRESIVA
-                    </text>
-                    <text textAnchor="middle" y="13" fill="#0d9488" fontSize="7.5" fontWeight="700" fontFamily="JetBrains Mono, monospace">
-                      VIVIENDA Y COLEGIO
-                    </text>
-                    <text textAnchor="middle" y="24" fill="#64748b" fontSize="6.5" fontFamily="JetBrains Mono, monospace">
-                      TIERRABOMBA
-                    </text>
-                  </g>
-
-                  {/* RELATIONAL DIRECTED & BIDIRECTIONAL LINKS */}
-                  <g className="links">
-                    {relations.map((rel) => {
-                      const isHovered = hoveredRelation === rel.id;
-                      return (
-                        <g 
-                          key={rel.id} 
-                          className={`link ${isHovered ? 'is-active' : ''}`}
-                          onMouseEnter={() => setHoveredRelation(rel.id)}
-                          onMouseLeave={() => setHoveredRelation(null)}
-                        >
-                          <path className="link-hit" d={rel.pathD} />
-                          <path className="link-line" d={rel.pathD} />
-                          <path className="link-arrow" d="M-13,-4 L0,0 L-13,4 Z" transform={rel.arrowTransform} />
-                        </g>
-                      );
-                    })}
-                  </g>
-
-                  {/* 4 MAIN OBJECTIVE NODES (OE-01 to OE-04) */}
-                  {nodes.map((node) => {
-                    const isHovered = hoveredNode === node.id;
-                    const isSelected = selectedNode?.id === node.id;
-                    const fillGradient = `url(#grad-${node.id})`;
-
-                    return (
-                      <g
-                        key={node.id}
-                        className="node cursor-pointer"
-                        data-node={node.id}
-                        transform={`translate(${node.cx}, ${node.cy})`}
-                        onClick={() => setSelectedNode(node)}
-                        onMouseEnter={() => setHoveredNode(node.id)}
-                        onMouseLeave={() => setHoveredNode(null)}
-                      >
-                        <g className="node-float">
-                          
-                          {/* Halo ring on hover/selected */}
-                          <circle
-                            r={node.r + 8}
-                            fill="none"
-                            stroke={node.color}
-                            strokeWidth={isHovered || isSelected ? "3" : "0"}
-                            opacity={isHovered || isSelected ? "0.6" : "0"}
-                            className="transition-all duration-300"
-                          />
-
-                          {/* Central node circle */}
-                          <circle
-                            r={node.r}
-                            fill={fillGradient}
-                            stroke="#ffffff"
-                            strokeWidth="2.5"
-                            className="shadow-md transition-transform duration-300 hover:scale-105"
-                          />
-
-                          {/* Node Text Label (Multi-line) with drop shadow */}
-                          <text
-                            textAnchor="middle"
-                            y={-(node.shortLines.length - 1) * 5.5 - 2}
-                            fill="#ffffff"
-                            fontFamily="Space Grotesk, sans-serif"
-                            className="pointer-events-none select-none drop-shadow-md"
-                          >
-                            {node.shortLines.map((line, idx) => (
-                              <tspan 
-                                key={idx} 
-                                x="0" 
-                                dy={idx === 0 ? 0 : (idx === 1 ? 13.5 : 10.5)}
-                                fontWeight={idx === 0 ? "800" : "600"}
-                                fontSize={idx === 0 ? "12" : "8"}
-                                letterSpacing={idx === 0 ? "0.8" : "0"}
-                              >
-                                {line}
-                              </tspan>
-                            ))}
-                          </text>
-
-                        </g>
-                      </g>
-                    );
-                  })}
-
-                </svg>
-
-                {/* Hover Relation Tooltip Overlay */}
-                {hoveredRelation && (
-                  <div className="absolute bottom-3 left-3 right-3 p-2.5 rounded-xl bg-white/95 border border-teal-500/50 text-xs text-slate-800 backdrop-blur-md shadow-lg flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-teal-800 font-mono text-[11px]">
-                        {relations.find(r => r.id === hoveredRelation)?.name}
-                      </p>
-                      <p className="text-[11px] text-slate-600 leading-tight">
-                        {relations.find(r => r.id === hoveredRelation)?.desc}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
+              <p className="font-bold text-sm text-slate-900">Mira su historia</p>
+              <p className="text-[11px] text-slate-500">Mapas y fotos antiguas</p>
+            </button>
+            <button
+              onClick={() => onNavigateModule('3dviewer')}
+              className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-blue-500 hover:shadow-lg transition-all group text-left"
+            >
+              <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <Box className="w-5 h-5" />
               </div>
-
-              {/* Bottom Card Footer Actions */}
-              <div className="mt-4 flex items-center justify-between text-xs text-slate-500 font-mono">
-                <span className="flex items-center space-x-1.5">
-                  <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-                  <span>Haz clic en OE-01..04 para ver el desglose</span>
-                </span>
-                <button
-                  onClick={() => triggerShatterAndNavigate('framework')}
-                  className="text-teal-700 hover:text-teal-900 font-bold flex items-center space-x-1 hover:underline"
-                >
-                  <span>Ver los objetivos &rarr;</span>
-                </button>
+              <p className="font-bold text-sm text-slate-900">Recorre la propuesta</p>
+              <p className="text-[11px] text-slate-500">El nuevo barrio en 3D</p>
+            </button>
+            <button
+              onClick={() => onNavigateModule('framework')}
+              className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-rose-500 hover:shadow-lg transition-all group text-left"
+            >
+              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <Map className="w-5 h-5" />
               </div>
-
-            </div>
-
+              <p className="font-bold text-sm text-slate-900">El mapa de riesgos</p>
+              <p className="text-[11px] text-slate-500">Dónde se inunda</p>
+            </button>
           </div>
-
         </div>
-
       </section>
 
       {/* ========================================================= */}
-      {/* 3. OBJECTIVE DETAIL MODAL (CLEAN LIGHT THEME)            */}
+      {/* TERRITORY MAP SECTION                                      */}
       {/* ========================================================= */}
-      {selectedNode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-            
-            {/* Modal Header */}
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2">
-                  <span 
-                    className="text-xs font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md border inline-block"
-                    style={{
-                      backgroundColor: `${selectedNode.color}15`,
-                      borderColor: `${selectedNode.color}40`,
-                      color: selectedNode.color
-                    }}
-                  >
-                    {selectedNode.code} &bull; {selectedNode.badge}
-                  </span>
-                  <span className="text-xs font-mono font-bold text-slate-500">
-                    Meta: {selectedNode.metric}
-                  </span>
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold font-display text-slate-900">
-                  {selectedNode.title}
-                </h3>
-              </div>
-              <button
-                onClick={() => setSelectedNode(null)}
-                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Description */}
-            <p className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200">
-              {selectedNode.desc}
-            </p>
-
-            {/* Sub-components / Satellites List */}
-            <div className="space-y-2.5">
-              <h4 className="text-xs font-mono font-bold uppercase text-slate-500 tracking-wider">
-                Entregables Proyectuales & Componentes del Objetivo:
-              </h4>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {selectedNode.satellites?.map((sat, i) => (
-                  <div key={i} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 flex items-start space-x-3">
-                    <div 
-                      className="p-2 rounded-lg shrink-0 mt-0.5"
-                      style={{ backgroundColor: `${selectedNode.color}20`, color: selectedNode.color }}
-                    >
-                      {getIconComponent(sat.icon)}
-                    </div>
-                    <div>
-                      <p className="font-bold text-xs text-slate-900">{sat.name}</p>
-                      <p className="text-[11px] text-slate-600 leading-snug mt-0.5">{sat.detail}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Modal Action CTA */}
-            <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200">
-              <span className="text-xs font-mono text-slate-500">
-                Área / Capacidad: <b className="text-slate-900">{selectedNode.area}</b>
-              </span>
-              <div className="flex items-center space-x-3">
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-slate-200">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Tu territorio en el mapa</h2>
+            <p className="text-sm text-slate-600 mt-1">Conoce la isla de Tierrabomba y cómo está tu comunidad</p>
+          </div>
+          <div className="relative bg-slate-100 min-h-[400px] sm:min-h-[500px]">
+            {/* Map placeholder - will be replaced with actual map */}
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-teal-50 to-blue-50">
+              <div className="text-center p-6">
+                <MapIcon className="w-16 h-16 mx-auto text-teal-600 mb-4" />
+                <p className="text-lg font-bold text-slate-900 mb-2">Mapa interactivo de Tierrabomba</p>
+                <p className="text-sm text-slate-600 max-w-md mx-auto">
+                  Explora tu territorio, los barrios, las rutas de lanchas y las zonas de riesgo.
+                </p>
                 <button
-                  onClick={() => {
-                    setSelectedNode(null);
-                    onNavigateModule('module11');
-                  }}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-medium text-slate-700"
+                  onClick={() => onNavigateModule('territorio')}
+                  className="mt-4 px-6 py-3 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md transition-all"
                 >
-                  Ver en Módulo 01
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedNode(null);
-                    triggerShatterAndNavigate('framework');
-                  }}
-                  className="px-5 py-2.5 rounded-xl font-bold text-xs bg-slate-950 hover:bg-teal-700 text-white flex items-center space-x-1.5 shadow-md"
-                >
-                  <span>Ver en Módulo 02 (Marco)</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  Abrir mapa completo
                 </button>
               </div>
             </div>
-
           </div>
         </div>
-      )}
+      </section>
 
       {/* ========================================================= */}
-      {/* 4. MODAL DE EVIDENCIA FOTOGRÁFICA DE PROBLEMÁTICA         */}
+      {/* ENVIRONMENTAL DATA SECTION                                 */}
+      {/* ========================================================= */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-slate-200">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Cómo está tu territorio</h2>
+            <p className="text-sm text-slate-600 mt-1">Datos ambientales de Tierrabomba</p>
+          </div>
+          
+          {/* Tab Navigation */}
+          <div className="flex items-center gap-1 p-3 bg-slate-50 border-b border-slate-200 overflow-x-auto">
+            {[
+              { id: 'biomasa', label: 'Biomasa y Vegetación' },
+              { id: 'erosion', label: 'Erosión Costera' },
+              { id: 'agua', label: 'Agua y Humedad' },
+              { id: 'basura', label: 'Basura y Residuos' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveEnvTab(tab.id)}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+                  activeEnvTab === tab.id
+                    ? 'bg-teal-600 text-white shadow-md'
+                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          
+          <div className="p-4 sm:p-6">
+            {activeEnvTab === 'biomasa' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {ENV_DATA.filter(d => d.icon === 'Leaf').map((d, i) => (
+                    <div key={i} className="p-4 rounded-2xl bg-green-50 border border-green-200">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Leaf className="w-5 h-5 text-green-700" />
+                        <span className="text-xs font-bold text-green-800">{d.name}</span>
+                      </div>
+                      <p className="text-2xl font-extrabold text-green-700">{d.value}</p>
+                      <p className="text-xs text-green-600 mt-1">{d.status}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                  <b className="text-slate-900">¿Qué significa?</b> La meseta de Tierrabomba (+22m) tiene buena vegetación que ayuda a mantener el suelo estable y reduce la temperatura. El borde costero no tiene vegetación, lo que acelera la erosión.
+                </p>
+              </div>
+            )}
+            {activeEnvTab === 'erosion' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {ENV_DATA.filter(d => d.icon === 'Activity').map((d, i) => (
+                    <div key={i} className="p-4 rounded-2xl bg-red-50 border border-red-200">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Activity className="w-5 h-5 text-red-700" />
+                        <span className="text-xs font-bold text-red-800">{d.name}</span>
+                      </div>
+                      <p className="text-2xl font-extrabold text-red-700">{d.value}</p>
+                      <p className="text-xs text-red-600 mt-1">{d.status}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-red-50 border border-red-200 p-4 rounded-2xl">
+                  <p className="text-sm text-red-800 font-bold mb-2">⚠️ Zona de erosión activa</p>
+                  <p className="text-sm text-red-700">
+                    La costa oeste de Tierrabomba se erosiona hasta 1.8 metros por año. Las viviendas cercanas al mar están en peligro de colapso. La meseta (+22m) está fuera de peligro.
+                  </p>
+                </div>
+              </div>
+            )}
+            {activeEnvTab === 'agua' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {ENV_DATA.filter(d => d.icon === 'Wind').map((d, i) => (
+                    <div key={i} className="p-4 rounded-2xl bg-blue-50 border border-blue-200">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Wind className="w-5 h-5 text-blue-700" />
+                        <span className="text-xs font-bold text-blue-800">{d.name}</span>
+                      </div>
+                      <p className="text-2xl font-extrabold text-blue-700">{d.value}</p>
+                      <p className="text-xs text-blue-600 mt-1">{d.status}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                  <b className="text-slate-900">¿Qué significa?</b> La meseta de Tierrabomba tiene una temperatura moderada gracias a los vientos alisios. Esto ayuda a que las viviendas y el colegio tengan mejor confort térmico sin necesidad de aire acondicionado.
+                </p>
+              </div>
+            )}
+            {activeEnvTab === 'basura' && (
+              <div className="space-y-4">
+                <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl">
+                  <p className="text-sm text-amber-800 font-bold mb-2">🗑️ Puntos de concentración de basura</p>
+                  <div className="space-y-2">
+                    {WASTE_POINTS.map((wp, i) => (
+                      <div key={i} className="flex items-start space-x-3 p-3 bg-white rounded-xl border border-amber-100">
+                        <div className={`w-3 h-3 rounded-full mt-1 shrink-0 ${wp.severity === 'high' ? 'bg-red-500' : 'bg-amber-500'}`} />
+                        <div>
+                          <p className="font-bold text-sm text-slate-900">{wp.name}</p>
+                          <p className="text-xs text-slate-600">{wp.waste}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-sm text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                  <b className="text-slate-900">¿Qué se puede hacer?</b> La propuesta incluye un sistema de gestión de residuos con reciclaje, compostaje y bio-humedales que tratan las aguas grises. La comunidad puede participar en la separación de residuos y el compostaje para los huertos comunitarios.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* BOAT ROUTES SECTION                                        */}
+      {/* ========================================================= */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-slate-200">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Rutas de lanchas</h2>
+            <p className="text-sm text-slate-600 mt-1">Cómo se mueve la comunidad entre Cartagena y la isla</p>
+          </div>
+          <div className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              {BOAT_ROUTES.map((route, i) => (
+                <div key={i} className="flex items-center space-x-3 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                  <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: route.color }} />
+                  <div>
+                    <p className="font-bold text-sm text-slate-900">{route.name}</p>
+                    <p className="text-xs text-slate-500">{route.frequency}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <b className="text-slate-900">¿Por qué es importante?</b> Las lanchas son la única forma de llegar a la isla. La propuesta incluye mejorar los muelles y crear rutas más eficientes para que la comunidad pueda moverse mejor y a menor costo.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* PROBLEMS SECTION                                           */}
+      {/* ========================================================= */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-slate-200">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Los problemas que enfrenta la isla</h2>
+            <p className="text-sm text-slate-600 mt-1">Toca cada tarjeta para ver fotos reales</p>
+          </div>
+          <div className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                { key: 'erosion', title: 'Erosión de las costas', color: '#e11d48', desc: 'El mar destruye las casas cerca del agua', icon: Waves },
+                { key: 'agua', title: 'Falta de agua potable', color: '#d97706', desc: 'No hay red de agua ni desagües', icon: Droplets },
+                { key: 'servicios', title: 'Falta de servicios y colegios', color: '#2563eb', desc: 'El colegio está en mal estado', icon: Building2 },
+              ].map((prob) => (
+                <button
+                  key={prob.key}
+                  onClick={() => {
+                    setActiveProblemKey(prob.key);
+                    setProblemSlideIndex(0);
+                  }}
+                  className="p-5 rounded-2xl bg-white border-2 border-slate-200 hover:shadow-lg transition-all text-left group"
+                  style={{ borderColor: prob.color + '40' }}
+                >
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+                    style={{ backgroundColor: prob.color + '15', color: prob.color }}
+                  >
+                    <prob.icon className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-base text-slate-900 mb-1">{prob.title}</h3>
+                  <p className="text-sm text-slate-600">{prob.desc}</p>
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold" style={{ color: prob.color }}>
+                    <span className="flex items-center space-x-1">
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <span>Ver fotos ({PROBLEM_GALLERIES[prob.key].images.length})</span>
+                    </span>
+                    <span>&rarr;</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* FOOTER                                                    */}
+      {/* ========================================================= */}
+      <footer className="relative z-10 border-t border-slate-200 bg-white py-6 px-4 text-center text-sm text-slate-500">
+        <p>
+          Tierra Bomba: Hábitat Resiliente &bull; {projectInfo.author} &bull; Tesis de Grado en Arquitectura y Urbanismo (2026)
+        </p>
+      </footer>
+
+      {/* ========================================================= */}
+      {/* MODAL DE EVIDENCIA FOTOGRÁFICA DE PROBLEMÁTICA            */}
       {/* ========================================================= */}
       {activeProblemKey && PROBLEM_GALLERIES[activeProblemKey] && (() => {
         const activeProb = PROBLEM_GALLERIES[activeProblemKey];
         const activeImg = activeProb.images[problemSlideIndex] || activeProb.images[0];
-        
+
         return (
-          <div 
+          <div
             onClick={() => setActiveProblemKey(null)}
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-fade-in"
           >
-            <div 
+            <div
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-4xl bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh] animate-scale-up"
             >
-              
               {/* Header */}
               <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
                 <div className="space-y-1 min-w-0 pr-4">
                   <div className="flex items-center space-x-2">
-                    <span 
+                    <span
                       className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-white"
                       style={{ backgroundColor: activeProb.color }}
                     >
@@ -857,7 +518,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                     {activeProb.title}
                   </h3>
                 </div>
-                
+
                 <button
                   onClick={() => setActiveProblemKey(null)}
                   className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors shrink-0"
@@ -884,8 +545,8 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                           : 'text-slate-600 hover:text-slate-950 hover:bg-slate-200/70'
                       }`}
                     >
-                      <span 
-                        className="w-2.5 h-2.5 rounded-full shrink-0" 
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0"
                         style={{ backgroundColor: prob.color }}
                       />
                       <span>{prob.code}: {prob.id === 'erosion' ? 'Erosión Costera' : prob.id === 'agua' ? 'Agua Potable' : 'Servicios & Escuela'}</span>
@@ -970,15 +631,6 @@ export default function IntroLandingIndex({ onNavigateModule }) {
           </div>
         );
       })()}
-
-      {/* ========================================================= */}
-      {/* 5. FOOTER NOTE                                            */}
-      {/* ========================================================= */}
-      <footer className="relative z-10 border-t border-slate-200 bg-white py-6 px-4 text-center text-xs font-mono text-slate-500">
-        <p>
-          TIERRABOMBA: HÁBITAT RESILIENTE &bull; Alejandra Gómez & Ana Casas &bull; Tesis de Grado en Arquitectura y Urbanismo (2026)
-        </p>
-      </footer>
 
     </div>
   );
