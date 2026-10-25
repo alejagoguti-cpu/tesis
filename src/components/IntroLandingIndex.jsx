@@ -27,7 +27,12 @@ import {
   Star,
   Eye,
   Play,
-  Sparkles
+  Sparkles,
+  Shield,
+  TreePine,
+  Route,
+  AlertCircle,
+  Info
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
@@ -108,93 +113,97 @@ export default function IntroLandingIndex({ onNavigateModule }) {
   const [activeProblemKey, setActiveProblemKey] = useState(null);
   const [problemSlideIndex, setProblemSlideIndex] = useState(0);
   const [activeEnvTab, setActiveEnvTab] = useState('biomasa');
-  const [isShattering, setIsShattering] = useState(false);
-
-  const triggerShatterAndNavigate = (targetModuleId = 'territorio') => {
-    if (isShattering) return;
-    setIsShattering(true);
-    setTimeout(() => {
-      onNavigateModule(targetModuleId);
-    }, 800);
-  };
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-teal-50 text-slate-900 overflow-x-hidden font-sans">
       
       {/* ========================================================= */}
-      {/* HERO SECTION - COMMUNITY FOCUSED                          */}
+      {/* HERO SECTION - VIBRANT & COMMUNITY FOCUSED                */}
       {/* ========================================================= */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 text-white py-16 sm:py-20 lg:py-28">
-        {/* Animated background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-full h-full" style={{
-            backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-            backgroundSize: '40px 40px'
-          }} />
+      <section className="relative overflow-hidden bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 text-white py-16 sm:py-24 lg:py-32">
+        {/* Animated wave background */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 overflow-hidden">
+          <svg className="absolute bottom-0 w-full h-full" viewBox="0 0 1440 120" preserveAspectRatio="none">
+            <path d="M0,60 C360,120 720,0 1080,60 C1260,90 1380,30 1440,60 L1440,120 L0,120 Z" fill="rgba(255,255,255,0.1)" />
+            <path d="M0,80 C240,120 480,40 720,80 C960,120 1200,40 1440,80 L1440,120 L0,120 Z" fill="rgba(255,255,255,0.15)" />
+          </svg>
         </div>
         
-        {/* Floating elements */}
+        {/* Floating decorative elements */}
         <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl animate-pulse" />
         <div className="absolute bottom-20 right-20 w-32 h-32 bg-amber-300/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-orange-300/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-20 right-1/4 w-24 h-24 bg-red-300/15 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1.5s' }} />
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Title */}
-          <div className="text-center mb-8 sm:mb-12">
-            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 text-sm font-bold text-white mb-4 backdrop-blur-sm">
-              <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+          <div className="text-center mb-10 sm:mb-16">
+            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 text-sm font-bold text-white mb-6 backdrop-blur-sm">
+              <Anchor className="w-4 h-4 animate-bounce" />
               <span>Tierra Bomba &bull; Bahía de Cartagena</span>
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold leading-tight mb-4 text-white drop-shadow-lg">
+            <h1 className="text-5xl sm:text-6xl lg:text-8xl font-black leading-none mb-6 text-white drop-shadow-2xl">
               Tierra Bomba:<br />
               <span className="text-amber-200">un lugar para quedarse</span>
             </h1>
-            <p className="text-lg sm:text-xl text-orange-100 max-w-2xl mx-auto">
+            <p className="text-xl sm:text-2xl text-orange-100 max-w-3xl mx-auto leading-relaxed">
               Conoce tu territorio, sus problemas y la propuesta para que la comunidad pueda quedarse en la isla de forma segura.
             </p>
           </div>
 
-          {/* Quick Navigation Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
+          {/* Quick Navigation Cards - Vibrant */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto">
             <button
               onClick={() => onNavigateModule('territorio')}
-              className="p-4 rounded-2xl bg-white/20 border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
+              className="group relative p-5 rounded-3xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-2xl transition-all backdrop-blur-sm overflow-hidden"
             >
-              <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                <Home className="w-5 h-5" />
+              <div className="absolute -top-4 -right-4 w-16 h-16 bg-teal-400/20 rounded-full blur-xl group-hover:scale-150 transition-transform" />
+              <div className="relative">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg">
+                  <Home className="w-6 h-6" />
+                </div>
+                <p className="font-bold text-sm text-white">Conoce la isla</p>
+                <p className="text-[11px] text-orange-100">Tu territorio y su gente</p>
               </div>
-              <p className="font-bold text-sm text-white">Conoce la isla</p>
-              <p className="text-[11px] text-orange-100">Tu territorio y su gente</p>
             </button>
             <button
               onClick={() => onNavigateModule('module11')}
-              className="p-4 rounded-2xl bg-white/20 border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
+              className="group relative p-5 rounded-3xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-2xl transition-all backdrop-blur-sm overflow-hidden"
             >
-              <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                <Compass className="w-5 h-5" />
+              <div className="absolute -top-4 -right-4 w-16 h-16 bg-amber-400/20 rounded-full blur-xl group-hover:scale-150 transition-transform" />
+              <div className="relative">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg">
+                  <Compass className="w-6 h-6" />
+                </div>
+                <p className="font-bold text-sm text-white">Mira su historia</p>
+                <p className="text-[11px] text-orange-100">Mapas y fotos antiguas</p>
               </div>
-              <p className="font-bold text-sm text-white">Mira su historia</p>
-              <p className="text-[11px] text-orange-100">Mapas y fotos antiguas</p>
             </button>
             <button
               onClick={() => onNavigateModule('3dviewer')}
-              className="p-4 rounded-2xl bg-white/20 border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
+              className="group relative p-5 rounded-3xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-2xl transition-all backdrop-blur-sm overflow-hidden"
             >
-              <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                <Box className="w-5 h-5" />
+              <div className="absolute -top-4 -right-4 w-16 h-16 bg-blue-400/20 rounded-full blur-xl group-hover:scale-150 transition-transform" />
+              <div className="relative">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg">
+                  <Box className="w-6 h-6" />
+                </div>
+                <p className="font-bold text-sm text-white">Recorre la propuesta</p>
+                <p className="text-[11px] text-orange-100">El nuevo barrio en 3D</p>
               </div>
-              <p className="font-bold text-sm text-white">Recorre la propuesta</p>
-              <p className="text-[11px] text-orange-100">El nuevo barrio en 3D</p>
             </button>
             <button
               onClick={() => onNavigateModule('framework')}
-              className="p-4 rounded-2xl bg-white/20 border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
+              className="group relative p-5 rounded-3xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-2xl transition-all backdrop-blur-sm overflow-hidden"
             >
-              <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                <MapIcon className="w-5 h-5" />
+              <div className="absolute -top-4 -right-4 w-16 h-16 bg-rose-400/20 rounded-full blur-xl group-hover:scale-150 transition-transform" />
+              <div className="relative">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg">
+                  <MapIcon className="w-6 h-6" />
+                </div>
+                <p className="font-bold text-sm text-white">El mapa de riesgos</p>
+                <p className="text-[11px] text-orange-100">Dónde se inunda</p>
               </div>
-              <p className="font-bold text-sm text-white">El mapa de riesgos</p>
-              <p className="text-[11px] text-orange-100">Dónde se inunda</p>
             </button>
           </div>
         </div>
@@ -204,21 +213,31 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       {/* TERRITORY MAP SECTION                                      */}
       {/* ========================================================= */}
       <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-slate-200">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Tu territorio en el mapa</h2>
-            <p className="text-sm text-slate-600 mt-1">Conoce la isla de Tierrabomba y cómo está tu comunidad</p>
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-slate-200 bg-gradient-to-r from-teal-50 to-blue-50">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Tu territorio en el mapa</h2>
+                <p className="text-sm text-slate-600">Conoce la isla de Tierrabomba y cómo está tu comunidad</p>
+              </div>
+            </div>
           </div>
           <div className="relative bg-gradient-to-br from-teal-50 to-blue-50 min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
             <div className="text-center p-6">
-              <MapIcon className="w-16 h-16 mx-auto text-teal-600 mb-4" />
+              <div className="relative inline-block">
+                <MapIcon className="w-24 h-24 mx-auto text-teal-600 mb-4" />
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full animate-ping" />
+              </div>
               <p className="text-lg font-bold text-slate-900 mb-2">Mapa interactivo de Tierrabomba</p>
               <p className="text-sm text-slate-600 max-w-md mx-auto">
                 Explora tu territorio, los barrios, las rutas de lanchas y las zonas de riesgo.
               </p>
               <button
                 onClick={() => onNavigateModule('territorio')}
-                className="mt-4 px-6 py-3 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md transition-all"
+                className="mt-4 px-6 py-3 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md transition-all hover:scale-105"
               >
                 Abrir mapa completo
               </button>
@@ -231,10 +250,17 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       {/* ENVIRONMENTAL DATA SECTION                                 */}
       {/* ========================================================= */}
       <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-slate-200">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Cómo está tu territorio</h2>
-            <p className="text-sm text-slate-600 mt-1">Datos ambientales de Tierrabomba</p>
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-slate-200 bg-gradient-to-r from-green-50 to-teal-50">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-green-600 text-white flex items-center justify-center">
+                <Leaf className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Cómo está tu territorio</h2>
+                <p className="text-sm text-slate-600">Datos ambientales de Tierrabomba</p>
+              </div>
+            </div>
           </div>
           
           {/* Tab Navigation */}
@@ -349,15 +375,22 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       {/* BOAT ROUTES SECTION                                        */}
       {/* ========================================================= */}
       <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-slate-200">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Rutas de lanchas</h2>
-            <p className="text-sm text-slate-600 mt-1">Cómo se mueve la comunidad entre Cartagena y la isla</p>
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-teal-50">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+                <Ship className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Rutas de lanchas</h2>
+                <p className="text-sm text-slate-600">Cómo se mueve la comunidad entre Cartagena y la isla</p>
+              </div>
+            </div>
           </div>
           <div className="p-4 sm:p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
               {BOAT_ROUTES.map((route, i) => (
-                <div key={i} className="flex items-center space-x-3 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <div key={i} className="flex items-center space-x-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:shadow-md transition-shadow">
                   <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: route.color }} />
                   <div>
                     <p className="font-bold text-sm text-slate-900">{route.name}</p>
@@ -377,10 +410,17 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       {/* PROBLEMS SECTION                                           */}
       {/* ========================================================= */}
       <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-slate-200">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Los problemas que enfrenta la isla</h2>
-            <p className="text-sm text-slate-600 mt-1">Toca cada tarjeta para ver fotos reales</p>
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-slate-200 bg-gradient-to-r from-red-50 to-amber-50">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Los problemas que enfrenta la isla</h2>
+                <p className="text-sm text-slate-600">Toca cada tarjeta para ver fotos reales</p>
+              </div>
+            </div>
           </div>
           <div className="p-4 sm:p-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
