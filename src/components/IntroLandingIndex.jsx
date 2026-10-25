@@ -243,7 +243,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
               className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-rose-500 hover:shadow-lg transition-all group text-left"
             >
               <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                <Map className="w-5 h-5" />
+                <MapIcon className="w-5 h-5" />
               </div>
               <p className="font-bold text-sm text-slate-900">El mapa de riesgos</p>
               <p className="text-[11px] text-slate-500">Dónde se inunda</p>
