@@ -19,7 +19,15 @@ import {
   Image as ImageIcon,
   Activity,
   Compass,
-  Wind
+  Wind,
+  Sun,
+  Fish,
+  Tent,
+  Heart,
+  Star,
+  Eye,
+  Play,
+  Sparkles
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
@@ -100,14 +108,23 @@ export default function IntroLandingIndex({ onNavigateModule }) {
   const [activeProblemKey, setActiveProblemKey] = useState(null);
   const [problemSlideIndex, setProblemSlideIndex] = useState(0);
   const [activeEnvTab, setActiveEnvTab] = useState('biomasa');
+  const [isShattering, setIsShattering] = useState(false);
+
+  const triggerShatterAndNavigate = (targetModuleId = 'territorio') => {
+    if (isShattering) return;
+    setIsShattering(true);
+    setTimeout(() => {
+      onNavigateModule(targetModuleId);
+    }, 800);
+  };
 
   return (
-    <div className="relative min-h-screen bg-white text-slate-900 overflow-x-hidden font-sans">
+    <div className="relative min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-teal-50 text-slate-900 overflow-x-hidden font-sans">
       
       {/* ========================================================= */}
       {/* HERO SECTION - COMMUNITY FOCUSED                          */}
       {/* ========================================================= */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-teal-600 via-teal-700 to-teal-800 text-white py-12 sm:py-16 lg:py-20">
+      <section className="relative overflow-hidden bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 text-white py-16 sm:py-20 lg:py-28">
         {/* Animated background pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-full h-full" style={{
@@ -116,18 +133,23 @@ export default function IntroLandingIndex({ onNavigateModule }) {
           }} />
         </div>
         
+        {/* Floating elements */}
+        <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl animate-pulse" />
+        <div className="absolute bottom-20 right-20 w-32 h-32 bg-amber-300/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-orange-300/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '2s' }} />
+        
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Title */}
           <div className="text-center mb-8 sm:mb-12">
-            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 text-sm font-bold text-white mb-4">
+            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 text-sm font-bold text-white mb-4 backdrop-blur-sm">
               <span className="w-2 h-2 rounded-full bg-white animate-ping" />
               <span>Tierra Bomba &bull; Bahía de Cartagena</span>
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 text-white">
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold leading-tight mb-4 text-white drop-shadow-lg">
               Tierra Bomba:<br />
-              <span className="text-amber-300">un lugar para quedarse</span>
+              <span className="text-amber-200">un lugar para quedarse</span>
             </h1>
-            <p className="text-lg sm:text-xl text-teal-100 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-orange-100 max-w-2xl mx-auto">
               Conoce tu territorio, sus problemas y la propuesta para que la comunidad pueda quedarse en la isla de forma segura.
             </p>
           </div>
@@ -136,43 +158,43 @@ export default function IntroLandingIndex({ onNavigateModule }) {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
             <button
               onClick={() => onNavigateModule('territorio')}
-              className="p-4 rounded-2xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
+              className="p-4 rounded-2xl bg-white/20 border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
             >
               <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                 <Home className="w-5 h-5" />
               </div>
               <p className="font-bold text-sm text-white">Conoce la isla</p>
-              <p className="text-[11px] text-teal-100">Tu territorio y su gente</p>
+              <p className="text-[11px] text-orange-100">Tu territorio y su gente</p>
             </button>
             <button
               onClick={() => onNavigateModule('module11')}
-              className="p-4 rounded-2xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
+              className="p-4 rounded-2xl bg-white/20 border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
             >
               <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                 <Compass className="w-5 h-5" />
               </div>
               <p className="font-bold text-sm text-white">Mira su historia</p>
-              <p className="text-[11px] text-teal-100">Mapas y fotos antiguas</p>
+              <p className="text-[11px] text-orange-100">Mapas y fotos antiguas</p>
             </button>
             <button
               onClick={() => onNavigateModule('3dviewer')}
-              className="p-4 rounded-2xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
+              className="p-4 rounded-2xl bg-white/20 border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
             >
               <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                 <Box className="w-5 h-5" />
               </div>
               <p className="font-bold text-sm text-white">Recorre la propuesta</p>
-              <p className="text-[11px] text-teal-100">El nuevo barrio en 3D</p>
+              <p className="text-[11px] text-orange-100">El nuevo barrio en 3D</p>
             </button>
             <button
               onClick={() => onNavigateModule('framework')}
-              className="p-4 rounded-2xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
+              className="p-4 rounded-2xl bg-white/20 border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all group text-left backdrop-blur-sm"
             >
               <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                 <MapIcon className="w-5 h-5" />
               </div>
               <p className="font-bold text-sm text-white">El mapa de riesgos</p>
-              <p className="text-[11px] text-teal-100">Dónde se inunda</p>
+              <p className="text-[11px] text-orange-100">Dónde se inunda</p>
             </button>
           </div>
         </div>
