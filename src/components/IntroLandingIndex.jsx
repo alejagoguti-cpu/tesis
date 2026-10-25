@@ -341,20 +341,12 @@ export default function IntroLandingIndex({ onNavigateModule }) {
           {/* LEFT: COPY COLUMN */}
           <div className="lg:col-span-6 space-y-6">
             
-            {/* Academic Tag & Re-animate trigger */}
+            {/* Etiqueta de contexto */}
             <div className="flex items-center justify-between">
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-50/80 border border-teal-200 text-xs font-mono text-teal-800">
                 <span className="w-2 h-2 rounded-full bg-teal-600 animate-ping" />
-                <span>Plan Maestro Insular &bull; Cota +22.00 m.s.n.m.</span>
+                <span>Plan para la isla &bull; zona segura a +22 metros</span>
               </div>
-              <button
-                onClick={() => setScrambleKey(prev => prev + 1)}
-                title="Re-ejecutar animación de caracteres"
-                className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-950 transition-colors text-xs flex items-center space-x-1 border border-slate-200"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span className="text-[10px] font-mono">Re-animar</span>
-              </button>
             </div>
 
             {/* Casino Animated Main Title */}
@@ -487,15 +479,14 @@ export default function IntroLandingIndex({ onNavigateModule }) {
 
             </div>
 
-            {/* CTA Buttons Row */}
+            {/* CTA Buttons Row — lenguaje comunitario */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
-                onClick={() => triggerShatterAndNavigate('framework')}
-                disabled={isShattering}
+                onClick={() => onNavigateModule('territorio')}
                 className="inline-flex items-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-teal-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0"
               >
-                <BookOpen className="w-4 h-4 text-teal-400" />
-                <span>{isShattering ? 'Accediendo al marco...' : 'MÓDULO 01: MARCO DE TESIS'}</span>
+                <Home className="w-4 h-4 text-teal-400" />
+                <span>Conoce la isla</span>
                 <ArrowRight className="w-4 h-4 ml-1" />
               </button>
 
@@ -504,29 +495,26 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                 className="inline-flex items-center space-x-2 px-5 py-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-semibold text-sm transition-all hover:-translate-y-0.5 shadow-xs"
               >
                 <Compass className="w-4 h-4 text-amber-600" />
-                <span>MÓDULO 1.1: PLANOS HISTÓRICOS</span>
+                <span>Mira su historia</span>
                 <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
               </button>
 
               <button
                 onClick={() => onNavigateModule('3dviewer')}
-                className="inline-flex items-center space-x-2 px-4 py-3.5 rounded-2xl text-slate-600 hover:text-slate-950 font-mono text-xs transition-colors hover:underline"
+                className="inline-flex items-center space-x-2 px-4 py-3.5 rounded-2xl text-slate-700 hover:text-slate-950 font-semibold text-sm transition-colors hover:underline"
               >
                 <Box className="w-4 h-4 text-slate-700" />
-                <span>MÓDULO 02: VISOR 3D &rarr;</span>
+                <span>Recorre la propuesta &rarr;</span>
               </button>
             </div>
 
-            {/* Author and Academic Credentials */}
-            <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-mono text-slate-500">
+            {/* Autoría */}
+            <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-500">
               <div>
-                <span className="text-slate-900 font-bold">Tesistas:</span> {projectInfo.author}
+                <span className="text-slate-900 font-bold">Hecho por:</span> {projectInfo.author}
               </div>
               <div>
                 <span className="text-slate-900 font-bold">Año:</span> {projectInfo.year}
-              </div>
-              <div>
-                <span className="text-teal-700 font-bold">Coordenadas:</span> {projectInfo.coordinates}
               </div>
             </div>
 
@@ -545,7 +533,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
               {/* Question Banner */}
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm font-bold text-slate-900 leading-snug">
-                  Articulación de los Objetivos Específicos (OE-01 a OE-04)
+                  Los cuatro objetivos del proyecto
                 </p>
                 <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
                   RED INTERACTIVA
@@ -725,7 +713,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                   onClick={() => triggerShatterAndNavigate('framework')}
                   className="text-teal-700 hover:text-teal-900 font-bold flex items-center space-x-1 hover:underline"
                 >
-                  <span>Ver Marco de Objetivos &rarr;</span>
+                  <span>Ver los objetivos &rarr;</span>
                 </button>
               </div>
 

@@ -50,7 +50,7 @@ class SafeSection extends Component {
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [activeModule, setActiveModule] = useState('framework');
+  const [activeModule, setActiveModule] = useState('territorio');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
@@ -106,7 +106,7 @@ export default function App() {
       {/* Main Content Area (100% Full-Screen Dashboard) */}
       <div 
         className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${
-          presentationMode ? 'pl-0' : 'lg:pl-16'
+          presentationMode ? 'pl-0' : 'lg:pl-60'
         }`}
       >
         {/* Dynamic Viewport Container */}

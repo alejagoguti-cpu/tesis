@@ -276,15 +276,81 @@ export const projectInfo = {
   ],
 
   // 11. NAVEGACIÓN DEL DASHBOARD
+  // Módulos comunitarios = menú principal (lenguaje claro, sin tecnicismos).
+  // Módulos técnicos = se conservan, pero quedan bajo "Versión técnica".
   dashboardModules: [
-    { id: "framework", number: "01", title: "Marco de Tesis", icon: "BookOpen", badge: "Académico", desc: "Problema, Justificación y Objetivos OE-01 a OE-04" },
-    { id: "module11", number: "1.1", title: "Planos Históricos & Evidencias Territoriales", icon: "Map", badge: "Módulo 1.1", desc: "Atlas de 6 Planos Históricos (1589–1900) y Evidencias de Habitabilidad en Sitio" },
-    { id: "gis", number: "1.2", title: "Teledetección & GIS Espectral", icon: "Layers", badge: "GIS", desc: "5 Bandas satelitales (NDVI, NDWI, Manglar) y Shaders CSS" },
-    { id: "red", number: "1.3", title: "Red Diseño Colaborativo", icon: "Network", badge: "Red interactiva", desc: "Red conceptual que se despliega ítem por ítem con cada clic" },
-    { id: "territorio", number: "1.5", title: "Tierra Bomba: Territorio Habitado", icon: "Network", badge: "Red interactiva", desc: "Historia, comunidad, vivienda, movilidad, paisaje y relación con Cartagena" },
-    { id: "rizoma", number: "1.4", title: "Master Plan Rizoma", icon: "Network", badge: "Red interactiva", desc: "Núcleo inicial, ampliación básica y condiciones de habitabilidad como red rizomática" },
-    { id: "3dviewer", number: "02", title: "Visor 3D WebGL / BIM", icon: "Box", badge: "Interactivo", desc: "Territorio, Colegio, Vivienda, Masterplan + Despiece & Speckle" },
-    { id: "revit", number: "03", title: "Modelo Revit Tierrabomba", icon: "Building2", badge: "BIM", desc: "Carga del .rvt + visor del modelo exportado" },
+    {
+      id: "territorio",
+      number: "1",
+      title: "Nuestro territorio",
+      icon: "Home",
+      badge: "La isla",
+      desc: "Cómo es Tierra Bomba: su gente, sus casas, sus caminos y su paisaje",
+      community: true
+    },
+    {
+      id: "module11",
+      number: "2",
+      title: "La historia de la isla",
+      icon: "BookOpen",
+      badge: "Memoria",
+      desc: "Mapas antiguos y fotos reales de cómo ha cambiado la isla",
+      community: true
+    },
+    {
+      id: "framework",
+      number: "3",
+      title: "El mapa de los riesgos",
+      icon: "Map",
+      badge: "Territorio",
+      desc: "Dónde se inunda, dónde se pierde la costa y dónde está la parte segura",
+      community: true
+    },
+    {
+      id: "3dviewer",
+      number: "4",
+      title: "Así será el nuevo barrio",
+      icon: "Box",
+      badge: "Propuesta",
+      desc: "Recorre en 3D las casas, el colegio y el aljibe de agua",
+      community: true
+    },
+    {
+      id: "gis",
+      number: "T1",
+      title: "Teledetección & GIS Espectral",
+      icon: "Layers",
+      badge: "Técnico",
+      desc: "Bandas satelitales (NDVI, NDWI, Manglar) y análisis espectral",
+      community: false
+    },
+    {
+      id: "red",
+      number: "T2",
+      title: "Red de Diseño Colaborativo",
+      icon: "Network",
+      badge: "Técnico",
+      desc: "Red conceptual de objetivos que se despliega con cada clic",
+      community: false
+    },
+    {
+      id: "rizoma",
+      number: "T3",
+      title: "Master Plan Rizoma",
+      icon: "Network",
+      badge: "Técnico",
+      desc: "Núcleo inicial, ampliación básica y condiciones de habitabilidad",
+      community: false
+    },
+    {
+      id: "revit",
+      number: "T4",
+      title: "Modelo Revit Tierrabomba",
+      icon: "Building2",
+      badge: "Técnico",
+      desc: "Modelo BIM original y visor de la exportación",
+      community: false
+    },
   ],
 
   // 12. SISTEMA DE RED CONCEPTUAL DE OBJETIVOS (TESIS 2026)

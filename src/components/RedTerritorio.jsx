@@ -95,7 +95,7 @@ export default function RedTerritorio() {
       style={{ height: 'calc(100vh - 65px)', background: 'radial-gradient(circle at 1px 1px, #e2e8f0 1px, transparent 0) 0 0/26px 26px, #ffffff' }}>
       <div className="w-full max-w-6xl flex items-end justify-between gap-4 mb-3">
         <div>
-          <p className="text-[11px] font-mono font-bold tracking-[0.18em] text-teal-700 uppercase">Marco conceptual · Módulo 1.5</p>
+          <p className="text-[11px] font-mono font-bold tracking-[0.18em] text-teal-700 uppercase">Conoce la isla</p>
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">Tierra Bomba: territorio habitado</h2>
         </div>
         <button onClick={() => { setVisible(['centro']); setOpened([]); }} className="h-9 px-4 rounded-full bg-white border border-slate-200 shadow-sm text-slate-700 text-xs font-semibold hover:border-slate-400 flex items-center gap-1.5">

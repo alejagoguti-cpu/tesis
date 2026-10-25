@@ -14,7 +14,9 @@ import {
   Network,
   Layers,
   ChevronRight,
-  AlertTriangle
+  ChevronDown,
+  AlertTriangle,
+  Wrench
 } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
@@ -32,26 +34,56 @@ const iconMap = {
   Activity,
   Building2,
   Sparkles,
-  Network
+  Network,
+  Layers
 };
 
 export default function DashboardSidebar({
   activeModule,
   setActiveModule,
   mobileOpen,
-  setMobileOpen
+  setMobileOpen,
+  viewMode,
+  setViewMode
 }) {
-  const [hoveredModule, setHoveredModule] = useState(null);
-  const [tooltipPos, setTooltipPos] = useState({ top: 0 });
+  const [showTechnical, setShowTechnical] = useState(false);
 
-  const handleMouseEnter = (module, e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setTooltipPos({ top: rect.top + rect.height / 2 });
-    setHoveredModule(module);
+  const communityModules = projectInfo.dashboardModules.filter((m) => m.community);
+  const technicalModules = projectInfo.dashboardModules.filter((m) => !m.community);
+
+  const goTo = (id) => {
+    setActiveModule(id);
+    setMobileOpen(false);
   };
 
-  const handleMouseLeave = () => {
-    setHoveredModule(null);
+  const renderItem = (module) => {
+    const Icon = iconMap[module.icon] || LayoutDashboard;
+    const isActive = activeModule === module.id;
+    return (
+      <button
+        key={module.id}
+        onClick={() => goTo(module.id)}
+        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-left transition-all ${
+          isActive
+            ? 'bg-terracotta-600 text-white shadow-md shadow-terracotta-600/25'
+            : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950'
+        }`}
+      >
+        <span
+          className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+            isActive ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-700'
+          }`}
+        >
+          <Icon className="w-4.5 h-4.5" style={{ width: 18, height: 18 }} />
+        </span>
+        <span className="min-w-0">
+          <span className="block text-[13px] font-bold leading-tight truncate">{module.title}</span>
+          <span className={`block text-[10px] font-mono leading-tight truncate ${isActive ? 'text-white/75' : 'text-slate-500'}`}>
+            {module.badge}
+          </span>
+        </span>
+      </button>
+    );
   };
 
   return (
@@ -60,132 +92,65 @@ export default function DashboardSidebar({
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden"
         />
       )}
 
-      {/* Ultra-Clean Icon-Only Sidebar Rail */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col items-center justify-between w-16 bg-white text-slate-800 border-r border-slate-200 shadow-sm transition-transform duration-300 ease-out ${
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col w-72 lg:w-60 bg-white text-slate-800 border-r border-slate-200 shadow-sm transition-transform duration-300 ease-out ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        {/* Top Logo / Brand Icon */}
-        <div className="pt-3.5 pb-2 flex flex-col items-center">
-          <button
-            onClick={() => setViewMode('index')}
-            onMouseEnter={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              setTooltipPos({ top: rect.top + rect.height / 2 });
-              setHoveredModule({
-                number: "INDEX",
-                title: "Volver a la Portada",
-                desc: "Regresar a la página de inicio e index animado",
-                badge: "Portada"
-              });
-            }}
-            onMouseLeave={handleMouseLeave}
-            className="w-11 h-11 rounded-2xl bg-slate-900 hover:bg-teal-700 text-white flex items-center justify-center shadow-md transition-all hover:scale-105"
-            title="Volver a la Portada Index"
-          >
-            <Building2 className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Navigation Modules Icons Strip */}
-        <div className="flex-1 flex flex-col items-center justify-center space-y-2 py-2 w-full px-2">
-          {projectInfo.dashboardModules.map((module) => {
-            const Icon = iconMap[module.icon] || LayoutDashboard;
-            const isActive = activeModule === module.id;
-
-            return (
-              <div key={module.id} className="relative flex items-center justify-center w-full">
-                
-                {/* Module Button */}
-                <button
-                  onClick={() => {
-                    setActiveModule(module.id);
-                    setMobileOpen(false);
-                  }}
-                  onMouseEnter={(e) => handleMouseEnter(module, e)}
-                  onMouseLeave={handleMouseLeave}
-                  title={`MOD ${module.number}: ${module.title}`}
-                  className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-200 relative ${
-                    isActive
-                      ? 'bg-terracotta-600 text-white shadow-md shadow-terracotta-600/30 scale-105'
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200/90 hover:scale-105 hover:border-terracotta-400'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-
-                  {/* Tiny module number on bottom corner */}
-                  <span className={`absolute -bottom-1 -right-1 text-[9px] font-mono font-black px-1 rounded-md shadow-xs ${
-                    isActive
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-white text-slate-600 border border-slate-200'
-                  }`}>
-                    {module.number}
-                  </span>
-                </button>
-
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Bottom Telemetry Mini Indicator */}
-        <div className="pb-3.5 pt-2 flex flex-col items-center">
-          <div 
-            onMouseEnter={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              setTooltipPos({ top: rect.top + rect.height / 2 });
-              setHoveredModule({
-                number: "SIG",
-                title: "MIDAS Cartagena // Telemetría",
-                desc: "Datos oficiales IDE Cartagena, DIMAR y POT 2026 en tiempo real",
-                badge: "Geoportal MIDAS"
-              });
-            }}
-            onMouseLeave={handleMouseLeave}
-            className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer transition-colors border border-slate-200"
-            title="MIDAS Cartagena // Telemetría"
-          >
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          </div>
-        </div>
-
-      </aside>
-
-      {/* ========================================================================= */}
-      {/* 100% UNCLIPPED FIXED FLOATING HOVER FLYOUT TOOLTIP                        */}
-      {/* ========================================================================= */}
-      {hoveredModule && (
-        <div
-          style={{ top: `${tooltipPos.top}px` }}
-          className="fixed left-20 -translate-y-1/2 z-[99999] pointer-events-none transition-all duration-150 animate-fade-in"
+        {/* Marca */}
+        <button
+          onClick={() => { setViewMode('index'); setMobileOpen(false); }}
+          className="flex items-center gap-3 px-4 py-4 border-b border-slate-200 text-left hover:bg-slate-50 transition-colors"
+          title="Volver al inicio"
         >
-          <div className="glass-dark text-white px-4 py-3 rounded-2xl shadow-2xl border border-white/20 max-w-xs whitespace-normal flex flex-col space-y-1.5">
-            <div className="flex items-center space-x-2">
-              <span className="px-1.5 py-0.5 rounded bg-terracotta-500 text-white text-[10px] font-mono font-bold shadow-xs">
-                MOD {hoveredModule.number}
-              </span>
-              <h4 className="font-bold text-xs text-white">
-                {hoveredModule.title}
-              </h4>
-            </div>
+          <span className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center shrink-0">
+            <Building2 className="w-5 h-5" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-[13px] font-extrabold text-slate-900 leading-tight">Tierra Bomba</span>
+            <span className="block text-[10px] font-mono text-slate-500 leading-tight">Hábitat resiliente</span>
+          </span>
+        </button>
 
-            <p className="text-[11px] text-slate-200 leading-snug font-sans">
-              {hoveredModule.desc}
-            </p>
+        {/* Módulos comunitarios */}
+        <div className="flex-1 overflow-y-auto px-2.5 py-3 space-y-1.5">
+          <p className="px-2 pb-1 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
+            Recorre el proyecto
+          </p>
+          {communityModules.map(renderItem)}
 
-            {hoveredModule.badge && (
-              <span className="text-[10px] font-mono text-teal-300 font-semibold pt-0.5">
-                &bull; {hoveredModule.badge}
+          {/* Sección técnica plegable */}
+          <div className="pt-3">
+            <button
+              onClick={() => setShowTechnical((v) => !v)}
+              className="w-full flex items-center justify-between px-2 py-2 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+            >
+              <span className="flex items-center gap-1.5">
+                <Wrench className="w-3.5 h-3.5" />
+                Versión técnica
               </span>
+              {showTechnical ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+            </button>
+            {showTechnical && (
+              <div className="mt-1 space-y-1.5">
+                {technicalModules.map(renderItem)}
+              </div>
             )}
           </div>
         </div>
-      )}
+
+        {/* Pie */}
+        <div className="px-4 py-3 border-t border-slate-200">
+          <p className="text-[10px] font-mono text-slate-400 leading-snug">
+            Tesis de Arquitectura 2026<br />
+            {projectInfo.author}
+          </p>
+        </div>
+      </aside>
     </>
   );
 }
