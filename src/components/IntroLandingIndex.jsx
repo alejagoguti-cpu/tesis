@@ -124,15 +124,15 @@ export default function IntroLandingIndex({ onNavigateModule }) {
     <div className="relative min-h-screen bg-white text-slate-900 overflow-x-hidden font-sans">
       
       {/* ========================================================= */}
-      {/* HERO SECTION - FULL SCREEN, NO SCROLL                      */}
+      {/* HERO SECTION - PRESENTACIÓN Y ACCESOS RÁPIDOS              */}
       {/* ========================================================= */}
-      <section className="relative h-screen overflow-hidden bg-gradient-to-br from-teal-600 via-teal-700 to-blue-800 text-white">
+      <section className="relative min-h-[90vh] lg:min-h-screen py-12 lg:py-16 overflow-hidden bg-gradient-to-br from-teal-700 via-teal-800 to-blue-900 text-white flex flex-col justify-between">
         {/* Animated wave background */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 overflow-hidden">
+        <div className="absolute bottom-0 left-0 right-0 h-32 overflow-hidden pointer-events-none">
           <svg className="absolute bottom-0 w-full h-full" viewBox="0 0 1440 120" preserveAspectRatio="none">
-            <path d="M0,60 C360,120 720,0 1080,60 C1260,90 1380,30 1440,60 L1440,120 L0,120 Z" fill="rgba(255,255,255,0.1)" />
-            <path d="M0,80 C240,120 480,40 720,80 C960,120 1200,40 1440,80 L1440,120 L0,120 Z" fill="rgba(255,255,255,0.15)" />
-            <path d="M0,100 C360,60 720,120 1080,80 C1260,60 1380,100 1440,100 L1440,120 L0,120 Z" fill="rgba(255,255,255,0.08)" />
+            <path d="M0,60 C360,120 720,0 1080,60 C1260,90 1380,30 1440,60 L1440,120 L0,120 Z" fill="rgba(255,255,255,0.08)" />
+            <path d="M0,80 C240,120 480,40 720,80 C960,120 1200,40 1440,80 L1440,120 L0,120 Z" fill="rgba(255,255,255,0.12)" />
+            <path d="M0,100 C360,60 720,120 1080,80 C1260,60 1380,100 1440,100 L1440,120 L0,120 Z" fill="rgba(255,255,255,0.05)" />
           </svg>
         </div>
         
@@ -141,7 +141,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
         <div className="absolute bottom-20 right-20 w-32 h-32 bg-amber-300/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-orange-300/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '2s' }} />
         
-        <div className="relative z-10 h-full flex flex-col items-center justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Hero Title */}
           <div className="text-center mb-6 sm:mb-8">
             <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 text-sm font-bold text-white mb-4 backdrop-blur-sm">
@@ -160,8 +160,10 @@ export default function IntroLandingIndex({ onNavigateModule }) {
           {/* Quick Navigation Cards - 4 columns */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto w-full">
             <button
-              onClick={() => onNavigateModule('territorio')}
-              className="group relative p-4 sm:p-5 rounded-3xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-2xl transition-all backdrop-blur-sm overflow-hidden"
+              onClick={() => {
+                document.getElementById('formulacion-problema')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="group relative p-4 sm:p-5 rounded-3xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-2xl transition-all backdrop-blur-sm overflow-hidden text-left cursor-pointer"
             >
               <div className="absolute -top-4 -right-4 w-16 h-16 bg-teal-400/20 rounded-full blur-xl group-hover:scale-150 transition-transform" />
               <div className="relative">
@@ -174,7 +176,7 @@ export default function IntroLandingIndex({ onNavigateModule }) {
             </button>
             <button
               onClick={() => onNavigateModule('module11')}
-              className="group relative p-4 sm:p-5 rounded-3xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-2xl transition-all backdrop-blur-sm overflow-hidden"
+              className="group relative p-4 sm:p-5 rounded-3xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-2xl transition-all backdrop-blur-sm overflow-hidden text-left cursor-pointer"
             >
               <div className="absolute -top-4 -right-4 w-16 h-16 bg-amber-400/20 rounded-full blur-xl group-hover:scale-150 transition-transform" />
               <div className="relative">
@@ -186,8 +188,10 @@ export default function IntroLandingIndex({ onNavigateModule }) {
               </div>
             </button>
             <button
-              onClick={() => onNavigateModule('3dviewer')}
-              className="group relative p-4 sm:p-5 rounded-3xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-2xl transition-all backdrop-blur-sm overflow-hidden"
+              onClick={() => {
+                document.getElementById('criterios-vivienda')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="group relative p-4 sm:p-5 rounded-3xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-2xl transition-all backdrop-blur-sm overflow-hidden text-left cursor-pointer"
             >
               <div className="absolute -top-4 -right-4 w-16 h-16 bg-blue-400/20 rounded-full blur-xl group-hover:scale-150 transition-transform" />
               <div className="relative">
@@ -195,12 +199,14 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                   <Box className="w-6 h-6" />
                 </div>
                 <p className="font-bold text-sm text-white">Recorre la propuesta</p>
-                <p className="text-[11px] text-teal-100">El nuevo barrio en 3D</p>
+                <p className="text-[11px] text-teal-100">Criterios & diseño en 3D</p>
               </div>
             </button>
             <button
-              onClick={() => onNavigateModule('framework')}
-              className="group relative p-4 sm:p-5 rounded-3xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-2xl transition-all backdrop-blur-sm overflow-hidden"
+              onClick={() => {
+                document.getElementById('estudio-variables')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="group relative p-4 sm:p-5 rounded-3xl bg-white/15 border border-white/20 hover:bg-white/25 hover:shadow-2xl transition-all backdrop-blur-sm overflow-hidden text-left cursor-pointer"
             >
               <div className="absolute -top-4 -right-4 w-16 h-16 bg-rose-400/20 rounded-full blur-xl group-hover:scale-150 transition-transform" />
               <div className="relative">
@@ -212,7 +218,717 @@ export default function IntroLandingIndex({ onNavigateModule }) {
               </div>
             </button>
           </div>
+
+          {/* Quick Scroll Indicator to Academic Foundation */}
+          <div className="mt-8 pt-4">
+            <button
+              onClick={() => {
+                document.getElementById('fundamentacion-proyecto')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-mono font-bold text-teal-100 hover:text-white transition-all backdrop-blur-sm animate-bounce cursor-pointer shadow-sm"
+            >
+              <span>Ver Estructuración del Proyecto & Líneas de Acción</span>
+              <ChevronRight className="w-4 h-4 rotate-90" />
+            </button>
+          </div>
         </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* ESTRUCTURACIÓN DEL PROYECTO (TIERRA BOMBA)                 */}
+      {/* ========================================================= */}
+      <section id="fundamentacion-proyecto" className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        
+        {/* Intro Header Card */}
+        <div className="mb-12 text-center max-w-4xl mx-auto space-y-4">
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-mono font-bold tracking-wider uppercase">
+            <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+            <span>Estructuración del Proyecto &bull; Propuesta Aplicada</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            Estructura de la Propuesta en Tierra Bomba
+          </h2>
+          <p className="text-base sm:text-lg text-slate-700 leading-relaxed font-sans">
+            La estructuración de un proyecto o propuesta aplicada a la isla de <strong className="text-teal-900 font-bold">Tierra Bomba</strong> (Cartagena de Indias) requiere articular la vulnerabilidad territorial, la fundamentación teórica, las variables de diagnóstico y las líneas de acción.
+          </p>
+        </div>
+
+        {/* 1. FORMULACIÓN DEL PROBLEMA */}
+        <div id="formulacion-problema" className="mb-14 bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+          <div className="p-6 sm:p-8 bg-gradient-to-r from-rose-50 via-amber-50/50 to-white border-b border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+                Capítulo 1 // Diagnóstico Situacional
+              </span>
+              <span className="text-xs text-slate-500 font-mono">Bahía de Cartagena &bull; Caso Insular</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              1. Formulación del Problema
+            </h3>
+            <p className="mt-3 text-base text-slate-700 leading-relaxed">
+              Tierra Bomba presenta una condición de <strong className="text-rose-900 font-bold">desarticulación socioespacial e insularidad periférica</strong>, caracterizada por una desconexión crítica respecto a las dinámicas de desarrollo de Cartagena, a pesar de su proximidad geográfica.
+            </p>
+          </div>
+
+          <div className="p-6 sm:p-8 space-y-6">
+            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">
+              Causas principales identificadas en el territorio:
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start space-x-3.5 hover:border-rose-300 hover:bg-rose-50/20 transition-colors">
+                <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                  <Droplets className="w-5 h-5" />
+                </div>
+                <div>
+                  <h5 className="font-bold text-slate-900 text-sm">Déficit Crítico de Servicios Básicos</h5>
+                  <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+                    Carencia o intermitencia severa en servicios básicos (agua potable por red, saneamiento y manejo de residuos).
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start space-x-3.5 hover:border-rose-300 hover:bg-rose-50/20 transition-colors">
+                <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                  <Waves className="w-5 h-5" />
+                </div>
+                <div>
+                  <h5 className="font-bold text-slate-900 text-sm">Erosión Costera & Riesgo Patrimonial</h5>
+                  <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+                    Erosión costera acelerada por corrientes marítimas y cambio climático, amenazando la infraestructura habitacional y el patrimonio histórico (fuertes virreinales como San Fernando y el Ángel San Rafael).
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start space-x-3.5 hover:border-amber-300 hover:bg-amber-50/20 transition-colors">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                  <Activity className="w-5 h-5" />
+                </div>
+                <div>
+                  <h5 className="font-bold text-slate-900 text-sm">Dependencia de Turismo Precarizado</h5>
+                  <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+                    Dependencia de un turismo informal y estacional sin cadenas de valor locales consolidadas.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start space-x-3.5 hover:border-amber-300 hover:bg-amber-50/20 transition-colors">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <div>
+                  <h5 className="font-bold text-slate-900 text-sm">Presión Territorial & Vacíos de Titulación</h5>
+                  <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+                    Presión territorial, vacíos en la titulación de tierras y debilidad institucional en la gobernanza comunitaria.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Pregunta Problema Callout */}
+            <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-lg space-y-2">
+              <div className="flex items-center space-x-2 text-rose-300 font-mono text-xs font-bold uppercase tracking-wider">
+                <AlertCircle className="w-4 h-4" />
+                <span>Pregunta Problema Central</span>
+              </div>
+              <p className="text-base sm:text-lg font-serif italic text-amber-100 leading-snug">
+                “¿De qué manera una intervención integral de base comunitaria y adaptación climática puede mitigar la vulnerabilidad socioambiental y dinamizar la soberanía económica en la isla de Tierra Bomba?”
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. ABORDAJE DESDE EL MARCO TEÓRICO */}
+        <div id="marco-teorico" className="mb-14 bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+          <div className="p-6 sm:p-8 bg-gradient-to-r from-blue-50 via-indigo-50/40 to-white border-b border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                Capítulo 2 // Epistemología & Fundamentación
+              </span>
+              <span className="text-xs text-slate-500 font-mono">3 Enfoques Complementarios</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              2. Abordaje desde el Marco Teórico
+            </h3>
+            <p className="mt-3 text-base text-slate-700 leading-relaxed">
+              Para no limitar el análisis a un enfoque meramente asistencial, el problema se aborda combinando tres enfoques teóricos:
+            </p>
+          </div>
+
+          <div className="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Teórico 1 */}
+            <div className="p-6 rounded-2xl bg-gradient-to-b from-blue-50/60 to-white border border-blue-200/80 hover:shadow-lg transition-all flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="inline-block px-2.5 py-1 rounded-md bg-blue-100 text-blue-800 text-[11px] font-mono font-bold">
+                  David Harvey &bull; Edward Soja
+                </div>
+                <h4 className="font-bold text-lg text-slate-900 leading-tight">
+                  1. Justicia Espacial y Derecho a la Ciudad
+                </h4>
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                  Explica cómo la proximidad física a enclaves de alta renta turística (Bocagrande, Castillogrande) contrasta con la marginación en el acceso a bienes públicos, planteando la necesidad de redistribución de recursos e integración territorial equitativa.
+                </p>
+              </div>
+              <div className="pt-3 border-t border-blue-100 text-[11px] font-mono text-blue-700 font-semibold">
+                &rarr; Redistribución socioespacial equitativa
+              </div>
+            </div>
+
+            {/* Teórico 2 */}
+            <div className="p-6 rounded-2xl bg-gradient-to-b from-teal-50/60 to-white border border-teal-200/80 hover:shadow-lg transition-all flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="inline-block px-2.5 py-1 rounded-md bg-teal-100 text-teal-800 text-[11px] font-mono font-bold">
+                  Carl Folke &bull; Fikret Berkes
+                </div>
+                <h4 className="font-bold text-lg text-slate-900 leading-tight">
+                  2. Ecología Política y Resiliencia Socioecológica
+                </h4>
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                  Permite entender que el deterioro costero no es solo un fenómeno biofísico, sino el resultado de intervenciones antrópicas históricas (obras marítimas, canalizaciones y abandono de defensas costeras). La comunidad y el ecosistema costero deben coevolucionar mediante estrategias de adaptación basadas en la naturaleza (SbN).
+                </p>
+              </div>
+              <div className="pt-3 border-t border-teal-100 text-[11px] font-mono text-teal-700 font-semibold">
+                &rarr; Soluciones Basadas en la Naturaleza (SbN)
+              </div>
+            </div>
+
+            {/* Teórico 3 */}
+            <div className="p-6 rounded-2xl bg-gradient-to-b from-amber-50/60 to-white border border-amber-200/80 hover:shadow-lg transition-all flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="inline-block px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 text-[11px] font-mono font-bold">
+                  Amartya Sen &bull; Arturo Escobar
+                </div>
+                <h4 className="font-bold text-lg text-slate-900 leading-tight">
+                  3. Desarrollo Endógeno y Agenciamiento Comunitario
+                </h4>
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                  Sostiene que las soluciones sostenibles provienen del fortalecimiento de las capacidades locales, los saberes ancestrales de las comunidades afrodescendientes y la gobernanza colectiva del territorio, evitando modelos extractivos foráneos.
+                </p>
+              </div>
+              <div className="pt-3 border-t border-amber-100 text-[11px] font-mono text-amber-800 font-semibold">
+                &rarr; Soberanía comunitaria y saberes locales
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* 3. RECURSOS METODOLÓGICOS Y ESTUDIO DE VARIABLES */}
+        <div id="estudio-variables" className="mb-14 bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+          <div className="p-6 sm:p-8 bg-gradient-to-r from-teal-50 via-emerald-50/50 to-white border-b border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-teal-100 text-teal-800 border border-teal-200">
+                Capítulo 3 // Metodología Mixta
+              </span>
+              <span className="text-xs text-slate-500 font-mono">IAP (Investigación Acción Participativa)</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              3. Recursos Metodológicos y Estudio de Variables
+            </h3>
+            <p className="mt-3 text-base text-slate-700 leading-relaxed">
+              El diagnóstico integral se sustenta en un <strong className="text-teal-900 font-bold">diseño metodológico mixto (cuali-cuantitativo)</strong> con enfoque participativo (IAP - Investigación Acción Participativa).
+            </p>
+          </div>
+
+          {/* Table Layout for Desktop / Mobile Scroll */}
+          <div className="p-4 sm:p-8 overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[700px]">
+              <thead>
+                <tr className="border-b-2 border-slate-200 text-xs font-mono font-bold uppercase tracking-wider text-slate-500 bg-slate-50/70">
+                  <th className="py-3 px-4 rounded-tl-xl w-1/5">Dimensión / Variable</th>
+                  <th className="py-3 px-4 w-1/4">Indicadores Evaluados</th>
+                  <th className="py-3 px-4 w-1/4">Recursos e Instrumentos Metodológicos</th>
+                  <th className="py-3 px-4 rounded-tr-xl w-3/10">Hallazgo / Conclusión Metodológica</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 text-xs sm:text-sm text-slate-700">
+                
+                <tr className="hover:bg-slate-50/60 transition-colors">
+                  <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                    <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 border border-teal-200 text-xs font-mono font-bold">
+                      <Leaf className="w-3.5 h-3.5" />
+                      <span>Físico-Ambiental</span>
+                    </span>
+                  </td>
+                  <td className="py-4 px-4 align-top leading-relaxed">
+                    Tasa de retroceso de línea de costa, salinidad de acuíferos, cobertura vegetal.
+                  </td>
+                  <td className="py-4 px-4 align-top leading-relaxed">
+                    Mapeo GIS multitemporal, sensores remotos, batimetría y aforos de calidad de agua.
+                  </td>
+                  <td className="py-4 px-4 align-top leading-relaxed bg-teal-50/30 font-medium text-slate-900 rounded-r-lg">
+                    La erosión no es homogénea; se concentra en frentes con pérdida de barreras arrecifales/manglar, requiriendo zonificación urgente.
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-slate-50/60 transition-colors">
+                  <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                    <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-xs font-mono font-bold">
+                      <Users className="w-3.5 h-3.5" />
+                      <span>Socioeconómica</span>
+                    </span>
+                  </td>
+                  <td className="py-4 px-4 align-top leading-relaxed">
+                    Ingreso medio por hogar, tasa de informalidad, acceso a salud y educación técnica.
+                  </td>
+                  <td className="py-4 px-4 align-top leading-relaxed">
+                    Encuestas estructuradas por muestreo estratificado en los cuatro corregimientos (Tierra Bomba, Punta Arena, Caño del Oro, Bocachica).
+                  </td>
+                  <td className="py-4 px-4 align-top leading-relaxed bg-amber-50/30 font-medium text-slate-900 rounded-r-lg">
+                    Alta vulnerabilidad por monocultivo de servicios turísticos precarizados y bajo relevo generacional en pesca tradicional.
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-slate-50/60 transition-colors">
+                  <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                    <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200 text-xs font-mono font-bold">
+                      <Building2 className="w-3.5 h-3.5" />
+                      <span>Sociocultural y Gobernanza</span>
+                    </span>
+                  </td>
+                  <td className="py-4 px-4 align-top leading-relaxed">
+                    Cohesión comunitaria, legitimidad de Consejos Comunitarios, preservación del patrimonio.
+                  </td>
+                  <td className="py-4 px-4 align-top leading-relaxed">
+                    Cartografía social participativa, grupos focales, entrevistas semiestructuradas y talleres de memoria oral.
+                  </td>
+                  <td className="py-4 px-4 align-top leading-relaxed bg-indigo-50/30 font-medium text-slate-900 rounded-r-lg">
+                    El Consejo Comunitario y las organizaciones de base son el canal de legitimidad necesario; los proyectos impuestos desde afuera fracasan por desconfianza histórica.
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-slate-50/60 transition-colors">
+                  <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                    <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 text-xs font-mono font-bold">
+                      <Droplets className="w-3.5 h-3.5" />
+                      <span>Infraestructura y Servicios</span>
+                    </span>
+                  </td>
+                  <td className="py-4 px-4 align-top leading-relaxed">
+                    Cobertura de red hídrica, disposición de excretas, autonomía energética.
+                  </td>
+                  <td className="py-4 px-4 align-top leading-relaxed">
+                    Auditorías técnicas in situ, balances de masa de residuos y caracterización energética.
+                  </td>
+                  <td className="py-4 px-4 align-top leading-relaxed bg-blue-50/30 font-medium text-slate-900 rounded-r-lg">
+                    Los sistemas centralizados continentales son inviables a corto plazo; la solución técnica exige descentralización y circularidad.
+                  </td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* 4. APLICACIÓN A LA PROPUESTA CONCRETA */}
+        <div id="propuesta-concreta" className="mb-14 bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+          <div className="p-6 sm:p-8 bg-gradient-to-r from-emerald-50 via-teal-50/50 to-white border-b border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                Capítulo 4 // Líneas de Acción Estratégicas
+              </span>
+              <span className="text-xs text-slate-500 font-mono">Propuesta Materializada &bull; 3 Ejes</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              4. Aplicación a la Propuesta Concreta
+            </h3>
+            <p className="mt-3 text-base text-slate-700 leading-relaxed">
+              A partir de las conclusiones del diagnóstico de variables y el marco teórico, la propuesta se materializa en tres ejes estratégicos integrados:
+            </p>
+          </div>
+
+          <div className="p-6 sm:p-8 space-y-6">
+            
+            {/* Eje 1 */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-teal-50/70 via-white to-teal-50/30 border border-teal-200 hover:shadow-md transition-all space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold font-mono shrink-0 shadow-sm">
+                  01
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-teal-700 uppercase tracking-wider">Línea Técnica y Ambiental</span>
+                  <h4 className="text-lg font-bold text-slate-900">
+                    Eje 1: Infraestructura Descentralizada y Soluciones Basadas en la Naturaleza (SbN)
+                  </h4>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 pt-2">
+                <div className="p-4 rounded-xl bg-white border border-teal-100 space-y-1 shadow-2xs">
+                  <span className="text-[11px] font-mono font-bold text-teal-800 uppercase flex items-center space-x-1">
+                    <Activity className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Acción Proyectual</span>
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Restauración de franjas de manglar y arrecifes artificiales con tecnología de bio-bloques para frenar la energía del oleaje, complementada con microrredes de captación y potabilización solar de agua de lluvia y plantas modulares de desalinización fotovoltaica gestionadas localmente.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-teal-100 space-y-1 shadow-2xs">
+                  <span className="text-[11px] font-mono font-bold text-slate-700 uppercase flex items-center space-x-1">
+                    <BookOpen className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Sustento Teórico / Metodológico</span>
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Responde a la variable físico-ambiental y al marco de resiliencia socioecológica, eliminando la dependencia crítica de tuberías submarinas vulnerables.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Eje 2 */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-amber-50/70 via-white to-amber-50/30 border border-amber-200 hover:shadow-md transition-all space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold font-mono shrink-0 shadow-sm">
+                  02
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-amber-800 uppercase tracking-wider">Línea Productiva y Cultural</span>
+                  <h4 className="text-lg font-bold text-slate-900">
+                    Eje 2: Circuito Ecoturístico y Cultural Autogestionado
+                  </h4>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 pt-2">
+                <div className="p-4 rounded-xl bg-white border border-amber-100 space-y-1 shadow-2xs">
+                  <span className="text-[11px] font-mono font-bold text-amber-900 uppercase flex items-center space-x-1">
+                    <Activity className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Acción Proyectual</span>
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Creación de una red de turismo patrimonial articulada por los Consejos Comunitarios que conecte el patrimonio militar virreinal (Bocachica) con la memoria viva, la gastronomía tradicional y el turismo de naturaleza, operada bajo estándares comunitarios certificados.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-amber-100 space-y-1 shadow-2xs">
+                  <span className="text-[11px] font-mono font-bold text-slate-700 uppercase flex items-center space-x-1">
+                    <BookOpen className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Sustento Teórico / Metodológico</span>
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Aplica el enfoque de desarrollo endógeno y combate la precariedad evidenciada en las variables socioeconómicas.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Eje 3 */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-indigo-50/30 border border-indigo-200 hover:shadow-md transition-all space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold font-mono shrink-0 shadow-sm">
+                  03
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-indigo-800 uppercase tracking-wider">Línea Política e Institucional</span>
+                  <h4 className="text-lg font-bold text-slate-900">
+                    Eje 3: Modelo de Cogobernanza Territorial
+                  </h4>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 pt-2">
+                <div className="p-4 rounded-xl bg-white border border-indigo-100 space-y-1 shadow-2xs">
+                  <span className="text-[11px] font-mono font-bold text-indigo-900 uppercase flex items-center space-x-1">
+                    <Activity className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Acción Proyectual</span>
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Constitución de una mesa técnica permanente entre la institucionalidad distrital (Distrito de Cartagena, DIMAR, MinCultura) y las autoridades étnico-territoriales para el ordenamiento del borde costero y el control de la especulación inmobiliaria.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-indigo-100 space-y-1 shadow-2xs">
+                  <span className="text-[11px] font-mono font-bold text-slate-700 uppercase flex items-center space-x-1">
+                    <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Sustento Teórico / Metodológico</span>
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Hace operativo el derecho al territorio y la justicia espacial, garantizando la sostenibilidad política y social de cualquier obra física.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Action buttons to interactive thesis modules */}
+            <div className="pt-4 flex flex-wrap items-center gap-3 justify-center sm:justify-start">
+              <button
+                onClick={() => onNavigateModule('3dviewer')}
+                className="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md transition-all hover:scale-105 cursor-pointer"
+              >
+                <Box className="w-4 h-4" />
+                <span>Ver Propuesta en Visor 3D</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => onNavigateModule('module11')}
+                className="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-bold text-sm shadow-xs transition-all hover:scale-105 cursor-pointer"
+              >
+                <Compass className="w-4 h-4 text-amber-600" />
+                <span>Ver Planos Históricos (1589-1900)</span>
+              </button>
+
+              <button
+                onClick={() => onNavigateModule('framework')}
+                className="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-xs transition-all hover:scale-105 cursor-pointer"
+              >
+                <BookOpen className="w-4 h-4 text-teal-400" />
+                <span>Marco Metodológico Completo</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ========================================================= */}
+        {/* CRITERIOS INTEGRADOS DE DISEÑO DE VIVIENDA PARA TIERRA BOMBA */}
+        {/* ========================================================= */}
+        <div id="criterios-vivienda" className="mb-14 bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+          <div className="p-6 sm:p-8 bg-gradient-to-r from-amber-50 via-teal-50/40 to-white border-b border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
+                Factores de Diseño Habitacional // Hábitat Caribe
+              </span>
+              <span className="text-xs text-slate-500 font-mono">Arquitectura Resiliente & Identidad</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              Criterios Integrados de Diseño de Vivienda para Tierra Bomba
+            </h3>
+            <p className="mt-3 text-base text-slate-700 leading-relaxed">
+              Pautas proyectuales técnicas, bioclimáticas, hidrosanitarias y de habitabilidad comunitaria formuladas para el nuevo asentamiento seguro en la meseta (+22.00 m.s.n.m.).
+            </p>
+          </div>
+
+          <div className="p-6 sm:p-8 space-y-8">
+            
+            {/* 1. Criterio Bioclimático */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-emerald-50/60 to-white border border-emerald-200 space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Wind className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-emerald-800 uppercase tracking-wider">Criterio 1</span>
+                  <h4 className="text-xl font-bold text-slate-900">1. Criterio Bioclimático</h4>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div className="p-4 rounded-xl bg-white border border-emerald-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-emerald-900 flex items-center space-x-1.5">
+                    <Sun className="w-4 h-4 text-emerald-600" />
+                    <span>Orientación y control de radiación</span>
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Eje longitudinal orientado Este-Oeste; fachadas cortas expuestas al sol naciente y poniente con muros ciegos o cámaras ventiladas. Aleros perimetrales profundos y quiebrasoles móviles que protegen vanos y galerías de la radiación directa durante todo el año.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-emerald-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-emerald-900 flex items-center space-x-1.5">
+                    <Wind className="w-4 h-4 text-emerald-600" />
+                    <span>Ventilación cruzada pasiva</span>
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Disposición de vanos enfrentados en barlovento (vientos alisios del Noreste/Norte) y sotavento, maximizando la permeabilidad con celosías, calados y carpinterías basculantes con una relación de apertura mínima del 25–30% del área de piso habitable.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-emerald-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-emerald-900 flex items-center space-x-1.5">
+                    <Activity className="w-4 h-4 text-emerald-600" />
+                    <span>Efecto chimenea y desfogue térmico</span>
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Cubiertas inclinadas (20–30%) a dos o cuatro aguas equipadas con cumbreras ventiladas, linternas o lucernarios altos que facilitan la evacuación continua del aire caliente acumulado por estratificación térmica.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-emerald-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-emerald-900 flex items-center space-x-1.5">
+                    <Shield className="w-4 h-4 text-emerald-600" />
+                    <span>Amortiguamiento del calor por cubierta</span>
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Sistema de techo multicapa (cubierta exterior reflectante + cámara de aire ventilada + falso techo aislante o permeable) para reducir la transmitancia térmica hacia los recintos de descanso.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Criterio Constructivo */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-amber-50/60 to-white border border-amber-200 space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-amber-900 uppercase tracking-wider">Criterio 2</span>
+                  <h4 className="text-xl font-bold text-slate-900">2. Criterio Constructivo</h4>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-2">
+                <div className="p-4 rounded-xl bg-white border border-amber-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-amber-900">
+                    Despegue del suelo (Zócalo / Palafito ventilado)
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Elevación del plano de piso entre <strong>0.40 m y 0.80 m</strong> sobre zapatas aisladas o dados de concreto/mampostería para evitar la humedad por capilaridad salina, escorrentías pluviales y permitir la refrigeración inferior de la losa.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-amber-100 space-y-2 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-amber-900">
+                    Durabilidad ante ambiente marino
+                  </h5>
+                  <ul className="text-xs sm:text-sm text-slate-700 space-y-2 list-disc pl-5 leading-relaxed">
+                    <li>
+                      <strong>Concretos de alta compacidad:</strong> Con aditivos puzolánicos/hidrófugos y recubrimientos de armadura no menores a <strong>50 mm</strong> para contener la penetración de cloruros.
+                    </li>
+                    <li>
+                      <strong>Maderas de origen legal:</strong> Debidamente secadas e inmunizadas contra xilófagos y salitre (clase de uso 4 / marino).
+                    </li>
+                    <li>
+                      <strong>Fijaciones y perfiles:</strong> En acero inoxidable (AISI 316) o acero galvanizado en caliente con recubrimientos epóxicos de alta adherencia.
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-white border border-amber-100 space-y-1.5 shadow-2xs">
+                    <h5 className="font-bold text-xs uppercase tracking-wide text-amber-900">
+                      Modulación y logística insular
+                    </h5>
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                      Modulación estructural en múltiplos de <strong>60 cm o 1.20 m</strong> (crujías tipo 3.00 m &times; 3.00 m o 3.60 m &times; 3.60 m) que admita componentes prefabricados livianos, fáciles de transportar en barcaza y ensamblar en seco sin maquinaria pesada.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-white border border-amber-100 space-y-1.5 shadow-2xs">
+                    <h5 className="font-bold text-xs uppercase tracking-wide text-amber-900">
+                      Progresividad estructural
+                    </h5>
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                      Estructura portante primaria sobredimensionada para soportar futuras adiciones horizontales o un segundo piso liviano mediante procesos de autoconstrucción dirigida.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Criterio Hidrosanitario */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-blue-50/60 to-white border border-blue-200 space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Droplets className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-blue-800 uppercase tracking-wider">Criterio 3</span>
+                  <h4 className="text-xl font-bold text-slate-900">3. Criterio Hidrosanitario</h4>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-2">
+                <div className="p-4 rounded-xl bg-white border border-blue-100 space-y-2 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-blue-900">
+                    Sistema de Captación de Agua Pluvial (SCAP)
+                  </h5>
+                  <ul className="text-xs sm:text-sm text-slate-700 space-y-1.5 list-disc pl-5 leading-relaxed">
+                    <li>Superficies de cubierta aptas para uso hidrosanitario (tejas de arcilla o paneles de polialuminio/fibrocemento sin recubrimientos tóxicos).</li>
+                    <li>Canaletas perimetrales sobredimensionadas con rejillas retenedoras de hojas y desviador de primeras aguas (<em>first flush</em> de 1–2 mm).</li>
+                    <li>Aljibe o cisterna subterránea/semienterrada de concreto protegido del sol, dimensionado para cubrir la reserva del período de sequía estival (diciembre–abril).</li>
+                  </ul>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-white border border-blue-100 space-y-1.5 shadow-2xs">
+                    <h5 className="font-bold text-xs uppercase tracking-wide text-blue-900">
+                      Tratamiento descentralizado y seguro de excretas
+                    </h5>
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                      Empleo de tanques sépticos biodigestores anaerobios estancos con cámara de cloración y biofiltros, o sistemas de saneamiento ecológico seco en áreas críticas donde el nivel freático alto impida la infiltración convencional.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-white border border-blue-100 space-y-1.5 shadow-2xs">
+                    <h5 className="font-bold text-xs uppercase tracking-wide text-blue-900">
+                      Segregación y reciclaje de aguas grises
+                    </h5>
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                      Redes separadas para lavaderos y duchas dirigidas a desarenadores, trampa de grasas y biofiltros de lecho vegetal (fitorremediación con juncos y papiros) para reutilización exclusiva en riego de patios y huertos de pancoger.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Criterio Sociocultural */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-indigo-50/60 to-white border border-indigo-200 space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-indigo-800 uppercase tracking-wider">Criterio 4</span>
+                  <h4 className="text-xl font-bold text-slate-900">4. Criterio Sociocultural</h4>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div className="p-4 rounded-xl bg-white border border-indigo-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-indigo-900">
+                    Umbral de transición (El porche o pretil comunitario)
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Espacio intermedio semicubierto frontal abierto hacia la calle. Es el lugar de contacto social cotidiano caribeño, descanso al atardecer, vigilancia comunitaria y encuentro sin perder el control de la intimidad doméstica.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-indigo-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-indigo-900">
+                    Flexibilidad para familia extendida
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Distribución espacial flexible con tabiquería modular o paneles deslizables de celosía que permiten transformar salones comunes en dormitorios adicionales ante la llegada temporal o permanente de parientes (núcleos matrifocales y multigeneracionales).
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-indigo-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-indigo-900">
+                    La cocina y el patio de labores
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Ubicación de la cocina en franca ventilación con un patio posterior abierto. Permite la cocción tradicional con fuego o leña, la limpieza de pescado y el lavado de ropa a cielo abierto sin calentar los dormitorios.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-indigo-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-indigo-900">
+                    Área técnica náutica y de oficios
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Zona techada y ventilada de fácil lavado para el resguardo de atarrayas, anzuelos, aperos de pesca, motores fuera de borda o para el secado de productos y labores artesanales.
+                  </p>
+                </div>
+
+                <div className="md:col-span-2 p-4 rounded-xl bg-white border border-indigo-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-indigo-900">
+                    Identidad tectónica y cromática
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Uso de calados geométricos superiores para ventilación cenital, barandillas en carpintería de madera y muros con soporte para pintura de colores vivos tradicionales del Caribe insular.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
       </section>
 
       {/* ========================================================= */}
