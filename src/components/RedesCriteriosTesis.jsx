@@ -43,9 +43,7 @@ const NETWORKS_DATA = {
           summary: 'Tierra Bomba presenta una condición de desarticulación socioespacial e insularidad periférica, caracterizada por una desconexión crítica respecto a las dinámicas de desarrollo de Cartagena, a pesar de su proximidad geográfica.',
           points: [
             { label: 'Carencia de servicios básicos', text: 'Carencia o intermitencia severa en servicios básicos (agua potable por red, saneamiento y manejo de residuos).' },
-            { label: 'Erosión costera acelerada', text: 'Erosión costera acelerada por corrientes marítimas y cambio climático, amenazando la infraestructura habitacional y el patrimonio histórico (fuertes virreinales como San Fernando y el Ángel San Rafael).' },
-            { label: 'Dependencia turística informal', text: 'Dependencia de un turismo informal y estacional sin cadenas de valor locales consolidadas.' },
-            { label: 'Presión territorial & vacíos', text: 'Presión territorial, vacíos en la titulación de tierras y debilidad institucional en la gobernanza comunitaria.' }
+            { label: 'Erosión costera acelerada', text: 'Erosión costera acelerada por corrientes marítimas y cambio climático, amenazando la infraestructura habitacional y el patrimonio histórico (fuertes virreinales como San Fernando y el Ángel San Rafael).' }
           ]
         }
       },
