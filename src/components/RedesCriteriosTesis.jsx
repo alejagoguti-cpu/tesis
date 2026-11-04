@@ -69,120 +69,108 @@ const NETWORKS_DATA = {
       },
       harvey: {
         id: 'harvey',
-        n: 'Justicia Espacial & Derecho a Ciudad',
-        tag: 'David Harvey & Edward Soja',
+        n: 'Insularidad & Segregación',
+        tag: 'Alberto Abello & E. Cunin',
         icon: Building2,
         color: '#2563eb',
         tint: '#dbeafe',
         x: 820,
         y: 110,
         details: {
-          title: 'Marco Teórico 1: Justicia Espacial y Derecho a la Ciudad',
-          badge: 'Harvey & Soja',
-          summary: 'Explica cómo la proximidad física a enclaves de alta renta turística (Bocagrande, Castillogrande) contrasta con la marginación en el acceso a bienes públicos, planteando la necesidad de redistribución de recursos e integración territorial equitativa.',
+          title: 'Marco Teórico 1: Insularidad, Segregación Espacial y Bahía de Cartagena',
+          badge: 'Abello & Cunin / Mosquera',
+          summary: 'Explica cómo la proximidad geográfica a los enclaves hoteleros de alta renta (Bocagrande, Castillogrande) contrasta con la marginación en el acceso a bienes públicos de la población afrodescendiente insular de la bahía de Cartagena, planteando la defensa del arraigo ancestral y el derecho al territorio.',
           points: [
-            { label: 'Contraste territorial abismal', text: 'A menos de 1 km de distancia náutica conviven los rascacielos de Bocagrande con la ausencia total de alcantarillado formal en la isla.' },
-            { label: 'Redistribución de recursos', text: 'El ordenamiento insular debe redistribuir las inversiones públicas y proteger a los residentes tradicionales de la especulación inmobiliaria.' },
-            { label: 'Derecho a permanecer', text: 'Garantizar el arraigo digno en el territorio insular para frenar el desplazamiento silencioso.' }
+            { label: 'Frontera náutica invisible', text: 'A menos de 1 km de distancia náutica conviven los rascacielos de Bocagrande con la exclusión histórica y ausencia de saneamiento en la isla.' },
+            { label: 'Arraigo e identidad afrocaribeña', text: 'Resistencia comunitaria frente a la especulación inmobiliaria y megaproyectos turísticos extractivos en la bahía de Cartagena.' },
+            { label: 'Agenciamiento de Consejos Comunitarios', text: 'Legitimidad territorial de los pobladores ancestrales en el co-diseño y ordenamiento insular.' }
           ],
           references: [
             {
-              title: 'The Right to the City (New Left Review, Issue 53)',
-              author: 'David Harvey (2008)',
-              source: 'New Left Review',
-              url: 'https://newleftreview.org/issues/ii53/articles/david-harvey-the-right-to-the-city'
+              title: 'El Caribe en Colombia (Territorialidad y Bahía de Cartagena)',
+              author: 'Alberto Abello Vives (2006)',
+              source: 'Observatorio del Caribe Colombiano',
+              url: 'https://www.banrep.gov.co/es/publicaciones-investigaciones/libros/el-caribe-en-colombia'
             },
             {
-              title: 'Social Justice and the City (Geographies of Justice)',
-              author: 'David Harvey (1973 / 2009)',
-              source: 'University of Georgia Press',
-              url: 'https://ugapress.org/book/9780820334035/social-justice-and-the-city/'
-            },
-            {
-              title: 'Seeking Spatial Justice (Spatial Futures Series)',
-              author: 'Edward W. Soja (2010)',
-              source: 'University of Minnesota Press',
-              url: 'https://www.upress.umn.edu/9780816666682/seeking-spatial-justice/'
+              title: 'Etnicidad, raza y espacio urbano en Cartagena de Indias',
+              author: 'Elisabeth Cunin & Claudia Mosquera (2009)',
+              source: 'Revista EURE / SciELO',
+              url: 'https://www.scielo.cl/scielo.php?script=sci_arttext&pid=S0250-71612009000100007'
             }
           ]
         }
       },
       folke: {
         id: 'folke',
-        n: 'Ecología Política & SbN',
-        tag: 'Carl Folke & Fikret Berkes',
-        icon: Leaf,
-        color: '#16a34a',
-        tint: '#dcfce7',
+        n: 'Cultura Anfibia & Hábitat del Agua',
+        tag: 'Orlando Fals Borda',
+        icon: Waves,
+        color: '#0891b2',
+        tint: '#cffafe',
         x: 830,
         y: 340,
         details: {
-          title: 'Marco Teórico 2: Ecología Política y Resiliencia Socioecológica',
-          badge: 'Folke & Berkes',
-          summary: 'Permite entender que el deterioro costero no es solo un fenómeno biofísico, sino el resultado de intervenciones antrópicas históricas (obras marítimas, canalizaciones y abandono de defensas costeras).',
+          title: 'Marco Teórico 2: Cultura Anfibia y Modos de Habitar Litorales',
+          badge: 'Orlando Fals Borda',
+          summary: 'Orlando Fals Borda fundamenta que las comunidades ribereñas e insulares del Caribe no combaten el agua ni se encierran; su hábitat es flexible, anfibio y subordinado a los ritmos de mareas, corrientes y brisas, exigiendo tipologías permeables despegadas del suelo.',
           points: [
-            { label: 'Coevolución socioecológica', text: 'La comunidad y el ecosistema costero deben coevolucionar mediante estrategias de adaptación basadas en la naturaleza (SbN).' },
-            { label: 'Restauración ecosistémica', text: 'Integración de manglares de borde, escolleras sumergidas y arrecifes bio-remediadores en lugar de murallas grises rígidas que trasladan el problema.' },
-            { label: 'Capacidad adaptativa', text: 'Monitoreo ambiental continuo gestionado de forma comunitaria.' }
+            { label: 'El habitante anfibio', text: 'Modo de vida adaptativo y multiactivo (pesca, carpintería naval, recolección) en constante interacción con la dinámica hídrica costera.' },
+            { label: 'Rechazo a modelos rígidos andinos', text: 'Superación de tipologías cerradas y pesadas de tierra fría en favor de estructuras ligeras, palafíticas y ventiladas.' },
+            { label: 'Resiliencia socioecológica vernácula', text: 'Estrategias ancestrales de adaptación climática y convivencia armónica con los pulsos naturales del mar.' }
           ],
           references: [
             {
-              title: 'Resilience: The emergence of a perspective for social-ecological systems analyses',
-              author: 'Carl Folke (2006)',
-              source: 'Global Environmental Change (Elsevier, DOI: 10.1016/j.gloenvcha.2006.04.002)',
-              url: 'https://doi.org/10.1016/j.gloenvcha.2006.04.002'
+              title: 'Historia doble de la Costa (Tomo 1: Mompox y Loba / Fundamentos de la cultura anfibia)',
+              author: 'Orlando Fals Borda (1979 / 2002)',
+              source: 'Universidad Nacional de Colombia / Banco de la República',
+              url: 'https://www.banrepcultural.org/biblioteca-virtual/credencial-historia/numero-154/fals-borda-y-la-cultura-anfibia'
             },
             {
-              title: 'Navigating Social-Ecological Systems: Building Resilience for Complexity and Change',
-              author: 'Fikret Berkes, Johan Colding & Carl Folke (2003)',
-              source: 'Cambridge University Press',
-              url: 'https://doi.org/10.1017/CBO9780511541957'
-            },
-            {
-              title: 'IUCN Global Standard for Nature-based Solutions (SbN)',
-              author: 'IUCN (2020)',
-              source: 'International Union for Conservation of Nature',
-              url: 'https://portals.iucn.org/library/node/49070'
+              title: 'El territorio y la cultura anfibia en el Caribe colombiano',
+              author: 'Instituto Colombiano de Antropología e Historia (ICANH)',
+              source: 'Revista Colombiana de Antropología',
+              url: 'https://www.icanh.gov.co'
             }
           ]
         }
       },
       sen: {
         id: 'sen',
-        n: 'Desarrollo Endógeno & Saberes',
-        tag: 'Amartya Sen & Arturo Escobar',
-        icon: Users,
+        n: 'Tríada Casa - Escuela - Espacio',
+        tag: 'Carlos Bell & PEI Lab',
+        icon: Building2,
         color: '#7c3aed',
         tint: '#ede9fe',
         x: 810,
         y: 560,
         details: {
-          title: 'Marco Teórico 3: Desarrollo Endógeno y Agenciamiento Comunitario',
-          badge: 'Sen & Escobar',
-          summary: 'Sostiene que las soluciones sostenibles provienen del fortalecimiento de las capacidades locales, los saberes ancestrales de las comunidades afrodescendientes y la gobernanza colectiva del territorio, evitando modelos extractivos foráneos.',
+          title: 'Marco Teórico 3: Tipología Caribeña y Escuela Abierta Insular',
+          badge: 'Bell Lemus & PEI Lab',
+          summary: 'Articula los estudios tipológicos de Carlos Bell Lemus (la tríada Portal – Casa – Patio) con las experiencias proyectuales de aulas ambientales y equipamientos híbridos en Tierra Bomba (PEI Lab Javeriana / Giancarlo Mazzanti), demostrando que el aprendizaje y la vida doméstica se prolongan naturalmente en el espacio público.',
           points: [
-            { label: 'Saberes ancestrales afro', text: 'Puesta en valor de la arquitectura vernácula en madera, el conocimiento de mareas y la pesca artesanal.' },
-            { label: 'Contra el extractivismo', text: 'Evitar enclaves turísticos excluyentes de espaldas a los cuatro corregimientos insulares.' },
-            { label: 'Agenciamiento local', text: 'El Consejo Comunitario como sujeto decisor vinculante en el diseño y gestión territorial.' }
+            { label: 'Tríada espacial caribeña', text: 'El portal como umbral de transición y sociabilidad con la calle; el patio como pulmón bioclimático y centro de faena productiva.' },
+            { label: 'La escuela como infraestructura abierta', text: 'La escuela de puertas abiertas supera el confinamiento escolar: aula de día, ágora ciudadana de noche, taller de oficios náuticos y macro-cosechador pluvial.' },
+            { label: 'Continuidad espacial insular', text: 'Articulación sinérgica entre la unidad doméstica, los senderos costeros y el equipamiento cívico educativo.' }
           ],
           references: [
             {
-              title: 'Development as Freedom (Desarrollo y Libertad)',
-              author: 'Amartya Sen (1999)',
-              source: 'Oxford University Press',
-              url: 'https://global.oup.com/academic/product/development-as-freedom-9780198297581'
+              title: 'El Caribe colombiano: Guía de arquitectura y paisaje',
+              author: 'Carlos Bell Lemus (Coord., 2017)',
+              source: 'Junta de Andalucía & Universidad del Atlántico',
+              url: 'https://juntadeandalucia.es/organismos/fomentoearticulaciondelterritorioyvivienda/areas/arquitectura/publicaciones/paginas/guia-caribe-colombiano.html'
             },
             {
-              title: 'Autonomía y diseño: La realización de lo comunal',
-              author: 'Arturo Escobar (2016)',
-              source: 'Universidad del Cauca / Tinta Limón',
-              url: 'https://www.aacademica.org/arturo.escobar/68'
+              title: 'Aulas Ambientales y Hábitat Insular en Tierra Bomba',
+              author: 'PEI Lab (Pontificia Universidad Javeriana)',
+              source: 'Proyecto Experimental de Infraestructura',
+              url: 'https://peilab.net/tierrabomba/'
             },
             {
-              title: 'Encountering Development: The Making and Unmaking of the Third World',
-              author: 'Arturo Escobar (1995 / 2012)',
-              source: 'Princeton University Press',
-              url: 'https://press.princeton.edu/books/paperback/9780691150451/encountering-development'
+              title: 'El espacio de aprendizaje como espacio público en el Caribe',
+              author: 'Giancarlo Mazzanti / El Equipo Mazzanti',
+              source: 'Arquitectura y Ciudad',
+              url: 'https://www.elequipomazzanti.com'
             }
           ]
         }
