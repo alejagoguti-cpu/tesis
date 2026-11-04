@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowRight,
   Home,
+  GraduationCap,
   BookOpen,
   Box,
   Map as MapIcon,
@@ -921,6 +922,252 @@ export default function IntroLandingIndex({ onNavigateModule }) {
                   </h5>
                   <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
                     Uso de calados geométricos superiores para ventilación cenital, barandillas en carpintería de madera y muros con soporte para pintura de colores vivos tradicionales del Caribe insular.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      
+        {/* ========================================================= */}
+        {/* CRITERIOS INTEGRADOS DE DISEÑO PARA EL EQUIPAMIENTO EDUCATIVO */}
+        {/* ========================================================= */}
+        <div id="criterios-colegio" className="mb-14 bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+          <div className="p-6 sm:p-8 bg-gradient-to-r from-teal-50 via-blue-50/50 to-white border-b border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-teal-100 text-teal-900 border border-teal-200 flex items-center space-x-1.5">
+                <GraduationCap className="w-3.5 h-3.5 text-teal-700" />
+                <span>Equipamiento Educativo &bull; Centro Cívico</span>
+              </span>
+              <span className="text-xs text-slate-500 font-mono">Infraestructura Bioclimática & Vocación Comunitaria</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              Criterios Integrados de Diseño para el Equipamiento Educativo en Tierra Bomba
+            </h3>
+            <p className="mt-3 text-base text-slate-700 leading-relaxed">
+              Lineamientos técnicos, ambientales e institucionales para el complejo escolar bioclimático, macro-cuenca de captación pluvial y núcleo de cogobernanza comunitaria en la meseta (+22.00 m.s.n.m.).
+            </p>
+          </div>
+
+          <div className="p-6 sm:p-8 space-y-8">
+            
+            {/* 1. Criterio Bioclimático */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-teal-50/60 to-white border border-teal-200 space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Wind className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-teal-800 uppercase tracking-wider">Criterio 1</span>
+                  <h4 className="text-xl font-bold text-slate-900">1. Criterio Bioclimático</h4>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div className="p-4 rounded-xl bg-white border border-teal-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-teal-900 flex items-center space-x-1.5">
+                    <Sun className="w-4 h-4 text-teal-600" />
+                    <span>Implantación y orientación de pabellones</span>
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Disposición lineal de los bloques pedagógicos en sentido <strong>Este-Oeste</strong>, exponiendo las fachadas cortas al sol y garantizando que las caras largas (Norte y Sur) reciban iluminación cenital y difusa sin ganancia térmica directa.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-teal-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-teal-900 flex items-center space-x-1.5">
+                    <Wind className="w-4 h-4 text-teal-600" />
+                    <span>Ventilación cruzada masiva en aulas</span>
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Altura libre generosa (<strong>3.40 m a 4.00 m</strong>) con vanos inferiores a barlovento (vientos alisios) y aberturas altas a sotavento. Se prescinde de ventanas de vidrio herméticas en favor de cerramientos con celosías cerámicas, persianas de madera orientables o mampostería calada que garanticen renovación de aire continua sin necesidad de climatización mecánica.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-teal-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-teal-900 flex items-center space-x-1.5">
+                    <Activity className="w-4 h-4 text-teal-600" />
+                    <span>Termosifón en grandes cubiertas</span>
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Techos a dos aguas de gran pendiente (<strong>25–35%</strong>) con <strong>caballetes o cumbreras ventiladas continuas</strong> y linternas longitudinales para evacuar el aire caliente por flotabilidad térmica. Aislamiento superior mediante cámara de aire ventilada bajo la chapa o teja reflectiva.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-teal-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-teal-900 flex items-center space-x-1.5">
+                    <Leaf className="w-4 h-4 text-teal-600" />
+                    <span>Patios bioclimáticos y microclima</span>
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Articulación de las aulas alrededor de patios intermedios arborizados con especies nativas de bosque seco tropical y litoral (campano, guayacán, totumo, uvita de playa), que humedecen y enfrían el aire previo a su ingreso a los espacios de clase, además de atenuar la radiación sobre el suelo mediante sombra vegetal densa.
+                  </p>
+                </div>
+
+                <div className="md:col-span-2 p-4 rounded-xl bg-white border border-teal-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-teal-900 flex items-center space-x-1.5">
+                    <Shield className="w-4 h-4 text-teal-600" />
+                    <span>Aleros protectores y galerías de circulación exterior</span>
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Voladizos perimetrales profundos (<strong>2.00 m a 3.00 m</strong>) que cumplen triple función: pasillo de circulación exterior techado, amortiguador solar de las fachadas y protección contra lluvias torrenciales acompañadas de ráfagas de viento marino.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Criterio Constructivo */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-amber-50/60 to-white border border-amber-200 space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-amber-900 uppercase tracking-wider">Criterio 2</span>
+                  <h4 className="text-xl font-bold text-slate-900">2. Criterio Constructivo</h4>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-2">
+                <div className="p-4 rounded-xl bg-white border border-amber-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-amber-900">
+                    Zócalo elevado y protección contra la salinidad
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Estructuración sobre dados o losas elevadas entre <strong>0.50 m y 1.00 m</strong> sobre el terreno para prevenir el embate del nivel freático salino, permitir el drenaje de escorrentías pluviales en terrenos con poca absorción y generar una cámara de aire inferior que refrigere el piso de las aulas.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-amber-100 space-y-2 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-amber-900">
+                    Resistencia a corrosión extrema (Ambiente C5-M)
+                  </h5>
+                  <ul className="text-xs sm:text-sm text-slate-700 space-y-2 list-disc pl-5 leading-relaxed">
+                    <li>
+                      <strong>Concreto armado de alta durabilidad:</strong> Relación agua/cemento baja (&le; 0.40), aditivos puzolánicos o escoria para sellar la microporosidad y recubrimientos mínimos de acero de <strong>60 mm</strong> para contener la carbonatación por cloruros marinos.
+                    </li>
+                    <li>
+                      <strong>Perfiles y madera estructural:</strong> Perfiles de acero galvanizado por inmersión en caliente con recubrimientos epóxico-poliuretano de alto espesor, o maderas estructurales duras inmunizadas bajo autoclave (guayacán, teca o abarco con certificación forestal).
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-white border border-amber-100 space-y-1.5 shadow-2xs">
+                    <h5 className="font-bold text-xs uppercase tracking-wide text-amber-900">
+                      Modulación tectónica y logística insular
+                    </h5>
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                      Luces estructurales de <strong>6.00 m &times; 6.00 m o 7.20 m &times; 7.20 m</strong> moduladas para componentes livianos y transportables en barcazas desde Cartagena. Favorece el ensamble en seco y la reducción de fundiciones masivas en sitio, optimizando el consumo de agua dulce de mezclado.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-white border border-amber-100 space-y-1.5 shadow-2xs">
+                    <h5 className="font-bold text-xs uppercase tracking-wide text-amber-900">
+                      Muros transpirables y de bajo mantenimiento
+                    </h5>
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                      Cerramientos con bloques de tierra comprimida (BTC) estabilizados con cal/cemento o mampostería de arcilla cocida a la vista, reduciendo costos recurrentes de pintura y estuco degradables por el salitre.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Criterio Hidrosanitario */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-blue-50/60 to-white border border-blue-200 space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Droplets className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-blue-800 uppercase tracking-wider">Criterio 3</span>
+                  <h4 className="text-xl font-bold text-slate-900">3. Criterio Hidrosanitario</h4>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-2">
+                <div className="p-4 rounded-xl bg-white border border-blue-100 space-y-2 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-blue-900">
+                    Macro-sistema de Captación de Agua Pluvial (SCAP)
+                  </h5>
+                  <ul className="text-xs sm:text-sm text-slate-700 space-y-1.5 list-disc pl-5 leading-relaxed">
+                    <li>Las cubiertas de gran escala (aulas, comedor y polideportivo cubierto) operan como cuencas de captación pluvial de alto rendimiento.</li>
+                    <li>Baterías de canalizaciones sobredimensionadas con sistemas de sedimentación, desarenadores ciclónicos y cámaras automáticas de separación de primeras aguas (<em>first flush</em> escolar a razón de <strong>2 mm</strong> de lluvia inicial).</li>
+                    <li>Construcción de aljibes y depósitos semienterrados de almacenamiento masivo con capacidad estacional calculada para abastecer el consumo de la comunidad escolar y comunitaria durante el período de estiaje (diciembre a abril).</li>
+                  </ul>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-white border border-blue-100 space-y-1.5 shadow-2xs">
+                    <h5 className="font-bold text-xs uppercase tracking-wide text-blue-900">
+                      Baterías sanitarias de alta eficiencia y saneamiento ecológico
+                    </h5>
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                      Aparatos sanitarios de bajo consumo (griferías hidromecánicas temporizadas y sanitarios de descarga dual &le; 4.8 L). Plantas de tratamiento biológico descentralizadas mediante biodigestores anaerobios estancos y humedales artificiales de flujo subsuperficial (fitorremediación con juncos y eneas).
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-white border border-blue-100 space-y-1.5 shadow-2xs">
+                    <h5 className="font-bold text-xs uppercase tracking-wide text-blue-900">
+                      Circuito de aguas grises para huertos
+                    </h5>
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                      Segregación estricta de las aguas de lavamanos y cocinas escolares mediante trampas de grasa y biofiltros de grava/arena, redirigiendo el agua tratada hacia el riego por goteo de huertos pedagógicos de pancoger y reforestación del predio.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Criterio Sociocultural */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-indigo-50/60 to-white border border-indigo-200 space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-indigo-800 uppercase tracking-wider">Criterio 4</span>
+                  <h4 className="text-xl font-bold text-slate-900">4. Criterio Sociocultural</h4>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div className="p-4 rounded-xl bg-white border border-indigo-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-indigo-900">
+                    La escuela como equipamiento abierto (Doble uso cívico)
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Disolución del cerramiento ciego o muro perimetral carcelario. La infraestructura colectiva (biblioteca, aulas de cómputo/talleres, comedor comunitario y polideportivo) se zonifica en el perímetro frontal del lote para funcionar de forma autónoma durante las tardes, noches y fines de semana para asambleas del Consejo Comunitario, eventos culturales y capacitación técnica de adultos.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-indigo-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-indigo-900">
+                    Talleres de saberes locales y vocación del territorio
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Espacios formativos flexibles dedicados no solo a la educación académica formal, sino al aprendizaje de artes y oficios costeros: carpintería naval, reparación de motores marinos, tejeduría de artes de pesca, gastronomía afrocaribeña y laboratorios de monitoreo ambiental y restauración de manglares.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-indigo-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-indigo-900">
+                    Ágoras, atrios y sombras de encuentro
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Incorporación de una plaza cívica o atrio techado al ingreso del colegio que sirve de umbral entre el sendero público y la institución. Es el lugar de estancia para padres de familia, punto de encuentro barrial, resguardo del sol y escenario para manifestaciones folclóricas, asambleas ciudadanas o festivales locales.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-indigo-100 space-y-1.5 shadow-2xs">
+                  <h5 className="font-bold text-xs uppercase tracking-wide text-indigo-900">
+                    Identidad tectónica y sentido de pertenencia
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Integración de celosías decorativas inspiradas en patrones tradicionales de tejido insular, rotulación comunitaria y frentes que permitan muralismo y apropiación visual por parte de los estudiantes y líderes de los corregimientos de la isla.
                   </p>
                 </div>
               </div>
