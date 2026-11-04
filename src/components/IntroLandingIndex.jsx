@@ -934,6 +934,283 @@ export default function IntroLandingIndex({ onNavigateModule }) {
         {/* ========================================================= */}
         {/* CRITERIOS INTEGRADOS DE DISEÑO PARA EL EQUIPAMIENTO EDUCATIVO */}
         {/* ========================================================= */}
+        
+        {/* ========================================================= */}
+        {/* TRANSCODIFICACIÓN: DEL RELATO COMUNITARIO A LA ZONIFICACIÓN */}
+        {/* ========================================================= */}
+        <div id="transcodificacion-comunitaria" className="mb-14 bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+          <div className="p-6 sm:p-8 bg-gradient-to-r from-amber-50 via-teal-50/50 to-white border-b border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 flex items-center space-x-1.5">
+                <Users className="w-3.5 h-3.5 text-amber-700" />
+                <span>Metodología Proyectual &bull; Codificación Espacial</span>
+              </span>
+              <span className="text-xs text-slate-500 font-mono">Del Relato Comunitario al Diseño</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              Transcodificación Espacial: Del Habitar a la Zonificación
+            </h3>
+            <p className="mt-3 text-base text-slate-700 leading-relaxed font-sans">
+              Para traducir las formas de habitar en un proyecto arquitectónico real, el relato comunitario no basta por sí solo: requiere un <strong>proceso de codificación espacial</strong>. La voz del habitante describe <em>rituales, conflictos, horarios y vínculos corporales</em>; la tarea proyectual consiste en transformar ese relato en <em>distancias, umbrales, filtros bioclimáticos y esquemas de adyacencia</em>.
+            </p>
+            <p className="mt-2 text-sm text-slate-600 font-sans">
+              A continuación se estructura el cruce directo entre el <strong>actor</strong>, su <strong>forma de habitar narrada</strong>, la <strong>variable arquitectónica extraída</strong> y la <strong>decisión de zonificación/diseño resultante</strong>:
+            </p>
+          </div>
+
+          <div className="p-4 sm:p-8 space-y-8">
+            
+            {/* Matriz Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[760px]">
+                <thead>
+                  <tr className="border-b-2 border-slate-200 text-xs font-mono font-bold uppercase tracking-wider text-slate-500 bg-slate-50/70">
+                    <th className="py-3 px-4 rounded-tl-xl w-1/5">Actor Clave</th>
+                    <th className="py-3 px-4 w-3/10">Forma de Habitar Expresada ("Lo que dicen / hacen")</th>
+                    <th className="py-3 px-4 w-1/4">Variable Espacial Oculta</th>
+                    <th className="py-3 px-4 rounded-tr-xl w-3/10">Decisión de Zonificación y Diseño Arquitectónico</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 text-xs sm:text-sm text-slate-700">
+                  
+                  {/* Pescadores */}
+                  <tr className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                      <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 border border-teal-200 text-xs font-mono font-bold">
+                        <Fish className="w-3.5 h-3.5" />
+                        <span>Pescadores y artesanos navales</span>
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed italic text-slate-800 font-serif">
+                      "Salimos de madrugada; al volver al mediodía necesitamos un espacio techado con piso rústico donde destripar pescado, lavar atarrayas con agua salobre y guardar los motores bajo candado sin ensuciar las áreas limpias."
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed text-xs space-y-1">
+                      <p>&bull; Grado de rugosidad del suelo.</p>
+                      <p>&bull; Acceso logístico independiente.</p>
+                      <p>&bull; Manejo de olores, humedad y seguridad técnica.</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed bg-teal-50/30 font-medium text-slate-900 rounded-r-lg">
+                      <strong>Zona de Talleres y Oficios en el perímetro bajo/exterior:</strong> Se ubica en el borde con acceso directo a la calle o sendero costero, a sotavento de las aulas para evitar olores. Piso en concreto afinado de fácil lavado con canaleta de drenaje hacia biofiltro y bodega estanca para motores fuera de borda.
+                    </td>
+                  </tr>
+
+                  {/* Madres */}
+                  <tr className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                      <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-900 border border-amber-200 text-xs font-mono font-bold">
+                        <Heart className="w-3.5 h-3.5" />
+                        <span>Madres comunitarias y cocineras</span>
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed italic text-slate-800 font-serif">
+                      "Cocinar no es un encierro de una sola persona; picamos en grupo, hacemos sancochos en leña o fogón grande, necesitamos ver a los niños mientras jugamos y hablar con las vecinas que traen la yuca o el pescado."
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed text-xs space-y-1">
+                      <p>&bull; Transparencia visual simultánea.</p>
+                      <p>&bull; Ventilación de humos pesados.</p>
+                      <p>&bull; Conexión directa exterior-interior.</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed bg-amber-50/30 font-medium text-slate-900 rounded-r-lg">
+                      <strong>Zona de Nutrición como bisagra central:</strong> Cocina abierta con doble frente: uno hacia el patio de maniobras/huerto (acopio de víveres y fogón exterior) y otro hacia el comedor/patio de recreo (control visual de los niños). Aleros altos para disipación de calor y tiro vertical.
+                    </td>
+                  </tr>
+
+                  {/* Líderes */}
+                  <tr className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                      <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-900 border border-indigo-200 text-xs font-mono font-bold">
+                        <Users className="w-3.5 h-3.5" />
+                        <span>Líderes del Consejo Comunitario</span>
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed italic text-slate-800 font-serif">
+                      "Los sábados y noches nos reunimos más de 80 personas a discutir temas de tierra y turismo. El colegio no puede poner candado a las 3:00 PM; necesitamos entrar sin invadir los salones de los niños."
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed text-xs space-y-1">
+                      <p>&bull; Gradiente de autonomía horaria.</p>
+                      <p>&bull; Seguridad por sectores (<em>lock-off</em>).</p>
+                      <p>&bull; Capacidad de reunión masiva.</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed bg-indigo-50/30 font-medium text-slate-900 rounded-r-lg">
+                      <strong>Zona Cívica en el frente del lote:</strong> Polideportivo, ágora y biblioteca se alinean al paramento público exterior. Se proyecta un cerramiento móvil o zaguán con esclusa: permite independizar el bloque cívico en horarios nocturnos sin dar acceso a los pabellones de aulas.
+                    </td>
+                  </tr>
+
+                  {/* Estudiantes */}
+                  <tr className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                      <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 text-xs font-mono font-bold">
+                        <GraduationCap className="w-3.5 h-3.5" />
+                        <span>Estudiantes (Niñas y niños)</span>
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed italic text-slate-800 font-serif">
+                      "En el recreo huimos de los salones porque sofocan; nos sentamos debajo de los árboles a hablar, jugar canicas o correr donde corre la brisa de la tarde."
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed text-xs space-y-1">
+                      <p>&bull; Confort microclimático vivencial.</p>
+                      <p>&bull; Escala corporal y juego libre.</p>
+                      <p>&bull; Evitación de superficies calientes.</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed bg-rose-50/30 font-medium text-slate-900 rounded-r-lg">
+                      <strong>Patios intermedios bioclimáticos:</strong> Los bloques de aulas no se pegan unos a otros; se desfasan generando patios sombreados con suelo vegetal y árboles nativos (evitando pavimentos duros que radian calor). Aulas con celosías orientadas al viento que captan la brisa enfriada por el jardín.
+                    </td>
+                  </tr>
+
+                  {/* Jóvenes */}
+                  <tr className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                      <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-purple-50 text-purple-900 border border-purple-200 text-xs font-mono font-bold">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Jóvenes y agrupaciones culturales</span>
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed italic text-slate-800 font-serif">
+                      "Tocamos tambores, bailamos champeta y danza tradicional, pero en el pueblo no hay dónde ensayar sin que los vecinos se quejen del ruido."
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed text-xs space-y-1">
+                      <p>&bull; Aislamiento acústico pasivo.</p>
+                      <p>&bull; Espacio diáfano y flexible.</p>
+                      <p>&bull; Resonancia y ventilación.</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed bg-purple-50/30 font-medium text-slate-900 rounded-r-lg">
+                      <strong>Aula múltiple / Pabellón acústico periférico:</strong> Se zonifica contiguo al polideportivo y alejado de las aulas teóricas y áreas de primera infancia, intercalando una franja de vegetación densa (barrera acústica vegetal).
+                    </td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </div>
+
+            {/* Esquema Operativo de Zonificación */}
+            <div className="space-y-4 pt-4 border-t border-slate-200">
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 uppercase">
+                  Esquema Operativo
+                </span>
+                <h4 className="text-xl font-bold text-slate-900">
+                  El Esquema Operativo de Zonificación (Nacida del Habitar)
+                </h4>
+              </div>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                Al superponer estas dinámicas sobre el lote, la zonificación no surge de un capricho geométrico, sino de <strong>tres franjas de intensidad de uso y control de acceso</strong>:
+              </p>
+
+              {/* 3 Franjas Cards */}
+              <div className="space-y-3 max-w-4xl mx-auto pt-2">
+                
+                <div className="p-3 rounded-2xl bg-slate-100 border border-slate-300 text-center font-mono text-xs font-bold text-slate-800">
+                  ACCESO PÚBLICO / CALLE DEL PUEBLO
+                </div>
+
+                <div className="flex justify-center text-slate-400 font-bold text-lg">&darr;</div>
+
+                {/* Franja 1 */}
+                <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-white to-amber-500/10 border-2 border-amber-500/40 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-amber-600 text-white uppercase">Franja 01</span>
+                    <span className="text-xs font-mono text-amber-900 font-semibold">Pública / Ruidosa (Abierta a la comunidad)</span>
+                  </div>
+                  <h5 className="font-bold text-base text-slate-900">1. FRANJA DE USO COMUNITARIO Y OFICIOS</h5>
+                  <ul className="text-xs sm:text-sm text-slate-700 space-y-1 list-disc pl-5">
+                    <li>Plaza-Atrio de encuentro y sombra para padres y vecinos.</li>
+                    <li>Talleres de pesca y carpintería naval con acceso logístico directo.</li>
+                    <li>Ágora / Polideportivo cubierto y Biblioteca comunitaria abierta.</li>
+                  </ul>
+                </div>
+
+                <div className="flex justify-center text-teal-600 font-bold text-xs font-mono text-teal-700">
+                  (Umbral de control / Esclusa de seguridad lock-off para horarios nocturnos)
+                </div>
+                <div className="flex justify-center text-teal-600 font-bold text-lg">&darr;</div>
+
+                {/* Franja 2 */}
+                <div className="p-5 rounded-2xl bg-gradient-to-r from-teal-500/10 via-white to-teal-500/10 border-2 border-teal-500/40 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-teal-600 text-white uppercase">Franja 02</span>
+                    <span className="text-xs font-mono text-teal-900 font-semibold">Semipública / Húmeda (Soberanía y Vida Diaria)</span>
+                  </div>
+                  <h5 className="font-bold text-base text-slate-900">2. FRANJA DE CONVIVENCIA Y PRODUCCIÓN</h5>
+                  <ul className="text-xs sm:text-sm text-slate-700 space-y-1 list-disc pl-5">
+                    <li>Cocina comunitaria abierta (doble frente) y comedor escolar.</li>
+                    <li>Huerto de pancoger y vivero escuela para soberanía alimentaria.</li>
+                    <li>Baterías de baños y tanques de captación pluvial centralizados.</li>
+                  </ul>
+                </div>
+
+                <div className="flex justify-center text-blue-600 font-bold text-xs font-mono text-blue-700">
+                  (Filtro de vegetación densa y brisa marina amortiguada)
+                </div>
+                <div className="flex justify-center text-blue-600 font-bold text-lg">&darr;</div>
+
+                {/* Franja 3 */}
+                <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-white to-blue-500/10 border-2 border-blue-500/40 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-blue-600 text-white uppercase">Franja 03</span>
+                    <span className="text-xs font-mono text-blue-900 font-semibold">Privada / Silenciosa (Enseñanza y Concentración)</span>
+                  </div>
+                  <h5 className="font-bold text-base text-slate-900">3. FRANJA PEDAGÓGICA Y PROTEGIDA</h5>
+                  <ul className="text-xs sm:text-sm text-slate-700 space-y-1 list-disc pl-5">
+                    <li>Pabellones de aulas teóricas orientados estrictamente Este-Oeste.</li>
+                    <li>Aulas de primera infancia con patio propio seguro y protegido.</li>
+                    <li>Microclima vegetal fresco y ventilación cruzada continua sin ruidos.</li>
+                  </ul>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Directrices Técnicas Medibles */}
+            <div className="space-y-4 pt-4 border-t border-slate-200">
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 uppercase">
+                  Criterios de Diseño
+                </span>
+                <h4 className="text-xl font-bold text-slate-900">
+                  ¿Por qué ya puedes diseñar a partir de esto? (3 Directrices Técnicas Medibles)
+                </h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 hover:border-teal-300 transition-colors">
+                  <span className="text-xs font-mono font-bold text-teal-800 uppercase flex items-center space-x-1">
+                    <Shield className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Directriz 01</span>
+                  </span>
+                  <h5 className="font-bold text-sm text-slate-900">Límites de cerramiento diferenciados</h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Ya no diseñas una reja perimetral única. Diseñas un edificio con filtros: la franja cívica se abre a la comunidad 16 horas al día; la franja pedagógica se cierra a las 2:00 PM sin necesidad de apagar el resto del complejo.
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 hover:border-teal-300 transition-colors">
+                  <span className="text-xs font-mono font-bold text-teal-800 uppercase flex items-center space-x-1">
+                    <Wind className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Directriz 02</span>
+                  </span>
+                  <h5 className="font-bold text-sm text-slate-900">Jerarquía acústica y de olores</h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Los talleres de redes/pesca y la cocina tradicional tienen extracción natural y salida directa a sotavento sin contaminar los salones de lectura y clase.
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 hover:border-teal-300 transition-colors">
+                  <span className="text-xs font-mono font-bold text-teal-800 uppercase flex items-center space-x-1">
+                    <Route className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Directriz 03</span>
+                  </span>
+                  <h5 className="font-bold text-sm text-slate-900">Flujos cruzados limpios/sucios</h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    El suministro de víveres, leña o materiales de pesca tiene su propia vía de servicio exterior, mientras los estudiantes transitan por circulaciones seguras, sombreadas y exclusivamente peatonales.
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
         <div id="criterios-colegio" className="mb-14 bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
           <div className="p-6 sm:p-8 bg-gradient-to-r from-teal-50 via-blue-50/50 to-white border-b border-slate-200">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
