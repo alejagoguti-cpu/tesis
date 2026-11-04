@@ -59,11 +59,11 @@ const NETWORKS_DATA = {
         details: {
           title: 'Pregunta Problema Central de Tesis',
           badge: 'Interrogante Rector',
-          summary: 'La estructuración investigativa y proyectual responde a una interrogante integradora de adaptación:',
-          quote: '¿De qué manera una intervención integral de base comunitaria y adaptación climática puede mitigar la vulnerabilidad socioambiental y dinamizar la soberanía económica en la isla de Tierra Bomba?',
+          summary: 'La estructuración proyectual articula las tres escalas espaciales clave (casa, escuela abierta y espacio público) a partir del habitar insular:',
+          quote: '¿De qué manera los modos de habitar del Caribe insular determinan la articulación espacial entre la casa, la escuela abierta y el espacio público en Tierra Bomba?',
           points: [
-            { label: 'Mitigación socioambiental', text: 'Reducción del riesgo biofísico y estabilización del borde costero mediante Soluciones Basadas en la Naturaleza (SbN).' },
-            { label: 'Soberanía económica', text: 'Fortalecimiento de cadenas de valor locales, saberes ancestrales pesqueros y ecoturismo comunitario gestionado por los Consejos Comunitarios.' }
+            { label: 'Modos de habitar caribeños', text: 'Pautas colectivas, rituales cotidianos de pesca, cocina comunitaria y sociabilidad en umbrales y porches.' },
+            { label: 'Tríada espacial articulada', text: 'Conexión sinérgica y continua entre la unidad habitacional (la casa), el equipamiento de puertas abiertas (la escuela) y los senderos/plazas litorales (el espacio público).' }
           ]
         }
       },
