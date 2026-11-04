@@ -1176,6 +1176,301 @@ export default function IntroLandingIndex({ onNavigateModule }) {
           </div>
         </div>
 
+      
+        {/* ========================================================= */}
+        {/* MATRIZ DE TRANSCODIFICACIÓN: PROFESORES Y ESTUDIANTES     */}
+        {/* ========================================================= */}
+        <div id="transcodificacion-colegio" className="mb-14 bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+          <div className="p-6 sm:p-8 bg-gradient-to-r from-teal-50 via-indigo-50/40 to-white border-b border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-teal-100 text-teal-900 border border-teal-200 flex items-center space-x-1.5">
+                <Users className="w-3.5 h-3.5 text-teal-700" />
+                <span>Actores Clave &bull; Antropología del Espacio</span>
+              </span>
+              <span className="text-xs text-slate-500 font-mono">Docentes &bull; Estudiantes</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              Matriz de Transcodificación: Profesores y Estudiantes
+            </h3>
+            <p className="mt-3 text-base text-slate-700 leading-relaxed font-sans">
+              Para los dos actores principales del día a día escolar —<strong>docentes</strong> y <strong>estudiantes</strong>—, el proceso de codificación traduce sus rutinas pedagógicas, corporales y emocionales en dimensiones, umbrales y respuestas bioclimáticas directas:
+            </p>
+          </div>
+
+          <div className="p-4 sm:p-8 space-y-8">
+            
+            {/* Table Matrix */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[760px]">
+                <thead>
+                  <tr className="border-b-2 border-slate-200 text-xs font-mono font-bold uppercase tracking-wider text-slate-500 bg-slate-50/70">
+                    <th className="py-3 px-4 rounded-tl-xl w-1/5">Actor</th>
+                    <th className="py-3 px-4 w-3/10">Forma de Habitar Expresada ("Lo que dicen / viven")</th>
+                    <th className="py-3 px-4 w-1/4">Variable Espacial Oculta</th>
+                    <th className="py-3 px-4 rounded-tr-xl w-3/10">Decisión de Zonificación y Criterio de Diseño</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 text-xs sm:text-sm text-slate-700">
+                  
+                  {/* Docente 1 */}
+                  <tr className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                      <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 border border-teal-200 text-xs font-mono font-bold">
+                        <Users className="w-3.5 h-3.5" />
+                        <span>Docente</span>
+                      </span>
+                      <p className="text-[11px] text-teal-700 font-mono mt-1">Carga vocal y fatiga térmica</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed italic text-slate-800 font-serif">
+                      "A las 11:00 AM ya no doy más de la garganta compitiendo contra el eco del salón, el viento y el grito de la cancha, además de que el calor aletarga a los muchachos."
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed text-xs space-y-1">
+                      <p>&bull; Tiempo de reverberación acústica.</p>
+                      <p>&bull; Velocidad y turbulencia del viento en el vano.</p>
+                      <p>&bull; Temperatura operativa y fatiga física.</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed bg-teal-50/30 font-medium text-slate-900 rounded-r-lg">
+                      <strong>Zonificación acústica protegida:</strong> Bloques de aulas aislados del polideportivo por patios arbolados. Cielorrasos inclinados de madera o caña con absorción acústica y muros laterales con celosía desfasada (el aire entra laminar, sin silbidos ni arrastre de ruido exterior).
+                    </td>
+                  </tr>
+
+                  {/* Docente 2 */}
+                  <tr className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                      <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 border border-teal-200 text-xs font-mono font-bold">
+                        <Users className="w-3.5 h-3.5" />
+                        <span>Docente</span>
+                      </span>
+                      <p className="text-[11px] text-teal-700 font-mono mt-1">Logística y preparación sin red fija</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed italic text-slate-800 font-serif">
+                      "No tenemos internet estable ni fotocopiadora cerca; necesitamos un lugar fresco donde guardar material didáctico que no se enmohezca por la salitre y donde planear clases en paz."
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed text-xs space-y-1">
+                      <p>&bull; Protección higrométrica de insumos.</p>
+                      <p>&bull; Confort lumínico de trabajo.</p>
+                      <p>&bull; Concentración y privacidad.</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed bg-teal-50/30 font-medium text-slate-900 rounded-r-lg">
+                      <strong>Sala de profesores como núcleo intermedio ventilado:</strong> Ubicada entre los pabellones de aulas (no en la entrada cívica), con orientación sur/norte para luz difusa sin reflejos en pantallas, mobiliario de guardado estanco con deshumidificación pasiva y visual directa a los patios de recreo.
+                    </td>
+                  </tr>
+
+                  {/* Docente 3 */}
+                  <tr className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                      <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 border border-teal-200 text-xs font-mono font-bold">
+                        <Users className="w-3.5 h-3.5" />
+                        <span>Docente</span>
+                      </span>
+                      <p className="text-[11px] text-teal-700 font-mono mt-1">Vigilancia pasiva no invasiva</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed italic text-slate-800 font-serif">
+                      "En el recreo uno no puede estar corriendo detrás de cada niño; el espacio tiene que permitir verlos sin sentirse como un celador de cárcel."
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed text-xs space-y-1">
+                      <p>&bull; Líneas de visión despejadas.</p>
+                      <p>&bull; Geometría de panóptico suave.</p>
+                      <p>&bull; Puntos ciegos eliminados.</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed bg-teal-50/30 font-medium text-slate-900 rounded-r-lg">
+                      <strong>Patios centrales con galerías perimetrales:</strong> Las circulaciones y pasillos de los docentes funcionan como miradores elevados (<strong>+0.60 m</strong>) sobre los patios de juego, permitiendo control visual 360° desde la sombra sin invadir la dinámica lúdica.
+                    </td>
+                  </tr>
+
+                  {/* Estudiante 1 */}
+                  <tr className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                      <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200 text-xs font-mono font-bold">
+                        <GraduationCap className="w-3.5 h-3.5" />
+                        <span>Estudiante</span>
+                      </span>
+                      <p className="text-[11px] text-indigo-700 font-mono mt-1">Aulas: sofoco y dispersión</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed italic text-slate-800 font-serif">
+                      "Estar sentados en filas mirando un tablero aburre y da sueño con el calor; preferimos ponernos en mesas redondas, en el piso o salir al fresco."
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed text-xs space-y-1">
+                      <p>&bull; Flexibilidad de configuración de planta.</p>
+                      <p>&bull; Confort térmico adaptativo.</p>
+                      <p>&bull; Desjerarquización del espacio.</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed bg-indigo-50/30 font-medium text-slate-900 rounded-r-lg">
+                      <strong>Aula porosa y no direccional:</strong> Planta cuadrada o hexagonal sin testero rígido. Muros abatibles o puertas correderas tipo persiana que permiten duplicar el área del aula abriéndola directamente hacia terrazas exteriores techadas bajo la copa de los árboles.
+                    </td>
+                  </tr>
+
+                  {/* Estudiante 2 */}
+                  <tr className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                      <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200 text-xs font-mono font-bold">
+                        <GraduationCap className="w-3.5 h-3.5" />
+                        <span>Estudiante</span>
+                      </span>
+                      <p className="text-[11px] text-indigo-700 font-mono mt-1">Recreo: refugio del suelo ardiente</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed italic text-slate-800 font-serif">
+                      "El patio de cemento quema los zapatos al mediodía; nos apiñamos todos en la sombrita del árbol viejo o nos sentamos en las escaleras."
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed text-xs space-y-1">
+                      <p>&bull; Inercia térmica del pavimento.</p>
+                      <p>&bull; Escala corporal de descanso.</p>
+                      <p>&bull; Texturas táctiles del piso.</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed bg-indigo-50/30 font-medium text-slate-900 rounded-r-lg">
+                      <strong>Microtopografía lúdica y suelo permeable:</strong> Se eliminan las explanadas masivas de concreto. Patios de recreo con suelo vivo (arena compactada, grava marina, césped costero) articulados con graderías de madera, muros bajos para sentarse y enramadas vegetales densas.
+                    </td>
+                  </tr>
+
+                  {/* Estudiante 3 */}
+                  <tr className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-slate-900 align-top">
+                      <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200 text-xs font-mono font-bold">
+                        <GraduationCap className="w-3.5 h-3.5" />
+                        <span>Estudiante</span>
+                      </span>
+                      <p className="text-[11px] text-indigo-700 font-mono mt-1">Pertenencia y transición de escala</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed italic text-slate-800 font-serif">
+                      "Cuando pasamos de la casa al colegio se siente todo muy frío y grande; queremos un rincón donde guardar nuestras cosas y sentirnos seguros."
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed text-xs space-y-1">
+                      <p>&bull; Escala del individuo frente a la institución.</p>
+                      <p>&bull; Territorialidad y nicho personal.</p>
+                      <p>&bull; Gradiente de calma.</p>
+                    </td>
+                    <td className="py-4 px-4 align-top leading-relaxed bg-indigo-50/30 font-medium text-slate-900 rounded-r-lg">
+                      <strong>Umbrales intermedios y nichos de descanso:</strong> Pasillos anchos (<strong>2.40 m a 3.00 m</strong>) equipados con nichos profundos de asiento en el espesor del muro (<em>bancas integradas</em>), casilleros ventilados de listones y zonas de lectura protegidas del flujo masivo de paso.
+                    </td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </div>
+
+            {/* Zonificación Operativa Resultante */}
+            <div className="space-y-4 pt-4 border-t border-slate-200">
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 uppercase">
+                  Diagrama Funcional
+                </span>
+                <h4 className="text-xl font-bold text-slate-900">
+                  Zonificación Operativa Resultante para el Día a Día Escolar
+                </h4>
+              </div>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                Al cruzar únicamente las dinámicas de docentes y alumnos, el módulo pedagógico se organiza internamente en un <strong>sistema celular de micro-comunidades</strong>:
+              </p>
+
+              {/* Graphic Flow Cards */}
+              <div className="space-y-3 max-w-4xl mx-auto pt-2">
+                
+                {/* Wind Entry */}
+                <div className="p-3 rounded-2xl bg-teal-50 border border-teal-200 text-center font-mono text-xs font-bold text-teal-800 flex items-center justify-center space-x-2">
+                  <Wind className="w-4 h-4 text-teal-600 animate-pulse" />
+                  <span>[ BRISA FRESCA DEL NORTE / NORESTE (VIENTOS ALISIOS) ]</span>
+                </div>
+
+                <div className="flex justify-center text-teal-600 font-bold text-lg">&darr;</div>
+
+                {/* Block 1 */}
+                <div className="p-5 rounded-2xl bg-gradient-to-r from-teal-500/10 via-white to-teal-500/10 border-2 border-teal-500/40 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-teal-600 text-white uppercase">Nivel 01</span>
+                    <span className="text-xs font-mono text-teal-800 font-semibold">Microclima & Confort Interior</span>
+                  </div>
+                  <h5 className="font-bold text-base text-slate-900">PABELLÓN DE AULAS TEÓRICAS Y TALLERES</h5>
+                  <ul className="text-xs sm:text-sm text-slate-700 space-y-1 list-disc pl-5">
+                    <li>Fachadas largas orientadas Este-Oeste (sin sol directo).</li>
+                    <li>Muros-celosía que tamizan la brisa marina.</li>
+                    <li>Aulas integrables a terrazas cubiertas exteriores.</li>
+                  </ul>
+                </div>
+
+                <div className="flex justify-center text-emerald-600 font-bold text-lg">&darr;</div>
+
+                {/* Block 2 */}
+                <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-white to-emerald-500/10 border-2 border-emerald-500/40 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-emerald-600 text-white uppercase">Nivel 02</span>
+                    <span className="text-xs font-mono text-emerald-800 font-semibold">Evapotranspiración Activa</span>
+                  </div>
+                  <h5 className="font-bold text-base text-slate-900">PATIO BIOCLIMÁTICO DE RECREO Y APRENDIZAJE AL AIRE LIBRE</h5>
+                  <ul className="text-xs sm:text-sm text-slate-700 space-y-1 list-disc pl-5">
+                    <li>Sombra vegetal densa (árboles nativos de copa ancha: campano, guayacán, totumo).</li>
+                    <li>Graderías bajas, suelo vegetal y microtopografías lúdicas.</li>
+                    <li>Viento enfriado por evapotranspiración antes de entrar a las aulas.</li>
+                  </ul>
+                </div>
+
+                <div className="flex justify-center text-indigo-600 font-bold text-xs font-mono text-indigo-700">
+                  (Control visual pasivo continuo 360° desde galerías elevadas +0.60m)
+                </div>
+                <div className="flex justify-center text-indigo-600 font-bold text-lg">&darr;</div>
+
+                {/* Block 3 */}
+                <div className="p-5 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-white to-indigo-500/10 border-2 border-indigo-500/40 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-indigo-600 text-white uppercase">Nivel 03</span>
+                    <span className="text-xs font-mono text-indigo-800 font-semibold">Soporte & Gestión Pedagógica</span>
+                  </div>
+                  <h5 className="font-bold text-base text-slate-900">NÚCLEO DE APOYO DOCENTE Y RECURSOS DIDÁCTICOS</h5>
+                  <ul className="text-xs sm:text-sm text-slate-700 space-y-1 list-disc pl-5">
+                    <li>Sala de profesores elevada con vista panorámica al patio.</li>
+                    <li>Archivo pedagógico y almacén técnico protegido del salitre.</li>
+                    <li>Baterías de baños y puntos de hidratación pluvial certificados.</li>
+                  </ul>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Decisiones de Diseño Clave */}
+            <div className="space-y-4 pt-4 border-t border-slate-200">
+              <h4 className="text-xl font-bold text-slate-900">
+                Decisiones de Diseño Clave para la Propuesta
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 hover:border-teal-300 transition-colors">
+                  <span className="text-xs font-mono font-bold text-teal-800 uppercase flex items-center space-x-1">
+                    <Building2 className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Decisión 01</span>
+                  </span>
+                  <h5 className="font-bold text-sm text-slate-900">El aula como pabellón expandible</h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    No concibas el aula como una caja cerrada de cuatro paredes de bloque. Diseña un núcleo con una crujía techada abierta al exterior, donde la clase teórica puede transformarse en taller grupal al aire libre en menos de un minuto simplemente desplazando los paneles de celosía.
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 hover:border-teal-300 transition-colors">
+                  <span className="text-xs font-mono font-bold text-teal-800 uppercase flex items-center space-x-1">
+                    <Route className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Decisión 02</span>
+                  </span>
+                  <h5 className="font-bold text-sm text-slate-900">El pasillo deja de ser solo circulación</h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Con <strong>2.50 m a 3.00 m</strong> de ancho, el corredor exterior cubierto funciona como aula de extensión, espacio de socialización docente-alumno en los descansos y filtro térmico que absorbe la radiación antes de que llegue al interior del salón.
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 hover:border-teal-300 transition-colors">
+                  <span className="text-xs font-mono font-bold text-teal-800 uppercase flex items-center space-x-1">
+                    <Leaf className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Decisión 03</span>
+                  </span>
+                  <h5 className="font-bold text-sm text-slate-900">Ergonomía climática comunitaria</h5>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Las superficies donde se sientan los estudiantes (bancas corridas, bordillos, gradas) se proyectan en maderas locales o tierra estabilizada, materiales de baja absorción térmica que no acumulan calor abrasivo bajo el sol del mediodía caribeño.
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
       </section>
 
       {/* ========================================================= */}
