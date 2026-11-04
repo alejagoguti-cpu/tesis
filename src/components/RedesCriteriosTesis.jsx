@@ -209,7 +209,7 @@ const NETWORKS_DATA = {
       },
       variables: {
         id: 'variables',
-        n: 'Variables de Diagnóstico IAP',
+        n: 'Variables de Co-creación',
         tag: 'Metodología Mixta',
         icon: Activity,
         color: '#b45309',
@@ -217,9 +217,9 @@ const NETWORKS_DATA = {
         x: 180,
         y: 560,
         details: {
-          title: 'Recursos Metodológicos y Estudio de Variables (IAP)',
-          badge: 'Investigación Acción Participativa',
-          summary: 'Diseño metodológico mixto (cuali-cuantitativo) sustentado en 4 dimensiones integradas:',
+          title: 'Recursos Metodológicos y Estudio de Variables (Co-creación)',
+          badge: 'Metodología de Co-creación',
+          summary: 'Diseño metodológico mixto (cuali-cuantitativo) sustentado en procesos de co-creación y 4 dimensiones integradas:',
           points: [
             { label: 'Dimensión Físico-Ambiental', text: 'Tasa de retroceso costero (hasta 1.8 m/año), salinidad de acuíferos, pérdida de barreras arrecifales. Métodos: mapeo GIS multitemporal, sensores remotos, batimetría y aforos de agua.' },
             { label: 'Dimensión Socioeconómica', text: 'Ingreso medio, alta informalidad, pérdida de relevo generacional en pesca. Métodos: encuestas estratificadas en Tierra Bomba, Punta Arena, Caño del Oro y Bocachica.' },
