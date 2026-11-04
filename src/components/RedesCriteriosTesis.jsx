@@ -3,7 +3,7 @@ import {
   BookOpen, Users, Building2, Waves, Home, Ship, House, Leaf, RotateCcw,
   Sparkles, CheckCircle2, ChevronRight, X, Eye, Maximize2, Layers,
   Compass, Wind, Droplets, Sun, Hammer, Shield, GraduationCap, AlertCircle,
-  FileText, ArrowRight, Activity, TreePine, Award
+  FileText, ArrowRight, Activity, TreePine, Award, ExternalLink
 } from 'lucide-react';
 
 const W = 1000;
@@ -84,6 +84,26 @@ const NETWORKS_DATA = {
             { label: 'Contraste territorial abismal', text: 'A menos de 1 km de distancia náutica conviven los rascacielos de Bocagrande con la ausencia total de alcantarillado formal en la isla.' },
             { label: 'Redistribución de recursos', text: 'El ordenamiento insular debe redistribuir las inversiones públicas y proteger a los residentes tradicionales de la especulación inmobiliaria.' },
             { label: 'Derecho a permanecer', text: 'Garantizar el arraigo digno en el territorio insular para frenar el desplazamiento silencioso.' }
+          ],
+          references: [
+            {
+              title: 'The Right to the City (New Left Review, Issue 53)',
+              author: 'David Harvey (2008)',
+              source: 'New Left Review',
+              url: 'https://newleftreview.org/issues/ii53/articles/david-harvey-the-right-to-the-city'
+            },
+            {
+              title: 'Social Justice and the City (Geographies of Justice)',
+              author: 'David Harvey (1973 / 2009)',
+              source: 'University of Georgia Press',
+              url: 'https://ugapress.org/book/9780820334035/social-justice-and-the-city/'
+            },
+            {
+              title: 'Seeking Spatial Justice (Spatial Futures Series)',
+              author: 'Edward W. Soja (2010)',
+              source: 'University of Minnesota Press',
+              url: 'https://www.upress.umn.edu/9780816666682/seeking-spatial-justice/'
+            }
           ]
         }
       },
@@ -104,6 +124,26 @@ const NETWORKS_DATA = {
             { label: 'Coevolución socioecológica', text: 'La comunidad y el ecosistema costero deben coevolucionar mediante estrategias de adaptación basadas en la naturaleza (SbN).' },
             { label: 'Restauración ecosistémica', text: 'Integración de manglares de borde, escolleras sumergidas y arrecifes bio-remediadores en lugar de murallas grises rígidas que trasladan el problema.' },
             { label: 'Capacidad adaptativa', text: 'Monitoreo ambiental continuo gestionado de forma comunitaria.' }
+          ],
+          references: [
+            {
+              title: 'Resilience: The emergence of a perspective for social-ecological systems analyses',
+              author: 'Carl Folke (2006)',
+              source: 'Global Environmental Change (Elsevier, DOI: 10.1016/j.gloenvcha.2006.04.002)',
+              url: 'https://doi.org/10.1016/j.gloenvcha.2006.04.002'
+            },
+            {
+              title: 'Navigating Social-Ecological Systems: Building Resilience for Complexity and Change',
+              author: 'Fikret Berkes, Johan Colding & Carl Folke (2003)',
+              source: 'Cambridge University Press',
+              url: 'https://doi.org/10.1017/CBO9780511541957'
+            },
+            {
+              title: 'IUCN Global Standard for Nature-based Solutions (SbN)',
+              author: 'IUCN (2020)',
+              source: 'International Union for Conservation of Nature',
+              url: 'https://portals.iucn.org/library/node/49070'
+            }
           ]
         }
       },
@@ -124,6 +164,26 @@ const NETWORKS_DATA = {
             { label: 'Saberes ancestrales afro', text: 'Puesta en valor de la arquitectura vernácula en madera, el conocimiento de mareas y la pesca artesanal.' },
             { label: 'Contra el extractivismo', text: 'Evitar enclaves turísticos excluyentes de espaldas a los cuatro corregimientos insulares.' },
             { label: 'Agenciamiento local', text: 'El Consejo Comunitario como sujeto decisor vinculante en el diseño y gestión territorial.' }
+          ],
+          references: [
+            {
+              title: 'Development as Freedom (Desarrollo y Libertad)',
+              author: 'Amartya Sen (1999)',
+              source: 'Oxford University Press',
+              url: 'https://global.oup.com/academic/product/development-as-freedom-9780198297581'
+            },
+            {
+              title: 'Autonomía y diseño: La realización de lo comunal',
+              author: 'Arturo Escobar (2016)',
+              source: 'Universidad del Cauca / Tinta Limón',
+              url: 'https://www.aacademica.org/arturo.escobar/68'
+            },
+            {
+              title: 'Encountering Development: The Making and Unmaking of the Third World',
+              author: 'Arturo Escobar (1995 / 2012)',
+              source: 'Princeton University Press',
+              url: 'https://press.princeton.edu/books/paperback/9780691150451/encountering-development'
+            }
           ]
         }
       },
@@ -973,6 +1033,42 @@ export default function RedesCriteriosTesis() {
             )}
 
             {/* Detailed Points & Variables */}
+            {/* Academic References & URLs */}
+            {selectedNode.details?.references && (
+              <div className="space-y-3 pt-4 border-t border-slate-200">
+                <div className="flex items-center space-x-2 text-teal-800">
+                  <ExternalLink className="w-4 h-4 text-teal-600" />
+                  <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-800">
+                    Fuentes Teóricas & Enlaces Académicos (URLs)
+                  </h4>
+                </div>
+                <div className="space-y-2">
+                  {selectedNode.details.references.map((ref, idx) => (
+                    <a
+                      key={idx}
+                      href={ref.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-teal-50/70 border border-slate-200 hover:border-teal-300 transition-all group shadow-2xs"
+                    >
+                      <div className="min-w-0 pr-3 space-y-0.5">
+                        <strong className="block text-xs sm:text-sm font-bold text-slate-900 group-hover:text-teal-900 truncate">
+                          {ref.title}
+                        </strong>
+                        <p className="text-[11px] font-mono text-slate-500 group-hover:text-teal-700 truncate">
+                          {ref.author} &bull; {ref.source}
+                        </p>
+                      </div>
+                      <span className="shrink-0 px-2.5 py-1 rounded-lg bg-teal-100 text-teal-800 group-hover:bg-teal-600 group-hover:text-white transition-colors text-[11px] font-mono font-bold flex items-center space-x-1">
+                        <span>URL</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {selectedNode.details?.points && (
               <div className="space-y-3">
                 <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">
