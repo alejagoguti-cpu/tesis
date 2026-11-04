@@ -408,12 +408,12 @@ const NETWORKS_DATA = {
 
   transcodificacion: {
     id: 'transcodificacion',
-    badge: 'Codificación Espacial // Matriz Social a la Forma',
-    title: 'Transcodificación: Del Habitar a la Zonificación',
+    badge: 'Diseño del Proyecto // Matriz Social a la Forma',
+    title: 'Proyecto: Del Habitar a la Zonificación',
     subtitle: 'Cómo los rituales, relatos comunitarios y rutinas cotidianas se convierten en distancias, umbrales y zonificación.',
     center: {
       id: 'centro',
-      title: 'Transcodificación',
+      title: 'Proyecto',
       sub: 'Del Relato a la Forma',
       x: 500,
       y: 340,
@@ -430,7 +430,7 @@ const NETWORKS_DATA = {
         x: 190,
         y: 110,
         details: {
-          title: 'Matriz de Transcodificación: Profesores y Docentes',
+          title: 'Matriz de Proyecto: Profesores y Docentes',
           badge: 'Rutinas Pedagógicas & Bienestar',
           summary: 'Traducción de la fatiga térmica, acústica y logística en decisiones arquitectónicas directas:',
           quote: 'A las 11:00 AM ya no doy más de la garganta compitiendo contra el eco del salón, el viento y el grito de la cancha, además de que el calor aletarga a los muchachos.',
@@ -451,7 +451,7 @@ const NETWORKS_DATA = {
         x: 500,
         y: 85,
         details: {
-          title: 'Matriz de Transcodificación: Estudiantes y Juventud',
+          title: 'Matriz de Proyecto: Estudiantes y Juventud',
           badge: 'Desarrollo Sensorial & Aprendizaje',
           summary: 'Espacios escolares concebidos a escala humana, corporal y cultural infantil:',
           quote: 'El salón a mediodía parece un horno; nos salimos a buscar la sombrita de los palos porque el pupitre quema y da dolor de cabeza.',
@@ -472,7 +472,7 @@ const NETWORKS_DATA = {
         x: 820,
         y: 110,
         details: {
-          title: 'Matriz de Transcodificación: Pescadores y Artesanos Navales',
+          title: 'Matriz de Proyecto: Pescadores y Artesanos Navales',
           badge: 'Cultura Marítima Tradicional',
           summary: 'La faena de madrugada, limpieza de redes y resguardo seguro de motores fuera de borda:',
           quote: 'Salimos de madrugada; al volver al mediodía necesitamos un espacio techado con piso rústico donde destripar pescado, lavar atarrayas con agua salobre y guardar los motores bajo candado sin ensuciar las áreas limpias.',
@@ -492,7 +492,7 @@ const NETWORKS_DATA = {
         x: 830,
         y: 340,
         details: {
-          title: 'Matriz de Transcodificación: Madres Comunitarias y Cocineras',
+          title: 'Matriz de Proyecto: Madres Comunitarias y Cocineras',
           badge: 'Soberanía Alimentaria & Cuidado',
           summary: 'Cocinar en comunidad como acto colectivo, de cooperación y vigilancia protectora:',
           quote: 'Cocinar no es un encierro de una sola persona; picamos en grupo, hacemos sancochos en leña o fogón grande, necesitamos ver a los niños mientras juegan y hablar con las vecinas que traen la yuca o el pescado.',
@@ -512,7 +512,7 @@ const NETWORKS_DATA = {
         x: 810,
         y: 560,
         details: {
-          title: 'Matriz de Transcodificación: Líderes y Consejos Comunitarios',
+          title: 'Matriz de Proyecto: Líderes y Consejos Comunitarios',
           badge: 'Gobernanza Colectiva Autónoma',
           summary: 'Lugares representativos de reunión ciudadana, toma de decisiones y acuerdos comunitarios:',
           quote: 'Cuando hay asamblea del Consejo Comunitario o viene alguien de la Alcaldía de Cartagena, nos toca amontonarnos en un salón caliente o bajo un palo; necesitamos un lugar digno que se sienta nuestro.',
@@ -534,7 +534,7 @@ const NETWORKS_DATA = {
         details: {
           title: 'Esquema de Zonificación en 3 Franjas Funcionales Operativas',
           badge: 'Organización del Masterplan',
-          summary: 'Resolución espacial derivada directamente de la matriz de transcodificación:',
+          summary: 'Resolución espacial derivada directamente de la matriz de proyecto:',
           points: [
             { label: '1. Franja Cívica y Productiva (Pública / Frente Costero y Sendero)', text: 'Ágora cívica, muelle pesquero, talleres náuticos, cocina comunitaria y acceso principal. Acoge las actividades ruidosas, logísticas y comunitarias.' },
             { label: '2. Franja Pedagógica y de Concentración (Semi-restringida / Núcleo Central)', text: 'Pabellones de aulas teóricas y laboratorios bioclimáticos, biblioteca comunitaria y sala de docentes. Protegida acústicamente y orientada Este-Oeste para máxima sombra y ventilación laminar.' },
@@ -552,7 +552,7 @@ const NETWORKS_DATA = {
         x: 190,
         y: 560,
         details: {
-          title: 'Matriz de Transcodificación: Jóvenes, Deporte y Música',
+          title: 'Matriz de Proyecto: Jóvenes, Deporte y Música',
           badge: 'Energía Vital & Convivencia',
           summary: 'Espacios dinámicos para deporte, champeta, danza afro y percusión sin colisionar con las aulas:',
           quote: 'Los fines de semana nos gusta escuchar música, bailar champeta y jugar bola de trapo o microfútbol; si lo hacemos en la calle la policía nos molesta y no hay canchas buenas con sombra.',
@@ -731,7 +731,7 @@ export default function RedesCriteriosTesis() {
             { id: 'fundamentacion', label: '1. Marco & Problema', icon: BookOpen, badge: 'Epistemología' },
             { id: 'vivienda', label: '2. Criterios Vivienda', icon: House, badge: '4 Dimensiones' },
             { id: 'colegio', label: '3. Criterios Colegio', icon: GraduationCap, badge: 'Equipamiento' },
-            { id: 'transcodificacion', label: '4. Transcodificación', icon: Layers, badge: 'Habitar a Forma' }
+            { id: 'transcodificacion', label: '4. Proyecto', icon: Layers, badge: 'Habitar a Forma' }
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
