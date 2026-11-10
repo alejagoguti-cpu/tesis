@@ -1,11 +1,12 @@
-import React from 'react';
+﻿import React from 'react';
 import { projectInfo } from '../data/projectData';
 
 const INDICE = [
-  { id: 'framework', n: '01', label: 'Marco de tesis' },
-  { id: 'module11', n: '02', label: 'Historia del territorio' },
-  { id: 'gis', n: '03', label: 'Diagnóstico y riesgo' },
-  { id: '3dviewer', n: '04', label: 'Propuesta 3D' },
+  { id: 'resumen', n: '00', label: 'Resumen del proyecto' },
+  { id: 'territorio', n: '01', label: 'Nuestro territorio' },
+  { id: 'module11', n: '02', label: 'La historia de la isla' },
+  { id: 'framework', n: '03', label: 'El mapa de los riesgos' },
+  { id: '3dviewer', n: '04', label: 'Así será el nuevo barrio' },
 ];
 
 export default function IntroLandingIndex({ onNavigateModule }) {
@@ -52,3 +53,4 @@ export default function IntroLandingIndex({ onNavigateModule }) {
     </section>
   );
 }
+

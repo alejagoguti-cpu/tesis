@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Component } from 'react';
+﻿import React, { useState, useEffect, Component } from 'react';
 import DashboardSidebar from './components/DashboardSidebar';
 import DashboardHeader from './components/DashboardHeader';
 import ThesisFramework from './components/ThesisFramework';
@@ -10,6 +10,7 @@ import RedColaborativa from './components/RedColaborativa';
 import RedRizoma from './components/RedRizoma';
 import RedTerritorio from './components/RedTerritorio';
 import IntroLandingIndex from './components/IntroLandingIndex';
+import ProjectOverview from './components/ProjectOverview';
 import Hero from './components/Hero';
 import Footer from './components/Footer';
 
@@ -50,7 +51,7 @@ class SafeSection extends Component {
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [activeModule, setActiveModule] = useState('territorio');
+  const [activeModule, setActiveModule] = useState('resumen');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
@@ -106,7 +107,7 @@ export default function App() {
       {/* Main Content Area (100% Full-Screen Dashboard) */}
       <div 
         className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${
-          presentationMode ? 'pl-0' : 'lg:pl-60'
+          presentationMode ? 'pl-0' : 'lg:pl-64'
         }`}
       >
         {/* Dynamic Viewport Container */}
@@ -129,6 +130,12 @@ export default function App() {
           {viewMode === 'dashboard' && (
             <div className="w-full h-full relative overflow-hidden transition-all duration-300">
               
+              {activeModule === 'resumen' && (
+                <SafeSection name="Resumen del proyecto">
+                  <ProjectOverview onNavigateModule={(modId) => setActiveModule(modId)} />
+                </SafeSection>
+              )}
+
               {/* Módulo 01: Marco Académico */}
               {activeModule === 'framework' && (
                 <SafeSection name="Módulo 01: Marco de Tesis">
@@ -223,3 +230,4 @@ export default function App() {
     </div>
   );
 }
+

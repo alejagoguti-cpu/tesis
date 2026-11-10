@@ -280,6 +280,15 @@ export const projectInfo = {
   // Módulos técnicos = se conservan, pero quedan bajo "Versión técnica".
   dashboardModules: [
     {
+      id: "resumen",
+      number: "0",
+      title: "Resumen del proyecto",
+      icon: "LayoutDashboard",
+      badge: "Inicio",
+      desc: "El problema, la propuesta y las cifras clave de Tierra Bomba",
+      community: true
+    },
+    {
       id: "territorio",
       number: "1",
       title: "Nuestro territorio",
