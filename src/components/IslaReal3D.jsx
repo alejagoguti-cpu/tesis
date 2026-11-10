@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { Water } from 'three/examples/jsm/objects/Water.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
-import { BASE, DATA_URL } from '../utils/realTerritory.js';
+import { BASE, DATA_URL, prepareTreeSpecies, instanceTrees } from '../utils/realTerritory.js';
 
 // Tierra Bomba en 3D con datos reales del proyecto:
 //  - foto satelital georreferenciada (Esri World Imagery) sobre un terreno con relieve (Terrain Tiles / Terrarium)
@@ -217,75 +217,33 @@ export default function IslaReal3D({ className = '', onReady, onError }) {
           };
         };
 
-        // ---- árboles ----
-        const canopy = new THREE.IcosahedronGeometry(0.5, 2);
-        {
-          const pa = canopy.attributes.position;
-          const col = new Float32Array(pa.count * 3);
-          const v = new THREE.Vector3();
-          for (let k = 0; k < pa.count; k++) {
-            v.fromBufferAttribute(pa, k);
-            const n = Math.sin(v.x * 9.1 + v.z * 7.3) * Math.cos(v.y * 8.2 + v.x * 5.1) * 0.08 + 1;
-            v.multiplyScalar(n);
-            v.y *= 0.82;
-            pa.setXYZ(k, v.x, v.y, v.z);
-            const shade = 0.55 + 0.6 * ((v.y + 0.45) / 0.9); // base más oscura, copa iluminada
-            col[k * 3] = col[k * 3 + 1] = col[k * 3 + 2] = shade;
-          }
-          canopy.setAttribute('color', new THREE.BufferAttribute(col, 3));
-          canopy.computeVertexNormals();
-        }
-        const trees = veg.arboles
+        // ---- árboles: solo los reales (posiciones detectadas en la foto) con modelos escaneados ----
+        const species = await prepareTreeSpecies();
+        species.forEach((parts) => parts.forEach((p) => { if (p.kind === 'leaf') { p.material.color.multiplyScalar(1.9); p.material.envMapIntensity = 1.4; } }));
+        if (disposed) return;
+        const small = window.innerWidth < 768;
+        const MAX_TREES = small ? 700 : 1800;
+        const cand = veg.arboles
           .map(([x, y, size, dense], i) => {
             const g = heightAt(x, y);
-            return { x, y, size, dense, i, ...g };
+            return { x, y, size, dense, i, ...g, d: Math.hypot(x - FOCUS.x, y - FOCUS.y) };
           })
-          .filter((t) => maskAt(t.u, t.v) > 0.55);
-        const treeMesh = new THREE.InstancedMesh(
-          canopy,
-          new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 }),
-          trees.length
-        );
-        const m4 = new THREE.Matrix4();
-        const qn = new THREE.Quaternion();
-        const sv = new THREE.Vector3();
-        const pv = new THREE.Vector3();
-        const cc = new THREE.Color();
-        const eul = new THREE.Euler();
-        trees.forEach((t, k) => {
-          const rnd = ((Math.imul(t.i + 5, 2654435761) >>> 0) % 1000) / 1000;
-          const height = 8.5 * t.size * (t.dense ? 0.95 : 1.1) * (0.85 + rnd * 0.4);
-          const diam = height * (0.72 + rnd * 0.3);
-          pv.set(t.x, t.h + height * 0.5, -t.y);
-          eul.set(0, rnd * 6.28, 0);
-          qn.setFromEuler(eul);
-          sv.set(diam, height, diam);
-          m4.compose(pv, qn, sv);
-          treeMesh.setMatrixAt(k, m4);
-          // color de la copa tomado de la propia foto satelital
-          const sx = Math.max(0, Math.min(SC - 1, Math.floor(t.u * SC)));
-          const sy = Math.max(0, Math.min(SC - 1, Math.floor(t.v * SC)));
-          const si = (sy * SC + sx) * 4;
-          let r = satData[si] / 255;
-          let g = satData[si + 1] / 255;
-          let b = satData[si + 2] / 255;
-          cc.setRGB(r, g, b, THREE.SRGBColorSpace);
-          const hsl = {};
-          cc.getHSL(hsl);
-          const hue = Math.max(0.07, Math.min(0.28, hsl.h < 0.07 || hsl.h > 0.6 ? 0.2 : hsl.h));
-          cc.setHSL(hue, Math.min(0.75, hsl.s * 1.2 + 0.18), Math.max(0.2, Math.min(0.42, hsl.l * 1.3)));
-          treeMesh.setColorAt(k, cc);
-        });
-        treeMesh.instanceMatrix.needsUpdate = true;
-        if (treeMesh.instanceColor) treeMesh.instanceColor.needsUpdate = true;
-        treeMesh.castShadow = true;
-        treeMesh.receiveShadow = true;
-        treeMesh.frustumCulled = false;
-
+          .filter((t) => maskAt(t.u, t.v) > 0.55)
+          .sort((a, b) => a.d - b.d)
+          .slice(0, MAX_TREES);
+        const list = cand.map((t) => ({
+          x: t.x,
+          y: t.h,
+          z: -t.y,
+          rot: ((Math.imul(t.i + 7, 40503) >>> 0) % 628) / 100,
+          height: 8.5 * t.size * 1.35 * (t.dense ? 0.92 : 1.05),
+          tone: ((Math.imul(t.i + 3, 69069) >>> 0) % 100) / 100,
+        }));
+        const treeGroup = instanceTrees(species, list, 40, !small);
         // ---- escena ----
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0xa9d3dc, 0.00026);
-        scene.add(terrain, treeMesh);
+        scene.add(terrain, treeGroup);
 
         const sky = new Sky();
         sky.scale.setScalar(20000);
@@ -397,6 +355,8 @@ export default function IslaReal3D({ className = '', onReady, onError }) {
 
   return <div ref={mountRef} className={className} data-ready={ready ? '1' : '0'} aria-hidden="true" />;
 }
+
+
 
 
 
