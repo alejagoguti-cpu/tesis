@@ -106,7 +106,7 @@ export default function App() {
 
       {/* Main Content Area (100% Full-Screen Dashboard) */}
       <div 
-        className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${
+        className={`flex-1 flex flex-col h-screen max-h-screen min-h-0 overflow-hidden transition-all duration-300 ${
           presentationMode ? 'pl-0' : 'lg:pl-64'
         }`}
       >
@@ -124,11 +124,11 @@ export default function App() {
           setViewMode={setViewMode}
         />
 
-        <main className="flex-1 w-full h-full p-0 overflow-hidden relative">
+        <main className="flex-1 min-h-0 w-full p-0 overflow-hidden relative">
           
           {/* 1. DASHBOARD MODULAR VIEW (Active module focused view) */}
           {viewMode === 'dashboard' && (
-            <div className="w-full h-full relative overflow-hidden transition-all duration-300">
+            <div key={activeModule} className="absolute inset-0 overflow-hidden module-enter">
               
               {activeModule === 'resumen' && (
                 <SafeSection name="Resumen del proyecto">
@@ -230,4 +230,7 @@ export default function App() {
     </div>
   );
 }
+
+
+
 

@@ -1,15 +1,16 @@
-import React from 'react';
+﻿import React from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import IslaHero3D from './IslaHero3D';
+import { Reveal, CountUp } from './Motion';
 import { projectInfo } from '../data/projectData';
 
 const A = (f) => `${import.meta.env.BASE_URL}assets/${f}`;
 
 const CIFRAS = [
-  { v: '1,8 m', u: 'por año', t: 'Retroceso de la costa por erosión' },
-  { v: '0 %', u: 'cobertura', t: 'Acueducto y alcantarillado en la isla' },
-  { v: '+22 m', u: 's.n.m.', t: 'Cota segura para reubicar el equipamiento' },
-  { v: '450.000 L', u: 'aljibe', t: 'Agua lluvia captada en 1.850 m² de cubierta' },
+  { to: 1.8, dec: 1, pre: '', suf: ' m', u: 'por año', t: 'Retroceso de la costa por erosión' },
+  { to: 0, dec: 0, pre: '', suf: ' %', u: 'cobertura', t: 'Acueducto y alcantarillado en la isla' },
+  { to: 22, dec: 0, pre: '+', suf: ' m', u: 's.n.m.', t: 'Cota segura para reubicar el equipamiento' },
+  { to: 450000, dec: 0, pre: '', suf: ' L', u: 'aljibe', t: 'Agua lluvia captada en 1.850 m² de cubierta' },
 ];
 
 const PROBLEMAS = [
@@ -48,9 +49,9 @@ export default function ProjectOverview({ onNavigateModule }) {
         <IslaHero3D className="absolute inset-0" />
         <div className="absolute inset-0 bg-[#0b1015]/25 pointer-events-none" />
         <div className="absolute inset-x-0 bottom-0 p-4 sm:p-8 lg:p-12">
-          <div className="max-w-xl rounded-2xl border border-white/30 bg-white/15 p-5 sm:p-7 text-white backdrop-blur-xl backdrop-saturate-150 shadow-2xl shadow-black/30">
+          <div className="max-w-xl rounded-2xl border border-white/30 bg-white/15 p-5 sm:p-7 text-white backdrop-blur-xl backdrop-saturate-150 shadow-2xl shadow-black/30 glass-sheen anim-fade-up">
             <p className="text-sm text-white/75">Resumen del proyecto</p>
-            <h1 className="mt-3 text-4xl sm:text-5xl font-semibold leading-none tracking-tight">Tierra Bomba</h1>
+            <h1 className="anim-fade-up mt-3 text-4xl sm:text-5xl font-semibold leading-none tracking-tight">Tierra Bomba</h1>
             <p className="mt-3 text-base sm:text-lg text-white/90">
               Reubicación del equipamiento comunal con infraestructura hídrica autosuficiente frente a la erosión costera.
             </p>
@@ -62,15 +63,15 @@ export default function ProjectOverview({ onNavigateModule }) {
       <section className="mx-auto max-w-6xl px-4 sm:px-8 pt-10 sm:pt-14">
         <dl className="grid grid-cols-2 lg:grid-cols-4 border-t border-[#16181d]/25">
           {CIFRAS.map((c, i) => (
-            <div
+            <Reveal delay={i * 120}
               key={c.t}
               className={`py-5 pr-4 border-b border-[#16181d]/15 lg:border-b-0 ${i > 0 ? 'lg:pl-6 lg:border-l lg:border-[#16181d]/15' : ''}`}
             >
               <dt className="text-3xl sm:text-4xl font-semibold tracking-tight">
-                {c.v} <span className="text-sm font-normal text-[#16181d]/55">{c.u}</span>
+                {c.pre}<CountUp to={c.to} decimals={c.dec} />{c.suf} <span className="text-sm font-normal text-[#16181d]/55">{c.u}</span>
               </dt>
               <dd className="mt-2 text-sm text-[#16181d]/70 leading-snug">{c.t}</dd>
-            </div>
+            </Reveal>
           ))}
         </dl>
       </section>
@@ -79,8 +80,9 @@ export default function ProjectOverview({ onNavigateModule }) {
       <section className="mx-auto max-w-6xl px-4 sm:px-8 pt-14 sm:pt-20">
         <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">Tres problemas, una isla</h2>
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
-          {PROBLEMAS.map((p) => (
-            <article key={p.n} className="group overflow-hidden rounded-xl bg-white border border-[#16181d]/10">
+          {PROBLEMAS.map((p, i) => (
+            <Reveal key={p.n} delay={i * 140}>
+            <article className="group h-full hover:-translate-y-1 hover:shadow-xl transition-all duration-500 overflow-hidden rounded-xl bg-white border border-[#16181d]/10">
               <div className="aspect-[4/3] overflow-hidden bg-slate-200">
                 <img
                   src={p.img}
@@ -95,6 +97,7 @@ export default function ProjectOverview({ onNavigateModule }) {
                 <p className="mt-2 text-sm text-[#16181d]/70 leading-relaxed">{p.d}</p>
               </div>
             </article>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -102,7 +105,7 @@ export default function ProjectOverview({ onNavigateModule }) {
       {/* Propuesta */}
       <section className="mx-auto max-w-6xl px-4 sm:px-8 pt-14 sm:pt-20">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
-          <div className="lg:col-span-2">
+          <Reveal className="lg:col-span-2">
             <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">La propuesta</h2>
             <p className="mt-4 text-[#16181d]/75 leading-relaxed">
               Llevar viviendas y escuela a la meseta segura, con diseño bioclimático caribeño. La cubierta recoge
@@ -116,10 +119,10 @@ export default function ProjectOverview({ onNavigateModule }) {
                 </li>
               ))}
             </ul>
-          </div>
-          <div className="lg:col-span-3 overflow-hidden rounded-xl border border-[#16181d]/10 bg-white">
-            <img src={A('vivienda_01_completa.png')} alt="Vivienda propuesta" loading="lazy" className="w-full h-full object-contain" />
-          </div>
+          </Reveal>
+          <Reveal delay={200} className="lg:col-span-3 overflow-hidden rounded-xl border border-[#16181d]/10 bg-white">
+            <img src={A('vivienda_01_completa.png')} alt="Vivienda propuesta" loading="lazy" className="w-full h-full object-contain hover:scale-105 transition-transform duration-1000" />
+          </Reveal>
         </div>
       </section>
 
@@ -127,8 +130,8 @@ export default function ProjectOverview({ onNavigateModule }) {
       <section className="mx-auto max-w-6xl px-4 sm:px-8 py-14 sm:py-20">
         <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">Recorre el proyecto</h2>
         <ul className="mt-6 border-t border-[#16181d]/25">
-          {RECORRIDO.map((r) => (
-            <li key={r.id} className="border-b border-[#16181d]/15">
+          {RECORRIDO.map((r, i) => (
+            <Reveal as="li" delay={i * 90} key={r.id} className="border-b border-[#16181d]/15">
               <button
                 onClick={() => onNavigateModule(r.id)}
                 className="group flex w-full items-center gap-4 sm:gap-8 py-5 text-left cursor-pointer"
@@ -140,7 +143,7 @@ export default function ProjectOverview({ onNavigateModule }) {
                 </span>
                 <ArrowUpRight className="h-5 w-5 text-[#16181d]/40 transition group-hover:text-[#c86d51] group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </button>
-            </li>
+            </Reveal>
           ))}
         </ul>
         <p className="mt-10 text-sm text-[#16181d]/55">
@@ -150,3 +153,5 @@ export default function ProjectOverview({ onNavigateModule }) {
     </div>
   );
 }
+
+

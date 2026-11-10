@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { projectInfo } from '../data/projectData';
 
@@ -35,7 +35,7 @@ export default function DashboardSidebar({
             }`}
           />
           <span className="w-5 text-[11px] font-mono text-white/35">{module.number}</span>
-          <span className="min-w-0 text-[14px] leading-tight truncate">{module.title}</span>
+          <span className="min-w-0 text-[14px] leading-tight truncate transition-transform duration-300 group-hover:translate-x-1">{module.title}</span>
         </button>
       </li>
     );
@@ -88,3 +88,4 @@ export default function DashboardSidebar({
     </>
   );
 }
+

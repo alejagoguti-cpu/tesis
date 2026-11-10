@@ -15,26 +15,26 @@ export default function IntroLandingIndex({ onNavigateModule }) {
       <img
         src={`${import.meta.env.BASE_URL}textures/tierrabomba_satelite.jpg`}
         alt="Vista satelital de la isla de Tierrabomba, Cartagena"
-        className="absolute inset-0 h-full w-full object-cover object-[55%_25%]"
+        className="absolute inset-0 h-full w-full object-cover object-[55%_25%] anim-ken-burns"
         fetchPriority="high"
       />
 
       <div className="relative z-10 flex h-full items-end lg:items-center p-4 sm:p-8 lg:p-14">
         {/* Panel de vidrio */}
-        <div className="w-full max-w-md rounded-2xl border border-white/30 bg-white/15 p-6 sm:p-8 shadow-2xl shadow-black/30 backdrop-blur-xl backdrop-saturate-150">
-          <p className="text-sm text-white/80">
+        <div className="w-full max-w-md rounded-2xl border border-white/30 bg-white/15 p-6 sm:p-8 shadow-2xl shadow-black/30 backdrop-blur-xl backdrop-saturate-150 glass-sheen anim-fade-up">
+          <p className="text-sm text-white/80 anim-fade-up" style={{ animationDelay: '250ms' }}>
             Tesis de grado · Arquitectura y Urbanismo · 2026
           </p>
 
-          <h1 className="mt-8 text-5xl sm:text-6xl font-semibold leading-[0.98] tracking-tight">
+          <h1 style={{ animationDelay: '400ms' }} className="anim-fade-up mt-8 text-5xl sm:text-6xl font-semibold leading-[0.98] tracking-tight">
             Tierra Bomba
           </h1>
-          <p className="mt-3 text-xl sm:text-2xl text-white/90">Hábitat resiliente</p>
+          <p style={{ animationDelay: '550ms' }} className="anim-fade-up mt-3 text-xl sm:text-2xl text-white/90">Hábitat resiliente</p>
           <p className="mt-1 text-sm text-white/70">Cartagena de Indias, Colombia</p>
 
           <ul className="mt-8 border-t border-white/30">
-            {INDICE.map(({ id, n, label }) => (
-              <li key={id} className="border-b border-white/30">
+            {INDICE.map(({ id, n, label }, i) => (
+              <li key={id} className="border-b border-white/30 anim-fade-up" style={{ animationDelay: `${700 + i * 90}ms` }}>
                 <button
                   onClick={() => onNavigateModule(id)}
                   className="group flex w-full items-baseline gap-4 py-3 text-left cursor-pointer"
@@ -53,4 +53,5 @@ export default function IntroLandingIndex({ onNavigateModule }) {
     </section>
   );
 }
+
 
