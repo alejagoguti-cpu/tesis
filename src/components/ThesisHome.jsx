@@ -2,6 +2,7 @@
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { Reveal, CountUp } from './Motion';
 import { projectInfo } from '../data/projectData';
+import IslaReal3D from './IslaReal3D';
 
 const AULA_URL = 'https://alejagoguti-cpu.github.io/bocachica/';
 const A = (f) => `${import.meta.env.BASE_URL}assets/${f}`;
@@ -215,7 +216,7 @@ export default function ThesisHome({ onGoCommunity }) {
           className="absolute inset-0 h-full w-full object-cover anim-ken-burns"
           fetchPriority="high"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b1015] via-[#0b1015]/30 to-[#0b1015]/50" />
+        <IslaReal3D className="absolute inset-0" />`n        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0b1015] via-[#0b1015]/10 to-transparent" />
         <div className="relative z-10 h-full flex flex-col justify-end px-4 sm:px-10 lg:px-16 pb-8 sm:pb-12">
           <p className="anim-fade-up text-sm sm:text-base text-white/80">Tesis de grado · Arquitectura y Urbanismo · 2026</p>
           <h1
@@ -404,5 +405,7 @@ export default function ThesisHome({ onGoCommunity }) {
     </div>
   );
 }
+
+
 
 
