@@ -485,3 +485,10 @@
   .reveal, .anim-fade-up { opacity: 1; transform: none; animation: none; transition: none; }
   .module-enter, .anim-ken-burns, .glass-sheen::after, .anim-line-grow, .anim-float-y { animation: none; }
 }
+
+@keyframes marquee-x {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee { animation: marquee-x 38s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .marquee { animation: none; } }
