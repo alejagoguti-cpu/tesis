@@ -9,7 +9,7 @@ const INDICE = [
   { id: '3dviewer', n: '04', label: 'Así será el nuevo barrio' },
 ];
 
-export default function IntroLandingIndex({ onNavigateModule }) {
+export default function IntroLandingIndex({ onNavigateModule, onBackToThesis }) {
   return (
     <section className="relative h-[100svh] min-h-[620px] w-full overflow-hidden bg-slate-900 font-sans text-white">
       <img
@@ -19,6 +19,14 @@ export default function IntroLandingIndex({ onNavigateModule }) {
         fetchPriority="high"
       />
 
+      {onBackToThesis && (
+        <button
+          onClick={onBackToThesis}
+          className="absolute top-4 right-4 sm:top-6 sm:right-8 z-20 text-sm text-white/90 px-3 h-9 rounded-md border border-white/35 bg-white/10 backdrop-blur-md hover:bg-white hover:text-slate-900 transition-colors cursor-pointer"
+        >
+          Ver la tesis
+        </button>
+      )}
       <div className="relative z-10 flex h-full items-end lg:items-center p-4 sm:p-8 lg:p-14">
         {/* Panel de vidrio */}
         <div className="w-full max-w-md rounded-2xl border border-white/30 bg-white/15 p-6 sm:p-8 shadow-2xl shadow-black/30 backdrop-blur-xl backdrop-saturate-150 glass-sheen anim-fade-up">

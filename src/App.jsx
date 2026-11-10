@@ -11,6 +11,7 @@ import RedRizoma from './components/RedRizoma';
 import RedTerritorio from './components/RedTerritorio';
 import IntroLandingIndex from './components/IntroLandingIndex';
 import ProjectOverview from './components/ProjectOverview';
+import ThesisHome from './components/ThesisHome';
 import Hero from './components/Hero';
 import Footer from './components/Footer';
 
@@ -55,7 +56,22 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
-  const [viewMode, setViewMode] = useState('index'); // 'index' | 'dashboard' | 'monograph'
+  const [viewMode, setViewMode] = useState(() => (window.location.hash === '#/comunidad' ? 'index' : 'tesis')); // 'tesis' | 'index' (comunidad) | 'dashboard' | 'monograph'
+
+  // Sincroniza la URL: #/comunidad para la versión del territorio; sin hash = tesis
+  useEffect(() => {
+    const want = viewMode === 'tesis' ? '' : '#/comunidad';
+    if (window.location.hash !== want) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search + want);
+    }
+    window.scrollTo(0, 0);
+  }, [viewMode]);
+
+  useEffect(() => {
+    const onHash = () => setViewMode((v) => (window.location.hash === '#/comunidad' ? (v === 'tesis' ? 'index' : v) : 'tesis'));
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
 
   // Apply dark mode class to html document
   useEffect(() => {
@@ -73,11 +89,17 @@ export default function App() {
     }
   };
 
+  // PÁGINA PRINCIPAL: PRESENTACIÓN DE LA TESIS
+  if (viewMode === 'tesis') {
+    return <ThesisHome onGoCommunity={() => setViewMode('index')} />;
+  }
+
   // TRUE INDEX LANDING PAGE VIEW (FULL-SCREEN, NO SIDEBAR, CLEAN WHITE EDITORIAL)
   if (viewMode === 'index') {
     return (
       <div className="min-h-screen bg-white text-slate-900 font-sans">
-        <IntroLandingIndex 
+        <IntroLandingIndex
+          onBackToThesis={() => setViewMode('tesis')}
           onNavigateModule={(modId) => {
             setActiveModule(modId);
             setViewMode('dashboard');
@@ -230,6 +252,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
