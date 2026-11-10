@@ -10,49 +10,43 @@ const INDICE = [
 
 export default function IntroLandingIndex({ onNavigateModule }) {
   return (
-    <section className="min-h-[100svh] w-full bg-[#f4f1ec] text-[#16181d] font-sans flex flex-col lg:flex-row">
-      {/* Imagen */}
-      <div className="order-1 lg:order-2 h-[42svh] lg:h-auto lg:w-[58%] relative">
-        <img
-          src={`${import.meta.env.BASE_URL}textures/tierrabomba_satelite.jpg`}
-          alt="Vista satelital de la isla de Tierrabomba, Cartagena"
-          className="absolute inset-0 h-full w-full object-cover object-[55%_25%]"
-          fetchPriority="high"
-        />
-      </div>
+    <section className="relative h-[100svh] min-h-[620px] w-full overflow-hidden bg-slate-900 font-sans text-white">
+      <img
+        src={`${import.meta.env.BASE_URL}textures/tierrabomba_satelite.jpg`}
+        alt="Vista satelital de la isla de Tierrabomba, Cartagena"
+        className="absolute inset-0 h-full w-full object-cover object-[55%_25%]"
+        fetchPriority="high"
+      />
 
-      {/* Texto */}
-      <div className="order-2 lg:order-1 lg:w-[42%] flex flex-col justify-between px-6 sm:px-10 lg:px-14 py-8 lg:py-12 gap-10">
-        <p className="text-sm text-[#16181d]/70">
-          Tesis de grado · Arquitectura y Urbanismo · 2026
-        </p>
+      <div className="relative z-10 flex h-full items-end lg:items-center p-4 sm:p-8 lg:p-14">
+        {/* Panel de vidrio */}
+        <div className="w-full max-w-md rounded-2xl border border-white/30 bg-white/15 p-6 sm:p-8 shadow-2xl shadow-black/30 backdrop-blur-xl backdrop-saturate-150">
+          <p className="text-sm text-white/80">
+            Tesis de grado · Arquitectura y Urbanismo · 2026
+          </p>
 
-        <div>
-          <h1 className="text-5xl sm:text-6xl xl:text-7xl font-semibold leading-[0.98] tracking-tight">
+          <h1 className="mt-8 text-5xl sm:text-6xl font-semibold leading-[0.98] tracking-tight">
             Tierra Bomba
           </h1>
-          <p className="mt-4 text-xl sm:text-2xl text-[#16181d]/80">
-            Hábitat resiliente
-          </p>
-          <p className="mt-1 text-base text-[#16181d]/60">Cartagena de Indias, Colombia</p>
-        </div>
+          <p className="mt-3 text-xl sm:text-2xl text-white/90">Hábitat resiliente</p>
+          <p className="mt-1 text-sm text-white/70">Cartagena de Indias, Colombia</p>
 
-        <div>
-          <ul className="border-t border-[#16181d]/25">
+          <ul className="mt-8 border-t border-white/30">
             {INDICE.map(({ id, n, label }) => (
-              <li key={id} className="border-b border-[#16181d]/25">
+              <li key={id} className="border-b border-white/30">
                 <button
                   onClick={() => onNavigateModule(id)}
                   className="group flex w-full items-baseline gap-4 py-3 text-left cursor-pointer"
                 >
-                  <span className="w-6 text-sm text-[#16181d]/50">{n}</span>
-                  <span className="flex-1 text-lg group-hover:text-[#c86d51] transition-colors">{label}</span>
-                  <span className="text-[#16181d]/40 group-hover:text-[#c86d51] group-hover:translate-x-1 transition-all">→</span>
+                  <span className="w-6 text-sm text-white/60">{n}</span>
+                  <span className="flex-1 text-lg">{label}</span>
+                  <span className="text-white/60 transition-transform group-hover:translate-x-1 group-hover:text-white">→</span>
                 </button>
               </li>
             ))}
           </ul>
-          <p className="mt-5 text-sm text-[#16181d]/60">{projectInfo.author}</p>
+
+          <p className="mt-5 text-sm text-white/70">{projectInfo.author}</p>
         </div>
       </div>
     </section>
