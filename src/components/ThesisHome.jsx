@@ -1,6 +1,6 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
-import { Reveal, CountUp } from './Motion';
+import { Reveal, CountUp, supportsScrollTimeline } from './Motion';
 import { projectInfo } from '../data/projectData';
 import IslaReal3D from './IslaReal3D';
 
@@ -52,8 +52,10 @@ const PALABRAS = ['Erosión', 'Memoria', 'Buen Vivir', 'Aula Ambiental', 'Transi
 
 /* ---------- barra de progreso de lectura ---------- */
 function ProgressBar() {
+  const native = useRef(supportsScrollTimeline() && !window.matchMedia('(prefers-reduced-motion: reduce)').matches).current;
   const [p, setP] = useState(0);
   useEffect(() => {
+    if (native) return undefined;
     const on = () => {
       const h = document.documentElement.scrollHeight - window.innerHeight;
       setP(h > 0 ? window.scrollY / h : 0);
@@ -62,6 +64,7 @@ function ProgressBar() {
     window.addEventListener('scroll', on, { passive: true });
     return () => window.removeEventListener('scroll', on);
   }, []);
+  if (native) return <div className="scroll-progress fixed top-0 left-0 z-50 h-[3px] w-full bg-[#c86d51]" />;
   return <div className="fixed top-0 left-0 z-50 h-[3px] bg-[#c86d51]" style={{ width: `${p * 100}%` }} />;
 }
 
@@ -405,6 +408,7 @@ export default function ThesisHome({ onGoCommunity }) {
     </div>
   );
 }
+
 
 
 

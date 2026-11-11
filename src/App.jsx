@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, Component } from 'react';
+import { flushSync } from 'react-dom';
 import DashboardSidebar from './components/DashboardSidebar';
 import DashboardHeader from './components/DashboardHeader';
 import ThesisFramework from './components/ThesisFramework';
@@ -52,11 +53,11 @@ class SafeSection extends Component {
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [activeModule, setActiveModule] = useState('resumen');
+  const [activeModule, setActiveModuleRaw] = useState('resumen');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
-  const [viewMode, setViewMode] = useState(() => (window.location.hash === '#/comunidad' ? 'index' : 'tesis')); // 'tesis' | 'index' (comunidad) | 'dashboard' | 'monograph'
+  const [viewMode, setViewModeRaw] = useState(() => (window.location.hash === '#/comunidad' ? 'index' : 'tesis')); // 'tesis' | 'index' (comunidad) | 'dashboard' | 'monograph'
 
   // Sincroniza la URL: #/comunidad para la versión del territorio; sin hash = tesis
   useEffect(() => {
@@ -73,6 +74,26 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
+
+  // Cambios de vista con View Transitions (mejora progresiva; sin soporte o con movimiento reducido, cambia directo)
+  const withTransition = (update) => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || reduce) {
+      update();
+      return;
+    }
+    const t = document.startViewTransition(() => flushSync(update));
+    // Accesibilidad: llevar el foco al encabezado de la vista nueva
+    t.finished.finally(() => {
+      const h = document.querySelector('h1, h2');
+      if (h) {
+        h.setAttribute('tabindex', '-1');
+        h.focus({ preventScroll: true });
+      }
+    });
+  };
+  const setViewMode = (v) => (typeof v === 'function' ? setViewModeRaw(v) : withTransition(() => setViewModeRaw(v)));
+  const setActiveModule = (v) => withTransition(() => setActiveModuleRaw(v));
   // Apply dark mode class to html document
   useEffect(() => {
     if (darkMode) {
@@ -150,7 +171,7 @@ export default function App() {
           
           {/* 1. DASHBOARD MODULAR VIEW (Active module focused view) */}
           {viewMode === 'dashboard' && (
-            <div key={activeModule} className="absolute inset-0 overflow-hidden module-enter">
+            <div key={activeModule} className="absolute inset-0 overflow-hidden">
               
               {activeModule === 'resumen' && (
                 <SafeSection name="Resumen del proyecto">
@@ -252,6 +273,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 

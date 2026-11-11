@@ -1,16 +1,21 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 
 const prefersReduced = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+export const supportsScrollTimeline = () =>
+  typeof CSS !== 'undefined' && CSS.supports('(animation-timeline: view()) and (animation-range: entry)');
+
 // Aparece (sube y se desvanece) al entrar en pantalla.
+// Con scroll-driven animations (CSS puro) cuando el navegador las soporta; si no, IntersectionObserver.
 export function Reveal({ children, delay = 0, className = '', as: Tag = 'div' }) {
   const ref = useRef(null);
+  const native = useRef(supportsScrollTimeline() && !prefersReduced()).current;
   const [shown, setShown] = useState(prefersReduced());
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || shown) return undefined;
+    if (!el || shown || native) return undefined;
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
@@ -27,7 +32,7 @@ export function Reveal({ children, delay = 0, className = '', as: Tag = 'div' })
   return (
     <Tag
       ref={ref}
-      className={`reveal ${shown ? 'reveal-in' : ''} ${className}`}
+      className={`reveal ${native ? 'reveal-sd' : shown ? 'reveal-in' : ''} ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
@@ -68,3 +73,4 @@ export function CountUp({ to, decimals = 0, duration = 1400, format }) {
     : val.toLocaleString('es-CO', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   return <span ref={ref}>{shown}</span>;
 }
+
