@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { Play, Pause, Plus, Minus } from 'lucide-react';
-import { BASE, DATA_URL } from '../utils/realTerritory.js';
+import { BASE, DATA_URL, prepareTreeSpecies, instanceTrees } from '../utils/realTerritory.js';
 
 // =============================================================================
 // Simulación de erosión en Tierra Bomba (isla completa, 3D).
@@ -112,9 +112,12 @@ export default function IslaErosion3D({ className = '' }) {
           renderer.dispose();
           if (el.parentNode === mount) mount.removeChild(el);
         });
-        const [satImg, maskImg, buildingsRaw, ...demImgs] = await Promise.all([
+        const [satImg, maskImg, geoRef, veg, patchSatImg, buildingsRaw, ...demImgs] = await Promise.all([
           loadImg(`${BASE}textures/sat_base.jpg`),
           loadImg(`${BASE}textures/isla_mascara.png`),
+          fetch(`${DATA_URL}georef.json`).then((r) => r.json()),
+          fetch(`${DATA_URL}vegetacion.json`).then((r) => r.json()),
+          loadImg(`${BASE}textures/tierrabomba_satelite.jpg`),
           (async () => {
             const res = await fetch(`${BASE}data/construcciones_tierra_bomba.json.gz`);
             const buf = await res.arrayBuffer();
@@ -154,6 +157,20 @@ export default function IslaErosion3D({ className = '' }) {
         // ---------- máscara de la isla y distancia al mar ----------
         const W = WIN.w;
         const H = WIN.h;
+
+        // Detalle del casco urbano: mosaico z18 (~0,6 m/px) con su propia silueta y distancia al mar
+        const PM = geoRef.mosaico; // { z: 18, x0, y0, px: 3328 }
+        const PW = 1664; // resolución de la silueta del detalle (mitad del mosaico)
+        const tile18 = PM.px / 256; // teselas z18 por lado
+        const inPatch = new Uint8Array(W * H);
+        for (let wy = 0; wy < H; wy++) {
+          const ty18 = (ty0 + ((wy + 0.5) / H) * (ty1 - ty0)) * 8 - PM.y0;
+          if (ty18 < 0 || ty18 >= tile18) continue;
+          for (let wx = 0; wx < W; wx++) {
+            const tx18 = (tx0 + ((wx + 0.5) / W) * (tx1 - tx0)) * 8 - PM.x0;
+            if (tx18 >= 0 && tx18 < tile18) inPatch[wy * W + wx] = 1;
+          }
+        }
         const maskC = document.createElement('canvas');
         maskC.width = W;
         maskC.height = H;
@@ -309,7 +326,7 @@ export default function IslaErosion3D({ className = '' }) {
         const writeAlpha = (retroM) => {
           const d = aimg.data;
           for (let i = 0; i < W * H; i++) {
-            const a = land[i] && distM[i] >= retroM ? maskAlpha[i] : 0;
+            const a = !inPatch[i] && land[i] && distM[i] >= retroM ? maskAlpha[i] : 0;
             d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = 255;
             d[i * 4 + 3] = a;
           }
@@ -338,7 +355,7 @@ export default function IslaErosion3D({ className = '' }) {
           const b2 = TASA * HORIZONTES[1];
           for (let i = 0; i < W * H; i++) {
             const dm = distM[i];
-            if (land[i] && dm < retroM) {
+            if (!inPatch[i] && land[i] && dm < retroM) {
               const c = dm < b1 ? BANDAS[0] : dm < b2 ? BANDAS[1] : BANDAS[2];
               d[i * 4] = c[0];
               d[i * 4 + 1] = c[1];
@@ -360,6 +377,179 @@ export default function IslaErosion3D({ className = '' }) {
           })
         );
         overlay.position.y = 0.6;
+
+        // ---------- detalle del casco urbano (z18) ----------
+        // Silueta y distancia al mar del detalle: se interpolan (bilinear) desde el campo de distancia de la isla.
+        // (La máscara propia del mosaico z18 incluye copas y no sirve como silueta de costa.)
+        const pLand = new Uint8Array(PW * PW);
+        const pAlpha = new Uint8Array(PW * PW);
+        const pDist = new Float32Array(PW * PW);
+        for (let py = 0; py < PW; py++) {
+          const ty15 = (PM.y0 + ((py + 0.5) / PW) * tile18) / 8;
+          const fy = ((ty15 - ty0) / (ty1 - ty0)) * H - 0.5;
+          const y0 = Math.max(0, Math.min(H - 2, Math.floor(fy)));
+          const ay = Math.max(0, Math.min(1, fy - y0));
+          for (let px = 0; px < PW; px++) {
+            const tx15 = (PM.x0 + ((px + 0.5) / PW) * tile18) / 8;
+            const fx = ((tx15 - tx0) / (tx1 - tx0)) * W - 0.5;
+            const x0 = Math.max(0, Math.min(W - 2, Math.floor(fx)));
+            const ax = Math.max(0, Math.min(1, fx - x0));
+            const i00 = y0 * W + x0;
+            const i10 = i00 + 1;
+            const i01 = i00 + W;
+            const i11 = i01 + 1;
+            const m = maskAlpha[i00] * (1 - ax) * (1 - ay) + maskAlpha[i10] * ax * (1 - ay) + maskAlpha[i01] * (1 - ax) * ay + maskAlpha[i11] * ax * ay;
+            const o = py * PW + px;
+            if (m > 127.5) {
+              pLand[o] = 1;
+              pAlpha[o] = 255;
+              pDist[o] = distM[i00] * (1 - ax) * (1 - ay) + distM[i10] * ax * (1 - ay) + distM[i01] * (1 - ax) * ay + distM[i11] * ax * ay;
+            }
+          }
+        }
+        if (disposed) return;
+        const NP = 150;
+        const ppos = new Float32Array((NP + 1) * (NP + 1) * 3);
+        const puv = new Float32Array((NP + 1) * (NP + 1) * 2);
+        let pp = 0;
+        let pq = 0;
+        for (let j = 0; j <= NP; j++) {
+          for (let i = 0; i <= NP; i++) {
+            const tx = (PM.x0 + (i / NP) * tile18) / 8;
+            const ty = (PM.y0 + (j / NP) * tile18) / 8;
+            const [X, Z] = toXZ(tx, ty);
+            const u = Math.max(0, Math.min(1, (tx - tx0) / (tx1 - tx0)));
+            const v = Math.max(0, Math.min(1, (ty - ty0) / (ty1 - ty0)));
+            ppos[pp++] = X;
+            ppos[pp++] = heightAtUV(u, v) + 0.4;
+            ppos[pp++] = Z;
+            puv[pq++] = i / NP;
+            puv[pq++] = 1 - j / NP;
+          }
+        }
+        const pidx = [];
+        for (let j = 0; j < NP; j++) {
+          for (let i = 0; i < NP; i++) {
+            const a = j * (NP + 1) + i;
+            const b = a + 1;
+            const d = a + NP + 1;
+            const e = d + 1;
+            pidx.push(a, d, b, b, d, e);
+          }
+        }
+        const pgeo = new THREE.BufferGeometry();
+        pgeo.setAttribute('position', new THREE.BufferAttribute(ppos, 3));
+        pgeo.setAttribute('uv', new THREE.BufferAttribute(puv, 2));
+        pgeo.setIndex(pidx);
+        pgeo.computeVertexNormals();
+
+        const psc = Math.min(1, maxTex / patchSatImg.width);
+        const pSatC = document.createElement('canvas');
+        pSatC.width = Math.round(patchSatImg.width * psc);
+        pSatC.height = Math.round(patchSatImg.height * psc);
+        pSatC.getContext('2d').drawImage(patchSatImg, 0, 0, pSatC.width, pSatC.height);
+        const pSatTex = new THREE.CanvasTexture(pSatC);
+        pSatTex.colorSpace = THREE.SRGBColorSpace;
+        pSatTex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+
+        const pAlphaC = document.createElement('canvas');
+        pAlphaC.width = pAlphaC.height = PW;
+        const pActx = pAlphaC.getContext('2d');
+        const pAimg = pActx.createImageData(PW, PW);
+        const writePatchAlpha = (retroM) => {
+          const d = pAimg.data;
+          for (let i = 0; i < PW * PW; i++) {
+            d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = 255;
+            d[i * 4 + 3] = pLand[i] && pDist[i] >= retroM ? pAlpha[i] : 0;
+          }
+          pActx.putImageData(pAimg, 0, 0);
+        };
+        writePatchAlpha(0);
+        const pAlphaTex = new THREE.CanvasTexture(pAlphaC);
+        const patch = new THREE.Mesh(
+          pgeo,
+          new THREE.MeshStandardMaterial({
+            map: pSatTex, alphaMap: pAlphaTex, alphaTest: 0.5, roughness: 1, metalness: 0, color: 0xffffff,
+          })
+        );
+
+        const pRedC = document.createElement('canvas');
+        pRedC.width = pRedC.height = PW;
+        const pRctx = pRedC.getContext('2d');
+        const pRimg = pRctx.createImageData(PW, PW);
+        const writePatchRed = (retroM) => {
+          const d = pRimg.data;
+          const b1 = TASA * HORIZONTES[0];
+          const b2 = TASA * HORIZONTES[1];
+          for (let i = 0; i < PW * PW; i++) {
+            const dm = pDist[i];
+            if (pLand[i] && dm < retroM) {
+              const c = dm < b1 ? BANDAS[0] : dm < b2 ? BANDAS[1] : BANDAS[2];
+              d[i * 4] = c[0];
+              d[i * 4 + 1] = c[1];
+              d[i * 4 + 2] = c[2];
+              d[i * 4 + 3] = 215;
+            } else {
+              d[i * 4 + 3] = 0;
+            }
+          }
+          pRctx.putImageData(pRimg, 0, 0);
+        };
+        writePatchRed(0);
+        const pRedTex = new THREE.CanvasTexture(pRedC);
+        const pOverlay = new THREE.Mesh(
+          pgeo,
+          new THREE.MeshBasicMaterial({
+            map: pRedTex, transparent: true, depthWrite: false, toneMapped: false, fog: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3,
+          })
+        );
+        pOverlay.position.y = 0.3;
+
+        // ---------- árboles reales (solo copas detectadas en la foto, con modelos escaneados) ----------
+        const crG = Math.cos(geoRef.rot);
+        const srG = Math.sin(geoRef.rot);
+        const modelToLL = (x, y) => {
+          const px = (x - geoRef.tx) / geoRef.sc;
+          const py = (y - geoRef.ty) / geoRef.sc;
+          return [geoRef.lon0 + (px * crG + py * srG) / geoRef.kx, geoRef.lat0 + (-px * srG + py * crG) / geoRef.ky];
+        };
+        const [vlon, vlat] = modelToLL(40, 390);
+        const [vtx0, vty0] = lonLatToTile(vlon, vlat);
+        const [vx, vz] = toXZ(vtx0, vty0);
+        const species = await prepareTreeSpecies();
+        if (disposed) return;
+        species.forEach((parts) => parts.forEach((part) => {
+          if (part.kind === 'leaf') { part.material.color.multiplyScalar(1.9); part.material.envMapIntensity = 1.4; }
+        }));
+        const smallScreen = window.innerWidth < 768;
+        const treeList = veg.arboles
+          .map(([x, y, size, dense], i) => {
+            const [lo, la] = modelToLL(x, y);
+            const [ttx, tty] = lonLatToTile(lo, la);
+            const [X, Z] = toXZ(ttx, tty);
+            const u = (ttx - tx0) / (tx1 - tx0);
+            const v = (tty - ty0) / (ty1 - ty0);
+            const mx = Math.floor(((ttx * 8 - PM.x0) / tile18) * PW);
+            const my = Math.floor(((tty * 8 - PM.y0) / tile18) * PW);
+            const onLand = mx >= 0 && my >= 0 && mx < PW && my < PW && pLand[my * PW + mx] === 1;
+            return {
+              onLand, X, Z, i, size, dense, d: Math.hypot(X - vx, Z - vz), dist: onLand ? pDist[my * PW + mx] : 0,
+              y: onLand ? heightAtUV(Math.max(0, Math.min(1, u)), Math.max(0, Math.min(1, v))) + 0.4 : 0,
+            };
+          })
+          .filter((t) => t.onLand)
+          .sort((a, b) => a.d - b.d)
+          .slice(0, smallScreen ? 700 : 1800)
+          .map((t) => ({
+            x: t.X,
+            y: t.y,
+            z: t.Z,
+            rot: ((Math.imul(t.i + 7, 40503) >>> 0) % 628) / 100,
+            height: 8.5 * t.size * 1.35 * (t.dense ? 0.92 : 1.05),
+            tone: ((Math.imul(t.i + 3, 69069) >>> 0) % 100) / 100,
+            dist: t.dist,
+          }));
+        let treesGroup = instanceTrees(species, treeList, 60, false);
 
         // ---------- construcciones ----------
         const recs = buildingsRaw.buildings;
@@ -403,7 +593,15 @@ export default function IslaErosion3D({ className = '' }) {
           if (u < 0 || u > 1 || v < 0 || v > 1) continue;
           const px = Math.max(0, Math.min(W - 1, Math.floor(u * W)));
           const py = Math.max(0, Math.min(H - 1, Math.floor(v * H)));
-          const dm = distM[py * W + px];
+          let dm = distM[py * W + px];
+          // dentro del detalle del casco urbano se usa la distancia al mar de alta resolución (~1,2 m)
+          if (inPatch[py * W + px]) {
+            const tx15 = cx / mpt + txc;
+            const ty15 = cy / mpt + tyc;
+            const hx = Math.floor(((tx15 * 8 - PM.x0) / tile18) * PW);
+            const hy = Math.floor(((ty15 * 8 - PM.y0) / tile18) * PW);
+            if (hx >= 0 && hy >= 0 && hx < PW && hy < PW) dm = pDist[hy * PW + hx];
+          }
           houses.push({
             x: cx, z: cy, ang, w: Math.max(3, maxA - minA), d: Math.max(3, maxB - minB), h: refH || 4,
             y: heightAtUV(u, v), lostAt: dm / TASA,
@@ -452,7 +650,13 @@ export default function IslaErosion3D({ className = '' }) {
         // ---------- escena ----------
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x9fc6d4, 0.000011);
-        scene.add(terrain, overlay, houseMesh);
+        scene.add(terrain, overlay, patch, pOverlay, houseMesh, treesGroup);
+        const rebuildTrees = (minDist) => {
+          scene.remove(treesGroup);
+          treesGroup.traverse((o) => { if (o.isInstancedMesh) o.dispose(); });
+          treesGroup = instanceTrees(species, minDist > 0 ? treeList.filter((t) => t.dist >= minDist) : treeList, 60, false);
+          scene.add(treesGroup);
+        };
 
         const sky = new Sky();
         sky.scale.setScalar(450000);
@@ -494,15 +698,6 @@ export default function IslaErosion3D({ className = '' }) {
         el.style.touchAction = 'pan-y';
 
         // puntos de interés: casco urbano de la vista Revit (modelo → lon/lat → teselas)
-        const geoRef = await fetch(`${DATA_URL}georef.json`).then((r) => r.json());
-        const cr = Math.cos(geoRef.rot);
-        const sr = Math.sin(geoRef.rot);
-        const px0 = (40 - geoRef.tx) / geoRef.sc;
-        const py0 = (390 - geoRef.ty) / geoRef.sc;
-        const lon = geoRef.lon0 + (px0 * cr + py0 * sr) / geoRef.kx;
-        const lat = geoRef.lat0 + (-px0 * sr + py0 * cr) / geoRef.ky;
-        const [vtx, vty] = lonLatToTile(lon, lat);
-        const [vx, vz] = toXZ(vtx, vty);
 
         const presets = {
           isla: { pos: new THREE.Vector3(500, 7800, 8400), target: new THREE.Vector3(0, 0, 300) },
@@ -564,6 +759,12 @@ export default function IslaErosion3D({ className = '' }) {
               overlay.visible = modo === 'perdida' && yi > 0;
               writeAlpha(modo === 'despues' ? R : 0);
               alphaTex.needsUpdate = true;
+              writePatchRed(R);
+              pRedTex.needsUpdate = true;
+              pOverlay.visible = modo === 'perdida' && yi > 0;
+              writePatchAlpha(modo === 'despues' ? R : 0);
+              pAlphaTex.needsUpdate = true;
+              rebuildTrees(modo === 'despues' ? R : 0);
               updateHouses(yi, modo);
               lastYear = yi;
               lastMode = modo;
@@ -594,6 +795,7 @@ export default function IslaErosion3D({ className = '' }) {
             if (tween.t >= 1) tween = null;
           }
           controls.update();
+          treesGroup.visible = camera.position.distanceTo(controls.target) < 3500; // árboles solo al acercarse
           const want = THREE.MathUtils.clamp(camera.position.distanceTo(controls.target) / 3800, 1, CASA_ESCALA);
           if (Math.abs(want - curScale) / curScale > 0.06) {
             curScale = want;
@@ -762,6 +964,7 @@ export default function IslaErosion3D({ className = '' }) {
     </div>
   );
 }
+
 
 
 
