@@ -3,6 +3,7 @@ import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { Reveal, CountUp, supportsScrollTimeline } from './Motion';
 import { projectInfo } from '../data/projectData';
 import IslaReal3D from './IslaReal3D';
+import IslaErosion3D from './IslaErosion3D';
 
 const AULA_URL = 'https://alejagoguti-cpu.github.io/bocachica/';
 const A = (f) => `${import.meta.env.BASE_URL}assets/${f}`;
@@ -104,97 +105,20 @@ function ScrollWords({ text, className = '' }) {
   );
 }
 
-/* ---------- esquema: retroceso de la línea de costa ---------- */
-const TASA = 1.8; // m/año (tasa máxima registrada en el proyecto)
-const CASAS = [
-  { d: 14, h: 34 },
-  { d: 30, h: 40 },
-  { d: 46, h: 34 },
-  { d: 64, h: 38 },
-];
-const SCALE = 8; // px por metro
-const X0 = 150;
 
-function CostaEsquema() {
-  const [anios, setAnios] = useState(0);
-  const retro = TASA * anios;
-  const shoreX = X0 + retro * SCALE;
-
-  return (
-    <div className="rounded-2xl bg-[#0b1015] text-white p-4 sm:p-8 border border-white/10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm text-white/55">Esquema ilustrativo</p>
-          <p className="text-3xl sm:text-5xl font-semibold tracking-tight">
-            +{anios} años <span className="text-base font-normal text-white/50">→ {retro.toFixed(0)} m de costa perdida</span>
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {[0, 10, 20, 30].map((y) => (
-            <button
-              key={y}
-              onClick={() => setAnios(y)}
-              className={`h-10 px-4 rounded-md text-sm border transition-colors cursor-pointer ${
-                anios === y ? 'bg-white text-[#0b1015] border-white' : 'border-white/30 text-white/80 hover:border-white'
-              }`}
-            >
-              {y === 0 ? 'Hoy' : `${y} años`}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <svg viewBox="0 140 800 160" className="mt-6 w-full h-auto" role="img" aria-label="Esquema de retroceso de la línea de costa">
-        <defs>
-          <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#1b6f86" />
-            <stop offset="1" stopColor="#0d3b4c" />
-          </linearGradient>
-          <linearGradient id="land" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#d9cfb8" />
-            <stop offset="1" stopColor="#8e826b" />
-          </linearGradient>
-        </defs>
-        {/* tierra */}
-        <rect x="0" y="210" width="800" height="90" fill="url(#land)" />
-        {/* mar (se agranda hacia la tierra) */}
-        <rect x="0" y="198" height="102" fill="url(#sea)" style={{ width: shoreX, transition: 'width 0.9s cubic-bezier(0.16,1,0.3,1)' }} />
-        
-        {/* línea de costa */}
-        <line y1="190" y2="300" stroke="#fff" strokeWidth="1.5" strokeDasharray="5 4" style={{ transition: 'all 0.9s cubic-bezier(0.16,1,0.3,1)' }} x1={shoreX} x2={shoreX} />
-        {/* casas */}
-        {CASAS.map((c, i) => {
-          const x = X0 + c.d * SCALE;
-          const lost = shoreX >= x;
-          const risk = !lost && shoreX >= x - 56;
-          const fill = lost ? 'none' : risk ? '#c86d51' : '#e8e2d5';
-          return (
-            <g key={i} style={{ transition: 'opacity 0.6s', opacity: lost ? 0.45 : 1 }}>
-              <rect x={x} y={210 - c.h} width="34" height={c.h} fill={fill} stroke={lost ? '#ffffff' : 'none'} strokeDasharray={lost ? '4 3' : undefined} />
-              <path d={`M${x - 4} ${210 - c.h} L${x + 17} ${210 - c.h - 14} L${x + 38} ${210 - c.h} Z`} fill={lost ? 'none' : risk ? '#8b3f27' : '#9c7352'} stroke={lost ? '#ffffff' : 'none'} strokeDasharray={lost ? '4 3' : undefined} />
-            </g>
-          );
-        })}
-        {/* regla en metros */}
-        {[0, 18, 36, 54].map((m) => (
-          <g key={m}>
-            <line x1={X0 + m * SCALE} x2={X0 + m * SCALE} y1="228" y2="236" stroke="#ffffff" opacity="0.6" />
-            <text x={X0 + m * SCALE + (m === 0 ? 14 : 0)} y="252" fontSize="12" textAnchor="middle" fill="#ffffff" opacity="0.85">{m} m</text>
-          </g>
-        ))}
-        <text x="16" y="275" fontSize="13" fill="#fff" opacity="0.8">Mar</text>
-      </svg>
-
-      <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-white/55">
-        <span className="flex items-center gap-2"><i className="inline-block h-3 w-3 bg-[#e8e2d5]" /> Vivienda segura</span>
-        <span className="flex items-center gap-2"><i className="inline-block h-3 w-3 bg-[#c86d51]" /> En riesgo inmediato</span>
-        <span className="flex items-center gap-2"><i className="inline-block h-3 w-3 border border-dashed border-white/70" /> Perdida</span>
-        <span className="sm:ml-auto">Retroceso máximo registrado: {TASA.toString().replace('.', ',')} m/año. Esquema conceptual, no a escala del sitio.</span>
-      </div>
-    </div>
-  );
+/* monta el contenido pesado solo cuando está cerca de la pantalla */
+function LazyMount({ children, minHeight = '60svh' }) {
+  const ref = useRef(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setOn(true); io.disconnect(); } }, { rootMargin: '500px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return <div ref={ref} style={{ minHeight: on ? undefined : minHeight }}>{on ? children : null}</div>;
 }
-
 export default function ThesisHome({ onGoCommunity }) {
   return (
     <div className="bg-[#0b1015] text-white font-sans overflow-x-hidden">
@@ -219,7 +143,7 @@ export default function ThesisHome({ onGoCommunity }) {
           className="absolute inset-0 h-full w-full object-cover anim-ken-burns"
           fetchPriority="high"
         />
-        <IslaReal3D className="absolute inset-0" />`n        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0b1015] via-[#0b1015]/10 to-transparent" />
+        {!import.meta.env.VITE_NO_HERO && <IslaReal3D className="absolute inset-0" />}`n        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0b1015] via-[#0b1015]/10 to-transparent" />
         <div className="relative z-10 h-full flex flex-col justify-end px-4 sm:px-10 lg:px-16 pb-8 sm:pb-12">
           <p className="anim-fade-up text-sm sm:text-base text-white/80">Tesis de grado · Arquitectura y Urbanismo · 2026</p>
           <h1
@@ -262,14 +186,14 @@ export default function ThesisHome({ onGoCommunity }) {
       <section className="px-4 sm:px-10 lg:px-16 pb-24 sm:pb-32 bg-[#0b1015]">
         <div className="mx-auto max-w-5xl">
           <Reveal>
-            <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight">Así avanza el mar</h2>
+            <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight">Tierra Bomba si no se frena la erosión</h2>
             <p className="mt-3 max-w-2xl text-white/60">
-              Elige un horizonte y mira cómo la línea de costa se acerca a las viviendas. El diagnóstico temporal
-              de la tesis proyecta la erosión y la inundación a 10, 20 y 30 años.
+              Pulsa Simular o elige 10, 20 o 30 años. En rojo, la costa que desaparece y las viviendas que se
+              pierden si no se frena la erosión.
             </p>
           </Reveal>
           <Reveal delay={100} className="mt-8">
-            <CostaEsquema />
+            <LazyMount minHeight="70svh"><IslaErosion3D /></LazyMount>
           </Reveal>
         </div>
       </section>
@@ -408,6 +332,9 @@ export default function ThesisHome({ onGoCommunity }) {
     </div>
   );
 }
+
+
+
 
 
 
