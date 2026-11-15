@@ -73,304 +73,304 @@ function CardIluminada({ children, color = '#e8a86b', className = '', onClick })
 }
 
 function JuegoCocinarMojarra({ color = '#e8a86b' }) {
-  const [etapa, setEtapa] = useState('adobar'); // 'adobar' | 'freir' | 'emplatar' | 'listo'
-  const [adobos, setAdobos] = useState({ limon: false, ajo: false, sal: false });
-  const [friendo, setFriendo] = useState(false);
-  const [coccion, setCoccion] = useState(0);
-  const [calidadFritura, setCalidadFritura] = useState('');
-  const [plato, setPlato] = useState({ mojarra: false, arroz: false, patacones: false, ensalada: false });
+  const INGREDIENTES_MESA = [
+    { id: 'mojarra', nombre: 'Mojarra fresca', sub: 'Con cortes y sal marina', tiempo: '8 min', color: '#d6822b' },
+    { id: 'arroz', nombre: 'Arroz con coco', sub: 'Titoté dorado tradicional', tiempo: '4 min', color: '#8c5a32' },
+    { id: 'patacones', nombre: 'Patacones', sub: 'Plátano verde crocante', tiempo: '3 min', color: '#eab308' },
+    { id: 'limon', nombre: 'Limón criollo', sub: 'Rodajas frescas del patio', tiempo: '1 min', color: '#84cc16' },
+    { id: 'ensalada', nombre: 'Ensalada fresca', sub: 'Tomate, cebolla y cilantro', tiempo: '2 min', color: '#22c55e' },
+    { id: 'suero', nombre: 'Suero costeño', sub: 'Toque cremoso artesanal', tiempo: '1 min', color: '#f8fafc' },
+  ];
 
-  useEffect(() => {
-    if (!friendo) return undefined;
-    const id = setInterval(() => {
-      setCoccion((c) => {
-        if (c >= 100) {
-          setFriendo(false);
-          setCalidadFritura('¡Se pasó un poco! Intenta sacarla en la zona dorada.');
-          return 100;
-        }
-        return c + 2.2;
-      });
-    }, 55);
-    return () => clearInterval(id);
-  }, [friendo]);
+  const [abierta, setAbierta] = useState(false);
+  const [herramienta, setHerramienta] = useState('limon');
+  const [seleccionados, setSeleccionados] = useState({
+    mojarra: true,
+    arroz: false,
+    patacones: false,
+    limon: false,
+    ensalada: false,
+    suero: false,
+  });
+  const [toppingsManual, setToppingsManual] = useState([]);
+  const [cocinando, setCocinando] = useState(false);
+  const [servido, setServido] = useState(false);
 
-  const todoAdobado = adobos.limon && adobos.ajo && adobos.sal;
-  const todoEmplatado = plato.mojarra && plato.arroz && plato.patacones && plato.ensalada;
-
-  const sacarDelCaldero = () => {
-    setFriendo(false);
-    if (coccion >= 64 && coccion <= 88) {
-      setCalidadFritura('¡Punto dorado y crocante perfecto!');
-      setTimeout(() => setEtapa('emplatar'), 650);
-    } else if (coccion < 64) {
-      setCalidadFritura('Todavía le falta color dorado. Déjala unos segundos más.');
-    } else {
-      setCalidadFritura('Muy tostada, ¡pero lista para emplatar! O intenta de nuevo.');
-    }
+  const toggleIngrediente = (id) => {
+    setHerramienta(id);
+    setSeleccionados((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const reiniciarJuego = () => {
-    setEtapa('adobar');
-    setAdobos({ limon: false, ajo: false, sal: false });
-    setFriendo(false);
-    setCoccion(0);
-    setCalidadFritura('');
-    setPlato({ mojarra: false, arroz: false, patacones: false, ensalada: false });
+  const colocarEnPlato = (e) => {
+    if (!abierta || servido || cocinando) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setSeleccionados((prev) => ({ ...prev, [herramienta]: true }));
+    setToppingsManual((prev) => [
+      ...prev.slice(-18),
+      { id: Date.now() + Math.random(), tipo: herramienta, x, y, rot: Math.round((Math.random() - 0.5) * 45) },
+    ]);
   };
 
-  const colorPez =
-    etapa === 'adobar'
-      ? (todoAdobado ? '#d9a45b' : '#9eb3c2')
-      : coccion < 40
-        ? '#c7ab7c'
-        : coccion <= 88
-          ? '#d6822b'
-          : '#6b3618';
+  const cocinarYServir = () => {
+    setCocinando(true);
+    setTimeout(() => {
+      setCocinando(false);
+      setServido(true);
+    }, 1100);
+  };
+
+  const reiniciar = () => {
+    setAbierta(false);
+    setServido(false);
+    setCocinando(false);
+    setToppingsManual([]);
+    setSeleccionados({ mojarra: true, arroz: false, patacones: false, limon: false, ensalada: false, suero: false });
+  };
+
+  const activos = INGREDIENTES_MESA.filter((i) => seleccionados[i.id]);
 
   return (
-    <div className="rounded-3xl border border-white/15 bg-white/[0.04] p-4 md:p-6 space-y-5">
-      {/* Barra de progreso del juego */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}25`, color }}>
-            <Fish className="w-4 h-4" />
+    <div
+      className="rounded-3xl overflow-hidden border border-black/15 shadow-2xl text-[#171717]"
+      style={{
+        background: 'radial-gradient(circle at 50% 45%, #efede8 0%, #dcd9d2 65%, #c9c5bc 100%)',
+      }}
+    >
+      {/* CABECERA EDITORIAL */}
+      <div className="px-4 md:px-6 py-3 bg-white/80 backdrop-blur-md border-b border-black/10 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <span className="px-2.5 py-1 rounded-md bg-[#b83b24] text-white text-[11px] font-black tracking-widest uppercase">
+            BOCACHICA
           </span>
-          <div>
-            <div className="text-[10px] font-mono uppercase tracking-widest" style={{ color }}>
-              Juego virtual · Cocina isleña
-            </div>
-            <h3 className="text-sm md:text-base font-extrabold text-white">Prepara y emplata la Mojarra de Bocachica</h3>
-          </div>
+          <span className="text-xs md:text-sm font-extrabold tracking-tight text-[#171717]">
+            Cocina Interactiva · Arma y emplata tu Mojarra
+          </span>
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] font-bold">
-          {[
-            { id: 'adobar', label: '1. Adobar' },
-            { id: 'freir', label: '2. Freír' },
-            { id: 'emplatar', label: '3. Emplatar' },
-          ].map((p) => {
-            const activo = etapa === p.id || (etapa === 'listo' && p.id === 'emplatar');
-            return (
-              <span
-                key={p.id}
-                className={`px-2.5 py-1 rounded-full border transition ${
-                  activo ? 'text-[#0b1016] border-transparent' : 'bg-white/5 border-white/15 text-white/60'
-                }`}
-                style={activo ? { backgroundColor: color } : undefined}
-              >
-                {p.label}
-              </span>
-            );
-          })}
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-mono text-black/60">
+            {servido ? 'Plato servido' : abierta ? 'Toca un ingrediente o haz clic sobre el plato' : 'Toca el canasto para empezar'}
+          </span>
           <button
             type="button"
-            onClick={reiniciarJuego}
-            className="ml-1 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/80 cursor-pointer"
-            title="Reiniciar juego"
+            onClick={reiniciar}
+            className="p-1.5 rounded-full bg-black/5 hover:bg-black/10 text-black/70 cursor-pointer transition"
+            title="Reiniciar plato"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* ETAPA 1: ADOBAR LA MOJARRA 3D */}
-      {etapa === 'adobar' && (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-          <div className="md:col-span-7 space-y-2">
-            <Escena3DMojarra etapa={etapa} adobos={adobos} friendo={friendo} coccion={coccion} plato={plato} />
-            <div className="text-[11px] text-white/70 text-center">
-              {todoAdobado ? '¡Mojarra adobada en 3D con sabor isleño!' : 'Haz clic en los 3 ingredientes para sazonarla en 3D'}
+      {/* MESA DE TRABAJO 3 COLUMNAS ESTILO EDITORIAL */}
+      <div className="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+        {/* COLUMNA IZQUIERDA: BANDEJA DE INGREDIENTES */}
+        <div className="lg:col-span-4 bg-white rounded-2xl p-4 shadow-[0_14px_34px_-14px_rgba(0,0,0,0.22)] border border-black/8 space-y-3">
+          <div className="flex items-center justify-between border-b border-black/10 pb-2">
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-widest text-[#b83b24] font-bold">Mesa de cocina</div>
+              <h4 className="text-sm font-black text-[#171717]">Ingredientes de la isla</h4>
             </div>
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/5 text-black/70">
+              {activos.length}/6
+            </span>
           </div>
 
-          <div className="md:col-span-5 space-y-2.5">
-            <div className="text-xs font-bold text-white">Paso 1: Toca para agregar cada sazón</div>
-            {[
-              { id: 'limon', label: 'Limón criollo fresco', desc: 'Corta la grasa y realza el sabor del mar' },
-              { id: 'ajo', label: 'Ajo machacado en mortero', desc: 'Aroma tradicional en las incisiones' },
-              { id: 'sal', label: 'Sal marina y comino', desc: 'Para piel bien crocante al freír' },
-            ].map((ing) => {
-              const listo = adobos[ing.id];
+          <div className="grid grid-cols-2 gap-2">
+            {INGREDIENTES_MESA.map((ing) => {
+              const on = seleccionados[ing.id];
+              const activoCursor = herramienta === ing.id;
               return (
                 <button
                   key={ing.id}
                   type="button"
-                  onClick={() => setAdobos((prev) => ({ ...prev, [ing.id]: true }))}
-                  className={`w-full text-left p-3 rounded-xl border transition flex items-center justify-between gap-2 cursor-pointer ${
-                    listo
-                      ? 'bg-[#35d08a]/15 border-[#35d08a]/60 text-white'
-                      : 'bg-white/5 border-white/15 text-white/85 hover:bg-white/10'
-                  }`}
+                  disabled={!abierta || servido}
+                  onClick={() => toggleIngrediente(ing.id)}
+                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer relative ${
+                    !abierta || servido ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'
+                  } ${
+                    on
+                      ? 'bg-[#fff7f4] border-[#b83b24] shadow-sm'
+                      : 'bg-[#f8f7f5] border-black/10 hover:border-black/25'
+                  } ${activoCursor && abierta && !servido ? 'ring-2 ring-[#b83b24]/40' : ''}`}
                 >
-                  <div>
-                    <div className="text-xs font-bold">{ing.label}</div>
-                    <div className="text-[11px] text-white/60">{ing.desc}</div>
+                  <div className="flex items-center justify-between gap-1 mb-1">
+                    <span
+                      className="w-6 h-6 rounded-full border border-black/15 shadow-inner shrink-0"
+                      style={{ backgroundColor: ing.color }}
+                    />
+                    {on && (
+                      <span className="w-4 h-4 rounded-full bg-[#b83b24] text-white flex items-center justify-center">
+                        <Check className="w-2.5 h-2.5" />
+                      </span>
+                    )}
                   </div>
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${listo ? 'bg-[#35d08a] text-[#0b1016]' : 'bg-white/10 text-white/50'}`}>
-                    <Check className="w-3.5 h-3.5" />
-                  </span>
+                  <div className="text-xs font-extrabold text-[#171717] leading-tight">{ing.nombre}</div>
+                  <div className="text-[10px] text-black/55 leading-tight mt-0.5">{ing.sub}</div>
                 </button>
               );
             })}
+          </div>
+        </div>
 
+        {/* COLUMNA CENTRAL: PLATO CENITAL INTERACTIVO */}
+        <div className="lg:col-span-5 flex flex-col items-center justify-center">
+          {!abierta ? (
             <button
               type="button"
-              disabled={!todoAdobado}
-              onClick={() => setEtapa('freir')}
-              className={`w-full py-3 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition ${
-                todoAdobado
-                  ? 'text-[#0b1016] cursor-pointer shadow-lg hover:scale-[1.01]'
-                  : 'bg-white/10 text-white/40 cursor-not-allowed'
-              }`}
-              style={todoAdobado ? { backgroundColor: color } : undefined}
+              onClick={() => setAbierta(true)}
+              className="group relative w-72 h-72 md:w-80 md:h-80 rounded-3xl bg-[#c9a87c] border-4 border-[#9c7849] shadow-[0_28px_50px_-18px_rgba(0,0,0,0.45)] flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
+              style={{
+                backgroundImage:
+                  'repeating-linear-gradient(45deg, rgba(120,82,36,0.12) 0px, rgba(120,82,36,0.12) 8px, transparent 8px, transparent 16px)',
+              }}
             >
-              <Flame className="w-4 h-4" />
-              <span>Llevar al caldero caliente</span>
+              <div className="border-4 border-[#b83b24] rounded-2xl px-5 py-4 bg-[#f9f4eb]/95 shadow-lg transform -rotate-2 group-hover:rotate-0 transition">
+                <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-[#b83b24] font-bold">
+                  Muelle de Bocachica
+                </div>
+                <div className="text-2xl font-black tracking-tight text-[#b83b24] mt-1">LA MOJARRA</div>
+                <div className="text-xs font-extrabold uppercase tracking-widest text-[#171717] mt-1">
+                  Toca para destapar y armar
+                </div>
+              </div>
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* ETAPA 2: FREÍR EN CALDERO CALIENTE 3D */}
-      {etapa === 'freir' && (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-          <div className="md:col-span-7 space-y-2.5">
-            <Escena3DMojarra etapa={etapa} adobos={adobos} friendo={friendo} coccion={coccion} plato={plato} />
-
-            {/* Barra de punto dorado */}
-            <div className="w-full space-y-1.5">
-              <div className="flex justify-between text-[11px] font-bold">
-                <span className="text-white/70">Nivel de dorado</span>
-                <span style={{ color }}>{Math.round(coccion)} %</span>
-              </div>
-              <div className="relative h-3.5 rounded-full bg-white/10 overflow-hidden border border-white/15">
-                {/* Zona dorada ideal 64-88% */}
-                <div className="absolute inset-y-0 bg-[#35d08a]/35 border-x border-[#35d08a]" style={{ left: '64%', width: '24%' }} />
+          ) : (
+            <div className="relative w-72 h-72 md:w-80 md:h-80 flex items-center justify-center">
+              {/* Individual tejido */}
+              <div
+                className="relative w-full h-full rounded-3xl bg-[#b99361] shadow-[0_26px_48px_-16px_rgba(0,0,0,0.42)] p-4 flex items-center justify-center border border-[#8e6a3c]"
+                style={{
+                  backgroundImage:
+                    'repeating-linear-gradient(90deg, rgba(0,0,0,0.06) 0 4px, transparent 4px 10px)',
+                }}
+              >
+                {/* Plato cerámico cenital clickable */}
                 <div
-                  className="h-full transition-all duration-75 rounded-full"
-                  style={{
-                    width: `${coccion}%`,
-                    backgroundColor: coccion >= 64 && coccion <= 88 ? '#35d08a' : coccion > 88 ? '#ef4444' : '#f5b45a',
-                  }}
-                />
-              </div>
-              <div className="text-[10px] text-white/60 text-center">
-                Saca la mojarra dentro de la franja verde (64% – 88%) para lograr piel crocante.
-              </div>
-            </div>
-          </div>
-
-          <div className="md:col-span-5 space-y-3">
-            <div className="text-xs font-bold text-white">Paso 2: Controla la fritura</div>
-            {calidadFritura && (
-              <div className="p-3 rounded-xl bg-white/10 border border-white/20 text-xs font-semibold text-white">
-                {calidadFritura}
-              </div>
-            )}
-            {!friendo && coccion < 100 && (
-              <button
-                type="button"
-                onClick={() => { setCalidadFritura(''); setFriendo(true); }}
-                className="w-full py-3 px-4 rounded-xl text-xs font-black text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer shadow-lg"
-                style={{ backgroundColor: color }}
-              >
-                <Flame className="w-4 h-4" />
-                <span>{coccion === 0 ? 'Echar mojarra al aceite caliente' : 'Seguir friendo'}</span>
-              </button>
-            )}
-            {friendo && (
-              <button
-                type="button"
-                onClick={sacarDelCaldero}
-                className="w-full py-3 px-4 rounded-xl text-xs font-black bg-[#35d08a] text-[#07140d] flex items-center justify-center gap-2 cursor-pointer shadow-lg animate-pulse"
-              >
-                <Check className="w-4 h-4" />
-                <span>¡Sacar del caldero ahora!</span>
-              </button>
-            )}
-            {coccion >= 64 && !friendo && (
-              <button
-                type="button"
-                onClick={() => setEtapa('emplatar')}
-                className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-white text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Pasar a emplatar</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
-            {coccion > 88 && !friendo && (
-              <button
-                type="button"
-                onClick={() => { setCoccion(0); setCalidadFritura(''); }}
-                className="w-full py-2 px-4 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white cursor-pointer"
-              >
-                Intentar fritura de nuevo
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ETAPA 3: EMPLATAR EL PLATO ISLEÑO 3D */}
-      {(etapa === 'emplatar' || etapa === 'listo') && (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-          <div className="md:col-span-7 space-y-2">
-            <Escena3DMojarra etapa={etapa} adobos={adobos} friendo={friendo} coccion={coccion} plato={plato} />
-            <div className="text-xs font-bold text-white/85 text-center">
-              {todoEmplatado ? '¡Plato típico de Tierra Bomba servido en 3D!' : 'Toca cada acompañamiento para armar tu plato 3D'}
-            </div>
-          </div>
-
-          <div className="md:col-span-5 space-y-2.5">
-            <div className="text-xs font-bold text-white">Paso 3: Sirve cada elemento en el plato</div>
-            {[
-              { id: 'mojarra', label: 'Mojarra frita dorada' },
-              { id: 'arroz', label: 'Arroz con coco y titoté' },
-              { id: 'patacones', label: 'Patacones crocantes' },
-              { id: 'ensalada', label: 'Ensalada fresca y limón' },
-            ].map((el) => {
-              const puesto = plato[el.id];
-              return (
-                <button
-                  key={el.id}
-                  type="button"
-                  onClick={() => {
-                    const next = { ...plato, [el.id]: true };
-                    setPlato(next);
-                    if (next.mojarra && next.arroz && next.patacones && next.ensalada) {
-                      setEtapa('listo');
-                    }
-                  }}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl border text-xs font-bold flex items-center justify-between transition cursor-pointer ${
-                    puesto
-                      ? 'bg-[#35d08a]/15 border-[#35d08a]/60 text-[#9ff3c9]'
-                      : 'bg-white/5 border-white/15 text-white hover:bg-white/10'
+                  onClick={colocarEnPlato}
+                  className={`relative w-full h-full rounded-full bg-gradient-to-br from-[#ffffff] via-[#f6f3ed] to-[#e4ded3] shadow-[inset_0_4px_14px_rgba(0,0,0,0.08),0_12px_25px_rgba(0,0,0,0.28)] border-4 border-[#ebe6dc] overflow-hidden ${
+                    servido ? 'cursor-default' : 'cursor-crosshair'
                   }`}
                 >
-                  <span>{el.label}</span>
-                  <Check className={`w-4 h-4 ${puesto ? 'opacity-100' : 'opacity-25'}`} />
-                </button>
-              );
-            })}
+                  {servido ? (
+                    <div className="relative w-full h-full animate-[fadeIn_0.5s_ease]">
+                      <img
+                        src={`${MEMORIAS_BASE}images/memorias/arroz_coco_pescado.jpg`}
+                        alt="Mojarra frita con arroz con coco servida"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 ring-4 ring-inset ring-white/40 rounded-full pointer-events-none" />
+                    </div>
+                  ) : (
+                    <>
+                      {/* Escena 3D o capas cenitales interactivas */}
+                      <div className="absolute inset-0">
+                        <Escena3DMojarra
+                          etapa="emplatar"
+                          adobos={{ limon: true, ajo: true, sal: true }}
+                          friendo={cocinando}
+                          coccion={cocinando ? 80 : 75}
+                          plato={{
+                            mojarra: seleccionados.mojarra,
+                            arroz: seleccionados.arroz,
+                            patacones: seleccionados.patacones,
+                            ensalada: seleccionados.ensalada || seleccionados.limon,
+                          }}
+                        />
+                      </div>
 
-            {todoEmplatado && (
-              <div className="p-3 rounded-xl bg-[#35d08a]/20 border border-[#35d08a]/50 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-extrabold text-[#9ff3c9]">
-                  <Award className="w-4 h-4 shrink-0" />
-                  <span>¡Excelente! Plato servido con sabor a Bocachica.</span>
+                      {/* Toques manuales donde el usuario hace clic */}
+                      {toppingsManual.map((tp) => (
+                        <span
+                          key={tp.id}
+                          className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-full shadow-md border border-black/20 animate-bounce"
+                          style={{
+                            left: `${tp.x}%`,
+                            top: `${tp.y}%`,
+                            transform: `translate(-50%, -50%) rotate(${tp.rot}deg)`,
+                            backgroundColor:
+                              tp.tipo === 'limon'
+                                ? '#a3e635'
+                                : tp.tipo === 'patacones'
+                                  ? '#eab308'
+                                  : tp.tipo === 'suero'
+                                    ? '#ffffff'
+                                    : tp.tipo === 'ensalada'
+                                      ? '#22c55e'
+                                      : '#c26d1f',
+                            animationDuration: '0.45s',
+                            animationIterationCount: 1,
+                          }}
+                        />
+                      ))}
+
+                      {cocinando && (
+                        <div className="absolute inset-0 bg-[#f97316]/35 backdrop-blur-[1px] flex flex-col items-center justify-center text-white font-black text-sm tracking-wider uppercase animate-pulse">
+                          <Flame className="w-8 h-8 mb-1" />
+                          <span>Friendo al punto...</span>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  onClick={reiniciarJuego}
-                  className="w-full py-2 rounded-lg bg-white text-[#0b1016] text-xs font-extrabold cursor-pointer hover:bg-white/90 transition"
-                >
-                  Volver a cocinar otra mojarra
-                </button>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* COLUMNA DERECHA: COMANDA / RECIBO */}
+        <div className="lg:col-span-3 bg-white rounded-2xl p-4 shadow-[0_14px_34px_-14px_rgba(0,0,0,0.22)] border border-black/10 font-mono text-xs space-y-3">
+          <div className="border-b border-dashed border-black/20 pb-2 text-center">
+            <div className="font-black text-sm tracking-widest text-[#171717]">COMANDA #0042</div>
+            <div className="text-[10px] text-black/55">Cocina Comunitaria · Bocachica</div>
+          </div>
+
+          <div className="space-y-1.5 min-h-[120px]">
+            {activos.length === 0 ? (
+              <div className="text-[11px] text-black/45 text-center py-6">
+                Elige ingredientes en la bandeja izquierda.
+              </div>
+            ) : (
+              activos.map((it) => (
+                <div key={it.id} className="flex items-center justify-between text-[11px] text-[#171717]">
+                  <span className="font-semibold">1x {it.nombre}</span>
+                  <span className="text-black/50">{it.tiempo}</span>
+                </div>
+              ))
             )}
           </div>
+
+          <div className="border-t border-dashed border-black/20 pt-2 flex justify-between text-[11px] font-bold">
+            <span>Ingredientes</span>
+            <span>{activos.length} seleccionados</span>
+          </div>
+
+          {!servido ? (
+            <button
+              type="button"
+              disabled={!abierta || activos.length === 0 || cocinando}
+              onClick={cocinarYServir}
+              className={`w-full py-3 rounded-xl font-sans text-xs font-black tracking-wide uppercase transition flex items-center justify-center gap-1.5 ${
+                !abierta || activos.length === 0 || cocinando
+                  ? 'bg-black/10 text-black/35 cursor-not-allowed'
+                  : 'bg-[#b83b24] hover:bg-[#9b2f1c] text-white shadow-lg cursor-pointer active:scale-[0.98]'
+              }`}
+            >
+              <Flame className="w-4 h-4" />
+              <span>{cocinando ? 'Friendo...' : 'Freír y Servir'}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={reiniciar}
+              className="w-full py-3 rounded-xl font-sans text-xs font-black tracking-wide uppercase bg-[#171717] hover:bg-black text-white shadow-lg cursor-pointer transition"
+            >
+              Armar otro plato
+            </button>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
