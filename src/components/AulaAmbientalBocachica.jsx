@@ -29,6 +29,9 @@ import {
   Recycle,
   Sprout,
   BookOpen,
+  Shield,
+  Anchor,
+  ExternalLink,
 } from 'lucide-react';
 import { crearEscenaAula } from '../utils/escenaAulaBocachica';
 import { crearReproductorComunidad, PISTAS_MEMORIA } from '../utils/musicaComunidad';
@@ -2187,7 +2190,7 @@ const EXPLORA_CATEGORIAS = [
     cta: 'Descubrir fuertes',
     color: '#f4f1ec',
     cam: 'linea_patrimonio',
-    nodos: ['sanFernando', 'sanRafael', 'sanJose', 'casco'],
+    nodos: [],
     rutas: { agua: 0, verde: 0, residuos: 0, oficios: 0, patrimonio: 1 },
     zonas: [0.95, 0.1, 0.1],
     resumen: 'Fuertes de piedra coralina e historia viva de nuestra isla.',
@@ -2380,7 +2383,179 @@ export default function AulaAmbientalBocachica({
   );
 
   const [actividadViernesSel, setActividadViernesSel] = useState(null);
+  const [patrimonioSel, setPatrimonioSel] = useState(null);
   const [pinesActividad, setPinesActividad] = useState({});
+
+  const patrimoniosIsla = useMemo(
+    () => [
+      {
+        nodo: 'sanRafael',
+        corto: 'San Rafael',
+        nombre: 'Batería del Ángel San Rafael',
+        anio: '1762',
+        ubicacion: 'Cerro del Horno · Bocachica',
+        color: '#e8a86b',
+        Icon: Shield,
+        dx: 0,
+        dy: -55,
+        secciones: [
+          {
+            titulo: 'Construcción',
+            texto:
+              'Fue erigida en 1762 por el ingeniero militar Antonio de Arévalo, durante los conflictos con los ingleses, y luego reconstruida con materiales duraderos entre 1769 y 1778.',
+          },
+          {
+            titulo: 'Diseño e ingeniería',
+            texto:
+              'Tiene forma de "media luna" irregular, está tallada prácticamente de forma directa sobre la roca coralina del cerro y se encuentra rodeada por un foso seco y un puente durmiente.',
+          },
+          {
+            titulo: 'Componentes',
+            texto:
+              'Su estructura incluye una casa fuerte, una garita, un aljibe, una antigua cocina y una galería subterránea que originalmente conectaba con el sector y las fortificaciones cercanas como San Fernando y Santa Bárbara.',
+          },
+          {
+            titulo: 'Historia',
+            texto:
+              'No participó en enfrentamientos contra enemigos externos durante su apogeo colonial, pero sí fue escenario de resistencia durante el sitio de Cartagena en 1815 por parte de las fuerzas realistas de Pablo Morillo.',
+          },
+          {
+            titulo: 'Restauración y gestión',
+            texto:
+              'Fue intervenida en 1995 por INVIAS. Actualmente forma parte del patrimonio histórico administrado y divulgado a través de las entidades de fortificaciones de la ciudad.',
+          },
+        ],
+        fuentes: [
+          { label: 'Fortificaciones Cartagena de Indias', url: 'https://fortificacionescartagena.com.co/es/destination/bateria-del-angel-san-rafael/' },
+          { label: 'Museo Naval del Caribe', url: 'https://museonavaldelcaribe.org/modulos/bateria-angel-san-rafael-cartagena/' },
+          { label: 'Sociedad de Mejoras Públicas (SMPC)', url: 'https://www.smpcartagena.org/bateria-del-angel-san-rafael' },
+        ],
+      },
+      {
+        nodo: 'sanFernando',
+        corto: 'San Fernando',
+        nombre: 'Fuerte de San Fernando de Bocachica',
+        anio: '1753',
+        ubicacion: 'Canal de Bocachica · Tierra Bomba',
+        color: '#6ec6e6',
+        Icon: Landmark,
+        dx: -118,
+        dy: 10,
+        secciones: [
+          {
+            titulo: 'Construcción',
+            texto:
+              'Las obras iniciaron el 12 de marzo de 1753 bajo la dirección del ingeniero Antonio de Arévalo sobre planos de Juan Bautista Mac Evan (con modificaciones de Lorenzo de Solís), concluyendo su primera fase hacia 1759.',
+          },
+          {
+            titulo: 'Diseño e ingeniería',
+            texto:
+              'Presenta una planta semicircular en forma de herradura orientada al canal marítimo para fuego a flor de agua, combinada con un frente terrestre de dos grandes baluartes: el Baluarte del Rey y el Baluarte de la Reina.',
+          },
+          {
+            titulo: 'Componentes',
+            texto:
+              'Cuenta con foso húmedo, glacis, hornabeque defensivo y nueve bóvedas robustas a prueba de bombas usadas como polvorines, aljibes y prisiones.',
+          },
+          {
+            titulo: 'Historia',
+            texto:
+              'Se levantó tras la destrucción del antiguo Castillo de San Luis en 1741 durante el ataque del almirante británico Edward Vernon, consolidando la defensa de la entrada sur a la bahía.',
+          },
+          {
+            titulo: 'Restauración y gestión',
+            texto:
+              'Forma parte del conjunto fortificado declarado Patrimonio Histórico de la Humanidad por la UNESCO y es divulgado por Fortificaciones Cartagena de Indias.',
+          },
+        ],
+        fuentes: [
+          { label: 'Fortificaciones Cartagena de Indias', url: 'https://fortificacionescartagena.com.co/' },
+          { label: 'Museo Naval del Caribe', url: 'https://museonavaldelcaribe.org/' },
+        ],
+      },
+      {
+        nodo: 'sanJose',
+        corto: 'San José',
+        nombre: 'Batería de San José',
+        anio: '1714',
+        ubicacion: 'Islote frente al canal · Bahía',
+        color: '#35d08a',
+        Icon: Anchor,
+        dx: 120,
+        dy: 28,
+        secciones: [
+          {
+            titulo: 'Construcción',
+            texto:
+              'Su primera fase fue construida entre 1714 y 1725 por Juan de Herrera y Sotomayor; tras ser arrasada en 1741, fue reedificada desde 1752 por Ignacio Sala y Antonio de Arévalo.',
+          },
+          {
+            titulo: 'Diseño e ingeniería',
+            texto:
+              'Diseñada para generar fuego cruzado junto al Fuerte de San Fernando, con un cuerpo central abovedado y una batería baja en ángulo con capacidad para más de 20 cañones.',
+          },
+          {
+            titulo: 'Componentes',
+            texto:
+              'Integra polvorín, aljibe y una escollera sumergida ideada por Arévalo alrededor de la batería para impedir el acercamiento sorpresa de lanchas y botes enemigos.',
+          },
+          {
+            titulo: 'Historia',
+            texto:
+              'Fue clave para cerrar por completo el estrecho de Bocachica, única vía navegable hacia Cartagena después del cierre de Bocagrande.',
+          },
+          {
+            titulo: 'Restauración y gestión',
+            texto:
+              'Integra el sistema defensivo colonial declarado Patrimonio de la Humanidad por la UNESCO en la bahía de Cartagena.',
+          },
+        ],
+        fuentes: [
+          { label: 'Museo Naval del Caribe', url: 'https://museonavaldelcaribe.org/' },
+        ],
+      },
+      {
+        nodo: 'casco',
+        corto: 'Casco Histórico',
+        nombre: 'Casco Histórico de Bocachica',
+        anio: 'S. XVIII',
+        ubicacion: 'Corregimiento de Bocachica · Tierra Bomba',
+        color: '#e0917a',
+        Icon: Home,
+        dx: 14,
+        dy: 78,
+        secciones: [
+          {
+            titulo: 'Construcción',
+            texto:
+              'Asentamiento ribereño tradicional surgido alrededor del canal de Bocachica y de las fortificaciones coloniales construidas en piedra coralina.',
+          },
+          {
+            titulo: 'Diseño e ingeniería',
+            texto:
+              'Tejido urbano costero de calles peatonales, patios abiertos y vivienda adaptada a la brisa marina y la vida de pesca artesanal.',
+          },
+          {
+            titulo: 'Componentes',
+            texto:
+              'Muelle comunitario, plaza central, oficios de carpintería de ribera, cocina tradicional y espacios de encuentro afrocaribeño.',
+          },
+          {
+            titulo: 'Historia',
+            texto:
+              'Comunidad guardiana de la entrada marítima de Cartagena que ha preservado su memoria, bailes y arquitectura isleña frente al mar.',
+          },
+          {
+            titulo: 'Restauración y gestión',
+            texto:
+              'Patrimonio cultural vivo articulado con el Aula Ambiental de Bocachica para fortalecer la economía local y el cuidado territorial.',
+          },
+        ],
+        fuentes: [],
+      },
+    ],
+    []
+  );
 
   const seleccionarActividad = (act) => {
     if (!act) return;
@@ -2390,18 +2565,30 @@ export default function AulaAmbientalBocachica({
     escena?.irANodo?.(act.nodo, 340);
   };
 
+  const seleccionarPatrimonio = (pat) => {
+    if (!pat) return;
+    setPatrimonioSel(pat);
+    escena?.irANodo?.(pat.nodo, 340);
+  };
+
   useEffect(() => {
-    if (!escena?.proyectarNodos || catActiva?.id !== 'talleres' || panelJuego || modalDiagrama) {
+    const listaMapa =
+      catActiva?.id === 'talleres'
+        ? actividadesIsla
+        : catActiva?.id === 'patrimonio'
+          ? patrimoniosIsla
+          : null;
+    if (!escena?.proyectarNodos || !listaMapa || panelJuego || modalDiagrama) {
       setPinesActividad({});
       return undefined;
     }
     let rafId = 0;
-    const claves = actividadesIsla.map((a) => a.nodo);
+    const claves = listaMapa.map((a) => a.nodo);
     const loop = () => {
       const raw = escena.proyectarNodos(claves);
       const w = window.innerWidth || 1280;
       const h = window.innerHeight || 720;
-      const items = actividadesIsla
+      const items = listaMapa
         .filter((a) => raw[a.nodo])
         .map((a) => ({
           nodo: a.nodo,
@@ -2445,7 +2632,7 @@ export default function AulaAmbientalBocachica({
     };
     rafId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafId);
-  }, [escena, catActiva, panelJuego, modalDiagrama, actividadesIsla]);
+  }, [escena, catActiva, panelJuego, modalDiagrama, actividadesIsla, patrimoniosIsla]);
 
   // Programación de clases virtuales de los viernes
   const [clasesViernes, setClasesViernes] = useState(() => {
@@ -2484,6 +2671,7 @@ export default function AulaAmbientalBocachica({
     setBusqAbierta(false);
     setLugarActivo(null);
     setActividadViernesSel(null);
+    setPatrimonioSel(null);
     if (cat.id === 'memorias') {
       setPanelJuego(true);
       setCatActiva(null);
@@ -3096,75 +3284,79 @@ export default function AulaAmbientalBocachica({
         </>
       )}
 
-      {/* ICONOS ANIMADOS DE ACTIVIDAD SOBRE TODA LA ISLA (3. TALLERES Y VIERNES) */}
-      {enVistaAula && catActiva?.id === 'talleres' && !panelJuego && !modalDiagrama && (
-        <div className="fixed inset-0 z-15 pointer-events-none overflow-hidden">
-          <svg className="absolute inset-0 w-full h-full pointer-events-none">
-            {actividadesIsla.map((act) => {
-              const p = pinesActividad[act.nodo];
+      {/* ICONOS ANIMADOS SOBRE EL MAPA (2. PATRIMONIO Y 3. TALLERES Y VIERNES) */}
+      {enVistaAula && (catActiva?.id === 'talleres' || catActiva?.id === 'patrimonio') && !panelJuego && !modalDiagrama && (() => {
+        const esPatrimonio = catActiva.id === 'patrimonio';
+        const listaPines = esPatrimonio ? patrimoniosIsla : actividadesIsla;
+        const nodoSel = esPatrimonio ? patrimonioSel?.nodo : actividadViernesSel?.nodo;
+        return (
+          <div className="fixed inset-0 z-15 pointer-events-none overflow-hidden">
+            <svg className="absolute inset-0 w-full h-full pointer-events-none">
+              {listaPines.map((item) => {
+                const p = pinesActividad[item.nodo];
+                if (!p) return null;
+                const dist = Math.hypot(p.x - p.ax, p.y - p.ay);
+                if (dist < 14) return null;
+                return (
+                  <g key={`line-${item.nodo}`}>
+                    <line
+                      x1={p.ax}
+                      y1={p.ay}
+                      x2={p.x}
+                      y2={p.y}
+                      stroke={item.color}
+                      strokeWidth="1.5"
+                      strokeDasharray="4 4"
+                      strokeOpacity="0.65"
+                    />
+                    <circle cx={p.ax} cy={p.ay} r="4" fill={item.color} fillOpacity="0.9" />
+                  </g>
+                );
+              })}
+            </svg>
+            {listaPines.map((item) => {
+              const p = pinesActividad[item.nodo];
               if (!p) return null;
-              const dist = Math.hypot(p.x - p.ax, p.y - p.ay);
-              if (dist < 14) return null;
+              const IconoPin = item.Icon || Landmark;
+              const sel = nodoSel === item.nodo;
               return (
-                <g key={`line-${act.nodo}`}>
-                  <line
-                    x1={p.ax}
-                    y1={p.ay}
-                    x2={p.x}
-                    y2={p.y}
-                    stroke={act.color}
-                    strokeWidth="1.5"
-                    strokeDasharray="4 4"
-                    strokeOpacity="0.65"
-                  />
-                  <circle cx={p.ax} cy={p.ay} r="4" fill={act.color} fillOpacity="0.9" />
-                </g>
+                <button
+                  key={item.nodo}
+                  type="button"
+                  onClick={() => (esPatrimonio ? seleccionarPatrimonio(item) : seleccionarActividad(item))}
+                  style={{ left: `${p.x}px`, top: `${p.y}px` }}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto group cursor-pointer focus:outline-none"
+                >
+                  <span className="relative flex flex-col items-center">
+                    <span
+                      className="absolute -inset-2 rounded-full animate-ping opacity-45"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span
+                      className={`relative w-12 h-12 rounded-2xl border-2 flex items-center justify-center shadow-2xl transition-transform duration-200 group-hover:scale-115 ${
+                        sel ? 'scale-125 ring-4 ring-white/40' : ''
+                      }`}
+                      style={{
+                        backgroundColor: '#0b1016',
+                        borderColor: item.color,
+                        color: item.color,
+                      }}
+                    >
+                      <IconoPin className="w-6 h-6" />
+                    </span>
+                    <span className="mt-1.5 px-2.5 py-0.5 rounded-full bg-[#0b1016]/90 border border-white/20 text-[11px] font-bold text-white whitespace-nowrap shadow-lg flex items-center gap-1.5 group-hover:bg-white group-hover:text-[#0b1016] transition">
+                      <span>{item.corto}</span>
+                      <span className="text-[10px] font-mono opacity-80">
+                        {esPatrimonio ? item.anio : `${item.dia} ${item.mes}`}
+                      </span>
+                    </span>
+                  </span>
+                </button>
               );
             })}
-          </svg>
-          {actividadesIsla.map((act) => {
-            const p = pinesActividad[act.nodo];
-            if (!p) return null;
-            const IconoPin = act.Icon || Hammer;
-            const sel = actividadViernesSel?.nodo === act.nodo;
-            return (
-              <button
-                key={act.nodo}
-                type="button"
-                onClick={() => seleccionarActividad(act)}
-                style={{ left: `${p.x}px`, top: `${p.y}px` }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto group cursor-pointer focus:outline-none"
-              >
-                <span className="relative flex flex-col items-center">
-                  {/* Halo animado pulsante */}
-                  <span
-                    className="absolute -inset-2 rounded-full animate-ping opacity-45"
-                    style={{ backgroundColor: act.color }}
-                  />
-                  {/* Icono grande de la actividad */}
-                  <span
-                    className={`relative w-12 h-12 rounded-2xl border-2 flex items-center justify-center shadow-2xl transition-transform duration-200 group-hover:scale-115 ${
-                      sel ? 'scale-125 ring-4 ring-white/40' : ''
-                    }`}
-                    style={{
-                      backgroundColor: '#0b1016',
-                      borderColor: act.color,
-                      color: act.color,
-                    }}
-                  >
-                    <IconoPin className="w-6 h-6" />
-                  </span>
-                  {/* Etiqueta compacta con fecha */}
-                  <span className="mt-1.5 px-2.5 py-0.5 rounded-full bg-[#0b1016]/90 border border-white/20 text-[11px] font-bold text-white whitespace-nowrap shadow-lg flex items-center gap-1.5 group-hover:bg-white group-hover:text-[#0b1016] transition">
-                    <span>{act.corto}</span>
-                    <span className="text-[10px] font-mono opacity-80">{act.dia} {act.mes}</span>
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
       {/* TARJETA ÚNICA IZQUIERDA (O CARD GRANDE AL TOCAR UN ICONO EN TALLERES) */}
       {enVistaAula && catActiva && !panelJuego && !modalDiagrama && (() => {
@@ -3172,6 +3364,141 @@ export default function AulaAmbientalBocachica({
         const idxCat = EXPLORA_CATEGORIAS.findIndex((c) => c.id === catActiva.id);
         const catAnt = idxCat > 0 ? EXPLORA_CATEGORIAS[idxCat - 1] : null;
         const catSig = idxCat < EXPLORA_CATEGORIAS.length - 1 ? EXPLORA_CATEGORIAS[idxCat + 1] : null;
+
+        if (catActiva.id === 'patrimonio' && !patrimonioSel) {
+          return (
+            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-md tc-vidrio px-4 py-3 tc-paso-anim shadow-2xl flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-10 h-10 rounded-xl bg-[#f4f1ec]/15 text-[#f4f1ec] flex items-center justify-center shrink-0 animate-pulse">
+                  <Landmark className="w-5 h-5" />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-white">Patrimonio de Bocachica y Tierra Bomba</div>
+                  <div className="text-[11px] text-white/75 leading-snug">
+                    Toca cualquier icono animado sobre los fuertes para abrir su historia y arquitectura.
+                  </div>
+                </div>
+              </div>
+              <button type="button" onClick={() => setCatActiva(null)} className="text-white/60 hover:text-white p-1 shrink-0">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          );
+        }
+
+        if (catActiva.id === 'patrimonio' && patrimonioSel) {
+          const pat = patrimonioSel;
+          const IconoPat = pat.Icon || Landmark;
+          const idxPat = Math.max(0, patrimoniosIsla.findIndex((p) => p.nodo === pat.nodo));
+          const patAnt = patrimoniosIsla[(idxPat - 1 + patrimoniosIsla.length) % patrimoniosIsla.length];
+          const patSig = patrimoniosIsla[(idxPat + 1) % patrimoniosIsla.length];
+          return (
+            <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(94vw,32rem)] max-h-[82svh] overflow-y-auto tc-paso-anim">
+              <CardIluminada
+                color={pat.color}
+                className="tc-vidrio p-5 rounded-2xl border shadow-2xl space-y-3.5"
+              >
+                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-white/15">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPatrimonioSel(null);
+                      escena?.set({ cam: 'linea_patrimonio', nodosActivos: [] });
+                    }}
+                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-semibold text-white flex items-center gap-1 cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Ver todos los fuertes</span>
+                  </button>
+                  <span className="px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/90 text-[10px] font-bold uppercase tracking-wider">
+                    Patrimonio Histórico
+                  </span>
+                </div>
+
+                {/* ICONO GRANDE + TÍTULO + AÑO */}
+                <div className="flex items-center justify-between gap-3">
+                  <span
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border-2 shadow-xl"
+                    style={{
+                      backgroundColor: `${pat.color}22`,
+                      borderColor: pat.color,
+                      color: pat.color,
+                    }}
+                  >
+                    <IconoPat className="w-8 h-8" />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-bold uppercase tracking-widest" style={{ color: pat.color }}>
+                      {pat.ubicacion}
+                    </div>
+                    <h3 className="text-base md:text-lg font-extrabold text-white leading-tight mt-0.5">
+                      {pat.nombre}
+                    </h3>
+                  </div>
+                  <div
+                    className="px-3 py-2 rounded-2xl text-[#0b1016] flex flex-col items-center justify-center text-center shadow-lg shrink-0"
+                    style={{ backgroundColor: pat.color }}
+                  >
+                    <span className="text-[9px] font-black uppercase tracking-widest">DESDE</span>
+                    <span className="text-lg font-black leading-none mt-0.5">{pat.anio}</span>
+                  </div>
+                </div>
+
+                {/* FICHAS HISTÓRICAS Y ARQUITECTÓNICAS */}
+                <div className="space-y-2.5 pt-2 border-t border-white/15">
+                  {pat.secciones.map((sec) => (
+                    <div key={sec.titulo} className="rounded-xl bg-white/[0.04] border border-white/10 p-3">
+                      <div className="text-[11px] font-extrabold uppercase tracking-wider mb-1" style={{ color: pat.color }}>
+                        {sec.titulo}
+                      </div>
+                      <p className="text-xs text-white/85 leading-relaxed">{sec.texto}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {pat.fuentes?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {pat.fuentes.map((f) => (
+                      <a
+                        key={f.url}
+                        href={f.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-medium text-white/90 inline-flex items-center gap-1 transition"
+                      >
+                        <span>{f.label}</span>
+                        <ExternalLink className="w-3 h-3 opacity-75" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+
+                {/* NAVEGACIÓN DIRECTA SIN RETROCEDER */}
+                <div className="pt-2.5 border-t border-white/15 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => seleccionarPatrimonio(patAnt)}
+                    className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Anterior</span>
+                  </button>
+                  <span className="text-[11px] font-bold text-white/70">
+                    {idxPat + 1} / {patrimoniosIsla.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => seleccionarPatrimonio(patSig)}
+                    className="px-3.5 py-1.5 rounded-xl bg-white text-[#0b1016] hover:bg-white/90 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-lg transition"
+                  >
+                    <span>Siguiente</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </CardIluminada>
+            </aside>
+          );
+        }
 
         if (catActiva.id === 'talleres' && !actividadViernesSel) {
           return (
