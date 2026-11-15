@@ -17,8 +17,21 @@ import {
   X,
   Award,
   Layers,
+  Music,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Disc3,
+  Utensils,
+  Sparkles,
+  Clock,
+  Recycle,
+  Sprout,
+  BookOpen,
 } from 'lucide-react';
 import { crearEscenaAula } from '../utils/escenaAulaBocachica';
+import { crearReproductorComunidad, PISTAS_MEMORIA } from '../utils/musicaComunidad';
 import TierraBombaHairline from './TierraBombaHairline';
 import {
   ANTECEDENTES_CORPUS,
@@ -2044,19 +2057,76 @@ const PREGUNTAS_RETO = [
   },
 ];
 
-const TEMAS_VIERNES = [
-  'Cómo usar esta plataforma 3D de Tierra Bomba',
-  'Carpintería de ribera y construcción en madera',
-  'Siembra de manglar y vivero comunitario',
-  'Historia y guianza del Fuerte San Fernando',
-  'Cosecha de agua lluvia y cuidado del aljibe',
+const TEMAS_VIERNES_LISTA = [
+  {
+    id: 'plataforma',
+    titulo: 'Cómo usar esta plataforma 3D de Tierra Bomba',
+    sub: 'Aprende a moverte por los 4 corregimientos, fuertes y talleres',
+    Icon: BookOpen,
+    color: '#6ec6e6',
+    lugar: 'Virtual en vivo · Todo el pueblo',
+  },
+  {
+    id: 'bullerengue',
+    titulo: 'Rueda de Bullerengue y bailes de patio',
+    sub: 'Canto responsorial, tambor alegre y palmas con las mayores',
+    Icon: Music,
+    color: '#e0917a',
+    lugar: 'Virtual y patio comunitario',
+  },
+  {
+    id: 'isnelia',
+    titulo: 'La cocina de Isnelia y dulces caseros',
+    sub: 'Arroz con coco rallado en lata, caballito de papaya y corozo',
+    Icon: Utensils,
+    color: '#e8a86b',
+    lugar: 'Junto al muelle flotante · Tierra Bomba',
+  },
+  {
+    id: 'ribera',
+    titulo: 'Carpintería de ribera y madera naval',
+    sub: 'Oficio tradicional de embarcaciones y sombra de patio',
+    Icon: Hammer,
+    color: '#e8a86b',
+    lugar: 'Taller de Ribera · Bocachica',
+  },
+  {
+    id: 'vivero',
+    titulo: 'Siembra de manglar y vivero comunitario',
+    sub: 'Plástico reciclado, sombra y cuidado del agua lluvia',
+    Icon: Sprout,
+    color: '#35d08a',
+    lugar: 'Vivero y Colegio R9',
+  },
 ];
+
+const TEMAS_VIERNES = TEMAS_VIERNES_LISTA.map((t) => t.titulo);
+
+function obtenerProximoViernes() {
+  const hoy = new Date();
+  const diaSem = hoy.getDay(); // 5 = viernes
+  const diff = (5 - diaSem + 7) % 7 || 7;
+  const prox = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + diff);
+  const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+  return {
+    dia: String(prox.getDate()).padStart(2, '0'),
+    mes: meses[prox.getMonth()],
+    completo: `Viernes ${prox.getDate()} de ${meses[prox.getMonth()]} · 4:00 p.m.`,
+  };
+}
 
 const ICONOS_CAT = {
   corregimientos: MapPin,
   patrimonio: Landmark,
   talleres: Hammer,
-  juego: Gamepad2,
+  memorias: Music,
+};
+
+const ICONOS_MEMORIA = {
+  music: Music,
+  utensils: Utensils,
+  sparkles: Sparkles,
+  disc: Disc3,
 };
 
 const EXPLORA_CATEGORIAS = [
@@ -2115,16 +2185,16 @@ const EXPLORA_CATEGORIAS = [
     ],
   },
   {
-    id: 'juego',
-    ancla: 'sec-juego',
-    label: '4. Juego',
-    cta: 'Jugar ahora',
+    id: 'memorias',
+    ancla: 'sec-memorias',
+    label: '4. Memorias y Bailes',
+    cta: 'Escuchar y bailar',
     color: '#35d08a',
     cam: 'escuela_r9',
     nodos: ['escuelaR9', 'vivero', 'casco'],
-    rutas: { agua: 0.8, verde: 0.9, residuos: 0, oficios: 0, patrimonio: 0 },
-    zonas: [0.2, 0.95, 0.85],
-    resumen: 'Siembra árboles, haz llover en el mapa 3D y responde el reto de la isla.',
+    rutas: { agua: 0.4, verde: 0.6, residuos: 0, oficios: 0.5, patrimonio: 0.8 },
+    zonas: [0.35, 0.85, 0.75],
+    resumen: 'Bailes tradicionales, música de tambor y memoria viva de Tierra Bomba.',
     lugares: [],
   },
 ];
@@ -2173,6 +2243,37 @@ export default function AulaAmbientalBocachica({
   const [lugarActivo, setLugarActivo] = useState(null);
   const [catActiva, setCatActiva] = useState(null); // null o objeto de EXPLORA_CATEGORIAS
 
+  // Reproductor de música tradicional y bailes de la comunidad
+  const repRef = useRef(null);
+  const [pistaActiva, setPistaActiva] = useState(PISTAS_MEMORIA[0]);
+  const [musicaSonando, setMusicaSonando] = useState(false);
+  const [musicaMute, setMusicaMute] = useState(false);
+
+  useEffect(() => {
+    const rep = crearReproductorComunidad();
+    repRef.current = rep;
+    return () => rep.destroy();
+  }, []);
+
+  const alternarMusica = (pista) => {
+    const target = pista || pistaActiva;
+    if (pista && pista.id !== pistaActiva.id) {
+      setPistaActiva(pista);
+      repRef.current?.start(pista.id);
+      setMusicaSonando(true);
+      return;
+    }
+    if (musicaSonando) {
+      repRef.current?.stop();
+      setMusicaSonando(false);
+    } else {
+      repRef.current?.start(target.id);
+      setMusicaSonando(true);
+    }
+  };
+
+  const proximoViernes = useMemo(() => obtenerProximoViernes(), []);
+
   // Programación de clases virtuales de los viernes
   const [clasesViernes, setClasesViernes] = useState(() => {
     try {
@@ -2209,7 +2310,7 @@ export default function AulaAmbientalBocachica({
   const activarCategoria = (cat, conScroll = true) => {
     setBusqAbierta(false);
     setLugarActivo(null);
-    if (cat.id === 'juego') {
+    if (cat.id === 'memorias') {
       setPanelJuego(true);
       setCatActiva(null);
     } else {
@@ -2220,8 +2321,8 @@ export default function AulaAmbientalBocachica({
       cam: cat.cam,
       dim: 0,
       cartografia: cat.id === 'corregimientos' ? 0.32 : 0,
-      lluvia: cat.id === 'juego' ? 0.45 : 0,
-      sombraExtra: cat.id === 'juego' ? 0.35 : 0,
+      lluvia: 0,
+      sombraExtra: cat.id === 'memorias' ? 0.35 : 0,
       zonas: cat.zonas,
       rutas: cat.rutas,
       nodosActivos: cat.nodos,
@@ -2507,7 +2608,7 @@ export default function AulaAmbientalBocachica({
         {/* 4 pestañas guiadas en orden con iconos vectoriales */}
         <nav className="tc-vidrio px-1.5 py-1 !rounded-full flex items-center gap-1 overflow-x-auto max-w-full pointer-events-auto order-3 lg:order-2">
           {EXPLORA_CATEGORIAS.map((cat) => {
-            const on = (cat.id === 'juego' ? panelJuego : catActiva?.id === cat.id && !panelJuego);
+            const on = (cat.id === 'memorias' ? panelJuego : catActiva?.id === cat.id && !panelJuego);
             const Icono = ICONOS_CAT[cat.id] || MapPin;
             return (
               <button
@@ -2582,8 +2683,8 @@ export default function AulaAmbientalBocachica({
                 : 'bg-[#35d08a]/20 border border-[#35d08a]/70 text-[#9ff3c9] hover:bg-[#35d08a] hover:text-[#07140d]'
             }`}
           >
-            <Gamepad2 className="w-3.5 h-3.5" />
-            <span>Jugar</span>
+            <Music className="w-3.5 h-3.5" />
+            <span>{musicaSonando ? 'Sonando' : 'Bailes'}</span>
           </button>
         </div>
       </header>
@@ -2892,65 +2993,120 @@ export default function AulaAmbientalBocachica({
               })}
             </div>
 
-            {/* PROGRAMACIÓN DE CLASES VIRTUALES DE LOS VIERNES */}
-            {catActiva.id === 'talleres' && (
-              <div className="mt-4 pt-3.5 border-t border-white/15 space-y-2.5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-[#e8a86b]">
-                  <Calendar className="w-4 h-4 shrink-0" />
-                  <span>Clases virtuales · Todos los viernes 4:00 p.m.</span>
-                </div>
-                <form onSubmit={agendarClaseViernes} className="space-y-2">
-                  <select
-                    value={temaViernes}
-                    onChange={(e) => setTemaViernes(e.target.value)}
-                    className="w-full bg-white/10 border border-white/15 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#e8a86b]"
-                  >
-                    {TEMAS_VIERNES.map((t) => (
-                      <option key={t} value={t} className="bg-[#0b1016] text-white">{t}</option>
-                    ))}
-                  </select>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      value={nombreViernes}
-                      onChange={(e) => setNombreViernes(e.target.value)}
-                      placeholder="Tu nombre"
-                      className="bg-white/10 border border-white/15 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-white/50 focus:outline-none focus:border-[#e8a86b]"
-                    />
-                    <select
-                      value={corregViernes}
-                      onChange={(e) => setCorregViernes(e.target.value)}
-                      className="bg-white/10 border border-white/15 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#e8a86b]"
-                    >
-                      {['Bocachica', 'Tierra Bomba', 'Caño de Loro', 'Punta Arena'].map((c) => (
-                        <option key={c} value={c} className="bg-[#0b1016] text-white">{c}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full py-2 px-3 rounded-xl bg-[#e8a86b] text-[#0b1016] text-xs font-bold hover:brightness-110 transition flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>Programar mi clase del viernes</span>
-                  </button>
-                </form>
-                {confirmViernes && (
-                  <div className="flex items-center gap-1.5 text-xs text-[#35d08a] font-medium">
-                    <Check className="w-4 h-4" />
-                    <span>Clase programada para el próximo viernes.</span>
-                  </div>
-                )}
-                <div className="space-y-1 pt-1">
-                  {clasesViernes.slice(0, 2).map((cv) => (
-                    <div key={cv.id} className="p-2 rounded-lg bg-white/5 border border-white/10 text-[11px] text-white/85">
-                      <div className="font-medium text-white truncate">{cv.tema}</div>
-                      <div className="text-white/60">{cv.nombre} ({cv.corregimiento}) · {cv.fecha}</div>
+            {/* CARD GRANDE DE LA ACTIVIDAD DE LOS VIERNES (ICONO + FECHA GRANDE) */}
+            {catActiva.id === 'talleres' && (() => {
+              const temaSel = TEMAS_VIERNES_LISTA.find((t) => t.titulo === temaViernes) || TEMAS_VIERNES_LISTA[0];
+              const IconoTema = temaSel.Icon || Hammer;
+              return (
+                <div className="mt-4 pt-3.5 border-t border-white/15 space-y-3">
+                  {/* Card grande visual */}
+                  <div className="rounded-2xl border border-white/20 bg-white/10 p-3.5 shadow-xl">
+                    <div className="flex items-stretch gap-3">
+                      {/* FECHA GRANDE */}
+                      <div className="w-20 shrink-0 rounded-xl bg-[#e8a86b] text-[#0b1016] flex flex-col items-center justify-center p-2 text-center">
+                        <span className="text-[10px] font-bold uppercase tracking-wider">VIERNES</span>
+                        <span className="text-3xl font-extrabold leading-none mt-0.5">{proximoViernes.dia}</span>
+                        <span className="text-xs font-bold uppercase tracking-wider">{proximoViernes.mes}</span>
+                        <span className="text-[10px] font-semibold mt-1 px-1.5 py-0.5 rounded bg-[#0b1016]/15">4:00 PM</span>
+                      </div>
+
+                      {/* ICONO GRANDE + NOMBRE DE LA ACTIVIDAD */}
+                      <div className="flex-1 min-w-0 flex flex-col justify-between">
+                        <div className="flex items-start gap-2.5">
+                          <span
+                            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border border-white/15"
+                            style={{ backgroundColor: `${temaSel.color}22`, color: temaSel.color }}
+                          >
+                            <IconoTema className="w-6 h-6" />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-[10px] uppercase tracking-wider font-semibold text-[#e8a86b]">
+                              Clase virtual en vivo
+                            </div>
+                            <h4 className="text-sm font-bold text-white leading-tight mt-0.5">
+                              {temaSel.titulo}
+                            </h4>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-white/75 leading-snug mt-2">{temaSel.sub}</p>
+                        <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-white/60">
+                          <MapPin className="w-3 h-3 text-[#e8a86b]" />
+                          <span>{temaSel.lugar}</span>
+                        </div>
+                      </div>
                     </div>
-                  ))}
+
+                    {/* Selector visual rapido por iconos */}
+                    <div className="mt-3 pt-2.5 border-t border-white/10 flex flex-wrap gap-1.5">
+                      {TEMAS_VIERNES_LISTA.map((t) => {
+                        const TIcon = t.Icon;
+                        const on = t.titulo === temaViernes;
+                        return (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => setTemaViernes(t.titulo)}
+                            className={`px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border transition flex items-center gap-1.5 cursor-pointer ${
+                              on
+                                ? 'bg-white text-[#0b1016] border-white shadow'
+                                : 'border-white/15 bg-white/5 text-white/80 hover:bg-white/15'
+                            }`}
+                          >
+                            <TIcon className="w-3.5 h-3.5 shrink-0" />
+                            <span>{t.id === 'plataforma' ? 'Plataforma' : t.id === 'bullerengue' ? 'Bullerengue' : t.id === 'isnelia' ? 'Cocina Isnelia' : t.id === 'ribera' ? 'Ribera' : 'Vivero'}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <form onSubmit={agendarClaseViernes} className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        value={nombreViernes}
+                        onChange={(e) => setNombreViernes(e.target.value)}
+                        placeholder="Tu nombre"
+                        className="bg-white/10 border border-white/15 rounded-lg px-2.5 py-2 text-xs text-white placeholder-white/50 focus:outline-none focus:border-[#e8a86b]"
+                      />
+                      <select
+                        value={corregViernes}
+                        onChange={(e) => setCorregViernes(e.target.value)}
+                        className="bg-white/10 border border-white/15 rounded-lg px-2 py-2 text-xs text-white focus:outline-none focus:border-[#e8a86b]"
+                      >
+                        {['Bocachica', 'Tierra Bomba', 'Caño de Loro', 'Punta Arena'].map((c) => (
+                          <option key={c} value={c} className="bg-[#0b1016] text-white">{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full py-2.5 px-4 rounded-xl bg-[#e8a86b] text-[#0b1016] text-xs font-extrabold hover:brightness-110 transition flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+                    >
+                      <Calendar className="w-4 h-4" />
+                      <span>Programar mi clase del viernes</span>
+                    </button>
+                  </form>
+                  {confirmViernes && (
+                    <div className="flex items-center gap-1.5 text-xs text-[#35d08a] font-semibold">
+                      <Check className="w-4 h-4" />
+                      <span>¡Listo! Tu clase quedó agendada para el {proximoViernes.completo}.</span>
+                    </div>
+                  )}
+                  <div className="space-y-1 pt-1">
+                    {clasesViernes.slice(0, 2).map((cv) => (
+                      <div key={cv.id} className="p-2 rounded-xl bg-white/5 border border-white/10 text-[11px] text-white/85 flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-white truncate">{cv.tema}</div>
+                          <div className="text-white/60">{cv.nombre} ({cv.corregimiento})</div>
+                        </div>
+                        <span className="text-[10px] font-mono text-[#e8a86b] shrink-0">{cv.fecha}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* CALL TO ACTIONS DE NAVEGACIÓN DIRECTA */}
             <div className="mt-4 pt-3 border-t border-white/15 flex items-center justify-between gap-2">
@@ -2997,19 +3153,21 @@ export default function AulaAmbientalBocachica({
               onClick={() => activarCategoria(EXPLORA_CATEGORIAS[3])}
               className="px-3.5 py-1.5 rounded-xl bg-[#35d08a] text-[#07140d] text-xs font-bold flex items-center gap-1.5 cursor-pointer"
             >
-              <Gamepad2 className="w-3.5 h-3.5" />
-              <span>Jugar en este lugar</span>
+              <Music className="w-3.5 h-3.5" />
+              <span>Escuchar bailes y memorias</span>
             </button>
           </div>
         </aside>
       )}
 
       {enVistaAula && panelJuego && !modalDiagrama && (
-        <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,25rem)] tc-vidrio p-4 md:p-5 tc-paso-anim shadow-2xl">
+        <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,27rem)] max-h-[82svh] overflow-y-auto tc-vidrio p-4 md:p-5 tc-paso-anim shadow-2xl">
           <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-white/15">
             <div className="flex items-center gap-2">
-              <Gamepad2 className="w-4 h-4 text-[#35d08a]" />
-              <span className="text-sm font-semibold text-white">4. Juego de Tierra Bomba</span>
+              <span className="w-7 h-7 rounded-lg bg-[#35d08a]/20 text-[#35d08a] flex items-center justify-center">
+                <Music className="w-4 h-4" />
+              </span>
+              <span className="text-sm font-semibold text-white">4. Memorias, Bailes y Música</span>
             </div>
             <button
               type="button"
@@ -3020,176 +3178,121 @@ export default function AulaAmbientalBocachica({
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5 mb-3">
-            {[
-              { id: 'isla', label: 'Jugar con la isla', Icon: Trees },
-              { id: 'reto', label: 'Trivia (4 retos)', Icon: Award },
-            ].map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTabJuego(t.id)}
-                className={`py-2 px-2.5 rounded-xl text-xs font-semibold border transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                  tabJuego === t.id
-                    ? 'bg-white text-[#0b1016] border-white'
-                    : 'border-white/15 text-white/75 hover:text-white'
-                }`}
+          {/* REPRODUCTOR DE MÚSICA TRADICIONAL EN VIVO */}
+          <div
+            className="rounded-2xl border p-3.5 mb-3.5 transition-all"
+            style={{
+              borderColor: `${pistaActiva.color}66`,
+              backgroundColor: 'rgba(11,16,22,0.75)',
+            }}
+          >
+            <div className="flex items-center gap-3">
+              {/* Fecha grande / badge de ritmo */}
+              <div
+                className="w-16 h-16 rounded-xl flex flex-col items-center justify-center shrink-0 text-[#0b1016] font-extrabold text-center p-1"
+                style={{ backgroundColor: pistaActiva.color }}
               >
-                <t.Icon className="w-3.5 h-3.5" />
-                <span>{t.label}</span>
+                <span className="text-lg leading-none">{pistaActiva.diaNum}</span>
+                <span className="text-[10px] tracking-wider uppercase mt-0.5">{pistaActiva.mesCorto}</span>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-white/60">
+                    {pistaActiva.bpm} BPM · Ritmo tradicional
+                  </span>
+                  {musicaSonando && (
+                    <span className="flex items-end gap-0.5 h-3" aria-hidden="true">
+                      <span className="w-0.5 bg-[#35d08a] h-2 animate-pulse" />
+                      <span className="w-0.5 bg-[#35d08a] h-3 animate-pulse" />
+                      <span className="w-0.5 bg-[#35d08a] h-1.5 animate-pulse" />
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm font-bold text-white truncate mt-0.5">{pistaActiva.titulo}</div>
+                <div className="text-[11px] text-white/70 truncate">{pistaActiva.subtitulo}</div>
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => alternarMusica(pistaActiva)}
+                className="flex-1 py-2.5 px-3 rounded-xl font-extrabold text-xs text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer transition hover:brightness-110"
+                style={{ backgroundColor: pistaActiva.color }}
+              >
+                {musicaSonando ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                <span>{musicaSonando ? 'Pausar música' : 'Reproducir música ahora'}</span>
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !musicaMute;
+                  setMusicaMute(next);
+                  repRef.current?.setMuted(next);
+                }}
+                aria-label={musicaMute ? 'Activar sonido' : 'Silenciar'}
+                className="p-2.5 rounded-xl border border-white/20 text-white/85 hover:bg-white/10 cursor-pointer"
+              >
+                {musicaMute ? <VolumeX className="w-4 h-4 text-[#e0917a]" /> : <Volume2 className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
-          {tabJuego === 'isla' && (
-            <div className="space-y-3 text-xs">
-              <TierraBombaHairline variant="juego" />
-              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                <div className="flex items-center justify-between text-white mb-1.5">
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <Trees className="w-4 h-4 text-[#35d08a]" />
-                    <span>Sembrar sombra</span>
-                  </span>
-                  <strong className="text-[#35d08a] text-sm">{(36 - (sombraJuego / 100) * 4.5).toFixed(1)} °C</strong>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={sombraJuego}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    setSombraJuego(v);
-                    aplicarJuegoEscena(v, lluviaJuego, capasJuego);
-                  }}
-                  className="w-full accent-[#35d08a]"
-                />
-                <div className="mt-1.5 flex gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => { setSombraJuego(100); aplicarJuegoEscena(100, lluviaJuego, capasJuego); }}
-                    className="flex-1 py-1.5 rounded-lg bg-[#35d08a] text-[#07140d] font-bold text-[11px] cursor-pointer"
-                  >
-                    Llenar de árboles (-4,5 °C)
-                  </button>
-                </div>
-              </div>
-
-              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                <div className="flex items-center justify-between text-white mb-1.5">
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <CloudRain className="w-4 h-4 text-[#6ec6e6]" />
-                    <span>Lluvia y agua</span>
-                  </span>
-                  <strong className="text-[#6ec6e6] text-sm">{Math.round((lluviaJuego / 100) * 45000).toLocaleString('es-CO')} L</strong>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={lluviaJuego}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    setLluviaJuego(v);
-                    aplicarJuegoEscena(sombraJuego, v, capasJuego);
-                  }}
-                  className="w-full accent-[#6ec6e6]"
-                />
-                <div className="mt-1.5 flex gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => { setLluviaJuego(100); aplicarJuegoEscena(sombraJuego, 100, capasJuego); }}
-                    className="flex-1 py-1.5 rounded-lg bg-[#6ec6e6] text-[#07141a] font-bold text-[11px] cursor-pointer"
-                  >
-                    Hacer llover ahora
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  { k: 'casas', label: 'Casas', Icon: Home },
-                  { k: 'arboles', label: 'Árboles', Icon: Trees },
-                  { k: 'pilotos', label: 'Castillos y aulas', Icon: Landmark },
-                ].map((c) => {
-                  const on = capasJuego[c.k];
-                  return (
-                    <button
-                      key={c.k}
-                      type="button"
-                      onClick={() => {
-                        const next = { ...capasJuego, [c.k]: !on };
-                        setCapasJuego(next);
-                        aplicarJuegoEscena(sombraJuego, lluviaJuego, next);
-                      }}
-                      className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition flex items-center gap-1.5 cursor-pointer ${
-                        on ? 'bg-white text-[#0b1016] border-white' : 'border-white/15 text-white/55'
-                      }`}
+          {/* TARJETAS GRANDES DE BAILES Y MEMORIAS DE LA COMUNIDAD */}
+          <div className="space-y-2.5">
+            {PISTAS_MEMORIA.map((pista) => {
+              const IconoP = ICONOS_MEMORIA[pista.icono] || Music;
+              const activa = pistaActiva.id === pista.id;
+              const sonandoEsta = activa && musicaSonando;
+              return (
+                <div
+                  key={pista.id}
+                  onClick={() => alternarMusica(pista)}
+                  className={`rounded-2xl border p-3 transition cursor-pointer ${
+                    activa
+                      ? 'bg-white/15 border-white/40 shadow-lg'
+                      : 'bg-white/5 border-white/10 hover:bg-white/10'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border border-white/15"
+                      style={{ backgroundColor: `${pista.color}22`, color: pista.color }}
                     >
-                      <c.Icon className="w-3.5 h-3.5" />
-                      <span>{c.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {tabJuego === 'reto' && (
-            <div className="space-y-2.5 text-xs">
-              <div className="flex items-center justify-between text-[11px] text-white/65">
-                <span>Pregunta {retoIdx + 1} de {PREGUNTAS_RETO.length}</span>
-                <span className="text-[#35d08a] font-bold flex items-center gap-1">
-                  <Award className="w-3.5 h-3.5" />
-                  {retoPuntos}/{PREGUNTAS_RETO.length}
-                </span>
-              </div>
-              <p className="text-white text-sm font-medium leading-snug">{PREGUNTAS_RETO[retoIdx].q}</p>
-              <div className="space-y-1.5">
-                {PREGUNTAS_RETO[retoIdx].opciones.map((op, i) => {
-                  const elegida = retoResp === i;
-                  const esOk = i === PREGUNTAS_RETO[retoIdx].correcta;
-                  let cls = 'border-white/15 bg-white/5 text-white hover:bg-white/15';
-                  if (retoResp !== null) {
-                    if (esOk) cls = 'bg-[#35d08a] border-[#35d08a] text-[#07140d] font-bold';
-                    else if (elegida) cls = 'bg-red-500/30 border-red-400 text-white';
-                  }
-                  return (
-                    <button
-                      key={op}
-                      type="button"
-                      disabled={retoResp !== null}
-                      onClick={() => {
-                        setRetoResp(i);
-                        if (i === PREGUNTAS_RETO[retoIdx].correcta) setRetoPuntos((p) => p + 1);
-                        escena?.irANodo?.(PREGUNTAS_RETO[retoIdx].nodo, 280);
+                      <IconoP className="w-6 h-6" />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: pista.color }}>
+                        {pista.fechaGrande}
+                      </div>
+                      <div className="text-sm font-bold text-white leading-snug">{pista.titulo}</div>
+                      <p className="text-[11px] text-white/75 mt-1 leading-snug">{pista.historia}</p>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {pista.pasos.map((paso) => (
+                          <span key={paso} className="px-2 py-0.5 rounded-full bg-white/10 text-[10px] text-white/85">
+                            {paso}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <span
+                      className="px-2.5 py-1.5 rounded-xl text-[11px] font-bold shrink-0 flex items-center gap-1"
+                      style={{
+                        backgroundColor: sonandoEsta ? pista.color : 'rgba(255,255,255,0.12)',
+                        color: sonandoEsta ? '#0b1016' : '#ffffff',
                       }}
-                      className={`w-full text-left px-3 py-2.5 rounded-xl border transition cursor-pointer ${cls}`}
                     >
-                      {op}
-                    </button>
-                  );
-                })}
-              </div>
-              {retoResp !== null && (
-                <div className="p-3 rounded-xl bg-white/10 text-xs text-white/95 space-y-2">
-                  <p>{PREGUNTAS_RETO[retoIdx].dato}</p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRetoResp(null);
-                      if (retoIdx + 1 < PREGUNTAS_RETO.length) setRetoIdx((i) => i + 1);
-                      else { setRetoIdx(0); setRetoPuntos(0); }
-                    }}
-                    className="w-full py-2 rounded-xl bg-white text-[#0b1016] font-bold flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <span>{retoIdx + 1 < PREGUNTAS_RETO.length ? 'Siguiente pregunta' : 'Volver a jugar'}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                      {sonandoEsta ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                      <span>{sonandoEsta ? 'Pausar' : 'Bailar'}</span>
+                    </span>
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
+              );
+            })}
+          </div>
+
+          <TierraBombaHairline variant="memorias" className="mt-3" />
         </aside>
       )}
 
@@ -3238,7 +3341,7 @@ export default function AulaAmbientalBocachica({
           </div>
           <div className="md:col-span-4 md:pb-2 text-white/85">
             <p className="text-base md:text-lg leading-snug">
-              Explora los 4 corregimientos, el patrimonio, los talleres de los viernes y juega en el mapa 3D.
+              Explora los 4 corregimientos, el patrimonio, los talleres de los viernes y las memorias y bailes de Tierra Bomba.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
@@ -3255,8 +3358,8 @@ export default function AulaAmbientalBocachica({
                 onClick={() => activarCategoria(EXPLORA_CATEGORIAS[3])}
                 className="px-4 py-2.5 rounded-xl bg-[#35d08a] text-[#07140d] text-xs font-bold hover:brightness-110 transition flex items-center gap-2 cursor-pointer"
               >
-                <Gamepad2 className="w-4 h-4" />
-                <span>Jugar ahora</span>
+                <Music className="w-4 h-4" />
+                <span>Escuchar bailes</span>
               </button>
             </div>
           </div>
@@ -3289,11 +3392,11 @@ export default function AulaAmbientalBocachica({
         aria-label="Talleres, oficios y clases virtuales de los viernes"
       />
       <section
-        id="sec-juego"
+        id="sec-memorias"
         ref={secJuegoRef}
         style={{ height: '115svh' }}
         className="relative z-10 pointer-events-none"
-        aria-label="Juego interactivo sobre Tierra Bomba"
+        aria-label="Memorias, bailes y música tradicional de Tierra Bomba"
       />
 
       {/* =====================================================================

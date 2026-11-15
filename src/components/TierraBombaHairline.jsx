@@ -379,6 +379,7 @@ const MOUNTERS = {
   corregimientos: mountCorregimientos,
   patrimonio: mountPatrimonio,
   talleres: mountTalleres,
+  memorias: mountJuego,
   juego: mountJuego,
 };
 
