@@ -3,7 +3,7 @@ import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import { BASE, DATA_URL, prepareTreeSpecies, instanceTrees } from './realTerritory.js';
+import { BASE, DATA_URL, prepareTreeSpecies, instanceTrees, createSkyEnvironment } from './realTerritory.js';
 
 // =============================================================================
 // Escena 3D interactiva para "Tierra Bomba · Aula Ambiental (Bocachica)"
@@ -486,51 +486,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const bx = nodosXZ.casco.x;
   const bz = nodosXZ.casco.z;
 
-  // ---------- árboles reales + arbolado de silvicultura en Bocachica ----------
-  onProgreso(0.82, 'Instanciando vegetación y silvicultura comunitaria');
-  const cr = Math.cos(geoRef.rot);
-  const sr = Math.sin(geoRef.rot);
-  const modelToLL = (x, y) => {
-    const px = (x - geoRef.tx) / geoRef.sc;
-    const py = (y - geoRef.ty) / geoRef.sc;
-    return [geoRef.lon0 + (px * cr + py * sr) / geoRef.kx, geoRef.lat0 + (-px * sr + py * cr) / geoRef.ky];
-  };
-  const especies = await prepareTreeSpecies();
-  if (disposed) return null;
-  const treeBase = veg.arboles.map(([x, y, size, dense], i) => {
-    const [lo, la] = modelToLL(x, y);
-    const [X, Z] = llToXZ(lo, la);
-    return { X, Z, i, size, dense, d: distAt(X, Z) };
-  }).filter((t) => t.d > 0)
-    .slice(0, small ? 550 : 1200)
-    .map((t) => ({
-      x: t.X, y: heightAtXZ(t.X, t.Z) + 0.4, z: t.Z,
-      rot: ((Math.imul(t.i + 7, 40503) >>> 0) % 628) / 100,
-      height: 8.5 * t.size * 1.3 * (t.dense ? 0.92 : 1.05),
-      tone: ((Math.imul(t.i + 3, 69069) >>> 0) % 100) / 100,
-    }));
-  // Añadimos árboles en el corredor de silvicultura y vivero de Bocachica (9.3)
-  for (let i = 0; i < 180; i++) {
-    const ang = (i * 2.39996);
-    const rad = 18 + (i % 19) * 14;
-    const centro = i % 2 === 0 ? nodosXZ.vivero : nodosXZ.escuelaR9;
-    const X = centro.x + Math.cos(ang) * rad;
-    const Z = centro.z + Math.sin(ang) * rad;
-    if (distAt(X, Z) > 0) {
-      treeBase.push({
-        x: X,
-        y: heightAtXZ(X, Z) + 0.4,
-        z: Z,
-        rot: (i * 1.7) % 6.28,
-        height: 9.5 + (i % 5) * 1.8,
-        tone: (i % 10) / 10,
-      });
-    }
-  }
-  const treesGroup = instanceTrees(especies, treeBase, 55, false);
-
   // ---------- construcciones reales (2.600 viviendas vernáculas caribeñas con muros + cubiertas a 4 aguas) ----------
-  onProgreso(0.90, 'Levantando las 2.600 viviendas caribeñas, fuertes históricos y el nodo escolar R9');
+  onProgreso(0.82, 'Levantando las 2.600 viviendas caribeñas y calculando huellas catastrales');
 
   // Textura procedural de fachada arquitectónica (mampostería/madera, zócalo, ventanas con marco y puerta)
   const crearTexturaFachada = () => {
@@ -633,6 +590,41 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const techoTex = crearTexturaTecho();
 
   const houses = [];
+  // Índice espacial 2D de huellas de casas para que los árboles crezcan en patios, calles, colinas y manglares sin atravesar techos
+  const HCELL = 16;
+  const houseGrid = new Map();
+  const addHouseToGrid = (hh) => {
+    const r = Math.max(hh.w, hh.d) * 0.58 + 1.8;
+    const gx0 = Math.floor((hh.x - r) / HCELL);
+    const gx1 = Math.floor((hh.x + r) / HCELL);
+    const gz0 = Math.floor((hh.z - r) / HCELL);
+    const gz1 = Math.floor((hh.z + r) / HCELL);
+    for (let gx = gx0; gx <= gx1; gx++) {
+      for (let gz = gz0; gz <= gz1; gz++) {
+        const k = `${gx}:${gz}`;
+        let arr = houseGrid.get(k);
+        if (!arr) { arr = []; houseGrid.set(k, arr); }
+        arr.push(hh);
+      }
+    }
+  };
+  const enHuellaCasa = (X, Z) => {
+    const k = `${Math.floor(X / HCELL)}:${Math.floor(Z / HCELL)}`;
+    const arr = houseGrid.get(k);
+    if (!arr) return false;
+    for (let i = 0; i < arr.length; i++) {
+      const h = arr[i];
+      const dx = X - h.x;
+      const dz = Z - h.z;
+      const ca = Math.cos(h.ang);
+      const sa = Math.sin(h.ang);
+      const lx = Math.abs(dx * ca + dz * sa);
+      const lz = Math.abs(-dx * sa + dz * ca);
+      if (lx < h.w * 0.54 + 1.2 && lz < h.d * 0.54 + 1.2) return true;
+    }
+    return false;
+  };
+
   for (const [, refH, ring] of construcciones.buildings) {
     let cx = 0;
     let cy = 0;
@@ -657,7 +649,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     const wReal = THREE.MathUtils.clamp(maxA - minA, 4.2, 22);
     const dReal = THREE.MathUtils.clamp(maxB - minB, 4.2, 22);
     const hReal = THREE.MathUtils.clamp(refH || 3.8, 3.2, 7.2);
-    houses.push({
+    const hh = {
       x: cx,
       z: cy,
       ang,
@@ -666,8 +658,181 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       h: hReal,
       y: heightAtXZ(cx, cy),
       enBocachica: distBoca < 1350,
-    });
+    };
+    houses.push(hh);
+    addHouseToGrid(hh);
   }
+
+  // ---------- VEGETACIÓN REAL DE TODA TIERRA BOMBA Y BOCACHICA ----------
+  // 1) Todos los árboles escaneados de vegetacion.json (mosaico z18 norte/centro)
+  // 2) Detección real de dosel arbóreo (índice de verdor + máximos locales de copa)
+  //    sobre la ortofoto satelital Esri (sat_base.jpg) en el 100 % de la isla:
+  //    - Manglar costero (Ciénaga de los Vásquez, Bahía de Bocachica, Caño de Loro, esteros)
+  //    - Bosque Seco Tropical en colinas y laderas (Cerro del Ángel San Rafael, Loma de las Ánimas, meseta central)
+  //    - Arbolado de patios y sombra urbana en Bocachica, Caño de Loro, Tierra Bomba y Punta Arena
+  onProgreso(0.88, 'Detectando e instanciando la vegetación real de toda Tierra Bomba');
+  const cr = Math.cos(geoRef.rot);
+  const sr = Math.sin(geoRef.rot);
+  const modelToLL = (x, y) => {
+    const px = (x - geoRef.tx) / geoRef.sc;
+    const py = (y - geoRef.ty) / geoRef.sc;
+    return [geoRef.lon0 + (px * cr + py * sr) / geoRef.kx, geoRef.lat0 + (-px * sr + py * cr) / geoRef.ky];
+  };
+  const especies = await prepareTreeSpecies();
+  if (disposed) return null;
+
+  // Grid de ocupación de árboles (celda de 7m) para evitar que dos árboles queden superpuestos
+  const TCELL = 7;
+  const treeOcc = new Set();
+  const marcarArbol = (X, Z) => {
+    const k = `${Math.floor(X / TCELL)}:${Math.floor(Z / TCELL)}`;
+    if (treeOcc.has(k)) return false;
+    treeOcc.add(k);
+    return true;
+  };
+
+  const treeBase = [];
+  // Fuente 1: 100% de los árboles de vegetacion.json (sin truncar a 1200)
+  veg.arboles.forEach(([x, y, size, dense], i) => {
+    if (small && i % 2 === 1) return;
+    const [lo, la] = modelToLL(x, y);
+    const [X, Z] = llToXZ(lo, la);
+    if (distAt(X, Z) <= 0) return;
+    if (enHuellaCasa(X, Z)) return;
+    if (!marcarArbol(X, Z)) return;
+    const elev = heightAtXZ(X, Z);
+    treeBase.push({
+      x: X,
+      y: elev + 0.35,
+      z: Z,
+      rot: ((Math.imul(i + 7, 40503) >>> 0) % 628) / 100,
+      height: 8.5 * size * 1.25 * (dense ? 0.94 : 1.06),
+      tone: ((Math.imul(i + 3, 69069) >>> 0) % 100) / 100,
+      ecotipo: elev < 3.6 ? 'manglar' : 'bosque_seco',
+    });
+  });
+
+  // Fuente 2: Detección de copas reales sobre la imagen satelital completa de Tierra Bomba (satImg)
+  {
+    const satC = document.createElement('canvas');
+    satC.width = W;
+    satC.height = H;
+    const sctx2 = satC.getContext('2d', { willReadFrequently: true });
+    const sx0 = (WIN.left / (MOSAIC.nx * 256)) * satImg.width;
+    const sy0 = (WIN.top / (MOSAIC.ny * 256)) * satImg.height;
+    const sw0 = (WIN.w / (MOSAIC.nx * 256)) * satImg.width;
+    const sh0 = (WIN.h / (MOSAIC.ny * 256)) * satImg.height;
+    sctx2.drawImage(satImg, sx0, sy0, sw0, sh0, 0, 0, W, H);
+    const srgb = sctx2.getImageData(0, 0, W, H).data;
+
+    const pasoBase = small ? 3 : 2; // ~9.4m por celda en escritorio
+    let seed = 17;
+    for (let py = 3; py < H - 3; py += pasoBase) {
+      for (let px = 3; px < W - 3; px += pasoBase) {
+        // Buscamos el máximo local de verdor dentro de la celda pasoBase × pasoBase
+        let bestScore = -999;
+        let bxPx = px;
+        let byPx = py;
+        let bR = 0; let bG = 0; let bB = 0;
+
+        for (let dy = 0; dy < pasoBase; dy++) {
+          const yy = py + dy;
+          if (yy >= H) continue;
+          for (let dx = 0; dx < pasoBase; dx++) {
+            const xx = px + dx;
+            if (xx >= W) continue;
+            const idxPx = yy * W + xx;
+            if (!land[idxPx]) continue;
+            const o = idxPx * 4;
+            const R = srgb[o];
+            const G = srgb[o + 1];
+            const B = srgb[o + 2];
+            // Índice de verdor satelital (ExG + diferencia G-R, descartando arena brillante, mar y cubiertas claras)
+            const score = (2 * G - R - B) + (G - R) * 1.4;
+            if (score > bestScore) {
+              bestScore = score;
+              bxPx = xx;
+              byPx = yy;
+              bR = R; bG = G; bB = B;
+            }
+          }
+        }
+
+        // Umbral de copa vegetal real en la ortofoto Esri de Tierra Bomba
+        // Cubre manglar denso (verde oscuro), bosque seco tropical en lomas (verde oliva) y árboles en patios urbanos
+        const esCopaSatelital =
+          bG >= 20 &&
+          bG <= 156 &&
+          bR <= 146 &&
+          bG >= bR * 0.91 &&
+          bG >= bB * 1.01 &&
+          bestScore >= 3;
+
+        if (!esCopaSatelital) continue;
+
+        const u = (bxPx + 0.5) / W;
+        const v = (byPx + 0.5) / H;
+        const tx = tx0 + u * (tx1 - tx0);
+        const ty = ty0 + v * (ty1 - ty0);
+        const [X, Z] = toXZ(tx, ty);
+
+        // En el tercio norte (lejos de Bocachica) muestreamos 1 de cada 2 celdas para mantener 60fps con cobertura total
+        seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+        const distBoca = Math.hypot(X - bx, Z - bz);
+        if (distBoca > 2400 && (seed & 1) === 1 && bestScore < 16) continue;
+
+        if (enHuellaCasa(X, Z)) continue;
+        // Evitamos tapar el patio interior de la cancha del colegio R9
+        if (Math.hypot(X - nodosXZ.escuelaR9.x, Z - nodosXZ.escuelaR9.z) < 24) continue;
+        if (!marcarArbol(X, Z)) continue;
+
+        const elev = heightAtUV(u, v);
+        const esManglar = elev < 4.2 && bG > bR * 1.03 && bR < 92;
+        const esUrbano = distBoca < 950 && elev < 14;
+        const ecotipo = esManglar ? 'manglar' : esUrbano ? 'sombra' : 'bosque_seco';
+
+        // Altura proporcional al vigor del dosel en la ortofoto satelital
+        const vigor = clamp01((bestScore - 3) / 38);
+        const hArbol = esManglar
+          ? 8.5 + vigor * 5.2 + ((seed % 7) * 0.35)
+          : esUrbano
+            ? 7.2 + vigor * 4.2 + ((seed % 5) * 0.3)
+            : 7.8 + vigor * 5.8 + ((seed % 9) * 0.35);
+
+        treeBase.push({
+          x: X,
+          y: elev + 0.35,
+          z: Z,
+          rot: ((seed >>> 8) % 628) / 100,
+          height: hArbol,
+          tone: ((seed >>> 16) % 100) / 100,
+          ecotipo,
+        });
+      }
+    }
+  }
+
+  // Fuente 3: Corredor de silvicultura comunitaria, vivero de manglar y arbolado perimetral del colegio R9 (Línea 9.3)
+  for (let i = 0; i < 160; i++) {
+    const ang = i * 2.39996;
+    const rad = 28 + (i % 18) * 12;
+    const centro = i % 2 === 0 ? nodosXZ.vivero : nodosXZ.escuelaR9;
+    const X = centro.x + Math.cos(ang) * rad;
+    const Z = centro.z + Math.sin(ang) * rad;
+    if (distAt(X, Z) > 0 && !enHuellaCasa(X, Z) && marcarArbol(X, Z)) {
+      const elev = heightAtXZ(X, Z);
+      treeBase.push({
+        x: X,
+        y: elev + 0.35,
+        z: Z,
+        rot: (i * 1.7) % 6.28,
+        height: 9.2 + (i % 5) * 1.6,
+        tone: (i % 10) / 10,
+        ecotipo: i % 2 === 0 ? 'manglar' : 'sombra',
+      });
+    }
+  }
+  const treesGroup = instanceTrees(especies, treeBase, 95, false);
 
   // Geometría 1: Muros con textura de fachada
   const wallGeo = new THREE.BoxGeometry(1, 1, 1);
@@ -767,6 +932,11 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   // ---------- escena, cielo, mar, luces ----------
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x9fc6d4, 0.000012);
+  try {
+    const envTex = createSkyEnvironment(renderer);
+    scene.environment = envTex;
+    cleanups.push(() => envTex.dispose());
+  } catch { /* fallback sin PMREM */ }
   scene.add(terrain, patch, houseWallsMesh, houseRoofsMesh, treesGroup);
 
   const sky = new Sky();
@@ -1414,12 +1584,12 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       camera.updateProjectionMatrix();
     }
 
-    // Árboles, viviendas 1:1 y escuela R9
+    // Árboles reales en toda la isla, viviendas 1:1 y escuela R9
     const escalaCasasObjetivo = dist > 3800 ? 1.22 : 1.0;
     if (Math.abs(escalaCasasObjetivo - ultimaEscalaCasas) > 0.05) {
       updateHouses(true, escalaCasasObjetivo);
     }
-    treesGroup.visible = dist < 4800;
+    treesGroup.visible = !enNubePura;
     escuelaG.visible = cur.escuela > 0.02;
     escuelaG.scale.set(1, Math.max(0.001, cur.escuela), 1);
 

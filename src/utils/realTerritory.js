@@ -186,7 +186,7 @@ export async function loadTreeTemplates() {
   return out;
 }
 
-// ---- Reutilizables (módulo 02): especies normalizadas a 1 unidad de alto + instanciado por bloques ----
+// ---- Reutilizables (módulo 02 y Aula Ambiental): especies normalizadas a 1 unidad de alto + instanciado por bloques ----
 export async function prepareTreeSpecies() {
   const species = [];
   for (const id of ['island_tree_01', 'island_tree_02']) {
@@ -208,15 +208,26 @@ export async function prepareTreeSpecies() {
       p.geometry.applyMatrix4(norm);
       p.material = p.material.clone();
       p.material.side = THREE.DoubleSide;
-      p.material.envMapIntensity = 0.7;
-      if (p.kind === 'leaf') p.material.alphaTest = Math.max(p.material.alphaTest || 0, 0.4);
+      p.material.envMapIntensity = 0.85;
+      if (p.kind === 'leaf') {
+        p.material.alphaTest = Math.max(p.material.alphaTest || 0, 0.42);
+        p.material.roughness = 0.65;
+        p.material.metalness = 0.0;
+        p.material.emissive = new THREE.Color(0x183d1e);
+        p.material.emissiveIntensity = 0.28;
+      } else {
+        p.material.roughness = 0.85;
+        p.material.metalness = 0.04;
+        p.material.emissive = new THREE.Color(0x22160e);
+        p.material.emissiveIntensity = 0.12;
+      }
     });
     species.push(parts);
   }
   return species;
 }
 
-/** list: [{x, y, z, rot, height, tone}] en coordenadas de mundo; cell = tamaño del bloque para el recorte por cámara */
+/** list: [{x, y, z, rot, height, tone, ecotipo?}] en coordenadas de mundo; cell = tamaño del bloque para el recorte por cámara */
 export function instanceTrees(species, list, cell = 6, castShadow = true) {
   const chunks = new Map();
   list.forEach((t, i) => {
@@ -243,8 +254,18 @@ export function instanceTrees(species, list, cell = 6, castShadow = true) {
         m4.compose(pos, q, sc);
         mesh.setMatrixAt(k, m4);
         if (part.kind === 'leaf') {
-          const v = 0.82 + t.tone * 0.3;
-          col.setRGB(v, v * (0.96 + t.tone * 0.08), v * 0.9);
+          const tn = t.tone ?? 0.5;
+          if (t.ecotipo === 'manglar') {
+            // Manglar costero: verde esmeralda profundo y denso
+            col.setRGB(0.62 + tn * 0.18, 0.92 + tn * 0.22, 0.72 + tn * 0.16);
+          } else if (t.ecotipo === 'bosque_seco') {
+            // Bosque seco tropical en colinas: verde oliva cálido a verde selva
+            col.setRGB(0.78 + tn * 0.26, 0.94 + tn * 0.24, 0.66 + tn * 0.18);
+          } else {
+            // Arbolado de sombra / patio caribeño
+            const v = 0.86 + tn * 0.28;
+            col.setRGB(v * 0.88, v * (1.02 + tn * 0.08), v * 0.82);
+          }
           mesh.setColorAt(k, col);
         }
       });
