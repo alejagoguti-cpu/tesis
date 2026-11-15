@@ -310,13 +310,12 @@ export function Escena3DMojarra({ etapa, adobos, friendo, coccion, plato }) {
     gEnsalada.add(tom1, limPlato);
     gEmplatar.add(gEnsalada);
 
-    const timer = new THREE.Timer();
+    const clock = new THREE.Clock();
     let dropProg = { mojarra: 0, arroz: 0, patacones: 0, ensalada: 0 };
 
     renderer.setAnimationLoop(() => {
-      timer.update();
-      const dt = Math.min(timer.getDelta(), 0.05);
-      const t = timer.getElapsed();
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const t = clock.elapsedTime;
       const s = stateRef.current;
 
       gAdobar.visible = s.etapa === 'adobar';
@@ -561,10 +560,9 @@ export function Escena3DBailarCartagenero({ esMapale, animPose, combo, terminado
     sombreroGrp.add(ala, copa, cinta);
     headGrp.add(sombreroGrp);
 
-    const timer = new THREE.Timer();
+    const clock = new THREE.Clock();
     renderer.setAnimationLoop(() => {
-      timer.update();
-      const t = timer.getElapsed();
+      const t = clock.getElapsedTime();
       const s = stateRef.current;
       const tempo = s.esMapale ? 7.5 : 4.8;
       const groove = Math.sin(t * tempo);
