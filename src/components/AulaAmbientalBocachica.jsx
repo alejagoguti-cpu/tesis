@@ -120,11 +120,11 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0.32,
     gemelo: 0,
-    cifra: '4 pueblos',
+    cifra: '4 corregimientos',
     subCifra: 'Bocachica · Tierra Bomba · Caño de Loro · Punta Arena',
     resumen: 'Al desplazarte ves toda la isla de Tierra Bomba con sus cuatro corregimientos iluminados. Desde aquí puedes explorar el patrimonio, los talleres, el colegio y el manglar.',
     piloto: 'Conectar los cuatro corregimientos alrededor del Gimnasio Cristiano de Bocachica como aula abierta para toda la isla.',
-    producto: 'Un mapa vivo donde la comunidad ubica sus pueblos, caminos y proyectos.',
+    producto: 'Un mapa vivo donde la comunidad ubica sus corregimientos, caminos y proyectos.',
     interactivo: 'simulador4pasos',
   },
   {
@@ -2043,8 +2043,8 @@ function IndiceLateral({ total, activo, onIr }) {
 // ÍNDICE DE BÚSQUEDA Y MINI-JUEGO COMUNITARIO
 // =============================================================================
 const INDICE_BUSQUEDA = [
-  { id: 'casco', tipo: 'lugar', nodo: 'casco', titulo: 'Bocachica (Corregimiento)', sub: '2.600 casas reales del pueblo, calles e historias comunitarias', tags: 'casas pueblo bocachica corregimiento calles vecinos barrio' },
-  { id: 'tierraBomba', tipo: 'lugar', nodo: 'tierraBomba', titulo: 'Tierra Bomba Centro (Corregimiento)', sub: 'Corregimiento en el norte de la isla conectado por mar y senderos', tags: 'tierra bomba centro norte corregimiento pueblo' },
+  { id: 'casco', tipo: 'lugar', nodo: 'casco', titulo: 'Bocachica (Corregimiento)', sub: '2.600 casas reales del corregimiento, calles e historias comunitarias', tags: 'casas corregimiento bocachica calles vecinos barrio' },
+  { id: 'tierraBomba', tipo: 'lugar', nodo: 'tierraBomba', titulo: 'Tierra Bomba Centro (Corregimiento)', sub: 'Corregimiento en el norte de la isla conectado por mar y senderos', tags: 'tierra bomba centro norte corregimiento' },
   { id: 'canoDeLoro', tipo: 'lugar', nodo: 'canoDeLoro', titulo: 'Caño de Loro (Corregimiento)', sub: 'Corregimiento frente a la bahía con manglar y pesca artesanal', tags: 'cano de loro corregimiento bahia pesca manglar' },
   { id: 'puntaArena', tipo: 'lugar', nodo: 'puntaArena', titulo: 'Punta Arena (Corregimiento)', sub: 'Corregimiento en la punta noreste frente a Cartagena', tags: 'punta arena corregimiento playa cartagena' },
   { id: 'escuelaR9', tipo: 'lugar', nodo: 'escuelaR9', titulo: 'Colegio Gimnasio Cristiano (R9)', sub: 'Tanque de 45.000 L de agua lluvia, patio con sombra y aula viva', tags: 'colegio escuela r9 agua lluvia patio sombra estudiantes' },
@@ -2169,13 +2169,13 @@ const EXPLORA_CATEGORIAS = [
     id: 'corregimientos',
     ancla: 'sec-corregimientos',
     label: '1. Corregimientos',
-    cta: 'Explorar los 4 pueblos',
+    cta: 'Explorar los 4 corregimientos',
     color: '#e0917a',
     cam: 'isla_completa',
     nodos: [],
     rutas: { agua: 0, verde: 0.2, residuos: 0, oficios: 0.2, patrimonio: 0.2 },
     zonas: [0.55, 0.2, 0.2],
-    resumen: 'Los 4 pueblos de Tierra Bomba. Toca cualquiera para verlo de cerca.',
+    resumen: 'Los 4 corregimientos de Tierra Bomba. Toca cualquiera para verlo de cerca.',
     lugares: [
       { nodo: 'casco', nombre: 'Bocachica', desc: 'Casco histórico, colegio y fuertes al sur.' },
       { nodo: 'tierraBomba', nombre: 'Tierra Bomba', desc: 'Corregimiento del norte y bosque seco.' },
@@ -2402,7 +2402,7 @@ export default function AulaAmbientalBocachica({
         dx: -40,
         dy: 48,
         fichas: [
-          { titulo: 'Historia', texto: 'Pueblo ribereño nacido junto al canal de Bocachica y sus fortificaciones del siglo XVIII. Desde 1753 ha sido guardián del acceso marítimo a Cartagena y hogar de una comunidad afrocaribeña orgullosa de sus raíces.' },
+          { titulo: 'Historia', texto: 'Corregimiento ribereño nacido junto al canal de Bocachica y sus fortificaciones del siglo XVIII. Desde 1753 ha sido guardián del acceso marítimo a Cartagena y hogar de una comunidad afrocaribeña orgullosa de sus raíces.' },
           { titulo: 'Llegada en lancha', texto: 'Zarpando desde el Muelle de la Bodeguita o Bazurto en Cartagena, llegas en unos 25 a 35 minutos directo al muelle comunitario.' },
           { titulo: 'Qué hacer', texto: 'Recorrer sus fuertes coloniales, visitar sus calles históricas y disfrutar del pescado frito frente al mar.' },
           { titulo: 'Gente y oficios', texto: 'Hogar de carpinteros de ribera, pescadores artesanales, cocineras tradicionales y ruedas de bullerengue.' },
@@ -3733,7 +3733,7 @@ export default function AulaAmbientalBocachica({
                       onClick={() => seleccionarCorregimiento(corSig)}
                       className="px-4 py-2 rounded-xl bg-white text-[#0b1016] hover:bg-white/90 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-lg transition"
                     >
-                      <span>Siguiente pueblo</span>
+                      <span>Siguiente corregimiento</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>

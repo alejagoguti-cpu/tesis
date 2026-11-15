@@ -1587,7 +1587,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const etiquetasGroup = new THREE.Group();
   aulaGroup.add(etiquetasGroup);
   const etqMap = {
-    casco: crearEtiqueta('Pueblo de Bocachica', 'Nuestras casas, calles y memorias', nodosXZ.casco.x, nodosXZ.casco.z, 42, '#e0917a'),
+    casco: crearEtiqueta('Corregimiento de Bocachica', 'Nuestras casas, calles y memorias', nodosXZ.casco.x, nodosXZ.casco.z, 42, '#e0917a'),
     escuelaR9: crearEtiqueta('Colegio Gimnasio Cristiano', 'Techo para lluvia, sombra y aula viva', nodosXZ.escuelaR9.x, nodosXZ.escuelaR9.z, 46, '#35d08a'),
     agua: crearEtiqueta('Aljibes y Pozos', 'Cuidado del agua y lluvia limpia', nodosXZ.agua.x, nodosXZ.agua.z, 38, '#6ec6e6'),
     vivero: crearEtiqueta('Vivero y Manglar', 'Árboles para dar sombra y cuidar la orilla', nodosXZ.vivero.x, nodosXZ.vivero.z, 38, '#35d08a'),
