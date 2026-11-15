@@ -880,141 +880,102 @@
   border-block-end: 3px solid var(--tc-arcilla);
 }
 
-/* Responsive Data Table (Sticky headers + Container query stacked cards) */
-.tc-aula .tc-table-wrapper {
-  overflow: auto;
-  max-inline-size: 100%;
-  max-block-size: min(640px, 82vh);
-  container-type: inline-size;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 14px;
-  background: #080b0e;
+/* ========================================================================= */
+/* MODERN WEB GUIDANCE: SCROLL-DRIVEN ANIMATIONS & COMPOSITOR MOTION         */
+/* ========================================================================= */
+
+@keyframes tc-scroll-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
-.tc-aula .tc-table-wrapper:focus-visible {
-  outline: 2px solid var(--tc-arcilla);
-  outline-offset: 2px;
+.tc-aula .tc-barra-lectura {
+  transform-origin: 0 50%;
+  transform: scaleX(0);
 }
 
-.tc-aula .tc-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  text-align: left;
-  font-size: 0.84rem;
-}
-
-.tc-aula .tc-table thead {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: 2;
-  background: #0e1318;
-}
-
-.tc-aula .tc-table thead th {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace !important;
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--tc-arcilla);
-  padding: 0.85rem 1rem;
-  border-block-end: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.tc-aula .tc-table tbody th {
-  position: sticky;
-  inset-inline-start: 0;
-  z-index: 1;
-  background: #0a0e12;
-  font-weight: 600;
-  color: #f1f5f9;
-  padding: 0.9rem 1rem;
-  border-block-end: 1px solid rgba(255, 255, 255, 0.1);
-  border-inline-end: 1px solid rgba(255, 255, 255, 0.08);
-  vertical-align: top;
-}
-
-.tc-aula .tc-table tbody td {
-  padding: 0.9rem 1rem;
-  color: rgba(241, 245, 249, 0.82);
-  border-block-end: 1px solid rgba(255, 255, 255, 0.1);
-  line-height: 1.5;
-  vertical-align: top;
-}
-
-.tc-aula .tc-table tbody tr:last-child th,
-.tc-aula .tc-table tbody tr:last-child td {
-  border-block-end: none;
-}
-
-.tc-aula .tc-table tbody tr:hover th,
-.tc-aula .tc-table tbody tr:hover td {
-  background: #11171d;
-}
-
-@container (width < 600px) {
-  .tc-aula .tc-table,
-  .tc-aula .tc-table thead,
-  .tc-aula .tc-table tbody,
-  .tc-aula .tc-table tr,
-  .tc-aula .tc-table th,
-  .tc-aula .tc-table td {
-    display: block;
+@media (prefers-reduced-motion: no-preference) {
+  @supports ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
+    .tc-aula .tc-barra-lectura {
+      animation: tc-scroll-progress auto linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0% 100%;
+    }
   }
 
-  .tc-aula .tc-table thead {
-    display: none;
-  }
+  @supports ((animation-timeline: view()) and (animation-range: entry)) {
+    @keyframes tc-entry-reveal {
+      from {
+        opacity: 0;
+        translate: 0 28px;
+        scale: 0.975;
+      }
+      to {
+        opacity: 1;
+        translate: 0 0;
+        scale: 1;
+      }
+    }
 
-  .tc-aula .tc-table tbody tr {
-    margin: 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 10px;
-    overflow: hidden;
+    .tc-aula .tc-scroll-card {
+      animation: tc-entry-reveal auto linear backwards;
+      animation-timeline: view(block);
+      animation-range: entry 0% cover 30%;
+    }
   }
+}
 
-  .tc-aula .tc-table tbody th {
-    position: sticky;
-    inset-block-start: 0;
-    z-index: 2;
-    background: #121920;
-    color: var(--tc-arcilla);
-    border-inline-end: none;
-    border-block-end: 1px solid rgba(255, 255, 255, 0.12);
+/* Discrete entry & panel transitions on the compositor thread */
+.tc-aula .tc-hud-enter {
+  transition:
+    opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    translate 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    display 0.32s;
+  transition-behavior: allow-discrete;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @starting-style {
+    .tc-aula .tc-hud-enter {
+      opacity: 0;
+      translate: 0 14px;
+    }
   }
+}
 
-  .tc-aula .tc-table td:nth-child(2)::before {
-    content: var(--label-2) ": ";
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: rgba(241, 245, 249, 0.5);
-    display: block;
-    margin-block-end: 0.2rem;
+@keyframes tc-fade-slide-in {
+  from {
+    opacity: 0;
+    translate: 0 10px;
   }
-
-  .tc-aula .tc-table td:nth-child(3)::before {
-    content: var(--label-3) ": ";
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: rgba(241, 245, 249, 0.5);
-    display: block;
-    margin-block-end: 0.2rem;
+  to {
+    opacity: 1;
+    translate: 0 0;
   }
+}
 
-  .tc-aula .tc-table td:nth-child(4)::before {
-    content: var(--label-4) ": ";
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: rgba(241, 245, 249, 0.5);
-    display: block;
-    margin-block-end: 0.2rem;
+.tc-aula .tc-paso-anim {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: tc-fade-slide-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+/* Pause state when user clicks Pause animations (WCAG 2.2.2 Pause, Stop, Hide) */
+.tc-aula.tc-anim-pausada *,
+.tc-aula.tc-anim-pausada *::before,
+.tc-aula.tc-anim-pausada *::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-aula .tc-scroll-card,
+  .tc-aula .tc-paso-anim,
+  .tc-aula .tc-hud-enter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    translate: 0 0 !important;
+    scale: 1 !important;
   }
 }
 

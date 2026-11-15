@@ -414,6 +414,372 @@ function BarraSimple({ valor, max = 100, color = '#e0917a', etiqueta, sufijo = '
 }
 
 // =============================================================================
+// EXPLICACIÓN ANIMADA EN 4 PASOS SIMPLES ("FÁCIL DE ENTENDER" + WCAG 2.2.2 PAUSE)
+// =============================================================================
+const PASOS_HISTORIA_SIMPLE = [
+  {
+    n: '01',
+    titulo: '1. Devolver lo investigado a la comunidad',
+    fraseSimple: 'Antes los estudios se quedaban en bibliotecas; ahora regresan a Bocachica como mapas, talleres y cuentos en la escuela.',
+    datoClave: '9 estudios (R1–R9) integrados',
+    color: '#e0917a',
+    quePasa: 'Estudiantes, profesores y sabedores locales revisan juntos los mapas de la isla, corrigen errores y deciden qué es lo más urgente.',
+  },
+  {
+    n: '02',
+    titulo: '2. Agua de lluvia y sombra en el colegio (R9)',
+    fraseSimple: 'El techo del Gimnasio Cristiano recoge el agua de lluvia en un aljibe filtrado y los nuevos árboles bajan el calor del patio.',
+    datoClave: '−4,5 °C de calor · +85 % lluvia captada',
+    color: '#6ec6e6',
+    quePasa: 'En vez de perderse, la lluvia se guarda para el colegio y el vivero; las pérgolas y árboles crean un refugio fresco para estudiar.',
+  },
+  {
+    n: '03',
+    titulo: '3. Plástico reciclado y oficios del mar vivos',
+    fraseSimple: 'El plástico que llega a la costa se transforma en bancas para la escuela, y los carpinteros de ribera enseñan su oficio a los jóvenes.',
+    datoClave: 'Economía circular + Escuela de ribera',
+    color: '#f5b45a',
+    quePasa: 'Se limpia el borde costero convirtiendo residuos en mobiliario útil y se protege el saber tradicional de construir y reparar lanchas.',
+  },
+  {
+    n: '04',
+    titulo: '4. Cuidar y medir cada semestre en el mapa 3D',
+    fraseSimple: 'Un Gemelo Digital 3D fácil de usar permite que el colegio y la comunidad vigilen el agua, los árboles y los proyectos durante 24 meses.',
+    datoClave: '4 semestres · 15 actores en red',
+    color: '#35d08a',
+    quePasa: 'Ninguna obra se abandona: cada semestre el comité local mide qué funcionó y actualiza el modelo 3D de Bocachica.',
+  },
+];
+
+function SimuladorAulaEn4Pasos({ animPausada }) {
+  const [paso, setPaso] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(true);
+
+  useEffect(() => {
+    if (!autoPlay || animPausada) return undefined;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return undefined;
+    const id = setInterval(() => {
+      setPaso((p) => (p + 1) % PASOS_HISTORIA_SIMPLE.length);
+    }, 4800);
+    return () => clearInterval(id);
+  }, [autoPlay, animPausada]);
+
+  const actual = PASOS_HISTORIA_SIMPLE[paso];
+
+  return (
+    <div className="tc-vidrio p-5 md:p-7 tc-scroll-card">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-white/10">
+        <div>
+          <div className="tc-etiqueta !text-[#e0917a]">Guía visual animada · En palabras sencillas</div>
+          <h3 className="text-xl md:text-2xl font-semibold text-white mt-0.5">
+            ¿Cómo funciona el Aula Ambiental en 4 pasos?
+          </h3>
+        </div>
+        {/* Control accesible de Pausa / Reproducción (WCAG 2.2.2 Pause, Stop, Hide) */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setAutoPlay((v) => !v)}
+            className="tc-ficha tc-ficha-activa !text-white !border-[#e0917a]"
+          >
+            {autoPlay && !animPausada ? '⏸ Pausar animación' : '▶ Reproducir animación'}
+          </button>
+        </div>
+      </div>
+
+      {/* Botones de los 4 pasos */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
+        {PASOS_HISTORIA_SIMPLE.map((item, idx) => {
+          const act = paso === idx;
+          return (
+            <button
+              key={item.n}
+              type="button"
+              onClick={() => { setPaso(idx); setAutoPlay(false); }}
+              className={`p-3 rounded-xl text-left border transition-all ${
+                act
+                  ? 'bg-white/[0.09] border-white/45 shadow-lg'
+                  : 'bg-white/[0.02] border-white/10 opacity-70 hover:opacity-100'
+              }`}
+            >
+              <div className="flex items-center justify-between text-xs">
+                <span className="tc-num font-mono font-semibold" style={{ color: item.color }}>
+                  PASO {item.n}
+                </span>
+                {act && <span className="w-2 h-2 rounded-full animate-ping" style={{ background: item.color }} />}
+              </div>
+              <div className="text-xs font-semibold text-white mt-1 line-clamp-2">{item.titulo}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Escena SVG animada según el paso activo */}
+      <div className="grid md:grid-cols-12 gap-6 items-center">
+        <div className="md:col-span-7 bg-[#060a0f] rounded-xl border border-white/10 p-3 overflow-hidden">
+          <svg viewBox="0 0 600 280" className="w-full h-auto block select-none">
+            <defs>
+              <linearGradient id="cielo-sim" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#09131c" />
+                <stop offset="100%" stopColor="#102534" />
+              </linearGradient>
+            </defs>
+            <rect width="600" height="280" rx="10" fill="url(#cielo-sim)" />
+            {/* Suelo de la isla y mar */}
+            <path d="M 0 235 Q 160 220 340 230 T 600 238 L 600 280 L 0 280 Z" fill="#172822" />
+            <path d="M 0 252 Q 150 246 300 252 T 600 250 L 600 280 L 0 280 Z" fill="#0d4a60" opacity="0.7" />
+
+            {/* ESCENA PASO 1: Devolver saberes a la escuela y comunidad */}
+            {paso === 0 && (
+              <g>
+                {/* Nodo Universidad / Archivo */}
+                <rect x="55" y="95" width="120" height="90" rx="8" fill="#131c26" stroke="#e0917a" strokeWidth="2" />
+                <text x="115" y="128" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="600">Estudios R1–R8</text>
+                <text x="115" y="146" textAnchor="middle" fill="#e0917a" fontSize="9.5" fontFamily="IBM Plex Mono">Mapas + Memorias</text>
+                <text x="115" y="166" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="8.5">Universidad + Archivos</text>
+
+                {/* Puente animado de devolución */}
+                <path id="arco-devolucion" d="M 180 135 Q 300 55 415 135" fill="none" stroke="#e0917a" strokeWidth="2.5" strokeDasharray="6 4" />
+                <circle r="6" fill="#e0917a">
+                  <animateMotion dur="2.2s" repeatCount="indefinite">
+                    <mpath href="#arco-devolucion" />
+                  </animateMotion>
+                </circle>
+                <circle r="4" fill="#6ec6e6">
+                  <animateMotion dur="2.2s" begin="1.1s" repeatCount="indefinite">
+                    <mpath href="#arco-devolucion" />
+                  </animateMotion>
+                </circle>
+                <text x="300" y="75" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="600">
+                  Devolver · Validar · Transformar →
+                </text>
+
+                {/* Nodo Comunidad y Escuela en Bocachica */}
+                <rect x="420" y="95" width="130" height="90" rx="8" fill="#13241c" stroke="#35d08a" strokeWidth="2" />
+                <text x="485" y="128" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="600">Bocachica + R9</text>
+                <text x="485" y="146" textAnchor="middle" fill="#35d08a" fontSize="9.5" fontFamily="IBM Plex Mono">Escuela y Familias</text>
+                <text x="485" y="166" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="8.5">Deciden prioridades</text>
+              </g>
+            )}
+
+            {/* ESCENA PASO 2: Lluvia en cubierta en V + sombra bioclimática en Colegio R9 */}
+            {paso === 1 && (
+              <g>
+                {/* Gotas de lluvia animadas */}
+                {[140, 185, 230, 275, 320, 365].map((lx, i) => (
+                  <line key={lx} x1={lx} y1="20" x2={lx - 4} y2="36" stroke="#6ec6e6" strokeWidth="2" strokeLinecap="round">
+                    <animate attributeName="y1" from="15" to="115" dur={`${0.9 + (i % 3) * 0.2}s`} repeatCount="indefinite" />
+                    <animate attributeName="y2" from="30" to="130" dur={`${0.9 + (i % 3) * 0.2}s`} repeatCount="indefinite" />
+                  </line>
+                ))}
+
+                {/* Escuela R9 con cubierta en V (macro-embudo) */}
+                <rect x="155" y="135" width="190" height="85" fill="#1e293b" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" />
+                <polygon points="135,112 250,142 365,112 365,122 250,152 135,122" fill="#6ec6e6" />
+                <text x="250" y="182" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="700">
+                  Gimnasio Cristiano (R9)
+                </text>
+                <text x="250" y="200" textAnchor="middle" fill="#a8f0c6" fontSize="9.5" fontFamily="IBM Plex Mono">
+                  Patio fresco: −4,5 °C con sombra
+                </text>
+
+                {/* Tubería hacia el aljibe */}
+                <path d="M 250 152 L 250 165 L 435 165 L 435 180" fill="none" stroke="#6ec6e6" strokeWidth="3" />
+
+                {/* Aljibe llenándose */}
+                <rect x="405" y="150" width="85" height="72" rx="6" fill="rgba(110,198,230,0.12)" stroke="#6ec6e6" strokeWidth="2" />
+                <rect x="409" y="172" width="77" height="46" rx="4" fill="#2f9fd0" opacity="0.85">
+                  <animate attributeName="y" values="205;162;205" dur="4s" repeatCount="indefinite" />
+                  <animate attributeName="height" values="13;56;13" dur="4s" repeatCount="indefinite" />
+                </rect>
+                <text x="447" y="140" textAnchor="middle" fill="#6ec6e6" fontSize="10" fontWeight="600">Aljibe Escolar</text>
+
+                {/* Árboles de refugio climático creciendo */}
+                <g transform="translate(95, 175)">
+                  <rect x="-4" y="15" width="8" height="42" fill="#8a6a4a" />
+                  <circle cx="0" cy="5" r="28" fill="#35d08a" opacity="0.85">
+                    <animate attributeName="r" values="22;30;22" dur="3s" repeatCount="indefinite" />
+                  </circle>
+                </g>
+              </g>
+            )}
+
+            {/* ESCENA PASO 3: Plástico reciclado y Carpintería de Ribera */}
+            {paso === 2 && (
+              <g>
+                {/* Recolección de plástico -> Taller -> Banca escolar */}
+                <rect x="45" y="110" width="135" height="82" rx="8" fill="#231c12" stroke="#f5b45a" strokeWidth="2" />
+                <text x="112" y="142" textAnchor="middle" fill="#ffe1a8" fontSize="11.5" fontWeight="600">Plástico Costero</text>
+                <text x="112" y="160" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontSize="9" fontFamily="IBM Plex Mono">Acopio y limpieza</text>
+
+                <path id="ruta-plastico" d="M 185 150 L 295 150" stroke="#f5b45a" strokeWidth="2.5" strokeDasharray="5 4" />
+                <circle r="5" fill="#f5b45a">
+                  <animateMotion dur="1.5s" repeatCount="indefinite">
+                    <mpath href="#ruta-plastico" />
+                  </animateMotion>
+                </circle>
+
+                <rect x="300" y="110" width="125" height="82" rx="8" fill="#17241e" stroke="#35d08a" strokeWidth="2" />
+                <text x="362" y="142" textAnchor="middle" fill="#fff" fontSize="11.5" fontWeight="600">Bancas y Tablas</text>
+                <text x="362" y="160" textAnchor="middle" fill="#35d08a" fontSize="9" fontFamily="IBM Plex Mono">Mobiliario escolar</text>
+
+                {/* Embarcación tradicional (Carpintería de ribera 9.5) */}
+                <g>
+                  <animateTransform attributeName="transform" type="translate" values="0,0; 18,0; 0,0" dur="3.5s" repeatCount="indefinite" />
+                  <polygon points="455,215 555,215 538,238 472,238" fill="#e0917a" stroke="#fff" strokeWidth="1.2" />
+                  <polygon points="505,150 505,210 542,202" fill="#f4f1ec" opacity="0.9" />
+                  <text x="505" y="136" textAnchor="middle" fill="#f7d49e" fontSize="10" fontWeight="600">Carpintería de Ribera</text>
+                </g>
+              </g>
+            )}
+
+            {/* ESCENA PASO 4: Gemelo Digital 3D y monitoreo comunitario */}
+            {paso === 3 && (
+              <g>
+                {/* Silueta de la isla con pulsos de sensores */}
+                <path
+                  d="M 150 190 Q 230 95 350 110 T 480 185 Q 360 220 150 190 Z"
+                  fill="rgba(53,208,138,0.15)"
+                  stroke="#35d08a"
+                  strokeWidth="2"
+                />
+                {[
+                  { x: 235, y: 155, etq: 'Agua', col: '#6ec6e6' },
+                  { x: 315, y: 138, etq: 'Escuela R9', col: '#35d08a' },
+                  { x: 395, y: 165, etq: 'Oficios', col: '#f5b45a' },
+                ].map((nd) => (
+                  <g key={nd.etq} transform={`translate(${nd.x},${nd.y})`}>
+                    <circle r="18" fill="none" stroke={nd.col} strokeWidth="1.5">
+                      <animate attributeName="r" values="8;26;8" dur="2.4s" repeatCount="indefinite" />
+                      <animate attributeName="opacity" values="0.9;0.1;0.9" dur="2.4s" repeatCount="indefinite" />
+                    </circle>
+                    <circle r="6" fill={nd.col} />
+                    <text y="-12" textAnchor="middle" fill="#fff" fontSize="9.5" fontWeight="600">{nd.etq}</text>
+                  </g>
+                ))}
+                <text x="310" y="62" textAnchor="middle" fill="#fff" fontSize="12.5" fontWeight="600">
+                  Gemelo Digital 3D · Monitoreo cada 6 meses
+                </text>
+                <text x="310" y="82" textAnchor="middle" fill="#6ec6e6" fontSize="10" fontFamily="IBM Plex Mono">
+                  Archivo vivo → Cartografía → Modelo 3D → Escenarios → Cuidado
+                </text>
+              </g>
+            )}
+          </svg>
+        </div>
+
+        {/* Explicación clara y directa del paso actual */}
+        <div key={actual.n} className="md:col-span-5 space-y-4 tc-paso-anim">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.06] border border-white/15 text-xs font-mono" style={{ color: actual.color }}>
+            <span>●</span>
+            <span>{actual.datoClave}</span>
+          </div>
+          <h4 className="text-2xl font-semibold text-white leading-snug">{actual.titulo}</h4>
+          <p className="text-base text-white/90 leading-relaxed font-medium">
+            {actual.fraseSimple}
+          </p>
+          <p className="text-xs text-white/70 leading-relaxed pt-3 tc-regla">
+            <strong className="text-white">¿Cómo ocurre en la práctica?</strong> {actual.quePasa}
+          </p>
+          <div className="flex items-center gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => { setAutoPlay(false); setPaso((paso + PASOS_HISTORIA_SIMPLE.length - 1) % PASOS_HISTORIA_SIMPLE.length); }}
+              className="tc-ficha"
+            >
+              ← Paso anterior
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAutoPlay(false); setPaso((paso + 1) % PASOS_HISTORIA_SIMPLE.length); }}
+              className="tc-ficha tc-ficha-activa !text-white !border-[#e0917a]"
+            >
+              Siguiente paso ({((paso + 1) % PASOS_HISTORIA_SIMPLE.length) + 1}/4) →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// SIMULADOR INTERACTIVO ANTES / DESPUÉS EN EL COLEGIO R9 (Fácil de entender)
+// =============================================================================
+function SimuladorAntesDespuesR9() {
+  const [conProyecto, setConProyecto] = useState(true);
+
+  return (
+    <div className="mt-12 tc-vidrio p-5 md:p-7 tc-scroll-card">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-white/10">
+        <div>
+          <div className="tc-etiqueta !text-[#35d08a]">Simulador interactivo · Gimnasio Cristiano de Bocachica (R9)</div>
+          <h3 className="text-xl md:text-2xl font-semibold text-white mt-0.5">
+            Compara el patio escolar: Hoy vs. Con el Aula Ambiental
+          </h3>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setConProyecto(false)}
+            className={`tc-ficha ${!conProyecto ? 'tc-ficha-activa !border-[#e0917a] !text-white' : ''}`}
+          >
+            ☀ Hoy (Sin intervención)
+          </button>
+          <button
+            type="button"
+            onClick={() => setConProyecto(true)}
+            className={`tc-ficha ${conProyecto ? 'tc-ficha-activa !border-[#35d08a] !text-white' : ''}`}
+          >
+            🌳 Con Aula Ambiental (Piloto R9)
+          </button>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-12 gap-6 items-center">
+        <div className="md:col-span-6 space-y-4">
+          <BarraSimple
+            etiqueta={conProyecto ? 'Sombra útil en patio escolar (Con refugio bioclimático)' : 'Sombra útil en patio escolar (Hoy: radiación directa)'}
+            valor={conProyecto ? 78 : 18}
+            color={conProyecto ? '#35d08a' : '#e0917a'}
+            sufijo=" % del patio sombreado"
+          />
+          <BarraSimple
+            etiqueta={conProyecto ? 'Agua de lluvia cosechada en cubierta y filtrada' : 'Agua de lluvia aprovechada (Hoy: se pierde por escorrentía)'}
+            valor={conProyecto ? 85 : 5}
+            color={conProyecto ? '#6ec6e6' : '#e0917a'}
+            sufijo=" % aprovechado"
+          />
+          <BarraSimple
+            etiqueta={conProyecto ? 'Confort térmico para clases al aire libre (−4,5 °C)' : 'Confort térmico a mediodía (Estrés por calor)'}
+            valor={conProyecto ? 88 : 28}
+            color={conProyecto ? '#35d08a' : '#f5b45a'}
+            sufijo=" / 100 índice de confort"
+          />
+        </div>
+
+        <div key={conProyecto ? 'despues' : 'antes'} className="md:col-span-6 tc-vidrio p-5 tc-paso-anim">
+          <div className="flex items-center justify-between">
+            <span className="tc-etiqueta" style={{ color: conProyecto ? '#35d08a' : '#e0917a' }}>
+              {conProyecto ? 'Escenario con el Piloto R9 activo' : 'Situación base diagnosticada (R1, R8, R9)'}
+            </span>
+            <span className="tc-num text-2xl font-semibold text-white">
+              {conProyecto ? '31,5 °C' : '36,0 °C'}
+            </span>
+          </div>
+          <p className="text-sm text-white/85 mt-3 leading-relaxed">
+            {conProyecto
+              ? 'La cubierta captadora en V recoge la lluvia hacia el aljibe escolar, el vivero de especies nativas sombrea el patio y la cancha de preescolar funciona como aula abierta para niños, docentes y comunidad.'
+              : 'El sol caribeño incide directamente sobre el patio y las aulas sin suficiente sombra arbórea, limitando el juego y las actividades pedagógicas en las horas centrales del día y desperdiciando el agua de lluvia.'}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
 // 01 · RED PROGRESIVA DEL PROBLEMA (Idéntica a Red.jsx en tesis_tercer_corte)
 // =============================================================================
 const NODOS_PROBLEMA = [
@@ -1174,6 +1540,9 @@ function SeccionEsquemaAula() {
           <EsquemaAulaSVG filtro={filtro} setFiltro={setFiltro} />
         </div>
 
+        {/* Simulador Before/After del Colegio R9 */}
+        <SimuladorAntesDespuesR9 />
+
         {/* 6 Tarjetas de los Pilotos con formato .tc-regla (idéntico a CRITERIOS en Plan.jsx) */}
         <div className="mt-16 pt-12 tc-regla">
           <div className="tc-etiqueta">Seis proyectos piloto articulados (Sección 9 del documento)</div>
@@ -1481,6 +1850,8 @@ export default function AulaAmbientalBocachica({
   const [lentePaso, setLentePaso] = useState('resumen'); // 'resumen' | 'piloto' | 'producto'
   const [libre, setLibre] = useState(false);
   const [panelOculto, setPanelOculto] = useState(false);
+  const [animPausada, setAnimPausada] = useState(false);
+  const [tour3DActivo, setTour3DActivo] = useState(false);
 
   const secLineasRef = useRef(null);
   const secGemeloRef = useRef(null);
@@ -1666,10 +2037,30 @@ export default function AulaAmbientalBocachica({
     window.scrollTo({ top: topDoc + localIdx * pasoPx + 12, behavior: 'smooth' });
   };
 
+  // Tour 3D automático cuando el usuario activa "▶ Tour 3D"
+  useEffect(() => {
+    if (!tour3DActivo || animPausada || !enPasos3D) return undefined;
+    const id = setInterval(() => {
+      const sig = (pasoIdx + 1) % PASOS_3D.length;
+      irAPaso3D(sig);
+    }, 5200);
+    return () => clearInterval(id);
+  }, [tour3DActivo, animPausada, enPasos3D, pasoIdx]);
+
   const pasoActual = PASOS_3D[pasoIdx] || PASOS_3D[0];
 
   return (
-    <div id="aula-ambiental-bocachica" ref={rootRef} className="tc-aula relative min-h-screen text-[#f4f1ec] select-none">
+    <div
+      id="aula-ambiental-bocachica"
+      ref={rootRef}
+      className={`tc-aula relative min-h-screen text-[#f4f1ec] select-none ${animPausada ? 'tc-anim-pausada' : ''}`}
+    >
+      {/* BARRA SUPERIOR DE PROGRESO DE LECTURA (Scroll-Driven Animation en el compositor) */}
+      {enVistaAula && (
+        <div className="fixed top-0 inset-x-0 h-1 z-40 bg-white/5 pointer-events-none">
+          <div className="h-full w-full bg-gradient-to-r from-[#e0917a] via-[#35d08a] to-[#6ec6e6] tc-barra-lectura" />
+        </div>
+      )}
       {/* ESCENA 3D FIJA A PANTALLA COMPLETA (Idéntica a App.jsx en tesis_tercer_corte) */}
       <div
         ref={mount3DRef}
@@ -1725,10 +2116,20 @@ export default function AulaAmbientalBocachica({
           })}
         </nav>
 
-        <div className="tc-vidrio px-3.5 py-2 text-xs text-white/75 hidden sm:block">
-          <span className="tc-num text-white font-semibold">{capActual.id}</span>
-          <span className="mx-1.5 text-white/30">·</span>
-          <span>{capActual.nombre}</span>
+        <div className="tc-vidrio px-3 py-1.5 text-xs text-white/75 hidden sm:flex items-center gap-2.5 pointer-events-auto">
+          <div>
+            <span className="tc-num text-white font-semibold">{capActual.id}</span>
+            <span className="mx-1.5 text-white/30">·</span>
+            <span>{capActual.nombre}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAnimPausada((v) => !v)}
+            className="px-2 py-0.5 rounded border border-white/15 text-[11px] text-white/80 hover:text-white hover:border-white/35 transition"
+            title="Pausar o reanudar animaciones (Accesibilidad WCAG 2.2.2)"
+          >
+            {animPausada ? '▶ Animar' : '⏸ Pausar'}
+          </button>
         </div>
       </header>
       )}
@@ -1747,10 +2148,26 @@ export default function AulaAmbientalBocachica({
           <IndiceLateral total={PASOS_3D.length} activo={pasoIdx} onIr={irAPaso3D} />
 
           {!panelOculto && (
-            <aside className="fixed z-20 bottom-4 inset-x-4 md:inset-x-auto md:bottom-6 md:left-8 md:w-[26rem] tc-vidrio p-5 pointer-events-auto">
+            <aside
+              key={pasoActual.id}
+              className="fixed z-20 bottom-4 inset-x-4 md:inset-x-auto md:bottom-6 md:left-8 md:w-[26.5rem] tc-vidrio p-5 pointer-events-auto tc-hud-enter tc-paso-anim"
+            >
               <div className="flex items-center justify-between text-xs text-white/60">
                 <span className="tc-etiqueta !text-[#e0917a]">{pasoActual.grupo}</span>
-                <span className="tc-num font-mono">{pasoActual.pasoGrupo}</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTour3DActivo((v) => !v)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono border transition ${
+                      tour3DActivo
+                        ? 'bg-[#35d08a]/25 border-[#35d08a] text-white'
+                        : 'border-white/20 text-white/75 hover:text-white'
+                    }`}
+                  >
+                    {tour3DActivo ? '⏸ Pausar tour 3D' : '▶ Tour 3D auto'}
+                  </button>
+                  <span className="tc-num font-mono">{pasoActual.pasoGrupo}</span>
+                </div>
               </div>
 
               <h3 className="text-xl font-semibold text-white mt-1.5 leading-snug">
@@ -1870,17 +2287,22 @@ export default function AulaAmbientalBocachica({
         </div>
 
         <div className="px-6 md:px-16 py-24 md:py-32 bg-black/90 backdrop-blur-sm">
-          <div className="max-w-6xl mx-auto">
-            <div className="max-w-2xl mb-10">
-              <div className="tc-etiqueta">Red de problemas y oportunidades en Bocachica</div>
-              <h2 className="text-3xl md:text-4xl font-semibold mt-2 leading-tight text-white">
-                Un sistema socioecológico donde memoria, agua, escuela y oficios son inseparables.
-              </h2>
-              <p className="text-white/70 text-sm mt-3">
-                Recorre la red paso a paso con el botón <span className="text-white font-medium">Revelar siguiente relación</span> o haz clic en cada nodo para ver cómo el Aula Ambiental articula las brechas del territorio.
-              </p>
+          <div className="max-w-6xl mx-auto space-y-16">
+            {/* NUEVO: Explicación animada en 4 pasos fáciles de entender */}
+            <SimuladorAulaEn4Pasos animPausada={animPausada} />
+
+            <div>
+              <div className="max-w-2xl mb-10">
+                <div className="tc-etiqueta">Red interactiva de problemas y soluciones en Bocachica</div>
+                <h2 className="text-3xl md:text-4xl font-semibold mt-2 leading-tight text-white">
+                  Un sistema socioecológico donde memoria, agua, escuela y oficios son inseparables.
+                </h2>
+                <p className="text-white/70 text-sm mt-3">
+                  Recorre la red paso a paso con el botón <span className="text-white font-medium">Revelar siguiente relación</span> o haz clic en cada nodo para ver cómo el Aula Ambiental articula las brechas del territorio.
+                </p>
+              </div>
+              <RedProblemaAula />
             </div>
-            <RedProblemaAula />
           </div>
         </div>
       </section>
