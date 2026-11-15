@@ -2205,7 +2205,7 @@ const EXPLORA_CATEGORIAS = [
     cta: 'Ver clases en la isla',
     color: '#e8a86b',
     cam: 'isla_completa',
-    nodos: ['escuelaR9', 'ribera', 'vivero', 'tierraBomba', 'puntaArena'],
+    nodos: [],
     rutas: { agua: 0.3, verde: 0.4, residuos: 0.9, oficios: 1, patrimonio: 0 },
     zonas: [0.1, 0.4, 0.95],
     resumen: 'Toca un icono animado en la isla para descubrir la clase del viernes e inscribirte.',
@@ -2307,7 +2307,7 @@ export default function AulaAmbientalBocachica({
 
   const proximoViernes = useMemo(() => obtenerProximoViernes(), []);
 
-  // Actividades animadas sobre toda la isla (al tocar un icono se abre la card grande)
+  // Actividades animadas sobre toda la isla (con separación para que nunca se superpongan)
   const actividadesIsla = useMemo(
     () => [
       {
@@ -2320,6 +2320,8 @@ export default function AulaAmbientalBocachica({
         mes: proximoViernes.mes,
         color: '#6ec6e6',
         Icon: BookOpen,
+        dx: 0,
+        dy: 68,
       },
       {
         nodo: 'ribera',
@@ -2331,6 +2333,8 @@ export default function AulaAmbientalBocachica({
         mes: 'ENE',
         color: '#e8a86b',
         Icon: Hammer,
+        dx: -115,
+        dy: -16,
       },
       {
         nodo: 'vivero',
@@ -2342,6 +2346,8 @@ export default function AulaAmbientalBocachica({
         mes: 'FEB',
         color: '#35d08a',
         Icon: Sprout,
+        dx: 118,
+        dy: -14,
       },
       {
         nodo: 'tierraBomba',
@@ -2353,6 +2359,8 @@ export default function AulaAmbientalBocachica({
         mes: 'NOV',
         color: '#e0917a',
         Icon: Utensils,
+        dx: -42,
+        dy: -24,
       },
       {
         nodo: 'puntaArena',
@@ -2364,6 +2372,8 @@ export default function AulaAmbientalBocachica({
         mes: 'NOV',
         color: '#f4f1ec',
         Icon: Music,
+        dx: 48,
+        dy: -18,
       },
     ],
     [proximoViernes]
@@ -2371,6 +2381,14 @@ export default function AulaAmbientalBocachica({
 
   const [actividadViernesSel, setActividadViernesSel] = useState(null);
   const [pinesActividad, setPinesActividad] = useState({});
+
+  const seleccionarActividad = (act) => {
+    if (!act) return;
+    setActividadViernesSel(act);
+    setTemaViernes(act.titulo);
+    setConfirmViernes(false);
+    escena?.irANodo?.(act.nodo, 340);
+  };
 
   useEffect(() => {
     if (!escena?.proyectarNodos || catActiva?.id !== 'talleres' || panelJuego || modalDiagrama) {
@@ -2380,8 +2398,49 @@ export default function AulaAmbientalBocachica({
     let rafId = 0;
     const claves = actividadesIsla.map((a) => a.nodo);
     const loop = () => {
-      const next = escena.proyectarNodos(claves);
-      setPinesActividad(next);
+      const raw = escena.proyectarNodos(claves);
+      const w = window.innerWidth || 1280;
+      const h = window.innerHeight || 720;
+      const items = actividadesIsla
+        .filter((a) => raw[a.nodo])
+        .map((a) => ({
+          nodo: a.nodo,
+          ax: raw[a.nodo].x,
+          ay: raw[a.nodo].y,
+          x: raw[a.nodo].x + (a.dx || 0),
+          y: raw[a.nodo].y + (a.dy || 0),
+        }));
+
+      // Separación 2D para garantizar que ningún icono ni etiqueta se superponga
+      const minW = 132;
+      const minH = 92;
+      for (let it = 0; it < 6; it += 1) {
+        for (let i = 0; i < items.length; i += 1) {
+          for (let j = i + 1; j < items.length; j += 1) {
+            const dx = items[j].x - items[i].x;
+            const dy = items[j].y - items[i].y;
+            const ox = minW - Math.abs(dx);
+            const oy = minH - Math.abs(dy);
+            if (ox > 0 && oy > 0) {
+              if (ox < oy) {
+                const s = (dx >= 0 ? 1 : -1) * (ox * 0.52);
+                items[i].x -= s;
+                items[j].x += s;
+              } else {
+                const s = (dy >= 0 ? 1 : -1) * (oy * 0.52);
+                items[i].y -= s;
+                items[j].y += s;
+              }
+            }
+          }
+          items[i].x = Math.max(82, Math.min(w - 82, items[i].x));
+          items[i].y = Math.max(104, Math.min(h - 92, items[i].y));
+        }
+      }
+
+      const sep = {};
+      for (const it of items) sep[it.nodo] = it;
+      setPinesActividad(sep);
       rafId = requestAnimationFrame(loop);
     };
     rafId = requestAnimationFrame(loop);
@@ -3040,6 +3099,29 @@ export default function AulaAmbientalBocachica({
       {/* ICONOS ANIMADOS DE ACTIVIDAD SOBRE TODA LA ISLA (3. TALLERES Y VIERNES) */}
       {enVistaAula && catActiva?.id === 'talleres' && !panelJuego && !modalDiagrama && (
         <div className="fixed inset-0 z-15 pointer-events-none overflow-hidden">
+          <svg className="absolute inset-0 w-full h-full pointer-events-none">
+            {actividadesIsla.map((act) => {
+              const p = pinesActividad[act.nodo];
+              if (!p) return null;
+              const dist = Math.hypot(p.x - p.ax, p.y - p.ay);
+              if (dist < 14) return null;
+              return (
+                <g key={`line-${act.nodo}`}>
+                  <line
+                    x1={p.ax}
+                    y1={p.ay}
+                    x2={p.x}
+                    y2={p.y}
+                    stroke={act.color}
+                    strokeWidth="1.5"
+                    strokeDasharray="4 4"
+                    strokeOpacity="0.65"
+                  />
+                  <circle cx={p.ax} cy={p.ay} r="4" fill={act.color} fillOpacity="0.9" />
+                </g>
+              );
+            })}
+          </svg>
           {actividadesIsla.map((act) => {
             const p = pinesActividad[act.nodo];
             if (!p) return null;
@@ -3049,12 +3131,7 @@ export default function AulaAmbientalBocachica({
               <button
                 key={act.nodo}
                 type="button"
-                onClick={() => {
-                  setActividadViernesSel(act);
-                  setTemaViernes(act.titulo);
-                  setConfirmViernes(false);
-                  escena?.irANodo?.(act.nodo, 340);
-                }}
+                onClick={() => seleccionarActividad(act)}
                 style={{ left: `${p.x}px`, top: `${p.y}px` }}
                 className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto group cursor-pointer focus:outline-none"
               >
@@ -3120,6 +3197,9 @@ export default function AulaAmbientalBocachica({
         if (catActiva.id === 'talleres' && actividadViernesSel) {
           const act = actividadViernesSel;
           const IconoAct = act.Icon || Hammer;
+          const idxAct = Math.max(0, actividadesIsla.findIndex((a) => a.nodo === act.nodo));
+          const actAnt = actividadesIsla[(idxAct - 1 + actividadesIsla.length) % actividadesIsla.length];
+          const actSig = actividadesIsla[(idxAct + 1) % actividadesIsla.length];
           return (
             <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(94vw,29rem)] tc-paso-anim">
               <CardIluminada
@@ -3210,6 +3290,29 @@ export default function AulaAmbientalBocachica({
                     <span>¡Inscripción lista! Te esperamos el viernes {act.dia} {act.mes} a las 4:00 PM.</span>
                   </div>
                 )}
+
+                {/* NAVEGACIÓN DIRECTA ENTRE ACTIVIDADES SIN RETROCEDER */}
+                <div className="pt-2.5 border-t border-white/15 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => seleccionarActividad(actAnt)}
+                    className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Anterior</span>
+                  </button>
+                  <span className="text-[11px] font-bold text-white/70">
+                    {idxAct + 1} / {actividadesIsla.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => seleccionarActividad(actSig)}
+                    className="px-3.5 py-1.5 rounded-xl bg-white text-[#0b1016] hover:bg-white/90 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-lg transition"
+                  >
+                    <span>Siguiente</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </CardIluminada>
             </aside>
           );
