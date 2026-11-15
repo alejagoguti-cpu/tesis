@@ -1090,43 +1090,256 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     escuelaG.add(agora, agoraTecho);
   }
 
-  // Fortificaciones históricas 3D de Bocachica (Piedra coralina: San Fernando, San José y Ángel San Rafael)
+  // Fortificaciones históricas 3D de Bocachica (Piedra coralina realista: San Fernando, San José y Ángel San Rafael)
   const fuertesGroup = new THREE.Group();
   aulaGroup.add(fuertesGroup);
   {
-    const matPiedraCoral = new THREE.MeshStandardMaterial({ color: 0xd2c2a8, roughness: 0.92, metalness: 0.04 });
+    // Textura procedural de sillares de piedra coralina envejecida
+    const cPiedra = document.createElement('canvas');
+    cPiedra.width = 256;
+    cPiedra.height = 256;
+    const gp = cPiedra.getContext('2d');
+    gp.fillStyle = '#c8baa2';
+    gp.fillRect(0, 0, 256, 256);
+    const tonosPiedra = ['#cfc2ac', '#bfb098', '#b0a088', '#d6cab6', '#9b8d77'];
+    const rowH = 16;
+    for (let r = 0; r < 16; r++) {
+      const y0 = r * rowH;
+      let x0 = (r % 2) * -14;
+      while (x0 < 256) {
+        const w = 24 + ((r * 13 + x0 * 7) & 15);
+        gp.fillStyle = tonosPiedra[(r * 5 + Math.abs(x0)) % tonosPiedra.length];
+        gp.fillRect(x0 + 1, y0 + 1, w - 2, rowH - 2);
+        x0 += w;
+      }
+      gp.fillStyle = 'rgba(55,45,35,0.18)';
+      gp.fillRect(0, y0, 256, 1);
+    }
+    // Pátina de humedad y salitre marino en la base
+    const grad = gp.createLinearGradient(0, 170, 0, 256);
+    grad.addColorStop(0, 'rgba(65,68,52,0)');
+    grad.addColorStop(1, 'rgba(52,58,42,0.42)');
+    gp.fillStyle = grad;
+    gp.fillRect(0, 170, 256, 86);
+    const piedraTex = new THREE.CanvasTexture(cPiedra);
+    piedraTex.colorSpace = THREE.SRGBColorSpace;
+    piedraTex.wrapS = piedraTex.wrapT = THREE.RepeatWrapping;
+    piedraTex.repeat.set(3, 2);
+
+    // Textura de plaza de armas (tierra compactada y lajas)
+    const cPlaza = document.createElement('canvas');
+    cPlaza.width = 128;
+    cPlaza.height = 128;
+    const gpl = cPlaza.getContext('2d');
+    gpl.fillStyle = '#c5b092';
+    gpl.fillRect(0, 0, 128, 128);
+    for (let i = 0; i < 420; i++) {
+      const px = (i * 73) % 128;
+      const py = (i * 41) % 128;
+      gpl.fillStyle = i % 3 === 0 ? 'rgba(95,78,58,0.16)' : 'rgba(232,220,198,0.22)';
+      gpl.fillRect(px, py, 3, 2);
+    }
+    const plazaTex = new THREE.CanvasTexture(cPlaza);
+    plazaTex.colorSpace = THREE.SRGBColorSpace;
+    plazaTex.wrapS = plazaTex.wrapT = THREE.RepeatWrapping;
+    plazaTex.repeat.set(4, 4);
+
+    const matPiedraCoral = new THREE.MeshStandardMaterial({ map: piedraTex, color: 0xddd2be, roughness: 0.92, metalness: 0.04 });
+    const matPiedraOscura = new THREE.MeshStandardMaterial({ map: piedraTex, color: 0xa69882, roughness: 0.95, metalness: 0.04 });
+    const matPlazaFuerte = new THREE.MeshStandardMaterial({ map: plazaTex, roughness: 0.95, metalness: 0.02 });
+    const matArcoOscuro = new THREE.MeshStandardMaterial({ color: 0x2a1d15, roughness: 0.95 });
+    const matTechoFuerte = new THREE.MeshStandardMaterial({ map: techoTex, color: 0xc96a47, roughness: 0.72 });
+    const matMaderaMuelle = new THREE.MeshStandardMaterial({ color: 0x7a5c3e, roughness: 0.88 });
     const matTerraplen = new THREE.MeshStandardMaterial({ color: 0x7b8856, roughness: 0.95 });
 
-    // 1. Fuerte de San Fernando de Bocachica (baluartes en herradura frente al canal)
+    // 1. Fuerte / Castillo de San Fernando de Bocachica (modelado arquitectónico fiel)
     const sf = new THREE.Group();
-    sf.position.set(nodosXZ.sanFernando.x, nodosXZ.sanFernando.y, nodosXZ.sanFernando.z);
-    const sfBase = new THREE.Mesh(new THREE.CylinderGeometry(42, 48, 8.5, 6), matPiedraCoral);
-    sfBase.position.y = 4.2;
-    const sfPatio = new THREE.Mesh(new THREE.CylinderGeometry(24, 24, 9.0, 6), matTerraplen);
-    sfPatio.position.y = 4.4;
-    const sfBaluarteN = new THREE.Mesh(new THREE.ConeGeometry(22, 8.5, 4), matPiedraCoral);
-    sfBaluarteN.position.set(-32, 4.2, -18);
-    const sfBaluarteS = new THREE.Mesh(new THREE.ConeGeometry(22, 8.5, 4), matPiedraCoral);
-    sfBaluarteS.position.set(32, 4.2, -18);
-    sf.add(sfBase, sfPatio, sfBaluarteN, sfBaluarteS);
+    sf.position.set(nodosXZ.sanFernando.x, Math.max(0.15, nodosXZ.sanFernando.y), nodosXZ.sanFernando.z);
+    sf.rotation.y = -0.38; // Orientado frente al canal de Bocachica
+
+    // A) Batería semicircular en herradura + baluartes con patio interior (Plaza de Armas)
+    const shapeBateria = new THREE.Shape();
+    const R_OUT = 44;
+    // Arco semicircular frontal (lado canal, -X)
+    for (let i = 0; i <= 32; i++) {
+      const a = Math.PI * 0.5 + (Math.PI * i) / 32; // de +90° a +270°
+      const x = Math.cos(a) * R_OUT - 10;
+      const z = Math.sin(a) * (R_OUT * 0.92);
+      if (i === 0) shapeBateria.moveTo(x, z);
+      else shapeBateria.lineTo(x, z);
+    }
+    // Baluarte sur-este y flanco hacia el foso
+    shapeBateria.lineTo(28, -36);
+    shapeBateria.lineTo(42, -16);
+    shapeBateria.lineTo(30, -4);
+    shapeBateria.lineTo(30, 8);
+    shapeBateria.lineTo(44, 18);
+    shapeBateria.lineTo(26, 36);
+    shapeBateria.closePath();
+
+    // Hueco interior: Plaza de Armas ovalada/herradura
+    const holePlaza = new THREE.Path();
+    for (let i = 0; i <= 28; i++) {
+      const a = (Math.PI * 2 * i) / 28;
+      const hx = Math.cos(a) * 23 - 12;
+      const hz = Math.sin(a) * 18;
+      if (i === 0) holePlaza.moveTo(hx, hz);
+      else holePlaza.lineTo(hx, hz);
+    }
+    shapeBateria.holes.push(holePlaza);
+
+    const geoBateria = new THREE.ExtrudeGeometry(shapeBateria, {
+      depth: 7.4,
+      bevelEnabled: true,
+      bevelThickness: 0.7,
+      bevelSize: 1.4,
+      bevelSegments: 2,
+      curveSegments: 24,
+    });
+    geoBateria.rotateX(-Math.PI / 2);
+    const meshBateria = new THREE.Mesh(geoBateria, matPiedraCoral);
+    sf.add(meshBateria);
+
+    // B) Piso de la Plaza de Armas interior
+    const shapePlaza = new THREE.Shape();
+    for (let i = 0; i <= 28; i++) {
+      const a = (Math.PI * 2 * i) / 28;
+      const px = Math.cos(a) * 24 - 12;
+      const pz = Math.sin(a) * 19;
+      if (i === 0) shapePlaza.moveTo(px, pz);
+      else shapePlaza.lineTo(px, pz);
+    }
+    const geoPlaza = new THREE.ExtrudeGeometry(shapePlaza, { depth: 2.2, bevelEnabled: false });
+    geoPlaza.rotateX(-Math.PI / 2);
+    const meshPlaza = new THREE.Mesh(geoPlaza, matPlazaFuerte);
+    sf.add(meshPlaza);
+
+    // C) Bóvedas / casamatas con arcos de medio punto alrededor de la Plaza de Armas
+    for (let i = 0; i < 14; i++) {
+      const a = (Math.PI * 2 * i) / 14;
+      const ax = Math.cos(a) * 22.8 - 12;
+      const az = Math.sin(a) * 17.8;
+      const arco = new THREE.Mesh(new THREE.BoxGeometry(3.4, 3.6, 1.2), matArcoOscuro);
+      arco.position.set(ax, 3.9, az);
+      arco.lookAt(-12, 3.9, 0);
+      const dintel = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.7, 1.25, 12, 1, false, 0, Math.PI), matArcoOscuro);
+      dintel.rotation.z = Math.PI / 2;
+      dintel.position.set(ax, 5.6, az);
+      dintel.lookAt(-12, 5.6, 0);
+      sf.add(arco, dintel);
+    }
+
+    // D) Parapetos y almenas (troneras para cañones) todo alrededor de la batería curvo-poligonal
+    for (let i = 0; i < 24; i++) {
+      const a = Math.PI * 0.48 + (Math.PI * 1.04 * i) / 23;
+      const mx = Math.cos(a) * (R_OUT - 1.2) - 10;
+      const mz = Math.sin(a) * (R_OUT * 0.92 - 1.2);
+      const almena = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.5, 2.2), matPiedraOscura);
+      almena.position.set(mx, 8.7, mz);
+      almena.lookAt(-10, 8.7, 0);
+      sf.add(almena);
+    }
+
+    // E) Baluarte oriental separado por foso de agua + contrafuerte
+    const shapeBalE = new THREE.Shape();
+    shapeBalE.moveTo(52, -20);
+    shapeBalE.lineTo(86, -16);
+    shapeBalE.lineTo(94, 0);
+    shapeBalE.lineTo(82, 18);
+    shapeBalE.lineTo(52, 16);
+    shapeBalE.closePath();
+    const geoBalE = new THREE.ExtrudeGeometry(shapeBalE, {
+      depth: 6.4,
+      bevelEnabled: true,
+      bevelThickness: 0.6,
+      bevelSize: 1.1,
+      bevelSegments: 2,
+    });
+    geoBalE.rotateX(-Math.PI / 2);
+    sf.add(new THREE.Mesh(geoBalE, matPiedraCoral));
+
+    // Puente de acceso sobre el foso entre la batería principal y el baluarte oriental
+    const puenteFoso = new THREE.Mesh(new THREE.BoxGeometry(16, 1.2, 5.5), matMaderaMuelle);
+    puenteFoso.position.set(46, 5.4, 2);
+    sf.add(puenteFoso);
+
+    // Muelle de madera histórico saliendo hacia la bahía
+    const muelle = new THREE.Mesh(new THREE.BoxGeometry(42, 0.7, 3.2), matMaderaMuelle);
+    muelle.position.set(112, 2.0, -4);
+    muelle.rotation.y = 0.14;
+    sf.add(muelle);
+
+    // F) Portada principal frente al canal + plataforma semicircular de desembarco + asta de bandera
+    const portada = new THREE.Mesh(new THREE.BoxGeometry(3.2, 6.2, 8.5), matPiedraCoral);
+    portada.position.set(-14, 4.6, 39.5);
+    const vanoPuerta = new THREE.Mesh(new THREE.BoxGeometry(3.6, 3.8, 3.8), matArcoOscuro);
+    vanoPuerta.position.set(-14, 3.0, 39.8);
+    const puenteMar = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.7, 7.5), matMaderaMuelle);
+    puenteMar.position.set(-14, 1.6, 44.5);
+    const desembarcadero = new THREE.Mesh(new THREE.CylinderGeometry(7.2, 8.2, 2.2, 18), matPiedraOscura);
+    desembarcadero.position.set(-14, 1.1, 51.5);
+    sf.add(portada, vanoPuerta, puenteMar, desembarcadero);
+
+    // Asta y bandera tricolor sobre la portada
+    const asta = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 12, 8), new THREE.MeshStandardMaterial({ color: 0xe6e1d8 }));
+    asta.position.set(-14, 13.5, 38.5);
+    const bandAm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.4, 4.2), new THREE.MeshStandardMaterial({ color: 0xf6c927 }));
+    bandAm.position.set(-14, 18.6, 36.4);
+    const bandAz = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.7, 4.2), new THREE.MeshStandardMaterial({ color: 0x0b3c8c }));
+    bandAz.position.set(-14, 17.55, 36.4);
+    const bandRo = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.7, 4.2), new THREE.MeshStandardMaterial({ color: 0xc81f2b }));
+    bandRo.position.set(-14, 16.85, 36.4);
+    sf.add(asta, bandAm, bandAz, bandRo);
+
+    // G) Dos pabellones coloniales con cubierta de teja de barro (como en la foto aérea)
+    const crearPabellon = (px, pz, w, d) => {
+      const pb = new THREE.Group();
+      pb.position.set(px, 8.0, pz);
+      const muros = new THREE.Mesh(new THREE.BoxGeometry(w, 3.2, d), matPiedraCoral);
+      muros.position.y = 1.6;
+      const techo = new THREE.Mesh(new THREE.ConeGeometry(Math.max(w, d) * 0.78, 2.8, 4), matTechoFuerte);
+      techo.rotation.y = Math.PI / 4;
+      techo.scale.set(w / Math.max(w, d), 1, d / Math.max(w, d));
+      techo.position.y = 4.6;
+      pb.add(muros, techo);
+      return pb;
+    };
+    sf.add(crearPabellon(-46, 8, 7.5, 6.5));
+    sf.add(crearPabellon(10, -24, 9.0, 7.5));
+
+    // H) Garitas cilíndricas en las esquinas de los baluartes
+    [
+      [41, -15],
+      [43, 17],
+      [27, 34],
+    ].forEach(([gx, gz]) => {
+      const gar = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.5, 3.8, 12), matPiedraCoral);
+      gar.position.set(gx, 9.2, gz);
+      const cup = new THREE.Mesh(new THREE.SphereGeometry(1.75, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), matPiedraOscura);
+      cup.position.set(gx, 11.1, gz);
+      sf.add(gar, cup);
+    });
+
     fuertesGroup.add(sf);
 
     // 2. Batería del Ángel San Rafael (en la colina con galería y mirador)
     const sr = new THREE.Group();
     sr.position.set(nodosXZ.sanRafael.x, nodosXZ.sanRafael.y, nodosXZ.sanRafael.z);
-    const srMuro = new THREE.Mesh(new THREE.CylinderGeometry(28, 34, 6.5, 5), matPiedraCoral);
+    const srMuro = new THREE.Mesh(new THREE.CylinderGeometry(28, 34, 6.5, 16), matPiedraCoral);
     srMuro.position.y = 3.2;
-    const srGlacis = new THREE.Mesh(new THREE.CylinderGeometry(18, 18, 7.0, 5), matTerraplen);
+    const srGlacis = new THREE.Mesh(new THREE.CylinderGeometry(18, 18, 7.0, 16), matTerraplen);
     srGlacis.position.y = 3.4;
     sr.add(srMuro, srGlacis);
     fuertesGroup.add(sr);
 
-    // 3. Batería de San José (plataforma artillera sobre el arrecife del canal)
+    // 3. Batería de San José (plataforma artillera semicircular sobre el arrecife del canal)
     const sj = new THREE.Group();
     sj.position.set(nodosXZ.sanJose.x, Math.max(0.2, nodosXZ.sanJose.y), nodosXZ.sanJose.z);
-    const sjMuro = new THREE.Mesh(new THREE.BoxGeometry(46, 5.2, 28), matPiedraCoral);
+    const sjMuro = new THREE.Mesh(new THREE.CylinderGeometry(22, 26, 5.2, 18), matPiedraCoral);
     sjMuro.position.y = 2.6;
-    sj.add(sjMuro);
+    const sjPatio = new THREE.Mesh(new THREE.CylinderGeometry(15, 15, 5.5, 18), matPlazaFuerte);
+    sjPatio.position.y = 2.7;
+    sj.add(sjMuro, sjPatio);
     fuertesGroup.add(sj);
   }
 
