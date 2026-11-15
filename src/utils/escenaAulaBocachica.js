@@ -1337,24 +1337,120 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
 
     fuertesGroup.add(sf);
 
-    // 2. Batería del Ángel San Rafael (en la colina con galería y mirador)
+    // 2. Batería del Ángel San Rafael (media luna de piedra coralina, foso seco, puente durmiente, cubierta y portón rojo, casa fuerte y garita)
     const sr = new THREE.Group();
     sr.position.set(nodosXZ.sanRafael.x, nodosXZ.sanRafael.y, nodosXZ.sanRafael.z);
-    const srMuro = new THREE.Mesh(new THREE.CylinderGeometry(28, 34, 6.5, 16), matPiedraCoral);
-    srMuro.position.y = 3.2;
-    const srGlacis = new THREE.Mesh(new THREE.CylinderGeometry(18, 18, 7.0, 16), matTerraplen);
-    srGlacis.position.y = 3.4;
-    sr.add(srMuro, srGlacis);
+    const matMaderaRoja = new THREE.MeshStandardMaterial({ color: 0xa62c22, roughness: 0.65, metalness: 0.05 });
+    const matFosoSeco = new THREE.MeshStandardMaterial({ color: 0x4f4738, roughness: 0.96, metalness: 0.0 });
+
+    // Basamento rocoso coralino y foso seco perimetral
+    const srFoso = new THREE.Mesh(new THREE.CylinderGeometry(35, 39, 2.6, 20), matFosoSeco);
+    srFoso.position.y = 1.2;
+    sr.add(srFoso);
+
+    // Explanada interior en media luna (terraplén + losas de piedra coralina)
+    const srBaseMediaLuna = new THREE.Shape();
+    srBaseMediaLuna.absarc(0, 0, 26, -Math.PI * 0.85, Math.PI * 0.15, false);
+    srBaseMediaLuna.lineTo(-14, -18);
+    srBaseMediaLuna.closePath();
+    const srMuroGeo = new THREE.ExtrudeGeometry(srBaseMediaLuna, { depth: 5.4, bevelEnabled: true, bevelSize: 0.6, bevelThickness: 0.5, bevelSegments: 2 });
+    srMuroGeo.rotateX(-Math.PI / 2);
+    const srMuro = new THREE.Mesh(srMuroGeo, matPiedraCoral);
+    srMuro.position.y = 2.0;
+    sr.add(srMuro);
+
+    const srPlazaGeo = new THREE.ExtrudeGeometry(srBaseMediaLuna, { depth: 0.5, bevelEnabled: false });
+    srPlazaGeo.rotateX(-Math.PI / 2);
+    const srPlaza = new THREE.Mesh(srPlazaGeo, matPlazaFuerte);
+    srPlaza.scale.set(0.86, 1, 0.86);
+    srPlaza.position.y = 7.2;
+    sr.add(srPlaza);
+
+    // Parapeto almenado con troneras mirando hacia la bahía
+    for (let i = 0; i < 9; i += 1) {
+      const ang = -Math.PI * 0.78 + (i / 8) * (Math.PI * 0.86);
+      const merlon = new THREE.Mesh(new THREE.BoxGeometry(4.2, 2.2, 2.6), matPiedraCoral);
+      merlon.position.set(Math.cos(ang) * 23.6, 8.3, -Math.sin(ang) * 23.6);
+      merlon.rotation.y = ang + Math.PI / 2;
+      sr.add(merlon);
+    }
+
+    // Cubierta roja característica sobre postes de madera (como en la foto actual de San Rafael)
+    const srTechoRojo = new THREE.Mesh(new THREE.BoxGeometry(13.5, 0.55, 9.5), matMaderaRoja);
+    srTechoRojo.position.set(-5, 11.4, 9);
+    srTechoRojo.rotation.y = 0.25;
+    sr.add(srTechoRojo);
+    [[-10.5, 5.2], [-10.5, 12.8], [0.5, 5.2], [0.5, 12.8]].forEach(([px, pz]) => {
+      const poste = new THREE.Mesh(new THREE.BoxGeometry(0.65, 4.2, 0.65), matMaderaRoja);
+      poste.position.set(px, 9.2, pz);
+      sr.add(poste);
+    });
+
+    // Puente durmiente rojo sobre el foso seco + barandas en X + portón de acceso
+    const srPuente = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.55, 14.5), matMaderaRoja);
+    srPuente.position.set(-13, 6.9, 17);
+    srPuente.rotation.y = -0.35;
+    sr.add(srPuente);
+    [-2.4, 2.4].forEach((bx) => {
+      const baranda = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.8, 14.5), matMaderaRoja);
+      baranda.position.set(-13 + bx * Math.cos(-0.35), 8.0, 17 - bx * Math.sin(-0.35));
+      baranda.rotation.y = -0.35;
+      sr.add(baranda);
+    });
+    [-16.2, -11.4].forEach((gx, gi) => {
+      const pilar = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 4.2, 8), matMaderaRoja);
+      pilar.position.set(gx, 9.0, 23 + gi * 1.4);
+      const hoja = new THREE.Mesh(new THREE.BoxGeometry(2.2, 3.0, 0.35), matMaderaRoja);
+      hoja.position.set(gx + (gi === 0 ? 1.1 : -1.1), 8.6, 23 + gi * 1.4);
+      sr.add(pilar, hoja);
+    });
+
+    // Casa fuerte, antigua cocina y garita abovedada en el flanco
+    const srCasaFuerte = new THREE.Mesh(new THREE.BoxGeometry(10.5, 4.4, 7.2), matPiedraCoral);
+    srCasaFuerte.position.set(9.5, 9.4, -7.5);
+    srCasaFuerte.rotation.y = -0.3;
+    const srCasaTecho = new THREE.Mesh(new THREE.ConeGeometry(7.2, 2.4, 4), matTechoFuerte);
+    srCasaTecho.position.set(9.5, 12.8, -7.5);
+    srCasaTecho.rotation.y = Math.PI / 4 - 0.3;
+    const srGarita = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.5, 4.0, 10), matPiedraCoral);
+    srGarita.position.set(21.5, 9.4, 4.5);
+    const srGaritaCupula = new THREE.Mesh(new THREE.SphereGeometry(1.45, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2), matPiedraCoral);
+    srGaritaCupula.position.set(21.5, 11.4, 4.5);
+    sr.add(srCasaFuerte, srCasaTecho, srGarita, srGaritaCupula);
     fuertesGroup.add(sr);
 
-    // 3. Batería de San José (plataforma artillera semicircular sobre el arrecife del canal)
+    // 3. Batería de San José (plataforma abaluartada en herradura, cuerpo central abovedado y escollera sumergida)
     const sj = new THREE.Group();
     sj.position.set(nodosXZ.sanJose.x, Math.max(0.2, nodosXZ.sanJose.y), nodosXZ.sanJose.z);
-    const sjMuro = new THREE.Mesh(new THREE.CylinderGeometry(22, 26, 5.2, 18), matPiedraCoral);
-    sjMuro.position.y = 2.6;
-    const sjPatio = new THREE.Mesh(new THREE.CylinderGeometry(15, 15, 5.5, 18), matPlazaFuerte);
-    sjPatio.position.y = 2.7;
-    sj.add(sjMuro, sjPatio);
+    const sjEscollera = new THREE.Mesh(new THREE.TorusGeometry(29, 2.4, 6, 24), matFosoSeco);
+    sjEscollera.rotation.x = Math.PI / 2;
+    sjEscollera.position.y = 0.6;
+    const sjMuro = new THREE.Mesh(new THREE.CylinderGeometry(23, 27, 5.4, 20), matPiedraCoral);
+    sjMuro.position.y = 2.7;
+    const sjPatio = new THREE.Mesh(new THREE.CylinderGeometry(19.5, 19.5, 5.7, 20), matPlazaFuerte);
+    sjPatio.position.y = 2.85;
+    sj.add(sjEscollera, sjMuro, sjPatio);
+
+    // Parapeto perimetral con 12 troneras de cañón
+    for (let i = 0; i < 12; i += 1) {
+      const ang = (i / 12) * Math.PI * 2;
+      const merlon = new THREE.Mesh(new THREE.BoxGeometry(5.2, 2.0, 2.4), matPiedraCoral);
+      merlon.position.set(Math.cos(ang) * 20.8, 6.4, Math.sin(ang) * 20.8);
+      merlon.rotation.y = -ang + Math.PI / 2;
+      sj.add(merlon);
+    }
+
+    // Cuerpo central abovedado (polvorín y aljibe) + garita de vigilancia
+    const sjBoveda = new THREE.Mesh(new THREE.BoxGeometry(11.5, 4.2, 8.5), matPiedraCoral);
+    sjBoveda.position.set(-2, 7.6, -2);
+    const sjTecho = new THREE.Mesh(new THREE.ConeGeometry(7.6, 2.2, 4), matTechoFuerte);
+    sjTecho.position.set(-2, 10.8, -2);
+    sjTecho.rotation.y = Math.PI / 4;
+    const sjGarita = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.4, 3.8, 10), matPiedraCoral);
+    sjGarita.position.set(17.5, 7.2, 9.5);
+    const sjCup = new THREE.Mesh(new THREE.SphereGeometry(1.35, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2), matPiedraCoral);
+    sjCup.position.set(17.5, 9.1, 9.5);
+    sj.add(sjBoveda, sjTecho, sjGarita, sjCup);
     fuertesGroup.add(sj);
   }
 
