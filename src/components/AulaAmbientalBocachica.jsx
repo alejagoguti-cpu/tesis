@@ -1972,6 +1972,56 @@ function IndiceLateral({ total, activo, onIr }) {
 }
 
 // =============================================================================
+// ÍNDICE DE BÚSQUEDA Y MINI-JUEGO COMUNITARIO
+// =============================================================================
+const INDICE_BUSQUEDA = [
+  { id: 'escuelaR9', tipo: 'lugar', nodo: 'escuelaR9', titulo: 'Colegio Gimnasio Cristiano (R9)', sub: 'Tanque de 45.000 L de agua lluvia, patio con sombra y aula viva', tags: 'colegio escuela r9 agua lluvia patio sombra estudiantes' },
+  { id: 'casco', tipo: 'lugar', nodo: 'casco', titulo: 'Casco de Bocachica (Casas y Calles)', sub: '2.600 casas reales del pueblo y sus historias', tags: 'casas pueblo bocachica calles vecinos barrio' },
+  { id: 'vivero', tipo: 'lugar', nodo: 'vivero', titulo: 'Vivero y Manglar', sub: 'Siembra de manglar, almendros y bosque seco para bajar el calor (-4,5 °C)', tags: 'arboles vivero manglar sombra calor naturaleza bosque' },
+  { id: 'agua', tipo: 'lugar', nodo: 'agua', titulo: 'Ruta del Agua Lluvia', sub: 'Cómo recoger, filtrar y guardar agua limpia en techos y tanques', tags: 'agua lluvia aljibe tanque beber filtro' },
+  { id: 'ribera', tipo: 'lugar', nodo: 'ribera', titulo: 'Taller de Madera y Oficios', sub: 'Carpintería de ribera, construcción tradicional y empleo local', tags: 'madera carpinteria oficios trabajo taller construccion' },
+  { id: 'residuos', tipo: 'lugar', nodo: 'residuos', titulo: 'Punto Limpio y Reciclaje', sub: 'Separación de plásticos, abono con residuos orgánicos y limpieza', tags: 'basura reciclaje plastico limpio abono compost' },
+  { id: 'sanFernando', tipo: 'lugar', nodo: 'sanFernando', titulo: 'Fuerte de San Fernando', sub: 'Patrimonio de piedra coralina y memoria histórica frente al canal', tags: 'fuerte san fernando historia patrimonio turismo' },
+  { id: 'sanRafael', tipo: 'lugar', nodo: 'sanRafael', titulo: 'Batería del Ángel San Rafael', sub: 'Mirador histórico en la loma y sendero ecológico', tags: 'fuerte san rafael loma mirador sendero' },
+  { id: 'sanJose', tipo: 'lugar', nodo: 'sanJose', titulo: 'Batería de San José', sub: 'Fuerte sobre el arrecife en la entrada de la bahía', tags: 'fuerte san jose bahia mar arrecife' },
+  { id: 'tool-4pasos', tipo: 'modal', modal: 'simulador4pasos', titulo: 'Ver dibujos explicativos en 4 pasos', sub: 'Cómo funciona el Aula Ambiental paso a paso', tags: 'dibujos explicacion pasos simulador entender' },
+  { id: 'tool-r9', tipo: 'modal', modal: 'plano2D', titulo: 'Comparar el colegio: Hoy vs. Nuevo', sub: 'Mueve el control para ver el antes y después del Gimnasio Cristiano', tags: 'comparar antes despues plano colegio' },
+  { id: 'tool-red', tipo: 'modal', modal: 'redProblema', titulo: 'Cómo se conectan los problemas y soluciones', sub: 'Mapa interactivo de temas de la isla', tags: 'problemas soluciones red mapa' },
+  { id: 'tool-plan', tipo: 'modal', modal: 'hojaRuta', titulo: 'Plan a 2 años y quiénes participan', sub: 'Calendario de obra y actores de la comunidad', tags: 'plan calendario años actores comunidad' },
+];
+
+const PREGUNTAS_RETO = [
+  {
+    q: '¿Cuánta agua lluvia guardará el tanque nuevo del colegio Gimnasio Cristiano?',
+    opciones: ['5.000 litros', '45.000 litros', '100 litros'],
+    correcta: 1,
+    nodo: 'escuelaR9',
+    dato: '¡Exacto! 45.000 litros alcanzan para tener agua limpia en el colegio durante los meses secos.',
+  },
+  {
+    q: '¿Cuánto puede bajar el calor en el patio escolar gracias a los árboles de sombra y el manglar?',
+    opciones: ['Hasta -4,5 °C menos', 'Solo -0,2 °C', 'No cambia la temperatura'],
+    correcta: 0,
+    nodo: 'vivero',
+    dato: '¡Muy bien! La sombra de los árboles y el viento fresco bajan hasta 4,5 °C el calor del suelo.',
+  },
+  {
+    q: '¿Qué materiales locales usaremos para construir el Aula Ambiental?',
+    opciones: ['Solo vidrio y acero importado', 'Madera, caña, palma y piedra coralina', 'Plástico reciclado únicamente'],
+    correcta: 1,
+    nodo: 'ribera',
+    dato: '¡Correcto! Usamos los oficios de carpintería y materiales frescos de la región.',
+  },
+  {
+    q: '¿Cuántos meses dura el plan completo junto a la comunidad?',
+    opciones: ['3 meses', '24 meses (2 años)', '10 años'],
+    correcta: 1,
+    nodo: 'casco',
+    dato: '¡Así es! Son 24 meses divididos en 4 etapas claras junto a vecinos, colegio y aliados.',
+  },
+];
+
+// =============================================================================
 // COMPONENTE PRINCIPAL: AULA AMBIENTAL BOCACHICA
 // =============================================================================
 export default function AulaAmbientalBocachica({
@@ -2000,6 +2050,51 @@ export default function AulaAmbientalBocachica({
   const [docHudSel, setDocHudSel] = useState(ANTECEDENTES_CORPUS[8]); // R9 por defecto en HUD
   const [conProyectoHud, setConProyectoHud] = useState(true);
   const [mesHud, setMesHud] = useState(6);
+
+  // Estado interactivo: buscador + laboratorio para jugar con la isla + mini-reto
+  const [busqueda, setBusqueda] = useState('');
+  const [busqAbierta, setBusqAbierta] = useState(false);
+  const [panelJuego, setPanelJuego] = useState(false);
+  const [tabJuego, setTabJuego] = useState('isla'); // 'isla' | 'reto' | 'herramientas'
+  const [sombraJuego, setSombraJuego] = useState(0); // 0..100
+  const [lluviaJuego, setLluviaJuego] = useState(0); // 0..100
+  const [capasJuego, setCapasJuego] = useState({ casas: true, arboles: true, pilotos: true });
+  const [retoIdx, setRetoIdx] = useState(0);
+  const [retoResp, setRetoResp] = useState(null);
+  const [retoPuntos, setRetoPuntos] = useState(0);
+  const [lugarActivo, setLugarActivo] = useState(null);
+
+  const resultadosBusqueda = useMemo(() => {
+    const q = busqueda.trim().toLowerCase();
+    if (!q) return INDICE_BUSQUEDA.slice(0, 6);
+    return INDICE_BUSQUEDA.filter(
+      (item) =>
+        item.titulo.toLowerCase().includes(q) ||
+        item.sub.toLowerCase().includes(q) ||
+        item.tags.toLowerCase().includes(q)
+    );
+  }, [busqueda]);
+
+  const seleccionarBusqueda = (item) => {
+    setBusqAbierta(false);
+    if (item.tipo === 'modal') {
+      setModalDiagrama(item.modal);
+      return;
+    }
+    setLugarActivo(item);
+    escena?.irANodo?.(item.nodo, 300);
+  };
+
+  const aplicarJuegoEscena = (nextSombra, nextLluvia, nextCapas) => {
+    escena?.set({
+      sombraExtra: nextSombra / 100,
+      lluvia: nextLluvia > 15 ? nextLluvia / 100 : 0,
+      nivelMar: nextLluvia / 100,
+      mostrarCasas: nextCapas.casas,
+      mostrarArboles: nextCapas.arboles,
+      mostrarPilotos: nextCapas.pilotos,
+    });
+  };
 
   const secProblemaRef = useRef(null);
   const secMemoriasRef = useRef(null);
@@ -2285,16 +2380,62 @@ export default function AulaAmbientalBocachica({
           })}
         </nav>
 
-        <div className="tc-vidrio px-3 py-1.5 text-xs text-white/75 hidden sm:flex items-center gap-2.5 pointer-events-auto">
-          <div>
-            <span className="tc-num text-white font-semibold">{capActual.id}</span>
-            <span className="mx-1.5 text-white/30">·</span>
-            <span>{capActual.nombre}</span>
+        <div className="tc-vidrio px-2.5 py-1.5 text-xs text-white/85 flex items-center gap-2 pointer-events-auto relative">
+          {/* Buscador rápido de lugares y temas */}
+          <div className="relative">
+            <input
+              type="text"
+              value={busqueda}
+              onFocus={() => setBusqAbierta(true)}
+              onChange={(e) => { setBusqueda(e.target.value); setBusqAbierta(true); }}
+              placeholder="🔍 Buscar lugar o tema..."
+              aria-label="Buscar lugar o tema en Bocachica"
+              className="w-36 sm:w-48 bg-white/10 border border-white/15 rounded-full px-3 py-1 text-xs text-white placeholder-white/55 focus:outline-none focus:border-[#e0917a]"
+            />
+            {busqAbierta && (
+              <div className="absolute right-0 mt-2 w-72 sm:w-80 tc-vidrio p-2 z-50 max-h-80 overflow-y-auto shadow-2xl">
+                <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b border-white/10 text-[10px] text-white/60">
+                  <span>Toca un lugar para volar en el mapa 3D</span>
+                  <button type="button" onClick={() => setBusqAbierta(false)} className="text-white/70 hover:text-white">✕</button>
+                </div>
+                {resultadosBusqueda.length === 0 ? (
+                  <div className="px-2 py-3 text-xs text-white/60">No encontramos ese tema. Prueba con &ldquo;agua&rdquo;, &ldquo;colegio&rdquo;, &ldquo;manglar&rdquo; o &ldquo;fuerte&rdquo;.</div>
+                ) : (
+                  resultadosBusqueda.map((it) => (
+                    <button
+                      key={it.id}
+                      type="button"
+                      onClick={() => seleccionarBusqueda(it)}
+                      className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-white/10 transition flex items-start gap-2"
+                    >
+                      <span className="text-xs mt-0.5">{it.tipo === 'modal' ? '🛠' : '📍'}</span>
+                      <div>
+                        <div className="text-xs font-medium text-white">{it.titulo}</div>
+                        <div className="text-[11px] text-white/65 leading-tight">{it.sub}</div>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
+
+          <button
+            type="button"
+            onClick={() => { setPanelJuego((v) => !v); setBusqAbierta(false); }}
+            className={`px-2.5 py-1 rounded-full border text-[11px] font-medium transition ${
+              panelJuego
+                ? 'bg-[#35d08a]/25 border-[#35d08a] text-white'
+                : 'border-[#35d08a]/60 text-[#9ff3c9] hover:bg-[#35d08a]/15'
+            }`}
+          >
+            🎮 Jugar y probar
+          </button>
+
           <button
             type="button"
             onClick={() => setAnimPausada((v) => !v)}
-            className="px-2 py-0.5 rounded border border-white/15 text-[11px] text-white/80 hover:text-white hover:border-white/35 transition"
+            className="hidden sm:inline-flex px-2 py-0.5 rounded border border-white/15 text-[11px] text-white/80 hover:text-white hover:border-white/35 transition"
             title="Pausar o reanudar animaciones (Accesibilidad WCAG 2.2.2)"
           >
             {animPausada ? '▶ Animar' : '⏸ Pausar'}
@@ -2525,6 +2666,224 @@ export default function AulaAmbientalBocachica({
         </>
       )}
 
+      {/* TARJETA FLOTANTE DEL LUGAR BUSCADO EN EL MAPA 3D */}
+      {enVistaAula && lugarActivo && !modalDiagrama && (
+        <div className="fixed top-20 left-4 md:left-8 z-30 w-[min(90vw,22rem)] tc-vidrio p-4 tc-paso-anim">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <div className="tc-etiqueta !text-[#e0917a]">📍 Lugar en el mapa 3D</div>
+              <h4 className="text-sm font-semibold text-white mt-0.5">{lugarActivo.titulo}</h4>
+            </div>
+            <button
+              type="button"
+              onClick={() => setLugarActivo(null)}
+              className="text-xs text-white/60 hover:text-white px-1.5"
+            >
+              ✕
+            </button>
+          </div>
+          <p className="text-xs text-white/80 mt-1.5 leading-relaxed">{lugarActivo.sub}</p>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              onClick={() => { setPanelJuego(true); setTabJuego('isla'); }}
+              className="tc-ficha !border-[#35d08a]/60 !text-[#9ff3c9]"
+            >
+              🎮 Probar sombra y lluvia aquí
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* PANEL INTERACTIVO PARA JUGAR, PROBAR Y BUSCAR SIN HACER SCROLL */}
+      {enVistaAula && panelJuego && !modalDiagrama && (
+        <div className="fixed bottom-5 right-4 md:right-8 z-30 w-[min(94vw,24rem)] tc-vidrio p-4 tc-paso-anim shadow-2xl">
+          <div className="flex items-center justify-between pb-2 mb-3 border-b border-white/15">
+            <span className="text-xs font-semibold text-white">🎮 Laboratorio comunitario 3D</span>
+            <button
+              type="button"
+              onClick={() => setPanelJuego(false)}
+              className="text-xs text-white/60 hover:text-white px-1.5"
+            >
+              ✕ Cerrar
+            </button>
+          </div>
+
+          <div className="grid grid-cols-3 gap-1 mb-3">
+            {[
+              { id: 'isla', label: '🌳 Jugar isla' },
+              { id: 'reto', label: '🎯 Reto (4)' },
+              { id: 'herramientas', label: '🛠 Dibujos' },
+            ].map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTabJuego(t.id)}
+                className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border transition ${
+                  tabJuego === t.id
+                    ? 'bg-[#e0917a]/25 border-[#e0917a] text-white'
+                    : 'border-white/15 text-white/70 hover:text-white'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {tabJuego === 'isla' && (
+            <div className="space-y-3 text-xs">
+              <div>
+                <div className="flex justify-between text-white/85 mb-1">
+                  <span>🌳 Plantar sombra y árboles</span>
+                  <strong className="text-[#35d08a]">{(36 - (sombraJuego / 100) * 4.5).toFixed(1)} °C</strong>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={sombraJuego}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    setSombraJuego(v);
+                    aplicarJuegoEscena(v, lluviaJuego, capasJuego);
+                  }}
+                  className="w-full accent-[#35d08a]"
+                />
+                <div className="flex justify-between text-[10px] text-white/55">
+                  <span>Hoy (más calor)</span>
+                  <span>+Árboles (-4,5 °C)</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-white/85 mb-1">
+                  <span>🌧 Lluvia y marea alta</span>
+                  <strong className="text-[#6ec6e6]">{Math.round((lluviaJuego / 100) * 45000).toLocaleString('es-CO')} L</strong>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={lluviaJuego}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    setLluviaJuego(v);
+                    aplicarJuegoEscena(sombraJuego, v, capasJuego);
+                  }}
+                  className="w-full accent-[#6ec6e6]"
+                />
+                <div className="flex justify-between text-[10px] text-white/55">
+                  <span>Día seco</span>
+                  <span>Lluvia fuerte (llena aljibe)</span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-white/10">
+                <div className="text-[11px] text-white/65 mb-1.5">Ver / ocultar en el mapa 3D:</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { k: 'casas', label: '🏠 Casas' },
+                    { k: 'arboles', label: '🌳 Árboles' },
+                    { k: 'pilotos', label: '🏫 Pilotos' },
+                  ].map((c) => {
+                    const on = capasJuego[c.k];
+                    return (
+                      <button
+                        key={c.k}
+                        type="button"
+                        onClick={() => {
+                          const next = { ...capasJuego, [c.k]: !on };
+                          setCapasJuego(next);
+                          aplicarJuegoEscena(sombraJuego, lluviaJuego, next);
+                        }}
+                        className={`px-2.5 py-1 rounded-full text-[11px] border transition ${
+                          on ? 'bg-white/15 border-white/40 text-white' : 'border-white/15 text-white/45'
+                        }`}
+                      >
+                        {c.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {tabJuego === 'reto' && (
+            <div className="space-y-2.5 text-xs">
+              <div className="flex items-center justify-between text-[11px] text-white/65">
+                <span>Pregunta {retoIdx + 1} de {PREGUNTAS_RETO.length}</span>
+                <span className="text-[#35d08a] font-semibold">Puntos: {retoPuntos}/{PREGUNTAS_RETO.length}</span>
+              </div>
+              <p className="text-white font-medium leading-snug">{PREGUNTAS_RETO[retoIdx].q}</p>
+              <div className="space-y-1.5">
+                {PREGUNTAS_RETO[retoIdx].opciones.map((op, i) => {
+                  const elegida = retoResp === i;
+                  const esOk = i === PREGUNTAS_RETO[retoIdx].correcta;
+                  let cls = 'border-white/15 text-white/85 hover:bg-white/10';
+                  if (retoResp !== null) {
+                    if (esOk) cls = 'bg-[#35d08a]/25 border-[#35d08a] text-white';
+                    else if (elegida) cls = 'bg-red-500/25 border-red-400 text-white';
+                  }
+                  return (
+                    <button
+                      key={op}
+                      type="button"
+                      disabled={retoResp !== null}
+                      onClick={() => {
+                        setRetoResp(i);
+                        if (i === PREGUNTAS_RETO[retoIdx].correcta) setRetoPuntos((p) => p + 1);
+                        escena?.irANodo?.(PREGUNTAS_RETO[retoIdx].nodo, 280);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-lg border transition ${cls}`}
+                    >
+                      {op}
+                    </button>
+                  );
+                })}
+              </div>
+              {retoResp !== null && (
+                <div className="p-2.5 rounded-lg bg-white/10 text-[11px] text-white/90 space-y-2">
+                  <p>{PREGUNTAS_RETO[retoIdx].dato}</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRetoResp(null);
+                      if (retoIdx + 1 < PREGUNTAS_RETO.length) setRetoIdx((i) => i + 1);
+                      else { setRetoIdx(0); setRetoPuntos(0); }
+                    }}
+                    className="tc-ficha !border-[#e0917a] !text-white"
+                  >
+                    {retoIdx + 1 < PREGUNTAS_RETO.length ? 'Siguiente pregunta →' : '↻ Volver a jugar'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tabJuego === 'herramientas' && (
+            <div className="space-y-1.5 text-xs">
+              {[
+                { m: 'simulador4pasos', t: '✦ Ver dibujos explicativos en 4 pasos' },
+                { m: 'plano2D', t: '✦ Comparar el colegio: Hoy vs. Nuevo' },
+                { m: 'redProblema', t: '✦ Ver cómo se conectan los problemas' },
+                { m: 'memorias', t: '✦ Ver los 9 estudios y las 6 memorias' },
+                { m: 'hojaRuta', t: '✦ Ver el plan a 2 años y participantes' },
+              ].map((h) => (
+                <button
+                  key={h.m}
+                  type="button"
+                  onClick={() => setModalDiagrama(h.m)}
+                  className="w-full text-left px-3 py-2 rounded-lg border border-white/15 hover:bg-white/10 text-white/90 transition"
+                >
+                  {h.t}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* MODAL DE VIDRIO TRANSLÚCIDO SOBRE EL MAPA 3D (Cuando el usuario quiere ver un diagrama 2D en detalle) */}
       {modalDiagrama && (
         <div className="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 md:p-10 overflow-y-auto">
@@ -2565,11 +2924,34 @@ export default function AulaAmbientalBocachica({
           </div>
           <div className="md:col-span-4 md:pb-2 text-white/85">
             <p className="text-base md:text-lg leading-snug">
-              Un mapa interactivo para que toda la comunidad de Bocachica conozca qué pasa hoy en la isla, qué vamos a construir en el colegio Gimnasio Cristiano y cómo cuidaremos el agua, los árboles, las casas y nuestra memoria.
+              Un mapa interactivo para que toda la comunidad de Bocachica busque lugares, juegue con la sombra y el agua, y vea qué construiremos juntos en el colegio Gimnasio Cristiano.
             </p>
-            <div className="mt-5 pt-4 tc-regla flex items-center justify-between text-xs text-white/65">
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => { setPanelJuego(true); setTabJuego('isla'); }}
+                className="tc-ficha tc-ficha-activa !border-[#35d08a] !text-white"
+              >
+                🎮 Jugar con el mapa 3D
+              </button>
+              <button
+                type="button"
+                onClick={() => { setPanelJuego(true); setTabJuego('reto'); }}
+                className="tc-ficha !border-[#e0917a]/70 !text-white"
+              >
+                🎯 Mini-reto Bocachica
+              </button>
+              <button
+                type="button"
+                onClick={() => setModalDiagrama('plano2D')}
+                className="tc-ficha !border-white/30 !text-white/90"
+              >
+                🏫 Ver colegio Hoy vs. Nuevo
+              </button>
+            </div>
+            <div className="mt-4 pt-3 tc-regla flex items-center justify-between text-xs text-white/65">
               <span>Arq. Alejandro Serrano Sierra · PUJ</span>
-              <span className="animate-pulse text-[#e0917a]">Baja o usa el mapa 3D ↓</span>
+              <span className="animate-pulse text-[#e0917a]">Usa el buscador arriba o baja ↓</span>
             </div>
           </div>
         </div>

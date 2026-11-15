@@ -183,20 +183,21 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const small = window.innerWidth < 768;
 
   const renderer = new THREE.WebGLRenderer({ antialias: !small, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, small ? 1.5 : 1.75));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, small ? 1.25 : 1.35));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.02;
   const el = renderer.domElement;
-  el.style.cssText = 'display:block;width:100%;height:100%;opacity:0;transition:opacity 1.1s ease';
+  el.style.cssText = 'display:block;width:100%;height:100%;opacity:0;transition:opacity 0.9s ease';
   mount.appendChild(el);
 
   const cleanups = [() => { renderer.dispose(); if (el.parentNode === mount) mount.removeChild(el); }];
   let disposed = false;
+  const tick0 = () => new Promise((r) => setTimeout(r, 0));
 
-  const TOTAL = 10;
+  const TOTAL = 9;
   let hechas = 0;
-  const track = (p) => p.then((r) => { hechas++; onProgreso(0.65 * (hechas / TOTAL), 'Cargando modelo territorial 3D'); return r; });
+  const track = (p) => p.then((r) => { hechas++; onProgreso(0.65 * (hechas / TOTAL), 'Cargando mapa rápido 3D'); return r; });
   const jsonOf = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(u); return r.json(); });
   const gunzipJSON = async (u) => {
     const buf = await (await fetch(u)).arrayBuffer();
@@ -208,10 +209,9 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     return JSON.parse(new TextDecoder().decode(u8));
   };
 
-  const [satImg, maskImg, patchImg, geoRef, veg, construcciones, normalsImg, ...demImgs] = await Promise.all([
+  const [satImg, maskImg, geoRef, veg, construcciones, normalsImg, ...demImgs] = await Promise.all([
     track(loadImg(`${BASE}textures/sat_base.jpg`)),
     track(loadImg(`${BASE}textures/isla_mascara.png`)),
-    track(loadImg(`${BASE}textures/tierrabomba_satelite.jpg`)),
     track(jsonOf(`${DATA_URL}georef.json`)),
     track(jsonOf(`${DATA_URL}vegetacion.json`)),
     track(gunzipJSON(`${BASE}data/construcciones_tierra_bomba.json.gz`)),
@@ -222,6 +222,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     loadImg(`${BASE}data/elevation/1188_1930.png`),
   ]);
   if (disposed) return null;
+  await tick0();
 
   // ---------- geometría del mosaico ----------
   const tx0 = MOSAIC.x0 + WIN.left / 256;
@@ -433,49 +434,6 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const terrainMat = new THREE.MeshStandardMaterial({ map: textureFrom(satImg, maxTex), roughness: 1, metalness: 0 });
   parchearTerrenoAula(terrainMat, U);
   const terrain = new THREE.Mesh(geo, terrainMat);
-
-  // ---------- detalle z18 ----------
-  const PM = geoRef.mosaico;
-  const tile18 = PM.px / 256;
-  const NP = small ? 90 : 130;
-  const ppos = new Float32Array((NP + 1) * (NP + 1) * 3);
-  const puv = new Float32Array((NP + 1) * (NP + 1) * 2);
-  const pwin = new Float32Array((NP + 1) * (NP + 1) * 2);
-  {
-    let a = 0;
-    let b = 0;
-    for (let j = 0; j <= NP; j++) {
-      for (let i = 0; i <= NP; i++) {
-        const tx = (PM.x0 + (i / NP) * tile18) / 8;
-        const ty = (PM.y0 + (j / NP) * tile18) / 8;
-        const [X, Z] = toXZ(tx, ty);
-        const u = (tx - tx0) / (tx1 - tx0);
-        const v = (ty - ty0) / (ty1 - ty0);
-        ppos[a++] = X;
-        ppos[a++] = heightAtUV(clamp01(u), clamp01(v)) + 0.4;
-        ppos[a++] = Z;
-        puv[b] = i / NP; puv[b + 1] = 1 - j / NP;
-        pwin[b] = u; pwin[b + 1] = v;
-        b += 2;
-      }
-    }
-  }
-  const pidx = [];
-  for (let j = 0; j < NP; j++) {
-    for (let i = 0; i < NP; i++) {
-      const a = j * (NP + 1) + i;
-      pidx.push(a, a + NP + 1, a + 1, a + 1, a + NP + 1, a + NP + 2);
-    }
-  }
-  const pgeo = new THREE.BufferGeometry();
-  pgeo.setAttribute('position', new THREE.BufferAttribute(ppos, 3));
-  pgeo.setAttribute('uv', new THREE.BufferAttribute(puv, 2));
-  pgeo.setAttribute('aWin', new THREE.BufferAttribute(pwin, 2));
-  pgeo.setIndex(pidx);
-  pgeo.computeVertexNormals();
-  const patchMat = new THREE.MeshStandardMaterial({ map: textureFrom(patchImg, maxTex), roughness: 1, metalness: 0 });
-  parchearTerrenoAula(patchMat, U);
-  const patch = new THREE.Mesh(pgeo, patchMat);
 
   // Coordenadas XZ de los nodos de Bocachica
   const nodosXZ = {};
@@ -712,54 +670,36 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     });
   });
 
-  // Fuente 2: Detección de copas reales sobre la imagen satelital completa de Tierra Bomba (satImg)
+  // Fuente 2: Detección rápida (1/4 resolución) de copas reales sobre la imagen satelital de Tierra Bomba (satImg)
+  await tick0();
   {
+    const W4 = Math.round(W / 4);
+    const H4 = Math.round(H / 4);
     const satC = document.createElement('canvas');
-    satC.width = W;
-    satC.height = H;
+    satC.width = W4;
+    satC.height = H4;
     const sctx2 = satC.getContext('2d', { willReadFrequently: true });
     const sx0 = (WIN.left / (MOSAIC.nx * 256)) * satImg.width;
     const sy0 = (WIN.top / (MOSAIC.ny * 256)) * satImg.height;
     const sw0 = (WIN.w / (MOSAIC.nx * 256)) * satImg.width;
     const sh0 = (WIN.h / (MOSAIC.ny * 256)) * satImg.height;
-    sctx2.drawImage(satImg, sx0, sy0, sw0, sh0, 0, 0, W, H);
-    const srgb = sctx2.getImageData(0, 0, W, H).data;
+    sctx2.drawImage(satImg, sx0, sy0, sw0, sh0, 0, 0, W4, H4);
+    const srgb = sctx2.getImageData(0, 0, W4, H4).data;
 
-    const pasoBase = small ? 3 : 2; // ~9.4m por celda en escritorio
+    const pasoBase = small ? 2 : 1;
     let seed = 17;
-    for (let py = 3; py < H - 3; py += pasoBase) {
-      for (let px = 3; px < W - 3; px += pasoBase) {
-        // Buscamos el máximo local de verdor dentro de la celda pasoBase × pasoBase
-        let bestScore = -999;
-        let bxPx = px;
-        let byPx = py;
-        let bR = 0; let bG = 0; let bB = 0;
-
-        for (let dy = 0; dy < pasoBase; dy++) {
-          const yy = py + dy;
-          if (yy >= H) continue;
-          for (let dx = 0; dx < pasoBase; dx++) {
-            const xx = px + dx;
-            if (xx >= W) continue;
-            const idxPx = yy * W + xx;
-            if (!land[idxPx]) continue;
-            const o = idxPx * 4;
-            const R = srgb[o];
-            const G = srgb[o + 1];
-            const B = srgb[o + 2];
-            // Índice de verdor satelital (ExG + diferencia G-R, descartando arena brillante, mar y cubiertas claras)
-            const score = (2 * G - R - B) + (G - R) * 1.4;
-            if (score > bestScore) {
-              bestScore = score;
-              bxPx = xx;
-              byPx = yy;
-              bR = R; bG = G; bB = B;
-            }
-          }
-        }
+    for (let py = 1; py < H4 - 1; py += pasoBase) {
+      for (let px = 1; px < W4 - 1; px += pasoBase) {
+        const bxPx = px * 4 + 2;
+        const byPx = py * 4 + 2;
+        if (bxPx >= W || byPx >= H || !land[byPx * W + bxPx]) continue;
+        const o = (py * W4 + px) * 4;
+        const bR = srgb[o];
+        const bG = srgb[o + 1];
+        const bB = srgb[o + 2];
+        const bestScore = (2 * bG - bR - bB) + (bG - bR) * 1.4;
 
         // Umbral de copa vegetal real en la ortofoto Esri de Tierra Bomba
-        // Cubre manglar denso (verde oscuro), bosque seco tropical en lomas (verde oliva) y árboles en patios urbanos
         const esCopaSatelital =
           bG >= 20 &&
           bG <= 156 &&
@@ -776,13 +716,11 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
         const ty = ty0 + v * (ty1 - ty0);
         const [X, Z] = toXZ(tx, ty);
 
-        // En el tercio norte (lejos de Bocachica) muestreamos 1 de cada 2 celdas para mantener 60fps con cobertura total
         seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
         const distBoca = Math.hypot(X - bx, Z - bz);
         if (distBoca > 2400 && (seed & 1) === 1 && bestScore < 16) continue;
 
         if (enHuellaCasa(X, Z)) continue;
-        // Evitamos tapar el patio interior de la cancha del colegio R9
         if (Math.hypot(X - nodosXZ.escuelaR9.x, Z - nodosXZ.escuelaR9.z) < 24) continue;
         if (!marcarArbol(X, Z)) continue;
 
@@ -791,7 +729,6 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
         const esUrbano = distBoca < 950 && elev < 14;
         const ecotipo = esManglar ? 'manglar' : esUrbano ? 'sombra' : 'bosque_seco';
 
-        // Altura proporcional al vigor del dosel en la ortofoto satelital
         const vigor = clamp01((bestScore - 3) / 38);
         const hArbol = esManglar
           ? 8.5 + vigor * 5.2 + ((seed % 7) * 0.35)
@@ -932,12 +869,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   // ---------- escena, cielo, mar, luces ----------
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x9fc6d4, 0.000012);
-  try {
-    const envTex = createSkyEnvironment(renderer);
-    scene.environment = envTex;
-    cleanups.push(() => envTex.dispose());
-  } catch { /* fallback sin PMREM */ }
-  scene.add(terrain, patch, houseWallsMesh, houseRoofsMesh, treesGroup);
+  scene.add(terrain, houseWallsMesh, houseRoofsMesh, treesGroup);
 
   const sky = new Sky();
   sky.scale.setScalar(450000);
@@ -955,21 +887,24 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   normals.repeat.set(900, 900);
   normals.needsUpdate = true;
 
-  // Orilla y shader de mar idéntico a tesis_tercer_corte
+  // Orilla y shader de mar rápido (1/4 resolución, 16x más rápido al cargar)
   const SH = 4;
   const sw = Math.ceil(W / SH);
   const sh2 = Math.ceil(H / SH);
-  const marArr = new Uint8Array(W * H);
-  for (let i = 0; i < W * H; i++) marArr[i] = land[i] ? 0 : 1;
-  const sqMar = edt(W, H, marArr);
-  const shoreData = new Uint8Array(sw * sh2 * 4);
+  const marArr = new Uint8Array(sw * sh2);
   for (let y = 0; y < sh2; y++) {
+    const sy = Math.min(H - 1, y * SH) * W;
     for (let x = 0; x < sw; x++) {
-      const dm = Math.sqrt(sqMar[Math.min(H - 1, y * SH) * W + Math.min(W - 1, x * SH)]) * mpp;
-      const o = (y * sw + x) * 4;
-      shoreData[o] = Math.round(255 * Math.min(1, dm / 900));
-      shoreData[o + 3] = 255;
+      marArr[y * sw + x] = land[sy + Math.min(W - 1, x * SH)] ? 0 : 1;
     }
+  }
+  const sqMar = edt(sw, sh2, marArr);
+  const shoreData = new Uint8Array(sw * sh2 * 4);
+  for (let i = 0; i < sw * sh2; i++) {
+    const dm = Math.sqrt(sqMar[i]) * mpp * SH;
+    const o = i * 4;
+    shoreData[o] = Math.round(255 * Math.min(1, dm / 900));
+    shoreData[o + 3] = 255;
   }
   const shoreTex = new THREE.DataTexture(shoreData, sw, sh2, THREE.RGBAFormat);
   shoreTex.minFilter = shoreTex.magFilter = THREE.LinearFilter;
@@ -1449,6 +1384,14 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       pos: new THREE.Vector3(bx + Math.cos(t * 0.06) * 280 + dx(), 580, bz + 860),
       look: new THREE.Vector3(bx + dx() * 0.3, 10, bz - 20),
     }),
+    custom: (t) => {
+      const f = T.customFocus || { x: bx, y: 10, z: bz, dist: 340 };
+      const d = f.dist || 340;
+      return {
+        pos: new THREE.Vector3(f.x + Math.sin(t * 0.14) * d * 0.45 + d * 0.35, f.y + d * 0.48, f.z + d * 0.85),
+        look: new THREE.Vector3(f.x, f.y + 4, f.z),
+      };
+    },
   };
 
   // ---------- estado objetivo y bucle de animación ----------
@@ -1459,6 +1402,12 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     gemelo: 0,
     lluvia: 0,
     escuela: 1,
+    nivelMar: 0,
+    sombraExtra: 0,
+    mostrarCasas: true,
+    mostrarArboles: true,
+    mostrarPilotos: true,
+    customFocus: null,
     zonas: [0.35, 0.35, 0.35], // [memoria/patrimonio, verde/escuela, agua/oficios]
     rutas: { agua: 0, verde: 0, residuos: 0, oficios: 0, patrimonio: 0 },
     nodosActivos: null, // null = todos, o array de claves
@@ -1478,6 +1427,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     gemelo: 0,
     lluvia: 0,
     escuela: 1,
+    nivelMar: 0,
+    sombraExtra: 0,
     z0: 0.35,
     z1: 0.35,
     z2: 0.35,
@@ -1529,12 +1480,15 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     cur.z0 += ((T.zonas?.[0] ?? 0) - cur.z0) * expo(dt, 3.0);
     cur.z1 += ((T.zonas?.[1] ?? 0) - cur.z1) * expo(dt, 3.0);
     cur.z2 += ((T.zonas?.[2] ?? 0) - cur.z2) * expo(dt, 3.0);
+    cur.nivelMar += ((T.nivelMar ?? 0) - cur.nivelMar) * expo(dt, 3.5);
+    cur.sombraExtra += ((T.sombraExtra ?? 0) - cur.sombraExtra) * expo(dt, 3.5);
 
     U.uDim.value = cur.dim;
     U.uCartografia.value = cur.cartografia;
     U.uZonasAmt.value.set(cur.z0, cur.z1, cur.z2);
     U.uTime.value = t;
     waterUniforms.uTime.value = t;
+    water.position.y = cur.nivelMar * 3.8;
 
     // Modo Gemelo Digital (nube de puntos)
     gemeloGroup.visible = cur.gemelo > 0.02;
@@ -1542,7 +1496,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       gemeloGroup.userData.ptsMat.opacity = cur.gemelo * 0.9;
     }
     const enNubePura = cur.gemelo > 0.75;
-    terrain.visible = patch.visible = !enNubePura;
+    terrain.visible = !enNubePura;
 
     // Pose de cámara
     const poseFn = POSES[T.cam] || POSES.bocachica_general;
@@ -1589,7 +1543,11 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     if (Math.abs(escalaCasasObjetivo - ultimaEscalaCasas) > 0.05) {
       updateHouses(true, escalaCasasObjetivo);
     }
-    treesGroup.visible = !enNubePura;
+    houseWallsMesh.visible = houseRoofsMesh.visible = !!T.mostrarCasas;
+    treesGroup.visible = !enNubePura && !!T.mostrarArboles;
+    const escalaArbol = 1 + cur.sombraExtra * 0.38;
+    treesGroup.scale.set(escalaArbol, escalaArbol, escalaArbol);
+    aulaGroup.visible = !!T.mostrarPilotos;
     escuelaG.visible = cur.escuela > 0.02;
     escuelaG.scale.set(1, Math.max(0.001, cur.escuela), 1);
 
@@ -1651,6 +1609,15 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
 
   return {
     nodos: NODOS_BOCACHICA,
+    irANodo(clave, dist = 320) {
+      const n = nodosXZ[clave];
+      if (!n) return false;
+      resetVista();
+      T.customFocus = { x: n.x, y: n.y, z: n.z, dist };
+      T.cam = 'custom';
+      T.nodosActivos = [clave];
+      return true;
+    },
     set(parcial) {
       if (parcial.cam && parcial.cam !== T.cam) resetVista();
       Object.assign(T, parcial);
