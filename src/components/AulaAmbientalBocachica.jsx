@@ -72,7 +72,7 @@ function CardIluminada({ children, color = '#e8a86b', className = '', onClick })
   );
 }
 
-function JuegoCocinarMojarra({ color = '#e8a86b' }) {
+function JuegoCocinarMojarra({ color = '#e8a86b', onCerrar }) {
   const INGREDIENTES_MESA = [
     { id: 'mojarra', nombre: 'Mojarra fresca', sub: 'Con cortes y sal marina', tiempo: '8 min', color: '#d6822b' },
     { id: 'arroz', nombre: 'Arroz con coco', sub: 'Titoté dorado tradicional', tiempo: '4 min', color: '#8c5a32' },
@@ -133,14 +133,24 @@ function JuegoCocinarMojarra({ color = '#e8a86b' }) {
 
   return (
     <div
-      className="rounded-3xl overflow-hidden border border-black/15 shadow-2xl text-[#171717]"
+      className="fixed inset-0 z-50 overflow-y-auto flex flex-col justify-between text-[#171717]"
       style={{
-        background: 'radial-gradient(circle at 50% 45%, #efede8 0%, #dcd9d2 65%, #c9c5bc 100%)',
+        background: 'radial-gradient(circle at 50% 48%, #f1efe9 0%, #dcd8d0 65%, #c5c0b6 100%)',
       }}
     >
-      {/* CABECERA EDITORIAL */}
-      <div className="px-4 md:px-6 py-3 bg-white/80 backdrop-blur-md border-b border-black/10 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5">
+      {/* CABECERA EDITORIAL PANTALLA COMPLETA */}
+      <div className="px-5 md:px-10 py-3.5 bg-white/85 backdrop-blur-md border-b border-black/10 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20">
+        <div className="flex items-center gap-3">
+          {onCerrar && (
+            <button
+              type="button"
+              onClick={onCerrar}
+              className="px-3 py-1.5 rounded-full bg-black/5 hover:bg-black/10 text-xs font-bold text-[#171717] flex items-center gap-1.5 cursor-pointer transition"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Volver a Comida</span>
+            </button>
+          )}
           <span className="px-2.5 py-1 rounded-md bg-[#b83b24] text-white text-[11px] font-black tracking-widest uppercase">
             BOCACHICA
           </span>
@@ -148,23 +158,24 @@ function JuegoCocinarMojarra({ color = '#e8a86b' }) {
             Cocina Interactiva · Arma y emplata tu Mojarra
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-mono text-black/60">
-            {servido ? 'Plato servido' : abierta ? 'Toca un ingrediente o haz clic sobre el plato' : 'Toca el canasto para empezar'}
+        <div className="flex items-center gap-2.5">
+          <span className="hidden sm:inline text-[11px] font-mono text-black/65">
+            {servido ? 'Plato servido' : abierta ? 'Toca ingredientes o haz clic sobre el plato · Arrastra para girar 3D' : 'Toca el canasto para empezar'}
           </span>
           <button
             type="button"
             onClick={reiniciar}
-            className="p-1.5 rounded-full bg-black/5 hover:bg-black/10 text-black/70 cursor-pointer transition"
+            className="px-3 py-1.5 rounded-full bg-black/5 hover:bg-black/10 text-xs font-bold text-black/80 flex items-center gap-1.5 cursor-pointer transition"
             title="Reiniciar plato"
           >
             <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reiniciar</span>
           </button>
         </div>
       </div>
 
-      {/* MESA DE TRABAJO 3 COLUMNAS ESTILO EDITORIAL */}
-      <div className="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+      {/* MESA DE TRABAJO 3 COLUMNAS ESTILO EDITORIAL A PANTALLA COMPLETA */}
+      <div className="flex-1 w-full max-w-7xl mx-auto p-5 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
         {/* COLUMNA IZQUIERDA: BANDEJA DE INGREDIENTES */}
         <div className="lg:col-span-4 bg-white rounded-2xl p-4 shadow-[0_14px_34px_-14px_rgba(0,0,0,0.22)] border border-black/8 space-y-3">
           <div className="flex items-center justify-between border-b border-black/10 pb-2">
@@ -220,24 +231,24 @@ function JuegoCocinarMojarra({ color = '#e8a86b' }) {
             <button
               type="button"
               onClick={() => setAbierta(true)}
-              className="group relative w-72 h-72 md:w-80 md:h-80 rounded-3xl bg-[#c9a87c] border-4 border-[#9c7849] shadow-[0_28px_50px_-18px_rgba(0,0,0,0.45)] flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
+              className="group relative w-80 h-80 md:w-[27rem] md:h-[27rem] rounded-3xl bg-[#c9a87c] border-4 border-[#9c7849] shadow-[0_28px_50px_-18px_rgba(0,0,0,0.45)] flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
               style={{
                 backgroundImage:
                   'repeating-linear-gradient(45deg, rgba(120,82,36,0.12) 0px, rgba(120,82,36,0.12) 8px, transparent 8px, transparent 16px)',
               }}
             >
-              <div className="border-4 border-[#b83b24] rounded-2xl px-5 py-4 bg-[#f9f4eb]/95 shadow-lg transform -rotate-2 group-hover:rotate-0 transition">
-                <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-[#b83b24] font-bold">
+              <div className="border-4 border-[#b83b24] rounded-2xl px-6 py-5 bg-[#f9f4eb]/95 shadow-lg transform -rotate-2 group-hover:rotate-0 transition">
+                <div className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#b83b24] font-bold">
                   Muelle de Bocachica
                 </div>
-                <div className="text-2xl font-black tracking-tight text-[#b83b24] mt-1">LA MOJARRA</div>
-                <div className="text-xs font-extrabold uppercase tracking-widest text-[#171717] mt-1">
+                <div className="text-3xl font-black tracking-tight text-[#b83b24] mt-1">LA MOJARRA</div>
+                <div className="text-xs font-extrabold uppercase tracking-widest text-[#171717] mt-1.5">
                   Toca para destapar y armar
                 </div>
               </div>
             </button>
           ) : (
-            <div className="relative w-72 h-72 md:w-80 md:h-80 flex items-center justify-center">
+            <div className="relative w-80 h-80 md:w-[27rem] md:h-[27rem] flex items-center justify-center">
               {/* Individual tejido */}
               <div
                 className="relative w-full h-full rounded-3xl bg-[#b99361] shadow-[0_26px_48px_-16px_rgba(0,0,0,0.42)] p-4 flex items-center justify-center border border-[#8e6a3c]"
@@ -268,6 +279,7 @@ function JuegoCocinarMojarra({ color = '#e8a86b' }) {
                       <div className="absolute inset-0">
                         <Escena3DMojarra
                           etapa="emplatar"
+                          fullHeight
                           adobos={{ limon: true, ajo: true, sal: true }}
                           friendo={cocinando}
                           coccion={cocinando ? 80 : 75}
@@ -5010,7 +5022,10 @@ export default function AulaAmbientalBocachica({
                   </div>
 
                   {memItemSel.id === 'arroz_coco_pescado' && (
-                    <JuegoCocinarMojarra color={catMem.color} />
+                    <JuegoCocinarMojarra
+                      color={catMem.color}
+                      onCerrar={() => setMemItemSel(null)}
+                    />
                   )}
                   {(memItemSel.id === 'bullerengue' || memItemSel.id === 'mapale_cumbia') && (
                     <JuegoBailarCartagenero

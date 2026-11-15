@@ -62,7 +62,7 @@ function crearMojarra3D() {
   return fish;
 }
 
-export function Escena3DMojarra({ etapa, adobos, friendo, coccion, plato }) {
+export function Escena3DMojarra({ etapa, adobos, friendo, coccion, plato, fullHeight = false }) {
   const mountRef = useRef(null);
   const stateRef = useRef({ etapa, adobos, friendo, coccion, plato });
   stateRef.current = { etapa, adobos, friendo, coccion, plato };
@@ -395,11 +395,13 @@ export function Escena3DMojarra({ etapa, adobos, friendo, coccion, plato }) {
   }, []);
 
   return (
-    <div className="relative w-full h-64 md:h-72 rounded-2xl overflow-hidden border border-white/15 bg-[#0d1721]">
+    <div className={`relative w-full ${fullHeight ? 'h-full' : 'h-64 md:h-72 rounded-2xl border border-white/15'} overflow-hidden bg-[#0d1721]`}>
       <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
-      <span className="pointer-events-none absolute bottom-2 right-2.5 px-2 py-0.5 rounded-full bg-black/55 border border-white/15 text-[10px] text-white/75">
-        Arrastra para girar en 3D
-      </span>
+      {!fullHeight && (
+        <span className="pointer-events-none absolute bottom-2 right-2.5 px-2 py-0.5 rounded-full bg-black/55 border border-white/15 text-[10px] text-white/75">
+          Arrastra para girar en 3D
+        </span>
+      )}
     </div>
   );
 }
