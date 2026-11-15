@@ -2387,6 +2387,8 @@ export default function AulaAmbientalBocachica({
   const [patrimonioSecIdx, setPatrimonioSecIdx] = useState(0);
   const [corregSel, setCorregSel] = useState(null);
   const [corregSecIdx, setCorregSecIdx] = useState(0);
+  const [ver180, setVer180] = useState(false);
+  const ultimoTapTBRef = useRef(0);
 
   const corregimientosIsla = useMemo(
     () => [
@@ -2768,6 +2770,16 @@ export default function AulaAmbientalBocachica({
 
   const seleccionarCorregimiento = (cor) => {
     if (!cor) return;
+    if (cor.nodo === 'tierraBomba') {
+      const ahora = Date.now();
+      if (ahora - ultimoTapTBRef.current < 650 || corregSel?.nodo === 'tierraBomba') {
+        ultimoTapTBRef.current = 0;
+        setCorregSel(null);
+        setVer180(true);
+        return;
+      }
+      ultimoTapTBRef.current = ahora;
+    }
     setCorregSel(cor);
     setCorregSecIdx(0);
     escena?.irANodo?.(cor.nodo, 340);
@@ -3523,6 +3535,12 @@ export default function AulaAmbientalBocachica({
                   key={item.nodo}
                   type="button"
                   onClick={() => (esPatrimonio ? seleccionarPatrimonio(item) : esCorreg ? seleccionarCorregimiento(item) : seleccionarActividad(item))}
+                  onDoubleClick={() => {
+                    if (esCorreg && item.nodo === 'tierraBomba') {
+                      setCorregSel(null);
+                      setVer180(true);
+                    }
+                  }}
                   style={{ left: `${p.x}px`, top: `${p.y}px` }}
                   className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto group cursor-pointer focus:outline-none"
                 >
@@ -3545,6 +3563,11 @@ export default function AulaAmbientalBocachica({
                     </span>
                     <span className="mt-1.5 px-2.5 py-0.5 rounded-full bg-[#0b1016]/90 border border-white/20 text-[11px] font-bold text-white whitespace-nowrap shadow-lg flex items-center gap-1.5 group-hover:bg-white group-hover:text-[#0b1016] transition">
                       <span>{item.corto}</span>
+                      {esCorreg && item.nodo === 'tierraBomba' && (
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#e8a86b]/25 text-[#f7c896]">
+                          180° · 2x
+                        </span>
+                      )}
                       {!esCorreg && (
                         <span className="text-[10px] font-mono opacity-80">
                           {esPatrimonio ? item.anio : `${item.dia} ${item.mes}`}
@@ -3709,6 +3732,20 @@ export default function AulaAmbientalBocachica({
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
+
+                  {cor.nodo === 'tierraBomba' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCorregSel(null);
+                        setVer180(true);
+                      }}
+                      className="w-full py-2.5 px-4 rounded-2xl bg-[#e8a86b] hover:brightness-110 text-xs font-black text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer shadow-xl transition"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>Ver panorámica 180° de Tierra Bomba</span>
+                    </button>
+                  )}
                 </CardIluminada>
               </div>
             </div>
@@ -4585,6 +4622,39 @@ export default function AulaAmbientalBocachica({
           </div>
         );
       })()}
+
+      {/* VISOR PANORÁMICO 180° DE TIERRA BOMBA (AL PRESIONAR 2 VECES TIERRA BOMBA) */}
+      {ver180 && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 md:p-6">
+          <div className="relative w-full max-w-5xl h-[86svh] rounded-3xl overflow-hidden border border-white/25 bg-[#0b1016] shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-white/15 bg-[#0b1016]/95">
+              <div className="flex items-center gap-2.5">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#e8a86b] text-[#0b1016] text-[11px] font-black uppercase tracking-wider">
+                  180°
+                </span>
+                <div>
+                  <div className="text-sm font-extrabold text-white leading-tight">Tierra Bomba · Panorámica 180°</div>
+                  <div className="text-[11px] text-white/65">Arrastra para girar 180° · Usa la rueda o pellizca para acercar</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setVer180(false)}
+                className="px-3.5 py-1.5 rounded-full bg-white text-[#0b1016] hover:bg-white/90 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer transition"
+              >
+                <X className="w-4 h-4" />
+                <span>Cerrar 180°</span>
+              </button>
+            </div>
+            <iframe
+              src={`${MEMORIAS_BASE}panoramas/tierra-bomba-180.html`}
+              title="Panorámica 180 grados de Tierra Bomba"
+              className="w-full flex-1 border-0 bg-[#101b1d]"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
 
       {/* MODAL DE VIDRIO TRANSLÚCIDO SOBRE EL MAPA 3D (Cuando el usuario quiere ver un diagrama 2D en detalle) */}
       {modalDiagrama && (
