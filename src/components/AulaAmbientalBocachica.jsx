@@ -2024,19 +2024,28 @@ const PREGUNTAS_RETO = [
   },
 ];
 
+const TEMAS_VIERNES = [
+  '💻 Cómo usar esta plataforma 3D de Tierra Bomba',
+  '🪵 Carpintería de ribera y construcción en madera',
+  '🌿 Siembra de manglar y vivero comunitario',
+  '🏰 Historia y guianza del Fuerte San Fernando',
+  '💧 Cosecha de agua lluvia y cuidado del aljibe',
+];
+
 const EXPLORA_CATEGORIAS = [
   {
     id: 'corregimientos',
+    ancla: 'sec-corregimientos',
     label: '1. Corregimientos',
     icono: '🏘',
     color: '#e0917a',
     cam: 'isla_completa',
     nodos: ['casco', 'tierraBomba', 'canoDeLoro', 'puntaArena'],
     rutas: { agua: 0, verde: 0.2, residuos: 0, oficios: 0.2, patrimonio: 0.2 },
-    zonas: [0.45, 0.2, 0.2],
-    resumen: 'Los 4 pueblos de la isla: Bocachica, Tierra Bomba, Caño de Loro y Punta Arena. Toca cualquiera para volar hasta allá.',
+    zonas: [0.55, 0.2, 0.2],
+    resumen: 'Los 4 corregimientos de Tierra Bomba: Bocachica, Tierra Bomba, Caño de Loro y Punta Arena. Toca cualquiera para acercarte.',
     lugares: [
-      { nodo: 'casco', nombre: 'Bocachica', desc: 'Corregimiento al sur donde nace el Aula Ambiental, con sus 2.600 casas y fuertes.' },
+      { nodo: 'casco', nombre: 'Bocachica', desc: 'Corregimiento al sur con su casco histórico, el colegio y los fuertes.' },
       { nodo: 'tierraBomba', nombre: 'Tierra Bomba', desc: 'Corregimiento del norte conectado por trochas, lanchas y bosque seco.' },
       { nodo: 'canoDeLoro', nombre: 'Caño de Loro', desc: 'Corregimiento sobre la bahía rodeado de manglares y pesca artesanal.' },
       { nodo: 'puntaArena', nombre: 'Punta Arena', desc: 'Corregimiento frente a Cartagena con playas y turismo comunitario.' },
@@ -2044,6 +2053,7 @@ const EXPLORA_CATEGORIAS = [
   },
   {
     id: 'patrimonio',
+    ancla: 'sec-patrimonio',
     label: '2. Patrimonio',
     icono: '🏰',
     color: '#f4f1ec',
@@ -2051,59 +2061,44 @@ const EXPLORA_CATEGORIAS = [
     nodos: ['sanFernando', 'sanRafael', 'sanJose', 'casco'],
     rutas: { agua: 0, verde: 0, residuos: 0, oficios: 0, patrimonio: 1 },
     zonas: [0.95, 0.1, 0.1],
-    resumen: 'Fuertes de piedra coralina, miradores y la memoria viva contada por la gente de Bocachica.',
+    resumen: 'Los fuertes de piedra coralina, miradores e historia viva que hacen único a nuestro territorio.',
     lugares: [
-      { nodo: 'sanFernando', nombre: 'Fuerte San Fernando', desc: 'Baluarte histórico frente al canal, cuidado junto a guías y jóvenes locales.' },
-      { nodo: 'sanRafael', nombre: 'Batería Ángel San Rafael', desc: 'Mirador en lo alto de la loma con vista a toda la bahía y sendero educativo.' },
+      { nodo: 'sanFernando', nombre: 'Fuerte San Fernando', desc: 'Castillo histórico frente al canal, cuidado junto a guías y jóvenes locales.' },
+      { nodo: 'sanRafael', nombre: 'Batería Ángel San Rafael', desc: 'Mirador en lo alto de la loma con vista a toda la bahía.' },
       { nodo: 'sanJose', nombre: 'Batería de San José', desc: 'Fuerte sobre el arrecife en la entrada de la bahía de Cartagena.' },
-      { nodo: 'casco', nombre: 'Casco Histórico', desc: 'Calles tradicionales y casas de herencia caribeña en Bocachica.' },
+      { nodo: 'casco', nombre: 'Casco Histórico de Bocachica', desc: 'Calles tradicionales y casas de herencia caribeña.' },
     ],
   },
   {
     id: 'talleres',
-    label: '3. Talleres y Oficios',
+    ancla: 'sec-talleres',
+    label: '3. Talleres y Viernes',
     icono: '🪵',
     color: '#e8a86b',
     cam: 'linea_oficios',
-    nodos: ['ribera', 'residuos', 'vivero'],
-    rutas: { agua: 0, verde: 0.3, residuos: 0.9, oficios: 1, patrimonio: 0 },
-    zonas: [0.1, 0.3, 0.95],
-    resumen: 'Espacios donde la comunidad trabaja, aprende y transforma madera, plástico reciclado y plantas.',
+    nodos: ['ribera', 'residuos', 'vivero', 'escuelaR9'],
+    rutas: { agua: 0.3, verde: 0.4, residuos: 0.9, oficios: 1, patrimonio: 0 },
+    zonas: [0.1, 0.4, 0.95],
+    resumen: 'Talleres de oficios de la isla y programación de clases virtuales cada viernes para aprender tradiciones o usar esta plataforma.',
     lugares: [
-      { nodo: 'ribera', nombre: 'Carpintería de Ribera', desc: 'Taller de maestros carpinteros que hacen botes, muebles y techos frescos.' },
-      { nodo: 'residuos', nombre: 'Taller de Plástico', desc: 'Punto limpio donde el plástico recogido se convierte en bancas y madera plástica.' },
-      { nodo: 'vivero', nombre: 'Vivero Comunitario', desc: 'Lugar donde vecinos y estudiantes siembran manglar, almendros y frutales.' },
+      { nodo: 'ribera', nombre: 'Carpintería de Ribera', desc: 'Maestros carpinteros que enseñan construcción de botes y madera.' },
+      { nodo: 'residuos', nombre: 'Taller de Plástico', desc: 'Transformación de plástico reciclado en bancas y mobiliario.' },
+      { nodo: 'vivero', nombre: 'Vivero Comunitario', desc: 'Siembra de manglar, almendros y frutales junto a vecinos.' },
+      { nodo: 'escuelaR9', nombre: 'Colegio Gimnasio Cristiano', desc: 'Aula viva para encuentros, agua lluvia y formación.' },
     ],
   },
   {
-    id: 'colegio',
-    label: '4. Colegio y Agua',
-    icono: '🏫',
-    color: '#6ec6e6',
-    cam: 'escuela_r9',
-    nodos: ['escuelaR9', 'agua'],
-    rutas: { agua: 1, verde: 0.6, residuos: 0, oficios: 0, patrimonio: 0 },
-    zonas: [0.1, 0.85, 0.95],
-    resumen: 'El Gimnasio Cristiano R9 se transforma en refugio fresco con techo para recoger 45.000 L de agua lluvia.',
-    lugares: [
-      { nodo: 'escuelaR9', nombre: 'Colegio Gimnasio Cristiano', desc: 'Patio con sombra (-4,5 °C), aula abierta y tanque de agua limpia para el pueblo.' },
-      { nodo: 'agua', nombre: 'Aljibes y Pozos', desc: 'Red de pozos históricos y recolección de agua lluvia en casas y techos.' },
-    ],
-  },
-  {
-    id: 'naturaleza',
-    label: '5. Manglar y Sombra',
-    icono: '🌿',
+    id: 'juego',
+    ancla: 'sec-juego',
+    label: '4. Juego',
+    icono: '🎮',
     color: '#35d08a',
-    cam: 'linea_verde',
-    nodos: ['vivero', 'escuelaR9', 'canoDeLoro'],
-    rutas: { agua: 0.2, verde: 1, residuos: 0, oficios: 0, patrimonio: 0 },
-    zonas: [0.1, 0.95, 0.2],
-    resumen: 'Árboles reales de manglar y bosque seco que protegen la orilla del mar y bajan el calor.',
-    lugares: [
-      { nodo: 'vivero', nombre: 'Manglar y Vivero', desc: 'Barrera natural contra el oleaje y hogar de peces, cangrejos y aves.' },
-      { nodo: 'escuelaR9', nombre: 'Corredor de Sombra', desc: 'Árboles sembrados en calles y patios para caminar sin sol fuerte.' },
-    ],
+    cam: 'escuela_r9',
+    nodos: ['escuelaR9', 'vivero', 'casco'],
+    rutas: { agua: 0.8, verde: 0.9, residuos: 0, oficios: 0, patrimonio: 0 },
+    zonas: [0.2, 0.95, 0.85],
+    resumen: 'Interactúa con Tierra Bomba en 3D: siembra árboles, simula la lluvia y pon a prueba lo que sabes de tu isla.',
+    lugares: [],
   },
 ];
 
@@ -2151,26 +2146,64 @@ export default function AulaAmbientalBocachica({
   const [lugarActivo, setLugarActivo] = useState(null);
   const [catActiva, setCatActiva] = useState(null); // null o objeto de EXPLORA_CATEGORIAS
 
-  const activarCategoria = (cat) => {
-    setPanelJuego(false);
+  // Programación de clases virtuales de los viernes
+  const [clasesViernes, setClasesViernes] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tb_clases_viernes_v1');
+      if (saved) return JSON.parse(saved);
+    } catch { /* ignore */ }
+    return [
+      { id: 1, tema: TEMAS_VIERNES[0], nombre: 'Mesa Comunitaria', corregimiento: 'Bocachica', fecha: 'Próximo viernes · 4:00 p.m.' },
+      { id: 2, tema: TEMAS_VIERNES[1], nombre: 'Maestros de Ribera', corregimiento: 'Caño de Loro', fecha: 'Viernes · 4:00 p.m.' },
+    ];
+  });
+  const [temaViernes, setTemaViernes] = useState(TEMAS_VIERNES[0]);
+  const [nombreViernes, setNombreViernes] = useState('');
+  const [corregViernes, setCorregViernes] = useState('Bocachica');
+  const [confirmViernes, setConfirmViernes] = useState(false);
+
+  const agendarClaseViernes = (e) => {
+    e.preventDefault();
+    const nueva = {
+      id: Date.now(),
+      tema: temaViernes,
+      nombre: nombreViernes.trim() || 'Habitante de la isla',
+      corregimiento: corregViernes,
+      fecha: 'Próximo viernes · 4:00 p.m.',
+    };
+    const next = [nueva, ...clasesViernes].slice(0, 6);
+    setClasesViernes(next);
+    setNombreViernes('');
+    setConfirmViernes(true);
+    try { localStorage.setItem('tb_clases_viernes_v1', JSON.stringify(next)); } catch { /* ignore */ }
+    setTimeout(() => setConfirmViernes(false), 3500);
+  };
+
+  const activarCategoria = (cat, conScroll = true) => {
     setBusqAbierta(false);
-    if (catActiva?.id === cat.id) {
-      setCatActiva(null);
-      return;
-    }
-    setCatActiva(cat);
     setLugarActivo(null);
+    if (cat.id === 'juego') {
+      setPanelJuego(true);
+      setCatActiva(null);
+    } else {
+      setPanelJuego(false);
+      setCatActiva(cat);
+    }
     escena?.set({
       cam: cat.cam,
       dim: 0,
       cartografia: cat.id === 'corregimientos' ? 0.32 : 0,
-      lluvia: cat.id === 'colegio' ? 0.55 : 0,
-      sombraExtra: cat.id === 'naturaleza' ? 0.45 : 0,
+      lluvia: cat.id === 'juego' ? 0.45 : 0,
+      sombraExtra: cat.id === 'juego' ? 0.35 : 0,
       zonas: cat.zonas,
       rutas: cat.rutas,
       nodosActivos: cat.nodos,
       gemelo: 0,
     });
+    if (conScroll && cat.ancla) {
+      const el = document.getElementById(cat.ancla);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const resultadosBusqueda = useMemo(() => {
@@ -2205,12 +2238,11 @@ export default function AulaAmbientalBocachica({
     });
   };
 
-  const secProblemaRef = useRef(null);
-  const secMemoriasRef = useRef(null);
-  const secLineasRef = useRef(null);
-  const secGemeloRef = useRef(null);
-  const secPilotoR9Ref = useRef(null);
-  const secHojaRutaRef = useRef(null);
+  const secCorregRef = useRef(null);
+  const secPatrimonioRef = useRef(null);
+  const secTalleresRef = useRef(null);
+  const secJuegoRef = useRef(null);
+  const ultimaSeccionRef = useRef('hero');
 
   // Inicializar escena 3D
   useEffect(() => {
@@ -2254,92 +2286,51 @@ export default function AulaAmbientalBocachica({
       }
       setCapActual(cap);
 
-      // Evaluar en cuál de los 6 tramos continuos del mapa 3D estamos (20 pasos 3D en total):
-      // Cap 01 (El problema): pasos 0..1 (2 pasos)
-      // Cap 02 (Memorias y R1-R9): pasos 2..3 (2 pasos)
-      // Cap 03 (Seis líneas 3D): pasos 4..9 (6 pasos)
-      // Cap 04 (Gemelo 3D): pasos 10..14 (5 pasos)
-      // Cap 05 (Piloto R9): pasos 15..17 (3 pasos)
-      // Cap 06 (Hoja de ruta y actores): pasos 18..19 (2 pasos)
       const tramos = [
-        { ref: secProblemaRef, offset: 0, count: 2 },
-        { ref: secMemoriasRef, offset: 2, count: 2 },
-        { ref: secLineasRef, offset: 4, count: 6 },
-        { ref: secGemeloRef, offset: 10, count: 5 },
-        { ref: secPilotoR9Ref, offset: 15, count: 3 },
-        { ref: secHojaRutaRef, offset: 18, count: 2 },
+        { ref: secCorregRef, cat: EXPLORA_CATEGORIAS[0] },
+        { ref: secPatrimonioRef, cat: EXPLORA_CATEGORIAS[1] },
+        { ref: secTalleresRef, cat: EXPLORA_CATEGORIAS[2] },
+        { ref: secJuegoRef, cat: EXPLORA_CATEGORIAS[3] },
       ];
 
-      let hallado = null;
+      let hallada = null;
       for (const tr of tramos) {
         const el = tr.ref.current;
         if (!el) continue;
         const r = el.getBoundingClientRect();
-        if (r.top <= vh * 0.48 && r.bottom >= vh * 0.52) {
-          const pasoPx = (ALTO_PASO / 100) * vh;
-          const raw = Math.max(0, -r.top / pasoPx);
-          const localIdx = Math.min(tr.count - 1, Math.floor(raw));
-          hallado = {
-            idx: tr.offset + localIdx,
-            prog: Math.max(0, Math.min(1, raw - localIdx)),
-          };
+        if (r.top <= vh * 0.55 && r.bottom >= vh * 0.45) {
+          hallada = tr.cat;
           break;
         }
       }
 
-      if (hallado) {
-        setEnPasos3D(true);
-        setPasoIdx(hallado.idx);
-        setPasoProg(hallado.prog);
-        const p = PASOS_3D[hallado.idx];
-        escena?.set({
-          cam: p.cam,
-          dim: 0,
-          zonas: p.zonas,
-          rutas: p.rutas,
-          nodosActivos: p.nodosActivos,
-          lluvia: p.lluvia,
-          cartografia: p.cartografia,
-          gemelo: p.gemelo,
-        });
-      } else {
-        setEnPasos3D(false);
-        if (cap.id === '00') {
-          const yaScrolleo = window.scrollY > 40;
-          escena?.set(
-            yaScrolleo
-              ? {
-                  cam: 'isla_completa',
-                  dim: 0,
-                  zonas: [0.55, 0.2, 0.2],
-                  rutas: { agua: 0, verde: 0.2, residuos: 0, oficios: 0.2, patrimonio: 0.2 },
-                  nodosActivos: ['casco', 'tierraBomba', 'canoDeLoro', 'puntaArena'],
-                  lluvia: 0,
-                  cartografia: 0.32,
-                  gemelo: 0,
-                }
-              : {
-                  cam: 'hero',
-                  dim: 0,
-                  zonas: [0.45, 0.45, 0.45],
-                  rutas: { agua: 0.35, verde: 0.35, residuos: 0, oficios: 0, patrimonio: 0.45 },
-                  nodosActivos: ['casco', 'escuelaR9', 'sanFernando'],
-                  lluvia: 0,
-                  cartografia: 0,
-                  gemelo: 0,
-                }
-          );
-        } else {
-          // Capítulo 07 (Cierre): el mapa 3D sigue visible de fondo con iluminación suave
+      setEnPasos3D(false);
+      if (hallada) {
+        if (ultimaSeccionRef.current !== hallada.id) {
+          ultimaSeccionRef.current = hallada.id;
+          activarCategoria(hallada, false);
+        }
+      } else if (window.scrollY <= 40) {
+        if (ultimaSeccionRef.current !== 'hero') {
+          ultimaSeccionRef.current = 'hero';
+          setCatActiva(null);
+          setPanelJuego(false);
+          setLugarActivo(null);
           escena?.set({
-            cam: 'bocachica_general',
-            dim: 0.22,
-            zonas: [0.7, 0.7, 0.7],
-            rutas: { agua: 0.7, verde: 0.7, residuos: 0.5, oficios: 0.5, patrimonio: 0.7 },
-            nodosActivos: null,
+            cam: 'hero',
+            dim: 0,
+            zonas: [0.45, 0.45, 0.45],
+            rutas: { agua: 0.35, verde: 0.35, residuos: 0, oficios: 0, patrimonio: 0.45 },
+            nodosActivos: ['casco', 'escuelaR9', 'sanFernando'],
             lluvia: 0,
+            cartografia: 0,
             gemelo: 0,
           });
+        }
+      } else if (cap.id === '00' && window.scrollY > 40) {
+        if (ultimaSeccionRef.current !== 'corregimientos') {
+          ultimaSeccionRef.current = 'corregimientos';
+          activarCategoria(EXPLORA_CATEGORIAS[0], false);
         }
       }
     };
@@ -2793,13 +2784,13 @@ export default function AulaAmbientalBocachica({
 
       {/* TARJETA ÚNICA IZQUIERDA: Muestra solo UNA cosa a la vez (Tema activo OR Lugar buscado OR Jugar) */}
       {enVistaAula && catActiva && !panelJuego && !modalDiagrama && (
-        <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,24.5rem)] tc-vidrio p-4 tc-paso-anim shadow-2xl">
+        <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,26rem)] max-h-[76svh] overflow-y-auto tc-vidrio p-4 tc-paso-anim shadow-2xl">
           <div className="flex items-center justify-between gap-2 pb-2 border-b border-white/15">
             <span className="text-xs font-semibold text-white">{catActiva.icono} {catActiva.label}</span>
             <button type="button" onClick={() => setCatActiva(null)} className="text-xs text-white/60 hover:text-white px-1">✕</button>
           </div>
           <p className="text-xs text-white/85 mt-2 leading-snug">{catActiva.resumen}</p>
-          <div className="mt-2.5 space-y-1.5 max-h-56 overflow-y-auto pr-0.5">
+          <div className="mt-2.5 space-y-1.5">
             {catActiva.lugares.map((lug) => (
               <button
                 key={lug.nodo}
@@ -2822,6 +2813,67 @@ export default function AulaAmbientalBocachica({
               </button>
             ))}
           </div>
+
+          {/* PROGRAMACIÓN DE CLASES VIRTUALES DE LOS VIERNES (Tradiciones + Uso de la plataforma) */}
+          {catActiva.id === 'talleres' && (
+            <div className="mt-3 pt-3 border-t border-white/15 space-y-2">
+              <div className="text-xs font-semibold text-[#e8a86b]">
+                📅 Clases virtuales de los viernes · 4:00 p.m.
+              </div>
+              <p className="text-[11px] text-white/70 leading-snug">
+                Programa aquí tu clase del viernes para aprender una tradición de Tierra Bomba o cómo usar esta plataforma:
+              </p>
+              <form onSubmit={agendarClaseViernes} className="space-y-1.5">
+                <select
+                  value={temaViernes}
+                  onChange={(e) => setTemaViernes(e.target.value)}
+                  className="w-full bg-white/10 border border-white/15 rounded-lg px-2.5 py-1.5 text-[11px] text-white focus:outline-none focus:border-[#e8a86b]"
+                >
+                  {TEMAS_VIERNES.map((t) => (
+                    <option key={t} value={t} className="bg-[#0b1016] text-white">{t}</option>
+                  ))}
+                </select>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <input
+                    type="text"
+                    value={nombreViernes}
+                    onChange={(e) => setNombreViernes(e.target.value)}
+                    placeholder="Tu nombre..."
+                    className="bg-white/10 border border-white/15 rounded-lg px-2.5 py-1.5 text-[11px] text-white placeholder-white/50 focus:outline-none focus:border-[#e8a86b]"
+                  />
+                  <select
+                    value={corregViernes}
+                    onChange={(e) => setCorregViernes(e.target.value)}
+                    className="bg-white/10 border border-white/15 rounded-lg px-2 py-1.5 text-[11px] text-white focus:outline-none focus:border-[#e8a86b]"
+                  >
+                    {['Bocachica', 'Tierra Bomba', 'Caño de Loro', 'Punta Arena'].map((c) => (
+                      <option key={c} value={c} className="bg-[#0b1016] text-white">{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  className="w-full py-1.5 px-3 rounded-lg bg-[#e8a86b]/25 border border-[#e8a86b] text-white text-[11px] font-medium hover:bg-[#e8a86b]/35 transition"
+                >
+                  ✓ Programar clase del próximo viernes
+                </button>
+              </form>
+              {confirmViernes && (
+                <div className="text-[11px] text-[#35d08a] font-medium">
+                  ¡Listo! Tu clase del viernes quedó programada.
+                </div>
+              )}
+              <div className="space-y-1 pt-1">
+                <div className="text-[10px] uppercase tracking-wider text-white/50">Próximos viernes programados</div>
+                {clasesViernes.slice(0, 3).map((cv) => (
+                  <div key={cv.id} className="p-1.5 rounded bg-white/5 border border-white/10 text-[10px] text-white/85">
+                    <div className="font-medium text-white">{cv.tema}</div>
+                    <div className="text-white/60">{cv.nombre} ({cv.corregimiento}) · {cv.fecha}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </aside>
       )}
 
@@ -3103,69 +3155,36 @@ export default function AulaAmbientalBocachica({
       </section>
 
       {/* =====================================================================
-          01 · EL PROBLEMA EN EL MAPA 3D (Scrollytelling 3D: 2 pasos × 95svh)
+          4 SECCIONES CLARAS AL HACER SCROLL:
+          1. Corregimientos -> 2. Patrimonio -> 3. Talleres y Viernes -> 4. Juego
       ===================================================================== */}
       <section
-        id="cap-01"
-        ref={secProblemaRef}
-        style={{ height: `${2 * ALTO_PASO}svh` }}
+        id="sec-corregimientos"
+        ref={secCorregRef}
+        style={{ height: '100svh' }}
         className="relative z-10 pointer-events-none"
-        aria-label="Recorrido 3D por el problema territorial de Bocachica"
+        aria-label="Los 4 corregimientos de Tierra Bomba"
       />
-
-      {/* =====================================================================
-          02 · MEMORIAS Y ANTECEDENTES R1–R9 EN EL MAPA 3D (Scrollytelling 3D: 2 pasos × 95svh)
-      ===================================================================== */}
       <section
-        id="cap-02"
-        ref={secMemoriasRef}
-        style={{ height: `${2 * ALTO_PASO}svh` }}
+        id="sec-patrimonio"
+        ref={secPatrimonioRef}
+        style={{ height: '100svh' }}
         className="relative z-10 pointer-events-none"
-        aria-label="Recorrido 3D por los antecedentes R1 a R9 y las memorias de Bocachica"
+        aria-label="Patrimonio de Tierra Bomba"
       />
-
-      {/* =====================================================================
-          03 · LAS 6 LÍNEAS EN EL TERRITORIO (Scrollytelling 3D: 6 pasos × 95svh)
-      ===================================================================== */}
       <section
-        id="cap-03"
-        ref={secLineasRef}
-        style={{ height: `${6 * ALTO_PASO}svh` }}
+        id="sec-talleres"
+        ref={secTalleresRef}
+        style={{ height: '115svh' }}
         className="relative z-10 pointer-events-none"
-        aria-label="Recorrido 3D por las 6 líneas de investigación en Bocachica"
+        aria-label="Talleres, oficios y clases virtuales de los viernes"
       />
-
-      {/* =====================================================================
-          04 · GEMELO DIGITAL PROGRESIVO EN 3D (Scrollytelling 3D: 5 pasos × 95svh)
-      ===================================================================== */}
       <section
-        id="cap-04"
-        ref={secGemeloRef}
-        style={{ height: `${5 * ALTO_PASO}svh` }}
+        id="sec-juego"
+        ref={secJuegoRef}
+        style={{ height: '115svh' }}
         className="relative z-10 pointer-events-none"
-        aria-label="Recorrido 3D por los 5 niveles del Gemelo Digital de Bocachica"
-      />
-
-      {/* =====================================================================
-          05 · PROYECTO PILOTO R9 EN 3D (Scrollytelling 3D: 3 pasos × 95svh)
-      ===================================================================== */}
-      <section
-        id="cap-05"
-        ref={secPilotoR9Ref}
-        style={{ height: `${3 * ALTO_PASO}svh` }}
-        className="relative z-10 pointer-events-none"
-        aria-label="Recorrido 3D por el Gimnasio Cristiano de Bocachica R9"
-      />
-
-      {/* =====================================================================
-          06 · HOJA DE RUTA DE 24 MESES Y RED DE 15 ACTORES EN EL MAPA 3D (2 pasos × 95svh)
-      ===================================================================== */}
-      <section
-        id="cap-06"
-        ref={secHojaRutaRef}
-        style={{ height: `${2 * ALTO_PASO}svh` }}
-        className="relative z-10 pointer-events-none"
-        aria-label="Recorrido 3D por la hoja de ruta de 24 meses y red de 15 actores"
+        aria-label="Juego interactivo sobre Tierra Bomba"
       />
 
       {/* =====================================================================
