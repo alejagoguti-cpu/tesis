@@ -1854,7 +1854,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       resetVista();
       T.customFocus = { x: n.x, y: n.y, z: n.z, dist };
       T.cam = 'custom';
-      T.nodosActivos = [clave];
+      T.nodosActivos = [];
       return true;
     },
     set(parcial) {
