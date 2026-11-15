@@ -4038,7 +4038,7 @@ export default function AulaAmbientalBocachica({
         </aside>
       )}
 
-      {/* PANEL DE MEMORIAS Y SABERES: COMIDA, BAILES Y TRADICIONES INTERACTIVOS */}
+      {/* INFOGRAFÍA INTERACTIVA GRANDE DE MEMORIAS Y SABERES: COMIDA, BAILES Y TRADICIONES */}
       {enVistaAula && panelJuego && !modalDiagrama && (() => {
         const catMem = MEMORIAS_SABERES[memCategoria] || MEMORIAS_SABERES.comida;
         const IconoCatMem = catMem.Icon;
@@ -4048,238 +4048,314 @@ export default function AulaAmbientalBocachica({
         const sonandoMem = pistaMem && pistaActiva.id === pistaMem.id && musicaSonando;
 
         return (
-          <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(94vw,31rem)] max-h-[84svh] overflow-y-auto tc-vidrio p-4 md:p-5 tc-paso-anim shadow-2xl">
-            <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-white/15">
-              <div className="flex items-center gap-2">
-                <span
-                  className="w-7 h-7 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: `${catMem.color}25`, color: catMem.color }}
-                >
-                  <IconoCatMem className="w-4 h-4" />
-                </span>
-                <span className="text-sm font-semibold text-white">4. Memorias y Saberes</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPanelJuego(false)}
-                className="text-white/60 hover:text-white p-1"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* 3 CATEGORÍAS: COMIDA · BAILES · TRADICIONES */}
-            <div className="grid grid-cols-3 gap-2 mb-3.5">
-              {Object.entries(MEMORIAS_SABERES).map(([key, cat]) => {
-                const IconoTab = cat.Icon;
-                const activa = memCategoria === key;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => {
-                      setMemCategoria(key);
-                      setMemItemSel(null);
-                      setMemPasoIdx(0);
-                    }}
-                    className={`py-2 px-2.5 rounded-xl border text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition ${
-                      activa
-                        ? 'text-[#0b1016] shadow-lg'
-                        : 'bg-white/5 border-white/15 text-white/80 hover:bg-white/15 hover:text-white'
-                    }`}
-                    style={activa ? { backgroundColor: cat.color, borderColor: cat.color } : undefined}
+          <div className="fixed inset-0 z-30 bg-black/55 backdrop-blur-md flex items-center justify-center p-3 md:p-8">
+            <section className="w-full max-w-5xl max-h-[90svh] overflow-y-auto tc-vidrio p-5 md:p-7 rounded-3xl border border-white/20 tc-paso-anim shadow-2xl">
+              {/* CABECERA AMPLIA */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-white/15">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="w-11 h-11 rounded-2xl flex items-center justify-center border border-white/20"
+                    style={{ backgroundColor: `${catMem.color}25`, color: catMem.color }}
                   >
-                    <IconoTab className="w-4 h-4" />
-                    <span>{cat.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+                    <IconoCatMem className="w-6 h-6" />
+                  </span>
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-widest" style={{ color: catMem.color }}>
+                      Infografía interactiva · Tierra Bomba
+                    </div>
+                    <h2 className="text-lg md:text-xl font-extrabold text-white leading-tight">
+                      4. Memorias y Saberes de la Comunidad
+                    </h2>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPanelJuego(false)}
+                  className="px-3.5 py-2 rounded-full bg-white/10 hover:bg-white/20 text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer transition"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Volver al mapa</span>
+                </button>
+              </div>
 
-            {!memItemSel ? (
-              <div className="space-y-3">
-                <p className="text-xs text-white/80">{catMem.subtitulo}</p>
-                <div className="grid grid-cols-1 gap-3">
-                  {catMem.items.map((item) => (
-                    <CardIluminada
-                      key={item.id}
-                      color={catMem.color}
+              {/* 3 CATEGORÍAS GRANDES: COMIDA · BAILES · TRADICIONES */}
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                {Object.entries(MEMORIAS_SABERES).map(([key, cat]) => {
+                  const IconoTab = cat.Icon;
+                  const activa = memCategoria === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
                       onClick={() => {
-                        setMemItemSel(item);
+                        setMemCategoria(key);
+                        setMemItemSel(null);
+                        setMemPasoIdx(0);
+                      }}
+                      className={`py-3 px-4 rounded-2xl border text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer transition ${
+                        activa
+                          ? 'text-[#0b1016] shadow-xl scale-[1.01]'
+                          : 'bg-white/5 border-white/15 text-white/80 hover:bg-white/15 hover:text-white'
+                      }`}
+                      style={activa ? { backgroundColor: cat.color, borderColor: cat.color } : undefined}
+                    >
+                      <IconoTab className="w-5 h-5" />
+                      <span>{cat.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {!memItemSel ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-white/80">{catMem.subtitulo}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {catMem.items.map((item) => (
+                      <CardIluminada
+                        key={item.id}
+                        color={catMem.color}
+                        onClick={() => {
+                          setMemItemSel(item);
+                          setMemPasoIdx(0);
+                          setMemIngMarcados({});
+                        }}
+                        className="rounded-3xl border border-white/15 bg-white/[0.04] overflow-hidden cursor-pointer flex flex-col"
+                      >
+                        <div className="relative h-56 md:h-64 overflow-hidden">
+                          <img
+                            src={item.foto}
+                            alt={item.titulo}
+                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#0b1016] via-[#0b1016]/25 to-transparent" />
+                          <span
+                            className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider text-[#0b1016] shadow-lg"
+                            style={{ backgroundColor: catMem.color }}
+                          >
+                            {catMem.label}
+                          </span>
+                          <span className="absolute bottom-3 left-4 right-4 text-lg md:text-xl font-extrabold text-white leading-tight">
+                            {item.titulo}
+                          </span>
+                        </div>
+                        <div className="p-4 md:p-5 flex-1 flex flex-col justify-between gap-4">
+                          <p className="text-xs md:text-sm text-white/80 leading-relaxed">{item.resumen}</p>
+                          <div
+                            className="w-full py-3 px-4 rounded-2xl text-xs md:text-sm font-black text-[#0b1016] flex items-center justify-center gap-2 shadow-lg"
+                            style={{ backgroundColor: catMem.color }}
+                          >
+                            <span>{item.etiquetaPaso}</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </div>
+                        </div>
+                      </CardIluminada>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMemItemSel(null);
+                        setMemPasoIdx(0);
+                      }}
+                      className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Volver a {catMem.label}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const otro = catMem.items.find((it) => it.id !== memItemSel.id) || catMem.items[0];
+                        setMemItemSel(otro);
                         setMemPasoIdx(0);
                         setMemIngMarcados({});
                       }}
-                      className="rounded-2xl border border-white/15 bg-white/5 overflow-hidden cursor-pointer flex items-center gap-3 p-2.5"
+                      className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
                     >
-                      <img
-                        src={item.foto}
-                        alt={item.titulo}
-                        className="w-24 h-20 rounded-xl object-cover shrink-0 border border-white/15"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-extrabold text-white leading-snug">{item.titulo}</div>
-                        <p className="text-[11px] text-white/75 mt-1 leading-snug line-clamp-2">{item.resumen}</p>
-                        <div
-                          className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold"
-                          style={{ color: catMem.color }}
-                        >
-                          <span>{item.etiquetaPaso}</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
+                      <span>Cambiar a otra opción</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* INFOGRAFÍA DE 2 COLUMNAS */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                    {/* COLUMNA IZQUIERDA: FOTO GRANDE + MÚSICA + INGREDIENTES/ELEMENTOS */}
+                    <div className="lg:col-span-5 space-y-4">
+                      <div className="relative rounded-3xl overflow-hidden border border-white/20 shadow-2xl">
+                        <img
+                          src={memItemSel.foto}
+                          alt={memItemSel.titulo}
+                          className="w-full h-60 md:h-72 object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0b1016] via-[#0b1016]/25 to-transparent" />
+                        <div className="absolute bottom-3 left-4 right-4">
+                          <div className="text-[11px] font-extrabold uppercase tracking-widest" style={{ color: catMem.color }}>
+                            {catMem.label} · Tierra Bomba
+                          </div>
+                          <h3 className="text-xl font-extrabold text-white leading-tight mt-0.5">{memItemSel.titulo}</h3>
                         </div>
                       </div>
-                    </CardIluminada>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMemItemSel(null);
-                      setMemPasoIdx(0);
-                    }}
-                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-semibold text-white flex items-center gap-1 cursor-pointer"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>Volver a {catMem.label}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const otro = catMem.items.find((it) => it.id !== memItemSel.id) || catMem.items[0];
-                      setMemItemSel(otro);
-                      setMemPasoIdx(0);
-                    }}
-                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-semibold text-white flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>Ver otro</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
 
-                {/* FOTO GRANDE DEL PLATO, BAILE O TRADICIÓN */}
-                <div className="relative rounded-2xl overflow-hidden border border-white/20">
-                  <img
-                    src={memItemSel.foto}
-                    alt={memItemSel.titulo}
-                    className="w-full h-44 object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0b1016] via-[#0b1016]/30 to-transparent" />
-                  <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between gap-2">
-                    <div>
-                      <div className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: catMem.color }}>
-                        {catMem.label} · Tierra Bomba
+                      {pistaMem && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => alternarMusica(pistaMem)}
+                            className="flex-1 py-3 px-4 rounded-2xl font-extrabold text-xs md:text-sm text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer transition hover:brightness-110 shadow-xl"
+                            style={{ backgroundColor: catMem.color }}
+                          >
+                            {sonandoMem ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                            <span>{sonandoMem ? 'Pausar música del baile' : `Reproducir música (${pistaMem.bpm} BPM)`}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = !musicaMute;
+                              setMusicaMute(next);
+                              repRef.current?.setMuted(next);
+                            }}
+                            aria-label={musicaMute ? 'Activar sonido' : 'Silenciar'}
+                            className="p-3 rounded-2xl border border-white/20 text-white/85 hover:bg-white/10 cursor-pointer"
+                          >
+                            {musicaMute ? <VolumeX className="w-4 h-4 text-[#e0917a]" /> : <Volume2 className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4">
+                        <div className="text-[11px] font-extrabold uppercase tracking-wider text-white/70 mb-2.5">
+                          {memCategoria === 'comida' ? 'Ingredientes (toca para marcar)' : 'Elementos clave'}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {memItemSel.ingredientes.map((ing) => {
+                            const marcado = !!memIngMarcados[ing];
+                            return (
+                              <button
+                                key={ing}
+                                type="button"
+                                onClick={() => setMemIngMarcados((prev) => ({ ...prev, [ing]: !prev[ing] }))}
+                                className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition border ${
+                                  marcado
+                                    ? 'bg-[#35d08a]/25 border-[#35d08a]/60 text-[#9ff3c9]'
+                                    : 'bg-white/10 border-white/15 text-white/90 hover:bg-white/20'
+                                }`}
+                              >
+                                {marcado && <Check className="w-3.5 h-3.5" />}
+                                <span>{ing}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <h3 className="text-base font-extrabold text-white leading-tight">{memItemSel.titulo}</h3>
                     </div>
-                  </div>
-                </div>
 
-                {/* REPRODUCTOR EN VIVO SI ES BAILE */}
-                {pistaMem && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => alternarMusica(pistaMem)}
-                      className="flex-1 py-2.5 px-3 rounded-xl font-extrabold text-xs text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer transition hover:brightness-110"
-                      style={{ backgroundColor: catMem.color }}
-                    >
-                      {sonandoMem ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                      <span>{sonandoMem ? 'Pausar música del baile' : `Reproducir música (${pistaMem.bpm} BPM)`}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = !musicaMute;
-                        setMusicaMute(next);
-                        repRef.current?.setMuted(next);
-                      }}
-                      aria-label={musicaMute ? 'Activar sonido' : 'Silenciar'}
-                      className="p-2.5 rounded-xl border border-white/20 text-white/85 hover:bg-white/10 cursor-pointer"
-                    >
-                      {musicaMute ? <VolumeX className="w-4 h-4 text-[#e0917a]" /> : <Volume2 className="w-4 h-4" />}
-                    </button>
-                  </div>
-                )}
-
-                {/* INGREDIENTES / ELEMENTOS CLICABLES */}
-                <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1.5">
-                    {memCategoria === 'comida' ? 'Ingredientes (toca para marcar)' : 'Elementos'}
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {memItemSel.ingredientes.map((ing) => {
-                      const marcado = !!memIngMarcados[ing];
+                    {/* COLUMNA DERECHA: INFOGRAFÍA PASO A PASO INTERACTIVA */}
+                    {(() => {
+                      const pasoActualMem = memItemSel.pasos[memPasoIdx] || memItemSel.pasos[0];
+                      const antIdx = (memPasoIdx - 1 + memItemSel.pasos.length) % memItemSel.pasos.length;
+                      const sigIdx = (memPasoIdx + 1) % memItemSel.pasos.length;
                       return (
-                        <button
-                          key={ing}
-                          type="button"
-                          onClick={() => setMemIngMarcados((prev) => ({ ...prev, [ing]: !prev[ing] }))}
-                          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition border ${
-                            marcado
-                              ? 'bg-[#35d08a]/25 border-[#35d08a]/60 text-[#9ff3c9]'
-                              : 'bg-white/10 border-white/15 text-white/85 hover:bg-white/20'
-                          }`}
-                        >
-                          {marcado && <Check className="w-3 h-3" />}
-                          <span>{ing}</span>
-                        </button>
+                        <div className="lg:col-span-7 flex flex-col justify-between gap-4 rounded-3xl bg-white/[0.04] border border-white/15 p-5 md:p-6">
+                          <div>
+                            <div className="flex items-center justify-between gap-2 mb-4">
+                              <span className="text-xs font-black uppercase tracking-widest" style={{ color: catMem.color }}>
+                                {memItemSel.etiquetaPaso}
+                              </span>
+                              <span className="text-xs font-bold text-white/70">
+                                Paso {memPasoIdx + 1} de {memItemSel.pasos.length}
+                              </span>
+                            </div>
+
+                            {/* LÍNEA DE TIEMPO VISUAL CONECTADA */}
+                            <div className="grid grid-cols-4 gap-2 mb-5">
+                              {memItemSel.pasos.map((p, idx) => {
+                                const activo = idx === memPasoIdx;
+                                const pasado = idx < memPasoIdx;
+                                return (
+                                  <button
+                                    key={p.titulo}
+                                    type="button"
+                                    onClick={() => setMemPasoIdx(idx)}
+                                    className={`p-2.5 rounded-2xl border text-left cursor-pointer transition ${
+                                      activo
+                                        ? 'text-[#0b1016] shadow-xl scale-[1.03]'
+                                        : pasado
+                                          ? 'bg-white/15 border-white/25 text-white'
+                                          : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/15'
+                                    }`}
+                                    style={activo ? { backgroundColor: catMem.color, borderColor: catMem.color } : undefined}
+                                  >
+                                    <div className="text-[10px] font-black uppercase tracking-wider opacity-80">
+                                      Paso {idx + 1}
+                                    </div>
+                                    <div className="text-xs font-bold truncate mt-0.5">
+                                      {p.titulo.replace(/^\d+\.\s*/, '')}
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {/* TARJETA GRANDE DEL PASO ACTIVO */}
+                            <CardIluminada
+                              color={catMem.color}
+                              onClick={() => setMemPasoIdx(sigIdx)}
+                              className="rounded-2xl border border-white/20 bg-[#0b1016]/75 p-5 md:p-6 cursor-pointer"
+                            >
+                              <div className="flex items-center gap-4 mb-3">
+                                <span
+                                  className="w-14 h-14 rounded-2xl text-2xl font-black text-[#0b1016] flex items-center justify-center shrink-0 shadow-lg"
+                                  style={{ backgroundColor: catMem.color }}
+                                >
+                                  {memPasoIdx + 1}
+                                </span>
+                                <div>
+                                  <div className="text-[11px] font-extrabold uppercase tracking-wider" style={{ color: catMem.color }}>
+                                    {catMem.label} · Infografía interactiva
+                                  </div>
+                                  <h4 className="text-lg md:text-xl font-extrabold text-white leading-snug">
+                                    {pasoActualMem.titulo.replace(/^\d+\.\s*/, '')}
+                                  </h4>
+                                </div>
+                              </div>
+                              <p className="text-sm md:text-base text-white/90 leading-relaxed">
+                                {pasoActualMem.texto}
+                              </p>
+                            </CardIluminada>
+                          </div>
+
+                          {/* CONTROLES DE NAVEGACIÓN DE LA INFOGRAFÍA */}
+                          <div className="pt-3 border-t border-white/15 flex items-center justify-between gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setMemPasoIdx(antIdx)}
+                              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs md:text-sm font-bold text-white flex items-center gap-2 cursor-pointer transition"
+                            >
+                              <ArrowLeft className="w-4 h-4" />
+                              <span>Anterior</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setMemPasoIdx(sigIdx)}
+                              className="px-5 py-2.5 rounded-xl text-xs md:text-sm font-black text-[#0b1016] flex items-center gap-2 cursor-pointer shadow-xl transition hover:brightness-110"
+                              style={{ backgroundColor: catMem.color }}
+                            >
+                              <span>Siguiente paso</span>
+                              <ArrowRight className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
                       );
-                    })}
+                    })()}
                   </div>
                 </div>
-
-                {/* PASO A PASO INTERACTIVO (UNO A LA VEZ) */}
-                {(() => {
-                  const pasoActualMem = memItemSel.pasos[memPasoIdx] || memItemSel.pasos[0];
-                  const sigIdx = (memPasoIdx + 1) % memItemSel.pasos.length;
-                  return (
-                    <div className="space-y-2 pt-2 border-t border-white/15">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-extrabold uppercase tracking-wider" style={{ color: catMem.color }}>
-                          {memItemSel.etiquetaPaso}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          {memItemSel.pasos.map((p, idx) => (
-                            <button
-                              key={p.titulo}
-                              type="button"
-                              onClick={() => setMemPasoIdx(idx)}
-                              className={`w-6 h-6 rounded-full text-[11px] font-extrabold cursor-pointer transition ${
-                                idx === memPasoIdx
-                                  ? 'text-[#0b1016]'
-                                  : 'bg-white/10 text-white/75 hover:bg-white/20'
-                              }`}
-                              style={idx === memPasoIdx ? { backgroundColor: catMem.color } : undefined}
-                            >
-                              {idx + 1}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setMemPasoIdx(sigIdx)}
-                        className="w-full text-left rounded-xl bg-white/[0.06] hover:bg-white/[0.11] border border-white/15 p-3.5 cursor-pointer transition group"
-                      >
-                        <div className="flex items-center justify-between gap-2 mb-1">
-                          <span className="text-xs font-extrabold text-white">{pasoActualMem.titulo}</span>
-                          <span className="text-[10px] font-bold text-white/60 group-hover:text-white flex items-center gap-1 shrink-0">
-                            <span>Siguiente paso</span>
-                            <ArrowRight className="w-3 h-3" />
-                          </span>
-                        </div>
-                        <p className="text-xs text-white/85 leading-relaxed">{pasoActualMem.texto}</p>
-                      </button>
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
-          </aside>
+              )}
+            </section>
+          </div>
         );
       })()}
 
