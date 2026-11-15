@@ -1,1736 +1,2018 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { crearEscenaAula } from '../utils/escenaAulaBocachica';
 import {
-  AULA_META,
-  CONTENIDO_INDICE,
-  CAP_01,
-  CAP_02,
-  CAP_03,
-  CAP_04,
-  CAP_05,
-  CAP_06,
-  CAP_07,
-  CAP_08,
-  CAP_09,
-  CAP_10,
-  CAP_11,
-  CAP_12,
-  CAP_13,
-  CAP_14,
-  CAP_15,
-  CAP_16,
-  CAP_17,
+  ANTECEDENTES_CORPUS,
+  DIMENSIONES_MEMORIA,
+  CICLO_METODOLOGICO,
+  LINEAS_INVESTIGACION,
+  GEMELO_DIGITAL_NIVELES,
+  FASES_24_MESES,
+  PRODUCTOS_ESPERADOS,
+  ACTORES_GOBERNANZA,
+  PRINCIPIOS_ETICOS,
+  SINTESIS_EJECUTIVA_10,
 } from '../data/aulaAmbientalData';
 
-const clamp01 = (x) => Math.max(0, Math.min(1, x));
-const reduceMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// =============================================================================
+// TIERRA BOMBA · AULA AMBIENTAL (BOCACHICA)
+// Construido con la arquitectura exacta de https://alejagoguti-cpu.github.io/tesis_tercer_corte/
+//  - Escena 3D fija a pantalla completa (Three.js) controlada por el scroll
+//  - Paneles flotantes de vidrio esmerilado (.tc-vidrio), índice lateral y controles de mapa
+//  - Red conceptual progresiva con curvas Bézier, partículas y máquina de escribir
+//  - Diagramas visuales (barras apiladas, flujos SVG, esquema en planta, línea de tiempo)
+//  - Cero tablas tipo Word
+// =============================================================================
 
-const ICONOS_RED = {
-  escuela: 'M3 21V9l9-6 9 6v12M9 21v-7h6v7',
-  isla: 'M2 14c3-4 6-4 9 0s6 4 11 0M2 19c3-4 6-4 9 0s6 4 11 0M12 3v7m-3-3 3 3 3-3',
-  lugar: 'M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11zM12 12a2 2 0 100-4 2 2 0 000 4z',
-  memoria: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
-  oficios: 'M8 8l3 3m2 2 3 3M16 8l-3 3m-2 2-3 3M11 9l2 6M6 4a2 2 0 100 4 2 2 0 000-4zM18 4a2 2 0 100 4 2 2 0 000-4zM6 16a2 2 0 100 4 2 2 0 000-4zM18 16a2 2 0 100 4 2 2 0 000-4z',
-  pilotos: 'M3 15c3-3 6-3 9 0s6 3 9 0M3 19c3-3 6-3 9 0s6 3 9 0M5 5l5 4-2 4 5 2 5-5 2 3',
-  plan: 'M5 21V4M5 4h11l-2 4 2 4H5',
-};
+const ALTO_PASO = 95; // svh por paso de scrollytelling 3D (idéntico a tesis_tercer_corte)
 
-function IconoSvg({ d, className = '' }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="24"
-      height="24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d={d} />
-    </svg>
-  );
-}
+const CAPITULOS = [
+  { id: '00', nombre: 'Inicio', ancla: 'cap-00' },
+  { id: '01', nombre: 'El problema', ancla: 'cap-01' },
+  { id: '02', nombre: 'Memorias y base', ancla: 'cap-02' },
+  { id: '03', nombre: 'Seis líneas 3D', ancla: 'cap-03' },
+  { id: '04', nombre: 'Gemelo 3D', ancla: 'cap-04' },
+  { id: '05', nombre: 'Piloto R9 y plan', ancla: 'cap-05' },
+  { id: '06', nombre: 'Hoja de ruta y red', ancla: 'cap-06' },
+  { id: '07', nombre: 'Cierre', ancla: 'cap-07' },
+];
 
-function Escribir({ texto }) {
-  const [n, setN] = useState(reduceMotion() ? texto.length : 0);
-  useEffect(() => {
-    if (reduceMotion()) {
-      setN(texto.length);
-      return undefined;
-    }
-    setN(0);
-    const id = setInterval(() => {
-      setN((x) => {
-        if (x >= texto.length) {
-          clearInterval(id);
-          return x;
-        }
-        return x + 3;
-      });
-    }, 14);
-    return () => clearInterval(id);
-  }, [texto]);
-  return (
-    <>
-      {texto.slice(0, n)}
-      <span
-        className="ml-0.5 inline-block h-[1em] w-px translate-y-[0.15em] bg-[#4fb6b0]"
-        style={{ opacity: n < texto.length ? 0.9 : 0 }}
-      />
-    </>
-  );
-}
+// Pasos 3D sobre la isla (Capítulos 03, 04 y 05)
+const PASOS_3D = [
+  // --- CAP 03: LAS 6 LÍNEAS EN EL TERRITORIO (índices 0..5) ---
+  {
+    id: 'l91',
+    grupo: '03 · Línea 9.1 — Memorias y vernáculo',
+    pasoGrupo: '01 / 06',
+    titulo: 'Atlas de memorias y arquitectura vernácula',
+    cam: 'linea_memoria',
+    zonas: [0.95, 0.15, 0.15],
+    rutas: { agua: 0, verde: 0, residuos: 0, oficios: 0, patrimonio: 0.45 },
+    nodosActivos: ['casco', 'sanFernando', 'sanRafael'],
+    lluvia: 0,
+    cartografia: 0,
+    gemelo: 0,
+    cifra: '6 dimensiones',
+    subCifra: 'Cultural · territorial · material · oficios · hídrica · ecológica',
+    resumen: 'Documenta la historia barrial de Bocachica, las tipologías de vivienda vernácula caribeña (ventilación cruzada, aleros, patios sombreados) y los lugares de memoria viva.',
+    piloto: 'Atlas vivo de memorias territoriales y catálogo de patrones bioclimáticos vernáculos aplicables al hábitat insular.',
+    producto: 'P3 · Atlas comunitario + P9 · Exposición itinerante y señalética.',
+  },
+  {
+    id: 'l92',
+    grupo: '03 · Línea 9.2 — Agua y memorias hídricas',
+    pasoGrupo: '02 / 06',
+    titulo: 'Cosecha de lluvia, aljibes y metabolismo hídrico',
+    cam: 'linea_agua',
+    zonas: [0.15, 0.2, 0.95],
+    rutas: { agua: 1, verde: 0, residuos: 0, oficios: 0, patrimonio: 0 },
+    nodosActivos: ['agua', 'escuelaR9', 'casco'],
+    lluvia: 0.85,
+    cartografia: 0,
+    gemelo: 0,
+    cifra: '5 fases hídricas',
+    subCifra: 'Captación · almacenamiento · tratamiento · uso · reúso',
+    resumen: 'Integra la memoria histórica de los aljibes coloniales y pozos comunitarios con soluciones descentralizadas de captación pluvial, biofiltración y monitoreo microbiológico.',
+    piloto: 'Sistema demostrativo de cosecha de aguas lluvias, tren de filtrado e infiltración con jardines de lluvia en el nodo escolar.',
+    producto: 'P4 · Cartografía socio-hídrica y prototipo escolar de captación.',
+  },
+  {
+    id: 'l93',
+    grupo: '03 · Línea 9.3 — Vegetación y refugio climático',
+    pasoGrupo: '03 / 06',
+    titulo: 'Silvicultura comunitaria y sombra escolar',
+    cam: 'linea_verde',
+    zonas: [0.1, 0.98, 0.2],
+    rutas: { agua: 0.3, verde: 1, residuos: 0, oficios: 0, patrimonio: 0 },
+    nodosActivos: ['vivero', 'escuelaR9', 'casco'],
+    lluvia: 0,
+    cartografia: 0,
+    gemelo: 0,
+    cifra: '−4,5 °C',
+    subCifra: 'Reducción térmica superficial en patios escolares sombreados',
+    resumen: 'Conecta la restauración del manglar y el bosque seco tropical con un vivero-escuela comunitario para crear corredores de sombra y confort higrotérmico.',
+    piloto: 'Vivero bioclimático escolar y arborización de patios y corredores peatonales entre el Gimnasio Cristiano (R9) y el borde costero.',
+    producto: 'P5 · Diseño participativo del refugio climático + catálogo botánico.',
+  },
+  {
+    id: 'l94',
+    grupo: '03 · Línea 9.4 — Residuos y plástico circular',
+    pasoGrupo: '04 / 06',
+    titulo: 'De residuo costero a componente constructivo',
+    cam: 'linea_residuos',
+    zonas: [0.2, 0.25, 0.92],
+    rutas: { agua: 0, verde: 0, residuos: 1, oficios: 0.4, patrimonio: 0 },
+    nodosActivos: ['residuos', 'escuelaR9', 'casco'],
+    lluvia: 0,
+    cartografia: 0,
+    gemelo: 0,
+    cifra: '100 % trazable',
+    subCifra: 'Recolección · clasificación · trituración · extrusión · mobiliario',
+    resumen: 'Transforma los puntos críticos de acumulación de plástico y recalada marina en una cadena circular de micro-manufactura local para mobiliario escolar y señalética.',
+    piloto: 'Ruta de acopio diferenciada y taller de transformación de plástico reciclado en perfiles, bancas y elementos del Aula Ambiental.',
+    producto: 'P6 · Hoja de ruta de residuos y prototipo en plástico transformado.',
+  },
+  {
+    id: 'l95',
+    grupo: '03 · Línea 9.5 — Carpintería de ribera y mar',
+    pasoGrupo: '05 / 06',
+    titulo: 'Astilleros tradicionales, pesca y saberes náuticos',
+    cam: 'linea_oficios',
+    zonas: [0.35, 0.15, 0.95],
+    rutas: { agua: 0, verde: 0, residuos: 0.3, oficios: 1, patrimonio: 0 },
+    nodosActivos: ['ribera', 'casco', 'sanFernando'],
+    lluvia: 0,
+    cartografia: 0,
+    gemelo: 0,
+    cifra: 'Oficio vivo',
+    subCifra: 'Maestros carpinteros · careneros · navegación tradicional',
+    resumen: 'Salvaguarda las técnicas constructivas de embarcaciones tradicionales, el conocimiento de maderas locales y las faenas de pesca artesanal frente a la presión turística.',
+    piloto: 'Escuela-taller de carpintería de ribera e inventario técnico de embarcaciones, herramientas y espacios de varada en la bahía.',
+    producto: 'P7 · Documentación de carpintería de ribera y guía de oficios.',
+  },
+  {
+    id: 'l96',
+    grupo: '03 · Línea 9.6 — Patrimonio y doble recorrido',
+    pasoGrupo: '06 / 06',
+    titulo: 'Paisaje fortificado: mirada del habitante vs. visitante',
+    cam: 'linea_patrimonio',
+    zonas: [0.98, 0.2, 0.25],
+    rutas: { agua: 0, verde: 0, residuos: 0, oficios: 0, patrimonio: 1 },
+    nodosActivos: ['sanFernando', 'sanJose', 'sanRafael', 'casco'],
+    lluvia: 0,
+    cartografia: 0,
+    gemelo: 0,
+    cifra: '3 fortificaciones',
+    subCifra: 'San Fernando · San José · Batería del Ángel San Rafael',
+    resumen: 'Supera la visión monumentalista aislada para integrar las fortificaciones coloniales con la vida cotidiana de Bocachica, sus ecosistemas y su memoria afrodescendiente.',
+    piloto: 'Circuito pedagógico de doble lectura (recorrido formativo local + ruta interpretativa para visitantes) con estaciones bioclimáticas.',
+    producto: 'P8 · Propuesta de recorrido patrimonial y guion museográfico.',
+  },
+
+  // --- CAP 04: GEMELO DIGITAL PROGRESIVO (índices 6..10) ---
+  {
+    id: 'g01',
+    grupo: '04 · Gemelo Digital — Nivel 1',
+    pasoGrupo: 'Nivel 01 / 05',
+    titulo: 'Archivo vivo comunitario georreferenciado',
+    cam: 'bocachica_general',
+    zonas: [0.85, 0.35, 0.35],
+    rutas: { agua: 0.2, verde: 0.2, residuos: 0.2, oficios: 0.2, patrimonio: 0.5 },
+    nodosActivos: null,
+    lluvia: 0,
+    cartografia: 0,
+    gemelo: 0,
+    cifra: '9 estudios R1–R9',
+    subCifra: 'Relatos orales · fotografías · planos · diagnósticos previos',
+    resumen: 'El primer estrato del gemelo digital reúne y devuelve a Bocachica la producción académica dispersa junto con los archivos familiares y relatos de sabedores locales.',
+    piloto: 'Repositorio abierto consultable sin internet pesado en el nodo escolar R9 y en dispositivos móviles.',
+    producto: 'P1 · Repositorio documental + catálogo indexado.',
+  },
+  {
+    id: 'g02',
+    grupo: '04 · Gemelo Digital — Nivel 2',
+    pasoGrupo: 'Nivel 02 / 05',
+    titulo: 'Cartografía temática multicapa',
+    cam: 'bocachica_general',
+    zonas: [0.65, 0.65, 0.65],
+    rutas: { agua: 0.85, verde: 0.85, residuos: 0.6, oficios: 0.6, patrimonio: 0.85 },
+    nodosActivos: null,
+    lluvia: 0,
+    cartografia: 1,
+    gemelo: 0,
+    cifra: '6 capas SIG',
+    subCifra: 'Relieve hipso · agua · vegetación · residuos · oficios · patrimonio',
+    resumen: 'Superpone sobre el relieve real de Tierra Bomba las curvas de nivel, cuencas de escorrentía, parches de manglar, rutas de residuos y bordes de erosión costera.',
+    piloto: 'Visor cartográfico participativo para cruzar vulnerabilidad ambiental con infraestructura comunitaria.',
+    producto: 'P2 · Base SIG + visores temáticos de planificación.',
+  },
+  {
+    id: 'g03',
+    grupo: '04 · Gemelo Digital — Nivel 3',
+    pasoGrupo: 'Nivel 03 / 05',
+    titulo: 'Modelo 2D/3D base de Bocachica y su escuela',
+    cam: 'linea_memoria',
+    zonas: [0.45, 0.85, 0.45],
+    rutas: { agua: 0.6, verde: 0.8, residuos: 0, oficios: 0, patrimonio: 0.6 },
+    nodosActivos: ['casco', 'escuelaR9', 'agua', 'vivero'],
+    lluvia: 0,
+    cartografia: 0.25,
+    gemelo: 0,
+    cifra: '2.600 huellas 3D',
+    subCifra: 'Morfología urbana + levantamiento arquitectónico R9',
+    resumen: 'Integra el levantamiento tridimensional del tejido edificado de la isla, el dosel arbóreo escaneado y el modelo BIM/3D detallado del Gimnasio Cristiano de Bocachica.',
+    piloto: 'Maqueta digital interactiva para codiseñar intervenciones arquitectónicas y de espacio público con estudiantes y docentes.',
+    producto: 'Modelo 3D base + levantamiento del nodo escolar R9.',
+  },
+  {
+    id: 'g04',
+    grupo: '04 · Gemelo Digital — Nivel 4',
+    pasoGrupo: 'Nivel 04 / 05',
+    titulo: 'Simulación de escenarios comparativos',
+    cam: 'escuela_r9',
+    zonas: [0.2, 0.95, 0.95],
+    rutas: { agua: 1, verde: 1, residuos: 0.5, oficios: 0, patrimonio: 0 },
+    nodosActivos: ['escuelaR9', 'agua', 'vivero'],
+    lluvia: 1,
+    cartografia: 0,
+    gemelo: 0,
+    cifra: 'Antes / Después',
+    subCifra: 'Escenario actual vs. refugio climático + cosecha pluvial',
+    resumen: 'Permite evaluar visual y cuantitativamente el impacto de techar con cubiertas captadoras, sembrar corredores de sombra y recolectar agua lluvia antes de construir.',
+    piloto: 'Simulador de balance hídrico escolar y asoleamiento para priorizar inversiones por fases.',
+    producto: 'Escenarios comparativos de inversión y confort.',
+  },
+  {
+    id: 'g05',
+    grupo: '04 · Gemelo Digital — Nivel 5',
+    pasoGrupo: 'Nivel 05 / 05',
+    titulo: 'Nube de puntos y monitoreo comunitario continuo',
+    cam: 'gemelo',
+    zonas: [0.8, 0.8, 0.8],
+    rutas: { agua: 0.9, verde: 0.9, residuos: 0.9, oficios: 0.9, patrimonio: 0.9 },
+    nodosActivos: null,
+    lluvia: 0,
+    cartografia: 0.3,
+    gemelo: 1,
+    cifra: 'Ciclo semestral',
+    subCifra: 'Indicadores medidos por jóvenes y comité local en Bocachica',
+    resumen: 'El gemelo no es una entrega estática: se actualiza cada semestre con datos de lluvia captada, temperatura en aulas, árboles sobrevivientes y plástico transformado.',
+    piloto: 'Tablero de indicadores ambientales y bitácora de ciencia ciudadana operada desde el colegio.',
+    producto: 'Sistema de monitoreo y actualización intersemestral.',
+  },
+
+  // --- CAP 05: PROYECTO PILOTO R9 (GIMNASIO CRISTIANO DE BOCACHICA) (índices 11..13) ---
+  {
+    id: 'r9_1',
+    grupo: '05 · Piloto R9 — Gimnasio Cristiano de Bocachica',
+    pasoGrupo: '01 / 03',
+    titulo: 'El colegio como corazón del Aula Ambiental (R9)',
+    cam: 'escuela_r9',
+    zonas: [0.3, 0.98, 0.4],
+    rutas: { agua: 0.5, verde: 1, residuos: 0.5, oficios: 0, patrimonio: 0.5 },
+    nodosActivos: ['escuelaR9', 'casco', 'vivero'],
+    lluvia: 0,
+    cartografia: 0,
+    gemelo: 0,
+    cifra: 'Nodo R9',
+    subCifra: 'Antecedente proyectual directo en el territorio (Serrano, 2026)',
+    resumen: 'El Gimnasio Cristiano de Bocachica articula espacialmente el programa: funciona como sede pedagógica, laboratorio bioclimático, punto de cosecha de agua y archivo comunitario.',
+    piloto: 'Pabellón educativo con envolvente permeable, pérgolas de sombra, vivero escolar y ágora abierta para asambleas barriales.',
+    producto: 'P5 · Proyecto arquitectónico y bioclimático del nodo escolar.',
+  },
+  {
+    id: 'r9_2',
+    grupo: '05 · Piloto R9 — Cosecha pluvial y confort',
+    pasoGrupo: '02 / 03',
+    titulo: 'Cubierta captadora en V, aljibe y enfriamiento pasivo',
+    cam: 'escuela_r9',
+    zonas: [0.15, 0.85, 1.0],
+    rutas: { agua: 1, verde: 0.8, residuos: 0, oficios: 0, patrimonio: 0 },
+    nodosActivos: ['escuelaR9', 'agua'],
+    lluvia: 1,
+    cartografia: 0,
+    gemelo: 0,
+    cifra: 'Agua + Sombra',
+    subCifra: 'Captación pluvial en cubierta + biofiltración y ventilación cruzada',
+    resumen: 'Durante las lluvias caribeñas, la cubierta actúa como un embudo que conduce el agua hacia el aljibe escolar filtrado; en época seca, su doble piel ventilada abate la carga térmica.',
+    piloto: 'Módulo demostrativo de captación pluvial, filtro biológico, lavado de manos y jardín de lluvia pedagógico.',
+    producto: 'Prototipo funcional agua-clima en el Gimnasio Cristiano.',
+  },
+  {
+    id: 'r9_3',
+    grupo: '05 · Piloto R9 — Red de 6 pilotos articulados',
+    pasoGrupo: '03 / 03',
+    titulo: 'De la escuela al territorio: los 6 pilotos conectados',
+    cam: 'bocachica_general',
+    zonas: [0.9, 0.9, 0.9],
+    rutas: { agua: 1, verde: 1, residuos: 1, oficios: 1, patrimonio: 1 },
+    nodosActivos: null,
+    lluvia: 0.35,
+    cartografia: 0.2,
+    gemelo: 0,
+    cifra: '6 pilotos',
+    subCifra: 'Memoria · Agua · Refugio R9 · Plástico · Ribera · Patrimonio',
+    resumen: 'Desde el Gimnasio Cristiano (R9), el Aula Ambiental irradia hacia el casco urbano, los aljibes históricos, el manglar, los astilleros de ribera y los fuertes del canal.',
+    piloto: 'Red territorial de micro-intervenciones señalizadas y conectadas mediante corredores sombreados y rutas pedagógicas.',
+    producto: 'Programa marco articulado a 24 meses (F1–F6).',
+  },
+];
+
+// =============================================================================
+// UTILIDADES VISUALES (Idénticas a tesis_tercer_corte)
+// =============================================================================
 
 function ScrollWords({ text, className = '' }) {
   const ref = useRef(null);
+  const words = text.split(' ');
   const [p, setP] = useState(0);
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return undefined;
-    const scroller = el.closest('[data-aula-scroller]') || window;
-    const onScroll = () => {
+    let raf = 0;
+    const calc = () => {
+      raf = 0;
       const r = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      setP(clamp01((vh * 0.88 - r.top) / (r.height + vh * 0.42)));
+      const vh = window.innerHeight || 1;
+      const start = vh * 0.85;
+      const end = vh * 0.2;
+      const t = (start - r.top) / (start - end + r.height * 0.55);
+      setP(Math.max(0, Math.min(1, t)));
     };
-    onScroll();
-    scroller.addEventListener('scroll', onScroll, { passive: true });
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(calc); };
+    calc();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     return () => {
-      scroller.removeEventListener('scroll', onScroll);
+      if (raf) cancelAnimationFrame(raf);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
   }, []);
-  const words = text.split(' ');
+
+  const active = Math.round(p * words.length);
   return (
     <p ref={ref} className={className}>
       {words.map((w, i) => (
         <span
           key={i}
-          className="transition-opacity duration-300"
-          style={{ opacity: p * words.length * 1.2 > i ? 1 : 0.22 }}
+          className="transition-colors duration-200"
+          style={{ color: i < active ? '#f4f1ec' : 'rgba(244,241,236,0.22)' }}
         >
-          {w}{' '}
+          {w}{i < words.length - 1 ? ' ' : ''}
         </span>
       ))}
     </p>
   );
 }
 
-/** Tabla de datos accesible y adaptable con encabezados fijos y vista apilada en contenedores estrechos */
-function TablaAula({ tabla }) {
-  const styleVars = {};
-  tabla.columnas.forEach((col, idx) => {
-    styleVars[`--label-${idx + 1}`] = `"${col}"`;
-  });
-
+function Escribir({ text = '', ms = 11 }) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    setN(0);
+    if (!text) return undefined;
+    const id = setInterval(() => {
+      setN((k) => {
+        if (k >= text.length) {
+          clearInterval(id);
+          return k;
+        }
+        return k + 2;
+      });
+    }, ms);
+    return () => clearInterval(id);
+  }, [text, ms]);
   return (
-    <div
-      tabIndex={0}
-      role="region"
-      aria-labelledby={`${tabla.id}-caption`}
-      className="tc-table-wrapper mt-6"
-    >
-      <table className="tc-table" style={styleVars}>
-        <caption
-          id={`${tabla.id}-caption`}
-          className="px-4 py-3 text-left text-xs font-medium tracking-wide text-white/75 border-b border-white/12 bg-[#0b1015]"
-        >
-          <span className="tc-etiqueta text-[#4fb6b0] mr-2">{tabla.titulo.split('·')[0]}</span>
-          <span>{tabla.titulo.split('·')[1] || ''}</span>
-        </caption>
-        <thead>
-          <tr>
-            {tabla.columnas.map((col) => (
-              <th key={col} scope="col">
-                {col}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {tabla.filas.map((fila, rIdx) => (
-            <tr key={`${tabla.id}-r-${rIdx}`}>
-              <th scope="row">{fila[0]}</th>
-              {fila.slice(1).map((celda, cIdx) => (
-                <td key={`${tabla.id}-r-${rIdx}-c-${cIdx}`}>{celda}</td>
-              ))}
-            </tr>
+    <>
+      {text.slice(0, n)}
+      {n < text.length && <span className="inline-block w-1.5 h-3.5 bg-[#e0917a] ml-0.5 align-middle animate-pulse" />}
+    </>
+  );
+}
+
+function Apilada({ partes, leyenda = true }) {
+  return (
+    <div>
+      <div className="h-3.5 w-full flex overflow-hidden rounded-sm bg-white/10">
+        {partes.map((p, i) => (
+          <div
+            key={i}
+            style={{ width: `${p.pct}%`, background: p.color }}
+            title={`${p.etiqueta}: ${p.pct} %`}
+            className="h-full first:rounded-l-sm last:rounded-r-sm transition-all duration-500"
+          />
+        ))}
+      </div>
+      {leyenda && (
+        <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-2.5 text-xs text-white/75">
+          {partes.map((p, i) => (
+            <span key={i} className="inline-flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
+              <span>{p.etiqueta}</span>
+              <span className="tc-num text-white font-semibold">{p.pct} %</span>
+            </span>
           ))}
-        </tbody>
-      </table>
+        </div>
+      )}
     </div>
   );
 }
 
-/** Bloque editorial de dos columnas idéntico a Social.jsx de tesis_tercer_corte */
-function BloqueCapitulo({ id, num, titulo, bajada, fuente, pag, children }) {
+function BarraSimple({ valor, max = 100, color = '#e0917a', etiqueta, sufijo = '%' }) {
+  const w = Math.max(2, Math.min(100, (valor / max) * 100));
   return (
-    <section id={id} className="border-t border-white/18 py-16 sm:py-24 scroll-mt-20">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,17.5rem)_1fr] lg:gap-16">
-        <header className="lg:sticky lg:top-20 lg:self-start">
-          <div className="flex items-center gap-2.5">
-            <p className="tc-etiqueta text-[#4fb6b0]">{num} · Capítulo</p>
-            {pag && (
-              <span className="tc-etiqueta rounded border border-white/15 bg-white/5 px-2 py-0.5 text-white/55">
-                Pág. {pag}
-              </span>
+    <div>
+      <div className="flex justify-between text-xs mb-1">
+        <span className="text-white/80">{etiqueta}</span>
+        <span className="tc-num text-white font-semibold">{valor}{sufijo}</span>
+      </div>
+      <div className="h-2 bg-white/10 rounded-sm overflow-hidden">
+        <div className="h-full rounded-sm transition-all duration-500" style={{ width: `${w}%`, background: color }} />
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// 01 · RED PROGRESIVA DEL PROBLEMA (Idéntica a Red.jsx en tesis_tercer_corte)
+// =============================================================================
+const NODOS_PROBLEMA = [
+  {
+    id: 'aula',
+    titulo: 'Aula Ambiental Bocachica',
+    sub: 'Núcleo articulador',
+    x: 500,
+    y: 265,
+    central: true,
+    color: '#e0917a',
+    cifra: 'Programa marco v0.1 · 24 meses',
+    detalle: 'Plataforma viva de investigación aplicada, docencia, creación y acción participativa en Tierra Bomba (PUJ + Comunidad + Gimnasio Cristiano R9).',
+    relaciones: [
+      'Integra 9 estudios previos (R1–R9) en un solo sistema territorial',
+      'Articula 6 líneas de acción, 6 pilotos y un gemelo digital progresivo',
+      'Opera bajo el principio rector: devolver, validar y transformar',
+    ],
+  },
+  {
+    id: 'fragmentacion',
+    titulo: 'Estudios sin retorno',
+    sub: 'Fragmentación R1–R8',
+    x: 195,
+    y: 110,
+    color: '#f4f1ec',
+    cifra: '8 diagnósticos previos dispersos',
+    detalle: 'Sobre Bocachica existen tesis y estudios valiosos (R1–R8), pero permanecían desarticulados entre sí y sin devolución pedagógica ni apropiación local.',
+    relaciones: [
+      'Falta de un repositorio común accesible para la escuela y la comunidad',
+      'Ausencia de continuidad entre semestres académicos',
+    ],
+  },
+  {
+    id: 'agua',
+    titulo: 'Crisis hídrica y salinidad',
+    sub: 'Línea 9.2 · Agua',
+    x: 805,
+    y: 110,
+    color: '#6ec6e6',
+    cifra: 'Aljibes históricos + déficit pluvial',
+    detalle: 'Vulnerabilidad en el acceso a agua segura, deterioro de aljibes patrimoniales, escorrentía sin aprovechamiento y riesgos microbiológicos.',
+    relaciones: [
+      'Pérdida de saberes hídricos locales de captación y cuidado de pozos',
+      'Urgencia de cosecha de lluvia y biofiltración en el nodo escolar R9',
+    ],
+  },
+  {
+    id: 'clima',
+    titulo: 'Estrés térmico escolar',
+    sub: 'Línea 9.3 · Nodo R9',
+    x: 845,
+    y: 265,
+    color: '#35d08a',
+    cifra: 'Alta radiación + déficit de sombra',
+    detalle: 'En el Gimnasio Cristiano de Bocachica (R9) y su entorno inmediato, la radiación solar intensa y la falta de arbolado reducen el confort pedagógico.',
+    relaciones: [
+      'Pérdida de cobertura vegetal y presión sobre el manglar costero',
+      'Potencial de vivero escolar y refugio climático bioclimático',
+    ],
+  },
+  {
+    id: 'residuos',
+    titulo: 'Presión de residuos y plástico',
+    sub: 'Línea 9.4 · Circularidad',
+    x: 785,
+    y: 425,
+    color: '#f5b45a',
+    cifra: 'Acumulación costera y recalada',
+    detalle: 'Puntos críticos de residuos sólidos y plásticos de recalada marina afectan el paisaje, los caños y la salud ambiental de Bocachica.',
+    relaciones: [
+      'Oportunidad de transformar plástico recuperado en mobiliario escolar',
+      'Alianza con iniciativas locales de reciclaje y manufactura',
+    ],
+  },
+  {
+    id: 'oficios',
+    titulo: 'Fragilidad de oficios del mar',
+    sub: 'Línea 9.5 · Ribera',
+    x: 215,
+    y: 425,
+    color: '#e8a86b',
+    cifra: 'Carpintería de ribera y pesca',
+    detalle: 'Los astilleros artesanales, maestros carpinteros de ribera y pescadores enfrentan relevo generacional incierto y pérdida de espacios de varada.',
+    relaciones: [
+      'Transmisión intergeneracional en riesgo sin escuela-taller',
+      'Vínculo directo con la madera, el bosque seco y la soberanía alimentaria',
+    ],
+  },
+  {
+    id: 'patrimonio',
+    titulo: 'Patrimonio desconectado',
+    sub: 'Línea 9.6 · Fuertes y memoria',
+    x: 155,
+    y: 265,
+    color: '#c490ff',
+    cifra: 'San Fernando · San José · San Rafael',
+    detalle: 'El circuito turístico tradicional visita las fortificaciones coloniales sin reconocer la memoria viva, vernácula y ambiental de los habitantes de Bocachica.',
+    relaciones: [
+      'Brecha entre la mirada del visitante y la memoria del habitante',
+      'Necesidad de un recorrido pedagógico biocultural e integrado',
+    ],
+  },
+];
+
+const ENLACES_PROBLEMA = [
+  ['aula', 'fragmentacion', 'Devolver R1–R9'],
+  ['aula', 'agua', 'Cosecha pluvial'],
+  ['aula', 'clima', 'Refugio R9'],
+  ['aula', 'residuos', 'Plástico circular'],
+  ['aula', 'oficios', 'Escuela de ribera'],
+  ['aula', 'patrimonio', 'Doble recorrido'],
+  ['fragmentacion', 'patrimonio', 'Archivo vivo'],
+  ['agua', 'clima', 'Jardines de lluvia'],
+  ['clima', 'oficios', 'Maderas y vivero'],
+  ['residuos', 'oficios', 'Taller productivo'],
+];
+
+const curvaRed = (a, b) => {
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const k = a.central || b.central ? 0.08 : 0.16;
+  return { d: `M ${a.x} ${a.y} Q ${mx - dy * k} ${my + dx * k} ${b.x} ${b.y}`, lx: mx - dy * k * 0.5, ly: my + dx * k * 0.5 };
+};
+
+function RedProblemaAula() {
+  const [vistos, setVistos] = useState(1);
+  const [sel, setSel] = useState('aula');
+  const porId = Object.fromEntries(NODOS_PROBLEMA.map((n) => [n.id, n]));
+  const idsVisibles = new Set(NODOS_PROBLEMA.slice(0, vistos).map((n) => n.id));
+  const actual = porId[sel] || NODOS_PROBLEMA[0];
+  const completo = vistos >= NODOS_PROBLEMA.length;
+
+  const avanzar = () => {
+    const sig = Math.min(NODOS_PROBLEMA.length, vistos + 1);
+    setVistos(sig);
+    setSel(NODOS_PROBLEMA[sig - 1].id);
+  };
+  const mostrarTodo = () => {
+    setVistos(NODOS_PROBLEMA.length);
+  };
+  const reiniciar = () => {
+    setVistos(1);
+    setSel('aula');
+  };
+
+  return (
+    <div className="grid md:grid-cols-12 gap-6 items-center">
+      <div className="md:col-span-8 tc-vidrio p-3 md:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 mb-2 border-b border-white/10">
+          <div className="flex items-center gap-1.5">
+            <span className="tc-etiqueta mr-2">Paso {vistos} de {NODOS_PROBLEMA.length}</span>
+            {NODOS_PROBLEMA.map((n, i) => (
+              <button
+                key={n.id}
+                type="button"
+                onClick={() => { if (i + 1 > vistos) setVistos(i + 1); setSel(n.id); }}
+                title={n.titulo}
+                className={`h-1.5 rounded-full transition-all ${
+                  sel === n.id ? 'w-6 bg-[#e0917a]' : i < vistos ? 'w-3 bg-white/55 hover:bg-white/80' : 'w-2 bg-white/15 hover:bg-white/30'
+                }`}
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-1.5">
+            {!completo ? (
+              <button
+                type="button"
+                onClick={avanzar}
+                className="tc-ficha tc-ficha-activa !text-white !border-[#e0917a]"
+              >
+                {vistos === 1 ? 'Descubrir primera relación →' : `Revelar siguiente relación (${vistos}/${NODOS_PROBLEMA.length}) →`}
+              </button>
+            ) : (
+              <button type="button" onClick={reiniciar} className="tc-ficha">
+                Reiniciar recorrido ↺
+              </button>
+            )}
+            {!completo && (
+              <button type="button" onClick={mostrarTodo} className="tc-ficha">
+                Ver red completa
+              </button>
             )}
           </div>
-          <h2 className="mt-3 text-2xl font-bold leading-tight tracking-tight text-white sm:text-3xl">
-            {titulo}
+        </div>
+
+        <svg viewBox="0 0 1000 530" className="w-full h-auto select-none">
+          <defs>
+            <radialGradient id="halo-aula" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#e0917a" stopOpacity="0.32" />
+              <stop offset="100%" stopColor="#e0917a" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <circle cx="500" cy="265" r="220" fill="url(#halo-aula)" />
+          <circle cx="500" cy="265" r="185" fill="none" stroke="rgba(255,255,255,0.06)" strokeDasharray="3 6" />
+
+          {ENLACES_PROBLEMA.map(([ia, ib, etq], idx) => {
+            if (!idsVisibles.has(ia) || !idsVisibles.has(ib)) return null;
+            const a = porId[ia];
+            const b = porId[ib];
+            const { d, lx, ly } = curvaRed(a, b);
+            const activo = sel === ia || sel === ib;
+            const pid = `ruta-aula-${idx}`;
+            return (
+              <g key={`${ia}-${ib}`} style={{ opacity: activo ? 1 : 0.28, transition: 'opacity .25s' }}>
+                <path
+                  id={pid}
+                  d={d}
+                  fill="none"
+                  stroke={activo ? '#e0917a' : '#f4f1ec'}
+                  strokeWidth={activo ? 1.9 : 1}
+                  pathLength="1"
+                  strokeDasharray="1"
+                  strokeDashoffset="0"
+                >
+                  <animate attributeName="stroke-dashoffset" from="1" to="0" dur="0.65s" fill="freeze" />
+                </path>
+                {activo && (
+                  <circle r="3" fill="#ffffff">
+                    <animateMotion dur="2.8s" repeatCount="indefinite">
+                      <mpath href={`#${pid}`} />
+                    </animateMotion>
+                  </circle>
+                )}
+                {activo && (
+                  <text
+                    x={lx}
+                    y={ly - 6}
+                    textAnchor="middle"
+                    fill="rgba(244,241,236,0.82)"
+                    fontSize="10.5"
+                    fontFamily="IBM Plex Mono, monospace"
+                  >
+                    {etq}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+
+          {NODOS_PROBLEMA.slice(0, vistos).map((n) => {
+            const activo = sel === n.id;
+            const conectado = ENLACES_PROBLEMA.some(
+              ([a, b]) => idsVisibles.has(a) && idsVisibles.has(b) && ((a === sel && b === n.id) || (b === sel && a === n.id))
+            );
+            const op = activo || conectado ? 1 : 0.48;
+            const r = n.central ? 58 : 42;
+            return (
+              <g
+                key={n.id}
+                transform={`translate(${n.x},${n.y})`}
+                onClick={() => setSel(n.id)}
+                style={{ cursor: 'pointer', opacity: op, transition: 'opacity .25s' }}
+              >
+                {activo && (
+                  <circle r={r + 8} fill="none" stroke={n.color} strokeWidth="1.2" opacity="0.55">
+                    <animate attributeName="r" values={`${r + 4};${r + 14};${r + 4}`} dur="2.6s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.65;0.15;0.65" dur="2.6s" repeatCount="indefinite" />
+                  </circle>
+                )}
+                <circle
+                  r={r}
+                  fill={n.central ? '#1d1210' : '#0b1015'}
+                  stroke={activo ? n.color : 'rgba(255,255,255,0.28)'}
+                  strokeWidth={activo ? 2.2 : 1.2}
+                />
+                <text
+                  y={-4}
+                  textAnchor="middle"
+                  fill="#ffffff"
+                  fontSize={n.central ? '12.5' : '11.5'}
+                  fontWeight="600"
+                  fontFamily="Inter, system-ui, sans-serif"
+                >
+                  {n.titulo}
+                </text>
+                <text
+                  y={13}
+                  textAnchor="middle"
+                  fill="rgba(244,241,236,0.65)"
+                  fontSize="9.5"
+                  fontFamily="IBM Plex Mono, monospace"
+                >
+                  {n.sub}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      <div className="md:col-span-4 tc-vidrio p-6">
+        <div className="tc-etiqueta" style={{ color: actual.color }}>{actual.sub}</div>
+        <h3 className="text-2xl font-semibold mt-1 text-white">{actual.titulo}</h3>
+        <div className="mt-3 pt-3 tc-regla">
+          <div className="tc-etiqueta">Indicador / alcance</div>
+          <div className="tc-num text-lg font-semibold mt-0.5" style={{ color: actual.color }}>{actual.cifra}</div>
+        </div>
+        <p className="text-sm text-white/80 mt-3 leading-relaxed min-h-[4.2rem]">
+          <Escribir key={actual.id} text={actual.detalle} />
+        </p>
+        <div className="mt-4 pt-3 tc-regla">
+          <div className="tc-etiqueta mb-2">Implicaciones directas</div>
+          <ul className="space-y-1.5 text-xs text-white/80">
+            {actual.relaciones.map((r, i) => (
+              <li key={i} className="flex gap-2">
+                <span style={{ color: actual.color }}>→</span>
+                <span>{r}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        {!completo && (
+          <button
+            type="button"
+            onClick={avanzar}
+            className="mt-4 w-full py-2 rounded-lg text-xs font-medium bg-[#e0917a]/20 border border-[#e0917a] text-white hover:bg-[#e0917a]/30 transition"
+          >
+            Siguiente nodo ({vistos + 1}/{NODOS_PROBLEMA.length}): {NODOS_PROBLEMA[vistos].titulo} →
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// 02 · LO QUE DICEN LOS ANTECEDENTES Y LAS MEMORIAS (Estilo Social.jsx, cero tablas)
+// =============================================================================
+function BloqueVisual({ num, titulo, subtitulo, children }) {
+  return (
+    <div className="py-16 md:py-24 tc-regla">
+      <div className="grid md:grid-cols-12 gap-8 md:gap-10 items-start">
+        <div className="md:col-span-4">
+          <div className="tc-etiqueta">{num}</div>
+          <h3 className="text-2xl md:text-3xl font-semibold mt-2 leading-tight text-white">{titulo}</h3>
+          {subtitulo && <p className="text-white/75 text-sm mt-3 leading-relaxed">{subtitulo}</p>}
+        </div>
+        <div className="md:col-span-8">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function SeccionMemoriasYBase() {
+  const [docSel, setDocSel] = useState(ANTECEDENTES_CORPUS[8]); // R9 por defecto
+  const [dimSel, setDimSel] = useState(0);
+  const [cicloSel, setCicloSel] = useState(0);
+
+  const COLORES_DIM = ['#e0917a', '#6ec6e6', '#f5b45a', '#e8a86b', '#38bdf8', '#35d08a'];
+  const PESOS_DIM = [92, 88, 85, 84, 96, 94];
+
+  return (
+    <section id="cap-02" className="relative z-10 bg-black px-6 md:px-16 py-24 md:py-32">
+      <div className="max-w-6xl mx-auto">
+        <div className="max-w-3xl">
+          <div className="tc-etiqueta">02 · Antecedentes, memorias y ciclo metodológico</div>
+          <h2 className="text-3xl md:text-5xl font-semibold mt-2 leading-[1.05] text-white">
+            Nueve estudios previos, seis dimensiones de la memoria y un ciclo de retorno comunitario.
           </h2>
-          {bajada && <p className="mt-3 text-sm leading-relaxed text-white/60">{bajada}</p>}
-          {fuente && (
-            <p className="mt-5 border-t border-white/12 pt-3 text-[11px] leading-snug text-white/45">
-              Referencias: {fuente}
-            </p>
-          )}
-        </header>
-        <div className="min-w-0 space-y-8">{children}</div>
+          <p className="text-white/75 mt-4 text-base leading-relaxed">
+            El Aula Ambiental no parte de cero: articula el corpus documental existente sobre Bocachica (<span className="tc-num text-white font-medium">R1–R9</span>), activa las seis dimensiones de su memoria biocultural y reemplaza el extractivismo académico por un ciclo de seis momentos.
+          </p>
+        </div>
+
+        {/* 01 · Corpus documental R1-R9 visual */}
+        <BloqueVisual
+          num="01 · Corpus de referencia R1–R9"
+          titulo="De 8 estudios dispersos al antecedente proyectual en el Gimnasio Cristiano (R9)."
+          subtitulo="Selecciona cada documento base para explorar su aporte técnico, su lectura crítica y el vacío territorial que el Aula Ambiental resuelve."
+        >
+          <div className="space-y-6">
+            <div>
+              <div className="text-xs text-white/65 mb-2">
+                Composición temática del corpus base (<span className="tc-num text-white">R1–R9</span>)
+              </div>
+              <Apilada
+                partes={[
+                  { etiqueta: 'Arquitectura, hábitat y escuela R9', pct: 34, color: '#35d08a' },
+                  { etiqueta: 'Agua, ecología y metabolismo insular', pct: 33, color: '#6ec6e6' },
+                  { etiqueta: 'Memoria, patrimonio y oficios del mar', pct: 33, color: '#e0917a' },
+                ]}
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-1.5">
+              {ANTECEDENTES_CORPUS.map((d) => {
+                const activo = docSel.id === d.id;
+                return (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => setDocSel(d)}
+                    className={`tc-ficha ${activo ? 'tc-ficha-activa' : ''}`}
+                  >
+                    <span className="tc-num font-semibold mr-1">{d.id}</span>
+                    <span>{d.id === 'R9' ? '★ Gimnasio Cristiano' : d.temas.split(',')[0]}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="tc-vidrio p-5 md:p-6">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="tc-etiqueta !text-[#e0917a]">
+                  Documento {docSel.id} · {docSel.anio}
+                </span>
+                <span className="text-xs font-mono text-white/60">{docSel.institucion}</span>
+              </div>
+              <h4 className="text-xl font-semibold text-white mt-1.5">{docSel.titulo}</h4>
+              <p className="text-xs text-white/60 mt-0.5">{docSel.autores}</p>
+
+              <div className="grid sm:grid-cols-2 gap-4 mt-4 pt-4 tc-regla">
+                <div>
+                  <div className="tc-etiqueta mb-1">Aporte al Aula Ambiental</div>
+                  <p className="text-sm text-white/85 leading-relaxed">{docSel.aporte}</p>
+                </div>
+                <div className="border-l border-white/15 pl-4">
+                  <div className="tc-etiqueta !text-[#6ec6e6] mb-1">Vacío que el programa resuelve</div>
+                  <p className="text-sm text-white/80 leading-relaxed">{docSel.vacio}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </BloqueVisual>
+
+        {/* 02 · Las 6 dimensiones de la memoria biocultural */}
+        <BloqueVisual
+          num="02 · Seis dimensiones de la memoria"
+          titulo="La memoria como infraestructura para planificar el futuro de Bocachica."
+          subtitulo="En el programa marco, la memoria no es nostalgia pasiva: es un sistema de conocimientos empíricos sobre clima, agua, materiales, pesca y territorio."
+        >
+          <div className="grid md:grid-cols-12 gap-6 items-center">
+            <div className="md:col-span-6">
+              <svg viewBox="0 0 360 320" className="w-full h-auto select-none">
+                <circle cx="180" cy="160" r="112" fill="none" stroke="rgba(255,255,255,0.09)" strokeDasharray="3 5" />
+                <circle cx="180" cy="160" r="34" fill="#171210" stroke="#e0917a" strokeWidth="1.8" />
+                <text x="180" y="157" textAnchor="middle" fill="#fff" fontSize="10.5" fontWeight="600">Memoria</text>
+                <text x="180" y="170" textAnchor="middle" fill="rgba(244,241,236,0.65)" fontSize="8.5" fontFamily="IBM Plex Mono">Biocultural</text>
+
+                {DIMENSIONES_MEMORIA.map((d, i) => {
+                  const ang = (i / DIMENSIONES_MEMORIA.length) * Math.PI * 2 - Math.PI / 2;
+                  const nx = 180 + Math.cos(ang) * 112;
+                  const ny = 160 + Math.sin(ang) * 112;
+                  const act = dimSel === i;
+                  const col = COLORES_DIM[i];
+                  return (
+                    <g key={d.dimension} onClick={() => setDimSel(i)} style={{ cursor: 'pointer' }}>
+                      <line
+                        x1="180"
+                        y1="160"
+                        x2={nx}
+                        y2={ny}
+                        stroke={act ? col : 'rgba(255,255,255,0.18)'}
+                        strokeWidth={act ? 2.2 : 1}
+                      />
+                      <circle
+                        cx={nx}
+                        cy={ny}
+                        r={act ? 28 : 23}
+                        fill="#0c1117"
+                        stroke={col}
+                        strokeWidth={act ? 2.4 : 1.2}
+                      />
+                      <text x={nx} y={ny - 2} textAnchor="middle" fill="#fff" fontSize="8.8" fontWeight="600">
+                        {d.dimension.split(' ')[0]}
+                      </text>
+                      <text x={nx} y={ny + 9} textAnchor="middle" fill="rgba(244,241,236,0.7)" fontSize="7.5" fontFamily="IBM Plex Mono">
+                        0{i + 1}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+
+            <div className="md:col-span-6 space-y-4">
+              <div className="space-y-2.5">
+                {DIMENSIONES_MEMORIA.map((d, i) => (
+                  <div
+                    key={d.dimension}
+                    onClick={() => setDimSel(i)}
+                    className={`cursor-pointer p-2.5 rounded-lg border transition ${
+                      dimSel === i ? 'border-white/35 bg-white/[0.06]' : 'border-transparent hover:bg-white/[0.03]'
+                    }`}
+                  >
+                    <BarraSimple
+                      etiqueta={`0${i + 1} · Memoria ${d.dimension.toLowerCase()}`}
+                      valor={PESOS_DIM[i]}
+                      color={COLORES_DIM[i]}
+                      sufijo="% prioridad territorial"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="tc-vidrio p-4">
+                <div className="tc-etiqueta" style={{ color: COLORES_DIM[dimSel] }}>
+                  Dimensión 0{dimSel + 1} · {DIMENSIONES_MEMORIA[dimSel].dimension}
+                </div>
+                <p className="text-sm text-white/90 mt-1 leading-relaxed">
+                  {DIMENSIONES_MEMORIA[dimSel].enfoque}
+                </p>
+                <div className="grid grid-cols-2 gap-3 mt-3 pt-3 tc-regla text-xs">
+                  <div>
+                    <span className="text-white/50 block">Instrumentos</span>
+                    <span className="text-white/85">{DIMENSIONES_MEMORIA[dimSel].instrumentos}</span>
+                  </div>
+                  <div>
+                    <span className="text-white/50 block">Producto directo</span>
+                    <span className="text-white/85">{DIMENSIONES_MEMORIA[dimSel].producto}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </BloqueVisual>
+
+        {/* 03 · El ciclo metodológico de 6 momentos */}
+        <BloqueVisual
+          num="03 · Ciclo metodológico (Devolver · validar · transformar)"
+          titulo="Seis momentos iterativos que cierran la brecha entre investigar y habitar."
+          subtitulo="Cada semestre universitario atraviesa este flujo con puntos de control ético obligatorios y entregables que quedan instalados en Bocachica."
+        >
+          <div className="space-y-5">
+            <svg viewBox="0 0 760 135" className="w-full h-auto">
+              {CICLO_METODOLOGICO.map((m, i) => {
+                const x = 65 + i * 126;
+                const y = 62;
+                const act = cicloSel === i;
+                return (
+                  <g key={m.paso} onClick={() => setCicloSel(i)} style={{ cursor: 'pointer' }}>
+                    {i < CICLO_METODOLOGICO.length - 1 && (
+                      <g>
+                        <line x1={x + 34} y1={y} x2={x + 92} y2={y} stroke="rgba(255,255,255,0.22)" strokeWidth="1.5" />
+                        <circle r="3" fill="#e0917a">
+                          <animate
+                            attributeName="cx"
+                            from={x + 34}
+                            to={x + 92}
+                            dur="1.8s"
+                            repeatCount="indefinite"
+                          />
+                          <animate attributeName="cy" values={`${y};${y}`} dur="1.8s" repeatCount="indefinite" />
+                        </circle>
+                      </g>
+                    )}
+                    <circle
+                      cx={x}
+                      cy={y}
+                      r={act ? 34 : 29}
+                      fill={act ? '#241512' : '#0b1015'}
+                      stroke={act ? '#e0917a' : 'rgba(255,255,255,0.28)'}
+                      strokeWidth={act ? 2.4 : 1.2}
+                    />
+                    <text x={x} y={y - 5} textAnchor="middle" fill="#e0917a" fontSize="10" fontFamily="IBM Plex Mono" fontWeight="600">
+                      0{m.paso}
+                    </text>
+                    <text x={x} y={y + 10} textAnchor="middle" fill="#fff" fontSize="10" fontWeight="600">
+                      {m.nombre.split(' ')[0]}
+                    </text>
+                  </g>
+                );
+              })}
+              {/* Arco de retorno del paso 6 al paso 1 */}
+              <path
+                d="M 695 96 Q 380 136 65 96"
+                fill="none"
+                stroke="rgba(110,198,230,0.45)"
+                strokeWidth="1.3"
+                strokeDasharray="4 4"
+              />
+              <text x="380" y="128" textAnchor="middle" fill="#6ec6e6" fontSize="9.5" fontFamily="IBM Plex Mono">
+                ↺ Retroalimentación continua semestral (Devolver · validar · transformar)
+              </text>
+            </svg>
+
+            <div className="tc-vidrio p-5 grid md:grid-cols-3 gap-4 items-center">
+              <div>
+                <div className="tc-etiqueta !text-[#e0917a]">Momento 0{CICLO_METODOLOGICO[cicloSel].paso}</div>
+                <div className="text-xl font-semibold text-white mt-1">{CICLO_METODOLOGICO[cicloSel].nombre}</div>
+              </div>
+              <div>
+                <div className="tc-etiqueta mb-1">Acción en campo</div>
+                <p className="text-xs text-white/80 leading-relaxed">{CICLO_METODOLOGICO[cicloSel].descripcion}</p>
+              </div>
+              <div className="border-l border-white/15 pl-4">
+                <div className="tc-etiqueta !text-[#35d08a] mb-1">Evidencia verificable</div>
+                <p className="text-xs text-white/85 leading-relaxed">{CICLO_METODOLOGICO[cicloSel].entregable}</p>
+              </div>
+            </div>
+          </div>
+        </BloqueVisual>
       </div>
     </section>
   );
 }
 
-/** Red conceptual interactiva inspirada en Red.jsx de tesis_tercer_corte */
-function RedConceptualAula({ figura }) {
-  const { centro, nodos } = figura;
-  const [vistos, setVistos] = useState(nodos.length + 1);
-  const [foco, setFoco] = useState(0);
-  const total = nodos.length + 1;
-  const completo = vistos >= total;
-
-  const revelar = () => {
-    if (completo) {
-      setVistos(1);
-      setFoco(0);
-      return;
-    }
-    setVistos((v) => v + 1);
-    setFoco(vistos);
-  };
-
-  const detalle = foco === 0 ? centro.detalle : nodos[foco - 1]?.detalle || '';
-
-  const rutas = useMemo(
-    () =>
-      nodos.map((n) => {
-        const [x, y] = n.pos;
-        const sx = 500;
-        const sy = 300;
-        const ex = x * 10;
-        const ey = y * 6;
-        const mx = (sx + ex) / 2;
-        const my = (sy + ey) / 2;
-        const k = 0.2;
-        return `M${sx} ${sy} Q${mx + (sy - ey) * k} ${my + (ex - sx) * k * 0.6} ${ex} ${ey}`;
-      }),
-    [nodos]
-  );
+// =============================================================================
+// 05B · ESQUEMA EN PLANTA DE BOCACHICA Y LOS 6 PILOTOS (Idéntico a Plan.jsx)
+// =============================================================================
+function EsquemaAulaSVG({ filtro, setFiltro }) {
+  const mostrar = (k) => filtro === 'todos' || filtro === k;
 
   return (
-    <div className="rounded-2xl border border-white/14 bg-[#070a0d] p-5 sm:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="tc-etiqueta text-[#4fb6b0]">{figura.titulo}</p>
-          <p className="mt-1 text-xs text-white/55">
-            Toca cada nodo para explorar su función en la secuencia conceptual del programa.
-          </p>
-        </div>
-        <button type="button" onClick={revelar} className="tc-ficha">
-          {completo ? 'Reiniciar recorrido paso a paso ⟲' : 'Revelar siguiente nodo →'}
-        </button>
-      </div>
+    <svg viewBox="0 0 820 520" className="w-full h-auto block select-none">
+      <defs>
+        <pattern id="agua-patron-aula" width="18" height="18" patternUnits="userSpaceOnUse">
+          <path d="M 0 9 Q 4.5 6 9 9 T 18 9" fill="none" stroke="rgba(110,198,230,0.12)" strokeWidth="1" />
+        </pattern>
+        <pattern id="trama-verde-aula" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+          <line x1="0" y1="0" x2="0" y2="9" stroke="#35d08a" strokeWidth="1.4" strokeOpacity="0.32" />
+        </pattern>
+      </defs>
 
-      {/* Esquema direccional fiel a la Figura 1 de la página 7 */}
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {[
-          ['01 · Tierra Bomba', 'Relaciones insulares', '→ Bocachica'],
-          ['02 · Bocachica', 'Núcleo de trabajo', '→ Memorias vivas'],
-          ['03 · Memorias vivas', 'Relatos y prácticas', '↓ Vernacularidad'],
-          ['06 · Planificación', 'Decisiones compartidas', '↓ Campos territoriales'],
-          ['05 · Aula Ambiental', 'Investigar y aprender', '← Vernacularidad / → Planificación'],
-          ['04 · Vernacularidad', 'Saberes y materialidad', '← Memorias vivas / → Aula Ambiental'],
-        ].map(([t, sub, dir]) => (
-          <div
-            key={t}
-            className="rounded-xl border border-white/12 bg-white/[0.03] px-4 py-3 flex flex-col justify-between"
-          >
-            <div>
-              <p className="text-sm font-semibold text-white">{t}</p>
-              <p className="text-xs text-white/60">{sub}</p>
-            </div>
-            <p className="tc-etiqueta mt-2 text-[#4fb6b0]">{dir}</p>
-          </div>
-        ))}
-        <div className="sm:col-span-3 rounded-xl border border-[#c86d51]/40 bg-[#c86d51]/10 px-4 py-3 text-center">
-          <p className="text-sm font-semibold text-white">
-            Agua · residuos · vegetación · oficios · patrimonio
-          </p>
-          <p className="text-xs text-white/75">
-            Campos de experimentación y cuidado territorial (alimentan el Aula Ambiental ↑ y reciben decisiones de Planificación ↓)
-          </p>
-        </div>
-      </div>
+      {/* Fondo de mar (Canal de Bocachica y Bahía de Cartagena) */}
+      <rect x="0" y="0" width="820" height="520" fill="#071018" />
+      <rect x="0" y="0" width="820" height="520" fill="url(#agua-patron-aula)" />
 
-      {/* Red interactiva con partículas de tesis_tercer_corte */}
-      <div className="relative mt-6 h-[29rem] w-full sm:h-[32rem]">
-        <svg
-          className="absolute inset-0 h-full w-full"
-          viewBox="0 0 1000 600"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <defs>
-            <linearGradient id="g-aula-red" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1000" y2="0">
-              <stop offset="0" stopColor="#4fb6b0" />
-              <stop offset="1" stopColor="#c86d51" />
-            </linearGradient>
-          </defs>
-          {rutas.map((d, i) => {
-            const on = i + 1 < vistos;
-            return (
-              <g key={i}>
-                <path d={d} className="tc-red-enlace-base" />
-                <path
-                  d={d}
-                  pathLength="1"
-                  className="tc-red-enlace"
-                  style={{ strokeDashoffset: on ? 0 : 1 }}
-                  stroke="url(#g-aula-red)"
-                />
-                {on &&
-                  !reduceMotion() &&
-                  [0, 1.7].map((b) => (
-                    <circle key={b} r="3.2" fill="#fff" opacity="0.9">
-                      <animateMotion dur="3.6s" begin={`${b}s`} repeatCount="indefinite" path={d} />
-                    </circle>
-                  ))}
-              </g>
-            );
-          })}
-        </svg>
+      {/* Silueta esquemática del extremo sur de Tierra Bomba (Bocachica) */}
+      <path
+        d="M 180 20 L 680 20 L 720 140 L 660 280 L 580 390 L 420 430 L 290 465 L 185 435 L 155 340 L 210 230 L 160 120 Z"
+        fill="#0f1822"
+        stroke="rgba(244,241,236,0.22)"
+        strokeWidth="1.5"
+      />
+      {/* Curvas topográficas suaves (Cerro del Ángel San Rafael y meseta de Bocachica) */}
+      <ellipse cx="470" cy="210" rx="165" ry="110" fill="none" stroke="rgba(255,255,255,0.06)" strokeDasharray="4 6" />
+      <ellipse cx="485" cy="195" rx="95" ry="62" fill="none" stroke="rgba(255,255,255,0.09)" strokeDasharray="3 5" />
 
-        <button
-          type="button"
-          onClick={() => setFoco(0)}
-          aria-pressed={foco === 0}
-          className="tc-red-nodo tc-red-centro absolute left-1/2 top-1/2 z-10"
-          style={{ '--mw': '6.5rem' }}
-        >
-          <span className="tc-red-anillo" aria-hidden="true" />
-          <span className="tc-red-anillo tc-red-anillo-2" aria-hidden="true" />
-          <IconoSvg d={ICONOS_RED[centro.icono]} className="text-[#4fb6b0]" />
-          <strong>{centro.titulo}</strong>
-          <small>{centro.sub}</small>
-        </button>
+      {/* Manglar y corredor bioclimático (9.3) */}
+      {mostrar('verde') && (
+        <g>
+          <ellipse cx="615" cy="215" rx="78" ry="110" fill="url(#trama-verde-aula)" stroke="#35d08a" strokeWidth="1.6" strokeDasharray="5 4" />
+          <path d="M 615 215 Q 520 215 430 225" fill="none" stroke="#35d08a" strokeWidth="3" strokeDasharray="6 4" />
+          <text x="615" y="195" textAnchor="middle" fill="#a8f0c6" fontSize="11" fontWeight="600">Manglar y Vivero (9.3)</text>
+          <text x="615" y="212" textAnchor="middle" fill="rgba(244,241,236,0.75)" fontSize="9.5" fontFamily="IBM Plex Mono">Silvicultura comunitaria</text>
+        </g>
+      )}
 
-        {nodos.map((n, i) => {
-          const on = i + 1 < vistos;
-          const [x, y] = n.pos;
-          return (
-            <button
-              key={n.titulo}
-              type="button"
-              tabIndex={on ? 0 : -1}
-              aria-hidden={!on}
-              onClick={() => on && setFoco(i + 1)}
-              aria-pressed={foco === i + 1}
-              className={`tc-red-nodo absolute z-10 ${on ? 'tc-red-visto' : 'tc-red-oculto'}`}
-              style={{
-                left: `clamp(var(--mw), ${x}%, calc(100% - var(--mw)))`,
-                top: `${y}%`,
-                animationDelay: `${(i % 3) * 0.5}s`,
-                '--mw': 'var(--mwnodo)',
-              }}
-            >
-              <IconoSvg d={ICONOS_RED[n.icono]} className="text-[#4fb6b0]" />
-              <strong>{n.titulo}</strong>
-              <small>{n.sub}</small>
-            </button>
-          );
-        })}
-      </div>
+      {/* Cuenca y red de aljibes / agua (9.2) */}
+      {mostrar('agua') && (
+        <g>
+          <path d="M 485 185 Q 430 225 345 285 T 255 355" fill="none" stroke="#6ec6e6" strokeWidth="3" strokeDasharray="8 5" />
+          <circle cx="315" cy="315" r="34" fill="rgba(110,198,230,0.16)" stroke="#6ec6e6" strokeWidth="1.8" />
+          <text x="315" y="312" textAnchor="middle" fill="#bfe9ff" fontSize="10.5" fontWeight="600">Aljibes y Pozos (9.2)</text>
+          <text x="315" y="326" textAnchor="middle" fill="rgba(244,241,236,0.75)" fontSize="9" fontFamily="IBM Plex Mono">Cosecha pluvial + biofiltro</text>
+        </g>
+      )}
 
-      <div className="mt-4 min-h-[4.5rem] border-t border-white/15 pt-4">
-        <p className="max-w-3xl text-sm leading-relaxed text-white/90 sm:text-base" aria-live="polite">
-          <Escribir key={foco} texto={detalle} />
-        </p>
-      </div>
-    </div>
+      {/* Ruta circular de residuos (9.4) y Carpintería de ribera (9.5) */}
+      {mostrar('oficios') && (
+        <g>
+          <path d="M 220 155 Q 310 175 415 215" fill="none" stroke="#f5b45a" strokeWidth="2.4" strokeDasharray="4 4" />
+          <circle cx="220" cy="155" r="30" fill="rgba(232,168,107,0.16)" stroke="#e8a86b" strokeWidth="1.8" />
+          <text x="220" y="152" textAnchor="middle" fill="#f7d49e" fontSize="10.5" fontWeight="600">Ribera y Mar (9.5)</text>
+          <text x="220" y="166" textAnchor="middle" fill="rgba(244,241,236,0.75)" fontSize="8.8" fontFamily="IBM Plex Mono">Astilleros y pesca</text>
+
+          <rect x="345" y="135" width="110" height="44" rx="6" fill="rgba(245,180,90,0.15)" stroke="#f5b45a" strokeWidth="1.6" />
+          <text x="400" y="155" textAnchor="middle" fill="#ffe1a8" fontSize="10.5" fontWeight="600">Taller Plástico (9.4)</text>
+          <text x="400" y="169" textAnchor="middle" fill="rgba(244,241,236,0.75)" fontSize="8.8" fontFamily="IBM Plex Mono">Acopio y extrusión</text>
+        </g>
+      )}
+
+      {/* Doble recorrido patrimonial y fuertes (9.6) */}
+      {mostrar('patrimonio') && (
+        <g>
+          <path d="M 145 455 L 235 430 L 365 265 L 485 185" fill="none" stroke="#e0917a" strokeWidth="2.5" />
+          <circle cx="235" cy="430" r="24" fill="rgba(224,145,122,0.22)" stroke="#e0917a" strokeWidth="2" />
+          <text x="235" y="400" textAnchor="middle" fill="#fff" fontSize="10.5" fontWeight="600">Fuerte San Fernando</text>
+
+          <circle cx="145" cy="455" r="20" fill="rgba(196,144,255,0.2)" stroke="#c490ff" strokeWidth="1.8" />
+          <text x="145" y="486" textAnchor="middle" fill="#e5d0ff" fontSize="10" fontWeight="600">Batería San José (Canal)</text>
+
+          <circle cx="495" cy="185" r="22" fill="rgba(224,145,122,0.2)" stroke="#e0917a" strokeWidth="1.8" />
+          <text x="495" y="156" textAnchor="middle" fill="#ffd2c4" fontSize="10" fontWeight="600">Batería Ángel San Rafael</text>
+        </g>
+      )}
+
+      {/* Casco urbano y Nodo Central R9: Gimnasio Cristiano de Bocachica */}
+      {mostrar('escuela') && (
+        <g>
+          <circle cx="365" cy="265" r="46" fill="rgba(224,145,122,0.12)" stroke="rgba(244,241,236,0.35)" strokeDasharray="3 3" />
+          <text x="365" y="294" textAnchor="middle" fill="rgba(244,241,236,0.85)" fontSize="10" fontFamily="IBM Plex Mono">
+            Casco Urbano Bocachica (9.1)
+          </text>
+
+          <g transform="translate(425,232)">
+            <rect x="-58" y="-26" width="116" height="52" rx="6" fill="rgba(53,208,138,0.24)" stroke="#35d08a" strokeWidth="2.2" />
+            <text x="0" y="-4" textAnchor="middle" fill="#ffffff" fontSize="11.5" fontWeight="700">
+              Gimnasio Cristiano (R9)
+            </text>
+            <text x="0" y="12" textAnchor="middle" fill="#a8f0c6" fontSize="9.2" fontFamily="IBM Plex Mono">
+              Refugio climático + Aljibe + Aula
+            </text>
+          </g>
+        </g>
+      )}
+
+      {/* Norte y escala gráfica (idéntico a Plan.jsx) */}
+      <g transform="translate(765, 52)">
+        <circle r="20" fill="rgba(5,8,12,0.75)" stroke="rgba(255,255,255,0.22)" />
+        <polygon points="0,-13 -5,7 0,3 5,7" fill="#f4f1ec" />
+        <text y="33" textAnchor="middle" fill="rgba(244,241,236,0.7)" fontSize="9.5" fontFamily="IBM Plex Mono">N</text>
+      </g>
+      <g transform="translate(36, 488)">
+        <line x1="0" y1="0" x2="110" y2="0" stroke="#f4f1ec" strokeWidth="2" />
+        <line x1="0" y1="-4" x2="0" y2="4" stroke="#f4f1ec" strokeWidth="2" />
+        <line x1="110" y1="-4" x2="110" y2="4" stroke="#f4f1ec" strokeWidth="2" />
+        <text x="55" y="-7" textAnchor="middle" fill="rgba(244,241,236,0.8)" fontSize="10" fontFamily="IBM Plex Mono">≈ 250 m</text>
+      </g>
+    </svg>
   );
 }
 
-/** Pestañas accesibles para las matrices de actores (Tabla 10 y Tabla 11) siguiendo modern-web-guidance `tabs` */
-function MatricesActoresTabs() {
-  const [tabActiva, setTabActiva] = useState('tabla10');
-  const panel10Ref = useRef(null);
-  const panel11Ref = useRef(null);
-  const panelAmbasRef = useRef(null);
-
-  useEffect(() => {
-    const entries = [
-      ['tabla10', panel10Ref.current],
-      ['tabla11', panel11Ref.current],
-      ['ambas', panelAmbasRef.current],
-    ];
-    const cleanups = entries.map(([id, el]) => {
-      if (!el) return () => {};
-      const onBeforeMatch = () => setTabActiva(id);
-      el.addEventListener('beforematch', onBeforeMatch);
-      return () => el.removeEventListener('beforematch', onBeforeMatch);
-    });
-    return () => cleanups.forEach((fn) => fn());
-  }, []);
-
-  const tabs = [
-    { id: 'tabla10', label: 'Tabla 10 · Actores principales (9)' },
-    { id: 'tabla11', label: 'Tabla 11 · Actores por convocar (6)' },
-    { id: 'ambas', label: 'Ver ambas matrices completas' },
+function SeccionEsquemaAula() {
+  const [filtro, setFiltro] = useState('todos');
+  const FILTROS = [
+    { id: 'todos', nombre: 'Todos los sistemas' },
+    { id: 'escuela', nombre: 'Nodo Escolar R9 + Casco (9.1)' },
+    { id: 'agua', nombre: 'Agua y Aljibes (9.2)' },
+    { id: 'verde', nombre: 'Silvicultura y Manglar (9.3)' },
+    { id: 'oficios', nombre: 'Plástico y Ribera (9.4–9.5)' },
+    { id: 'patrimonio', nombre: 'Circuito Patrimonial (9.6)' },
   ];
 
   return (
-    <div className="mt-6">
-      <div
-        role="tablist"
-        aria-label="Matrices de actores y gobernanza"
-        className="tc-tablist"
-      >
-        {tabs.map((t) => {
-          const isSelected = tabActiva === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              id={`tab-${t.id}`}
-              aria-selected={isSelected ? 'true' : 'false'}
-              onClick={(e) => {
-                setTabActiva(t.id);
-                e.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-              }}
-              className="tc-tab"
-            >
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div
-        ref={panel10Ref}
-        role="tabpanel"
-        aria-labelledby="tab-tabla10"
-        hidden={tabActiva === 'tabla10' ? undefined : 'until-found'}
-      >
-        <div className="pt-2">
-          <TablaAula tabla={CAP_13.tabla10} />
-        </div>
-      </div>
-
-      <div
-        ref={panel11Ref}
-        role="tabpanel"
-        aria-labelledby="tab-tabla11"
-        hidden={tabActiva === 'tabla11' ? undefined : 'until-found'}
-      >
-        <div className="pt-2">
-          <TablaAula tabla={CAP_13.tabla11} />
-        </div>
-      </div>
-
-      <div
-        ref={panelAmbasRef}
-        role="tabpanel"
-        aria-labelledby="tab-ambas"
-        hidden={tabActiva === 'ambas' ? undefined : 'until-found'}
-      >
-        <div className="space-y-6 pt-2">
-          <TablaAula tabla={CAP_13.tabla10} />
-          <TablaAula tabla={CAP_13.tabla11} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** Cronograma interactivo de 24 meses (Figura 4 de la página 17) */
-function Cronograma24Meses() {
-  const [semFiltro, setSemFiltro] = useState('todos');
-  const [filaActiva, setFilaActiva] = useState(CAP_12.cronogramaFilas[0]);
-
-  const rangoMeses = useMemo(() => {
-    if (semFiltro === 's1') return [1, 6];
-    if (semFiltro === 's2') return [7, 12];
-    if (semFiltro === 's3') return [13, 18];
-    if (semFiltro === 's4') return [19, 24];
-    return [1, 24];
-  }, [semFiltro]);
-
-  const meses = Array.from({ length: 24 }, (_, i) => i + 1);
-
-  return (
-    <div className="rounded-2xl border border-white/14 bg-[#070a0d] p-5 sm:p-7">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="tc-etiqueta text-[#4fb6b0]">Figura 4 · Cronograma propuesto de 24 meses</p>
-          <p className="mt-1 text-xs text-white/60">
-            Los 24 meses son relativos al inicio acordado. La validación, el archivo y la gobernanza acompañan todo el proceso.
+    <section className="relative z-10 bg-black px-6 md:px-16 py-24 md:py-28">
+      <div className="max-w-6xl mx-auto">
+        <div className="max-w-3xl">
+          <div className="tc-etiqueta">05 · Esquema en planta y proyectos piloto</div>
+          <h2 className="text-3xl md:text-5xl font-semibold mt-2 leading-[1.05] text-white">
+            Cómo se articulan las seis líneas alrededor del Gimnasio Cristiano de Bocachica (R9).
+          </h2>
+          <p className="text-white/75 mt-4 text-base leading-relaxed">
+            En lugar de intervenciones aisladas, el programa conecta el nodo escolar (<span className="tc-num text-white">R9</span>) con el casco histórico, los aljibes comunitarios, el vivero de manglar, los talleres de plástico y carpintería de ribera y las tres fortificaciones del canal.
           </p>
         </div>
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por semestre">
-          {[
-            ['todos', '24 meses'],
-            ['s1', 'Sem 1 (M1–6)'],
-            ['s2', 'Sem 2 (M7–12)'],
-            ['s3', 'Sem 3 (M13–18)'],
-            ['s4', 'Sem 4 (M19–24)'],
-          ].map(([k, label]) => (
-            <button
-              key={k}
-              type="button"
-              className="tc-ficha"
-              aria-pressed={semFiltro === k}
-              onClick={() => setSemFiltro(k)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      {/* Cuadrícula mes a mes 1..24 */}
-      <div className="mt-6 overflow-x-auto pb-2">
-        <div className="min-w-[680px]">
-          <div className="grid grid-cols-[13.5rem_repeat(24,minmax(0,1fr))] items-center gap-[2px] border-b border-white/15 pb-2">
-            <span className="tc-etiqueta text-white/50">Actividad</span>
-            {meses.map((m) => {
-              const enRango = m >= rangoMeses[0] && m <= rangoMeses[1];
-              const esHito = [3, 6, 9, 12, 18, 24].includes(m);
-              return (
-                <span
-                  key={m}
-                  className={`tc-num text-center text-[11px] ${
-                    esHito ? 'text-[#4fb6b0] font-bold' : enRango ? 'text-white/75' : 'text-white/25'
-                  }`}
-                >
-                  {m}
-                </span>
-              );
-            })}
-          </div>
-
-          <div className="mt-2 space-y-1.5">
-            {CAP_12.cronogramaFilas.map((f) => {
-              const seleccionada = filaActiva?.id === f.id;
-              return (
+        <div className="mt-8 tc-vidrio p-4 md:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-white/10">
+            <div className="tc-etiqueta">Esquema territorial de Bocachica · Filtra por piloto</div>
+            <div className="flex flex-wrap gap-1.5">
+              {FILTROS.map((f) => (
                 <button
                   key={f.id}
                   type="button"
-                  onClick={() => setFilaActiva(f)}
-                  className={`grid w-full grid-cols-[13.5rem_repeat(24,minmax(0,1fr))] items-center gap-[2px] rounded-md px-1.5 py-1.5 text-left transition-colors cursor-pointer ${
-                    seleccionada ? 'bg-white/10' : 'hover:bg-white/5'
-                  }`}
+                  onClick={() => setFiltro(f.id)}
+                  className={`tc-ficha ${filtro === f.id ? 'tc-ficha-activa' : ''}`}
                 >
-                  <span className="pr-2 text-xs font-medium text-white/90 truncate">{f.actividad}</span>
-                  {meses.map((m) => {
-                    const activa = m >= f.inicio && m <= f.fin;
-                    const enSemestre = m >= rangoMeses[0] && m <= rangoMeses[1];
-                    return (
-                      <span
-                        key={m}
-                        className="h-6 rounded-[2px] transition-all duration-300"
-                        style={{
-                          background: activa
-                            ? f.color
-                            : 'rgba(255, 255, 255, 0.05)',
-                          opacity: activa ? (enSemestre ? 0.92 : 0.25) : 1,
-                        }}
-                      />
-                    );
-                  })}
+                  {f.nombre}
                 </button>
-              );
-            })}
+              ))}
+            </div>
+          </div>
+          <EsquemaAulaSVG filtro={filtro} setFiltro={setFiltro} />
+        </div>
+
+        {/* 6 Tarjetas de los Pilotos con formato .tc-regla (idéntico a CRITERIOS en Plan.jsx) */}
+        <div className="mt-16 pt-12 tc-regla">
+          <div className="tc-etiqueta">Seis proyectos piloto articulados (Sección 9 del documento)</div>
+          <div className="grid md:grid-cols-3 gap-6 mt-5">
+            {LINEAS_INVESTIGACION.map((l) => (
+              <div key={l.id} className="pt-4 tc-regla">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="tc-num text-[#e0917a] font-semibold">Línea {l.id}</span>
+                  <span className="text-white/45 font-mono">{l.piloto.titulo.split(' ')[0]}</span>
+                </div>
+                <div className="text-lg font-semibold mt-1 text-white">{l.titulo}</div>
+                <p className="text-xs text-white/75 mt-1.5 leading-relaxed">{l.piloto.alcance}</p>
+                <div className="mt-2.5 text-[11px] font-mono text-[#6ec6e6]">
+                  → {l.productos[0]}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
+    </section>
+  );
+}
 
-      {/* Detalle de la actividad seleccionada */}
-      {filaActiva && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/12 pt-3 text-xs text-white/75">
-          <div>
-            <span className="tc-etiqueta text-[#4fb6b0] mr-2">
-              {filaActiva.tipo === 'transversal' ? 'Eje continuo (24 meses)' : 'Fase escalonada'}
-            </span>
-            <strong className="text-white">{filaActiva.actividad}</strong>
-          </div>
-          <span className="tc-num text-white/60">
-            Ventana propuesta: Mes {filaActiva.inicio} al Mes {filaActiva.fin}
-          </span>
+// =============================================================================
+// 06 · HOJA DE RUTA 24 MESES Y RED DE 15 ACTORES (Estilo Social.jsx, cero tablas)
+// =============================================================================
+function SeccionHojaDeRutaYGobernanza() {
+  const [mesActivo, setMesActivo] = useState(6);
+  const [actorSel, setActorSel] = useState(0);
+
+  const faseActual = FASES_24_MESES.find((f) => {
+    if (f.id === 'F0') return mesActivo === 0;
+    const mMatch = f.meses.match(/(\d+)\D+(\d+)/);
+    if (!mMatch) return false;
+    const m0 = Number(mMatch[1]);
+    const m1 = Number(mMatch[2]);
+    return mesActivo >= m0 && mesActivo <= m1;
+  }) || FASES_24_MESES[1];
+
+  return (
+    <section id="cap-06" className="relative z-10 bg-black px-6 md:px-16 py-24 md:py-32">
+      <div className="max-w-6xl mx-auto">
+        <div className="max-w-3xl">
+          <div className="tc-etiqueta">06 · Hoja de ruta a 24 meses, productos y gobernanza</div>
+          <h2 className="text-3xl md:text-5xl font-semibold mt-2 leading-[1.05] text-white">
+            Cuatro semestres académicos, nueve productos verificables y quince actores en red.
+          </h2>
+          <p className="text-white/75 mt-4 text-base leading-relaxed">
+            Desliza el horizonte temporal de <span className="tc-num text-white">0 a 24 meses</span> para inspeccionar qué ocurre en cada fase (<span className="tc-num text-white">F0–F6</span>), cuáles productos (<span className="tc-num text-white">P1–P9</span>) se entregan y cómo se gobierna el programa.
+          </p>
         </div>
-      )}
 
-      {/* Hitos propuestos */}
-      <div className="mt-6 border-t border-white/14 pt-5">
-        <p className="tc-etiqueta text-white/50">Hitos propuestos del programa</p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {CAP_12.hitos.map((h) => (
-            <div
-              key={h.mes}
-              className="rounded-xl border border-white/12 bg-white/[0.03] p-3.5 transition-colors hover:border-[#4fb6b0]"
-            >
-              <p className="tc-num text-lg font-bold text-[#4fb6b0]">{h.titulo}</p>
-              <p className="mt-1 text-xs leading-relaxed text-white/80">{h.desc}</p>
+        {/* 01 · Línea de tiempo interactiva de 24 meses (estilo Calendario de Social.jsx) */}
+        <BloqueVisual
+          num="01 · Cronograma de 24 meses (F0–F6)"
+          titulo="Continuidad intersemestral sin empezar de cero cada semestre."
+          subtitulo="Mueve el control de meses o haz clic en una fase para ver sus actividades, el producto que deja instalado y su punto de control ético."
+        >
+          <div className="space-y-6">
+            <div className="tc-vidrio p-5">
+              <div className="flex items-baseline justify-between mb-2">
+                <span className="tc-etiqueta">Horizonte del programa (24 meses)</span>
+                <span className="tc-num text-2xl font-semibold text-[#e0917a]">
+                  {mesActivo === 0 ? 'Aprestamiento (Mes 0)' : `Mes ${mesActivo} de 24`}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={24}
+                step={1}
+                value={mesActivo}
+                onChange={(e) => setMesActivo(Number(e.target.value))}
+                className="tc-slider"
+                aria-label="Mes del programa"
+              />
+              <div className="grid grid-cols-7 gap-1.5 mt-4">
+                {FASES_24_MESES.map((f) => {
+                  const act = faseActual.id === f.id;
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => {
+                        if (f.id === 'F0') setMesActivo(0);
+                        else {
+                          const m = f.meses.match(/(\d+)/);
+                          if (m) setMesActivo(Number(m[1]));
+                        }
+                      }}
+                      className={`p-2 rounded text-left border transition ${
+                        act
+                          ? 'bg-[#e0917a]/20 border-[#e0917a] text-white'
+                          : 'bg-white/[0.03] border-white/10 text-white/60 hover:text-white'
+                      }`}
+                    >
+                      <div className="tc-num text-xs font-semibold">{f.id}</div>
+                      <div className="text-[10px] font-mono opacity-75 truncate">{f.meses}</div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-5 pt-4 tc-regla grid md:grid-cols-3 gap-4">
+                <div>
+                  <div className="tc-etiqueta !text-[#e0917a]">{faseActual.id} · {faseActual.meses}</div>
+                  <div className="text-lg font-semibold text-white mt-1">{faseActual.nombre}</div>
+                </div>
+                <div>
+                  <div className="tc-etiqueta mb-1">Actividades principales</div>
+                  <p className="text-xs text-white/80 leading-relaxed">{faseActual.actividades}</p>
+                </div>
+                <div className="border-l border-white/15 pl-4">
+                  <div className="tc-etiqueta !text-[#35d08a] mb-1">Hito y control ético</div>
+                  <p className="text-xs text-white/90 font-medium">{faseActual.hito}</p>
+                  <p className="text-[11px] text-white/65 mt-1">{faseActual.controlEtico}</p>
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
+
+            {/* Productos P1-P9 como matriz visual de tarjetas compactas */}
+            <div>
+              <div className="tc-etiqueta mb-3">Nueve productos verificables del programa (P1–P9)</div>
+              <div className="grid sm:grid-cols-3 gap-3">
+                {PRODUCTOS_ESPERADOS.map((p) => (
+                  <div key={p.codigo} className="p-3.5 rounded-lg bg-white/[0.03] border border-white/10 hover:border-white/25 transition">
+                    <div className="flex items-center justify-between">
+                      <span className="tc-num text-xs font-semibold text-[#6ec6e6]">{p.codigo}</span>
+                      <span className="text-[10px] font-mono text-white/50">{p.linea}</span>
+                    </div>
+                    <div className="text-sm font-semibold text-white mt-1 leading-snug">{p.producto}</div>
+                    <div className="text-[11px] text-white/65 mt-1">{p.formato}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </BloqueVisual>
+
+        {/* 02 · Constelación interactiva de los 15 Actores y Gobernanza */}
+        <BloqueVisual
+          num="02 · Red de 15 actores y gobernanza compartida"
+          titulo="Comunidad, escuela, universidad, gremios y aliados científicos."
+          subtitulo="Haz clic en cualquier actor de la constelación para inspeccionar su rol, su contribución y cómo participa en el Comité Coordinador y la Mesa Comunitaria."
+        >
+          <div className="grid md:grid-cols-12 gap-6 items-center">
+            <div className="md:col-span-7 tc-vidrio p-4">
+              <svg viewBox="0 0 560 360" className="w-full h-auto select-none">
+                <circle cx="280" cy="180" r="138" fill="none" stroke="rgba(255,255,255,0.07)" strokeDasharray="3 5" />
+                <circle cx="280" cy="180" r="78" fill="none" stroke="rgba(255,255,255,0.07)" strokeDasharray="2 4" />
+                <circle cx="280" cy="180" r="28" fill="#1d1210" stroke="#e0917a" strokeWidth="2" />
+                <text x="280" y="177" textAnchor="middle" fill="#fff" fontSize="9.5" fontWeight="700">Mesa Local</text>
+                <text x="280" y="189" textAnchor="middle" fill="#e0917a" fontSize="8" fontFamily="IBM Plex Mono">Bocachica</text>
+
+                {ACTORES_GOBERNANZA.map((a, i) => {
+                  const anilloInterior = i < 6;
+                  const r = anilloInterior ? 82 : 142;
+                  const totalAnillo = anilloInterior ? 6 : ACTORES_GOBERNANZA.length - 6;
+                  const idxAnillo = anilloInterior ? i : i - 6;
+                  const ang = (idxAnillo / totalAnillo) * Math.PI * 2 - Math.PI / 2;
+                  const nx = 280 + Math.cos(ang) * r;
+                  const ny = 180 + Math.sin(ang) * r;
+                  const act = actorSel === i;
+                  const col = a.tipo.includes('Comunidad') || a.tipo.includes('Nodo')
+                    ? '#35d08a'
+                    : a.tipo.includes('PUJ')
+                      ? '#6ec6e6'
+                      : '#f5b45a';
+                  return (
+                    <g key={a.actor} onClick={() => setActorSel(i)} style={{ cursor: 'pointer' }}>
+                      <line
+                        x1="280"
+                        y1="180"
+                        x2={nx}
+                        y2={ny}
+                        stroke={act ? col : 'rgba(255,255,255,0.14)'}
+                        strokeWidth={act ? 2 : 0.9}
+                      />
+                      <circle
+                        cx={nx}
+                        cy={ny}
+                        r={act ? 16 : 12}
+                        fill="#0b1015"
+                        stroke={col}
+                        strokeWidth={act ? 2.4 : 1.3}
+                      />
+                      <text x={nx} y={ny + 3} textAnchor="middle" fill="#fff" fontSize="8" fontFamily="IBM Plex Mono">
+                        {i + 1}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+
+            <div className="md:col-span-5 space-y-4">
+              <div className="tc-vidrio p-5">
+                <div className="tc-etiqueta !text-[#35d08a]">
+                  Actor {actorSel + 1} de {ACTORES_GOBERNANZA.length} · {ACTORES_GOBERNANZA[actorSel].tipo}
+                </div>
+                <h4 className="text-xl font-semibold text-white mt-1">{ACTORES_GOBERNANZA[actorSel].actor}</h4>
+                <div className="mt-3 pt-3 tc-regla text-xs space-y-2">
+                  <div>
+                    <span className="text-white/50 block">Rol en el programa</span>
+                    <span className="text-white/90">{ACTORES_GOBERNANZA[actorSel].rol}</span>
+                  </div>
+                  <div>
+                    <span className="text-white/50 block">Líneas vinculadas</span>
+                    <span className="text-[#6ec6e6] font-mono">{ACTORES_GOBERNANZA[actorSel].lineas}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="tc-etiqueta">Principios éticos innegociables</div>
+                {PRINCIPIOS_ETICOS.slice(0, 4).map((p) => (
+                  <BarraSimple
+                    key={p.principio}
+                    etiqueta={`${p.principio} — ${p.mecanismo}`}
+                    valor={100}
+                    color="#e0917a"
+                    sufijo="% exigible"
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </BloqueVisual>
+      </div>
+    </section>
+  );
+}
+
+// =============================================================================
+// CONTROLES DE VISTA 3D, ÍNDICE LATERAL Y CABECERA (Idénticos a Relato.jsx)
+// =============================================================================
+function ControlesVista({ libre, onToggleLibre, oculto, onToggleOculto, onZoom, onReset }) {
+  return (
+    <div className="fixed z-20 top-16 right-4 md:right-8 flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={onToggleLibre}
+        className={`tc-vidrio px-3 py-1.5 text-xs font-medium transition ${
+          libre ? '!bg-[#e0917a]/25 !border-[#e0917a] text-white' : 'text-white/80 hover:text-white'
+        }`}
+      >
+        {libre ? '✓ Explorando el mapa 3D (Salir)' : 'Explorar el mapa 3D'}
+      </button>
+      <button
+        type="button"
+        onClick={onToggleOculto}
+        className="tc-vidrio px-2.5 py-1.5 text-xs text-white/75 hover:text-white"
+        title={oculto ? 'Mostrar panel' : 'Ocultar panel para ver la isla'}
+      >
+        {oculto ? 'Mostrar panel' : 'Ocultar panel'}
+      </button>
+      <div className="hidden sm:flex items-center tc-vidrio px-1 py-0.5 text-xs">
+        <button type="button" onClick={() => onZoom(0.78)} className="px-2 py-1 text-white/80 hover:text-white" title="Acercar">+</button>
+        <button type="button" onClick={() => onZoom(1.28)} className="px-2 py-1 text-white/80 hover:text-white" title="Alejar">−</button>
+        <button type="button" onClick={onReset} className="px-2 py-1 text-white/70 hover:text-white" title="Restablecer vista">⟲</button>
       </div>
     </div>
   );
 }
 
-const MACRO_NAV = [
-  { id: 'aula-portada', corto: 'Portada' },
-  { id: 'cap-01', corto: '01 Resumen' },
-  { id: 'cap-03', corto: '03 Territorio' },
-  { id: 'cap-05', corto: '05 Memorias' },
-  { id: 'cap-08', corto: '08 Arquitectura' },
-  { id: 'cap-09', corto: '09 Líneas y pilotos' },
-  { id: 'cap-10', corto: '10 Gemelo digital' },
-  { id: 'cap-11', corto: '11 Metodología' },
-  { id: 'cap-12', corto: '12 Cronograma 24m' },
-  { id: 'cap-13', corto: '13 Gobernanza' },
-  { id: 'cap-17', corto: '17 Ruta y R1–R9' },
-];
+function IndiceLateral({ total, activo, onIr }) {
+  return (
+    <div className="fixed right-5 top-1/2 -translate-y-1/2 z-20 hidden md:flex flex-col gap-2">
+      {Array.from({ length: total }).map((_, i) => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => onIr(i)}
+          aria-label={`Paso 3D ${i + 1}`}
+          className={`w-1.5 rounded-full transition-all ${
+            i === activo ? 'h-7 bg-[#e0917a]' : 'h-2 bg-white/30 hover:bg-white/60'
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
 
+// =============================================================================
+// COMPONENTE PRINCIPAL: AULA AMBIENTAL BOCACHICA
+// =============================================================================
 export default function AulaAmbientalBocachica({
+  onBack,
   onBackToPortada,
+  onSelectProject,
   onNavigateModule,
-  embedded = false,
 }) {
-  const [capActivo, setCapActivo] = useState('aula-portada');
-  const [indiceAbierto, setIndiceAbierto] = useState(false);
-  const [lineaSel, setLineaSel] = useState(0);
-  const [nivelDigitalSel, setNivelDigitalSel] = useState(0);
-  const [cicloSel, setCicloSel] = useState(0);
-  const containerRef = useRef(null);
+  const volverFn = onBack || onBackToPortada;
+  const navegarFn = onSelectProject || onNavigateModule;
+  const rootRef = useRef(null);
+  const mount3DRef = useRef(null);
+  const [escena, setEscena] = useState(null);
+  const [progreso, setProgreso] = useState({ p: 0, texto: 'Iniciando escena 3D de Tierra Bomba' });
+  const [capActual, setCapActual] = useState(CAPITULOS[0]);
+  const [enVistaAula, setEnVistaAula] = useState(true);
+  const [enPasos3D, setEnPasos3D] = useState(false);
+  const [pasoIdx, setPasoIdx] = useState(0);
+  const [pasoProg, setPasoProg] = useState(0);
+  const [lentePaso, setLentePaso] = useState('resumen'); // 'resumen' | 'piloto' | 'producto'
+  const [libre, setLibre] = useState(false);
+  const [panelOculto, setPanelOculto] = useState(false);
 
-  const irASeccion = (id) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
-      setCapActivo(id);
-      setIndiceAbierto(false);
-    }
-  };
+  const secLineasRef = useRef(null);
+  const secGemeloRef = useRef(null);
+  const secPilotoR9Ref = useRef(null);
 
+  // Inicializar escena 3D
   useEffect(() => {
-    const rootEl = containerRef.current;
-    if (!rootEl) return undefined;
-    const scroller = rootEl.closest('[data-aula-scroller]') || window;
-    const ids = ['aula-portada', ...CONTENIDO_INDICE.map((c) => c.id)];
-    const onScroll = () => {
-      const vh = window.innerHeight;
-      let current = 'aula-portada';
-      for (const id of ids) {
-        const el = document.getElementById(id);
-        if (el && el.getBoundingClientRect().top <= vh * 0.42) {
-          current = id;
-        }
-      }
-      setCapActivo((prev) => (prev === current ? prev : current));
-    };
-    scroller.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('scroll', onScroll, { passive: true });
+    let viva = true;
+    let inst = null;
+    if (!mount3DRef.current) return undefined;
+    crearEscenaAula(mount3DRef.current, {
+      onProgreso: (p, texto) => { if (viva) setProgreso({ p, texto }); },
+    }).then((s) => {
+      if (!viva) { s?.dispose(); return; }
+      inst = s;
+      setEscena(s);
+    }).catch((err) => {
+      console.error(err);
+      if (viva) setProgreso({ p: 1, texto: 'Modo interactivo listo' });
+    });
     return () => {
-      scroller.removeEventListener('scroll', onScroll);
-      window.removeEventListener('scroll', onScroll);
+      viva = false;
+      inst?.dispose();
     };
   }, []);
 
-  const capInfo =
-    CONTENIDO_INDICE.find((c) => c.id === capActivo) || {
-      num: '00',
-      titulo: 'Programa marco v0.1',
+  // Control de cámara y pasos por scroll
+  useEffect(() => {
+    let raf = 0;
+    const evaluarScroll = () => {
+      raf = 0;
+      const vh = window.innerHeight || 1;
+      const mid = vh * 0.45;
+
+      if (rootRef.current) {
+        const rr = rootRef.current.getBoundingClientRect();
+        setEnVistaAula(rr.top <= vh * 0.35);
+      }
+
+      // Detectar capítulo activo para la píldora superior
+      let cap = CAPITULOS[0];
+      for (const c of CAPITULOS) {
+        const el = document.getElementById(c.ancla);
+        if (el && el.getBoundingClientRect().top <= mid) cap = c;
+      }
+      setCapActual(cap);
+
+      // Evaluar si estamos dentro de alguno de los 3 tramos de scrollytelling 3D:
+      // Tramo A: secLineasRef (pasos 0..5, 6 pasos)
+      // Tramo B: secGemeloRef (pasos 6..10, 5 pasos)
+      // Tramo C: secPilotoR9Ref (pasos 11..13, 3 pasos)
+      const tramos = [
+        { ref: secLineasRef, offset: 0, count: 6 },
+        { ref: secGemeloRef, offset: 6, count: 5 },
+        { ref: secPilotoR9Ref, offset: 11, count: 3 },
+      ];
+
+      let hallado = null;
+      for (const tr of tramos) {
+        const el = tr.ref.current;
+        if (!el) continue;
+        const r = el.getBoundingClientRect();
+        if (r.top <= vh * 0.45 && r.bottom >= vh * 0.55) {
+          const pasoPx = (ALTO_PASO / 100) * vh;
+          const raw = Math.max(0, -r.top / pasoPx);
+          const localIdx = Math.min(tr.count - 1, Math.floor(raw));
+          hallado = {
+            idx: tr.offset + localIdx,
+            prog: Math.max(0, Math.min(1, raw - localIdx)),
+          };
+          break;
+        }
+      }
+
+      if (hallado) {
+        setEnPasos3D(true);
+        setPasoIdx(hallado.idx);
+        setPasoProg(hallado.prog);
+        const p = PASOS_3D[hallado.idx];
+        escena?.set({
+          cam: p.cam,
+          dim: 0,
+          zonas: p.zonas,
+          rutas: p.rutas,
+          nodosActivos: p.nodosActivos,
+          lluvia: p.lluvia,
+          cartografia: p.cartografia,
+          gemelo: p.gemelo,
+        });
+      } else {
+        setEnPasos3D(false);
+        setLibre(false);
+        if (cap.id === '00') {
+          escena?.set({
+            cam: 'hero',
+            dim: 0,
+            zonas: [0.45, 0.45, 0.45],
+            rutas: { agua: 0.3, verde: 0.3, residuos: 0, oficios: 0, patrimonio: 0.4 },
+            nodosActivos: ['casco', 'escuelaR9', 'sanFernando'],
+            lluvia: 0,
+            cartografia: 0,
+            gemelo: 0,
+          });
+        } else {
+          escena?.set({
+            cam: 'problema',
+            dim: 0.72,
+            lluvia: 0,
+            gemelo: 0,
+          });
+        }
+      }
     };
 
-  const lineaActiva = CAP_09.lineas[lineaSel] || CAP_09.lineas[0];
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(evaluarScroll); };
+    evaluarScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [escena]);
+
+  // Interacción directa con el mapa 3D cuando `libre` está activo
+  useEffect(() => {
+    const el = mount3DRef.current;
+    if (!el || !escena || !libre) return undefined;
+    let drag = null;
+    const down = (e) => {
+      drag = { x: e.clientX, y: e.clientY, mover: e.button === 2 || e.shiftKey };
+      el.setPointerCapture?.(e.pointerId);
+    };
+    const move = (e) => {
+      if (!drag) return;
+      const dx = e.clientX - drag.x;
+      const dy = e.clientY - drag.y;
+      drag.x = e.clientX;
+      drag.y = e.clientY;
+      if (drag.mover) escena.vista.mover(dx, dy);
+      else escena.vista.rotar(dx, dy);
+    };
+    const up = () => { drag = null; };
+    const wheel = (e) => {
+      e.preventDefault();
+      escena.vista.zoom(Math.exp(e.deltaY * 0.0012));
+    };
+    const ctx = (e) => e.preventDefault();
+    el.addEventListener('pointerdown', down);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    el.addEventListener('wheel', wheel, { passive: false });
+    el.addEventListener('contextmenu', ctx);
+    return () => {
+      el.removeEventListener('pointerdown', down);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      el.removeEventListener('wheel', wheel);
+      el.removeEventListener('contextmenu', ctx);
+    };
+  }, [escena, libre]);
+
+  const irACapitulo = (ancla) => {
+    const el = document.getElementById(ancla);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const irAPaso3D = (idx) => {
+    const vh = window.innerHeight || 1;
+    const pasoPx = (ALTO_PASO / 100) * vh;
+    let targetEl = secLineasRef.current;
+    let localIdx = idx;
+    if (idx >= 11) {
+      targetEl = secPilotoR9Ref.current;
+      localIdx = idx - 11;
+    } else if (idx >= 6) {
+      targetEl = secGemeloRef.current;
+      localIdx = idx - 6;
+    }
+    if (!targetEl) return;
+    const topDoc = targetEl.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top: topDoc + localIdx * pasoPx + 12, behavior: 'smooth' });
+  };
+
+  const pasoActual = PASOS_3D[pasoIdx] || PASOS_3D[0];
 
   return (
-    <div
-      ref={containerRef}
-      id="aula-ambiental-bocachica"
-      className="tc-aula relative min-h-screen w-full bg-black text-[#f1f5f9] selection:bg-[#4fb6b0] selection:text-[#00110f]"
-    >
-      {/* Barra superior flotante de vidrio estilo tesis_tercer_corte */}
-      <div className="sticky top-0 z-30 pointer-events-none px-3 pt-3 sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2">
-          <div className="tc-vidrio pointer-events-auto flex h-10 shrink-0 items-center gap-2.5 !rounded-[12px] px-3.5 text-[0.8rem] font-bold tracking-tight text-white">
-            <span className="inline-block h-2 w-2 rounded-full bg-[#4fb6b0]" aria-hidden="true" />
-            <span>
-              Tierra <span className="text-[#4fb6b0]">Bomba</span> · Aula Ambiental
-            </span>
+    <div id="aula-ambiental-bocachica" ref={rootRef} className="tc-aula relative min-h-screen text-[#f4f1ec] select-none">
+      {/* ESCENA 3D FIJA A PANTALLA COMPLETA (Idéntica a App.jsx en tesis_tercer_corte) */}
+      <div
+        ref={mount3DRef}
+        className={`fixed inset-0 z-0 transition-opacity duration-500 ${
+          enVistaAula ? 'opacity-100' : 'opacity-0'
+        } ${libre && enPasos3D ? 'pointer-events-auto cursor-grab active:cursor-grabbing' : 'pointer-events-none'}`}
+      />
+
+      {/* INDICADOR DE CARGA */}
+      {enVistaAula && progreso.p < 1 && (
+        <div className="fixed bottom-6 right-8 z-50 tc-vidrio px-4 py-3 w-64 pointer-events-none">
+          <div className="flex justify-between text-xs text-white/80">
+            <span>{progreso.texto}</span>
+            <span className="tc-num">{Math.round(progreso.p * 100)} %</span>
           </div>
-
-          <nav
-            aria-label="Capítulos del Programa Marco"
-            className="tc-vidrio pointer-events-auto hidden h-10 items-center gap-0.5 !rounded-full px-1.5 xl:flex overflow-x-auto"
-          >
-            {MACRO_NAV.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => irASeccion(item.id)}
-                className="tc-nav-cap cursor-pointer"
-                aria-current={capActivo === item.id ? 'true' : undefined}
-              >
-                {item.corto}
-              </button>
-            ))}
-          </nav>
-
-          <div className="pointer-events-auto flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setIndiceAbierto((v) => !v)}
-              aria-expanded={indiceAbierto}
-              className="tc-vidrio flex h-10 items-center gap-2 !rounded-[12px] px-3.5 text-xs font-medium text-white/85 hover:text-white cursor-pointer"
-            >
-              <span className="tc-etiqueta text-[#4fb6b0]">{capInfo.num}</span>
-              <span className="hidden sm:inline truncate max-w-[11rem]">{capInfo.titulo}</span>
-              <span className="text-white/50">{indiceAbierto ? '▴' : 'Índice 01–17 ▾'}</span>
-            </button>
-
-            {onBackToPortada && (
-              <button
-                type="button"
-                onClick={onBackToPortada}
-                className="tc-vidrio flex h-10 items-center gap-1.5 !rounded-[12px] px-3 text-xs font-medium text-white/80 hover:text-[#4fb6b0] cursor-pointer"
-                title="Subir a la portada de comunidad"
-              >
-                <span>↑ Portada</span>
-              </button>
-            )}
+          <div className="h-1 bg-white/10 rounded mt-2 overflow-hidden">
+            <div className="h-full bg-[#e0917a] transition-all duration-200" style={{ width: `${ Math.round(progreso.p * 100) }%` }} />
           </div>
         </div>
+      )}
 
-        {/* Cajón desplegable con los 17 capítulos y las 15 tablas */}
-        {indiceAbierto && (
-          <div className="tc-vidrio pointer-events-auto mx-auto mt-2 max-w-5xl p-5 sm:p-6">
-            <div className="flex items-center justify-between border-b border-white/12 pb-3">
-              <p className="tc-etiqueta text-[#4fb6b0]">
-                Índice general · 17 Capítulos · 15 Tablas · 4 Figuras (24 páginas)
-              </p>
+      {/* CABECERA FLOTANTE (Idéntica a Cabecera en Relato.jsx) */}
+      {enVistaAula && (
+      <header className="fixed top-4 inset-x-0 z-30 px-4 md:px-8 flex items-center justify-between gap-2 pointer-events-none">
+        <div className="tc-vidrio px-3.5 py-2 flex items-center gap-2.5 pointer-events-auto">
+          {volverFn && (
+            <button
+              type="button"
+              onClick={volverFn}
+              className="text-xs font-mono text-[#e0917a] hover:underline pr-2 border-r border-white/15"
+            >
+              ← Comunidad
+            </button>
+          )}
+          <span className="w-2 h-2 rounded-full bg-[#e0917a]" />
+          <span className="text-xs font-medium tracking-wide">Tierra Bomba · Bocachica</span>
+        </div>
+
+        <nav className="hidden lg:flex items-center gap-0.5 tc-vidrio px-1.5 py-1 !rounded-full pointer-events-auto">
+          {CAPITULOS.map((c) => {
+            const act = capActual.id === c.id;
+            return (
               <button
+                key={c.id}
                 type="button"
-                onClick={() => setIndiceAbierto(false)}
-                className="tc-ficha !min-h-7 !px-2.5"
+                onClick={() => irACapitulo(c.ancla)}
+                className={`tc-nav-cap ${act ? 'tc-nav-cap-activo' : ''}`}
               >
-                Cerrar ✕
+                <span className="tc-num text-[10px] opacity-60 mr-1">{c.id}</span>
+                <span>{c.nombre}</span>
               </button>
-            </div>
-            <div className="mt-4 grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3 max-h-[60vh] overflow-y-auto pr-1">
-              {CONTENIDO_INDICE.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => irASeccion(c.id)}
-                  className={`flex items-baseline gap-2.5 rounded-lg px-3 py-2 text-left text-xs transition-colors cursor-pointer ${
-                    capActivo === c.id
-                      ? 'bg-[#4fb6b0]/20 text-[#4fb6b0] font-semibold'
-                      : 'text-white/75 hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <span className="tc-etiqueta w-6 shrink-0 text-[#4fb6b0]">{c.num}</span>
-                  <span className="flex-1 leading-snug">{c.titulo}</span>
-                  <span className="tc-etiqueta text-white/35">p.{c.pag}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+            );
+          })}
+        </nav>
 
-      {/* ===================================================================== */}
-      {/* 00 · PORTADA DEL PROGRAMA MARCO (PÁGINAS 1 Y 2 DEL PDF)               */}
-      {/* ===================================================================== */}
-      <section
-        id="aula-portada"
-        className="relative flex min-h-[92svh] flex-col justify-end overflow-hidden border-b border-white/15 px-5 pb-16 pt-28 sm:px-10 lg:px-16"
-      >
-        <img
-          src={`${import.meta.env.BASE_URL}textures/tierrabomba_satelite.jpg`}
-          alt="Vista satelital de Tierra Bomba y Bocachica"
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[50%_75%] opacity-25"
-          loading="lazy"
-        />
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(circle at 75% 25%, rgba(79, 182, 176, 0.14), transparent 55%), linear-gradient(to top, #000000 18%, rgba(0,0,0,0.72) 65%, rgba(0,0,0,0.88) 100%)',
-          }}
-        />
+        <div className="tc-vidrio px-3.5 py-2 text-xs text-white/75 hidden sm:block">
+          <span className="tc-num text-white font-semibold">{capActual.id}</span>
+          <span className="mx-1.5 text-white/30">·</span>
+          <span>{capActual.nombre}</span>
+        </div>
+      </header>
+      )}
 
-        <div className="relative z-10 mx-auto w-full max-w-6xl">
-          <p className="tc-etiqueta text-[#4fb6b0]">{AULA_META.encabezado}</p>
-          <p className="tc-etiqueta mt-1.5 text-white/55">{AULA_META.version}</p>
+      {/* CONTROLES DE MAPA 3D + ÍNDICE LATERAL + PANEL FLOTANTE .tc-vidrio EN CAPÍTULOS 3D */}
+      {enPasos3D && (
+        <>
+          <ControlesVista
+            libre={libre}
+            onToggleLibre={() => setLibre((v) => !v)}
+            oculto={panelOculto}
+            onToggleOculto={() => setPanelOculto((v) => !v)}
+            onZoom={(f) => escena?.vista.zoom(f)}
+            onReset={() => escena?.vista.reset()}
+          />
+          <IndiceLateral total={PASOS_3D.length} activo={pasoIdx} onIr={irAPaso3D} />
 
-          <h1 className="mt-5 text-[clamp(2.8rem,8.5vw,6.8rem)] font-extrabold leading-[0.92] tracking-[-0.045em] text-white">
-            Tierra Bomba,
-            <br />
-            <span className="text-[#4fb6b0]">Aula Ambiental</span>
-          </h1>
-
-          <div className="mt-6 h-px w-28 bg-[#4fb6b0]" />
-
-          <p className="mt-5 max-w-2xl text-xl font-normal leading-snug text-white/90 sm:text-3xl">
-            {AULA_META.subtitulo}
-          </p>
-
-          {/* Ficha institucional de portada (Página 1) */}
-          <div className="mt-10 grid gap-6 border-t border-white/15 pt-6 sm:grid-cols-3">
-            <div>
-              <p className="tc-etiqueta text-white/45">{AULA_META.promotorRol}</p>
-              <p className="mt-1.5 text-base font-semibold text-white">{AULA_META.promotorNombre}</p>
-              <p className="mt-1 text-xs leading-relaxed text-white/65">{AULA_META.institucion}</p>
-            </div>
-            <div>
-              <p className="tc-etiqueta text-white/45">Fecha y horizonte</p>
-              <p className="tc-num mt-1.5 text-base font-semibold text-white">{AULA_META.fecha}</p>
-              <p className="mt-1 text-xs leading-relaxed text-white/65">{AULA_META.horizonte}</p>
-            </div>
-            <div className="rounded-xl border border-[#4fb6b0]/35 bg-[#4fb6b0]/[0.07] p-4">
-              <p className="tc-etiqueta text-[#4fb6b0]">Alcance de esta versión</p>
-              <p className="mt-1.5 text-xs leading-relaxed text-white/85">{AULA_META.notaPortada}</p>
-            </div>
-          </div>
-
-          {/* Índice interactivo y Lectura del documento (Página 2) */}
-          <div className="mt-12 rounded-2xl border border-white/14 bg-[#070a0d]/90 p-6 sm:p-8 backdrop-blur-md">
-            <div className="flex flex-wrap items-baseline justify-between gap-4 border-b border-white/12 pb-4">
-              <div>
-                <p className="tc-etiqueta text-[#4fb6b0]">Página 2 · Contenido del programa marco</p>
-                <h2 className="mt-1 text-xl font-bold text-white sm:text-2xl">
-                  Estructura de los 17 capítulos y lectura del documento
-                </h2>
+          {!panelOculto && (
+            <aside className="fixed z-20 bottom-4 inset-x-4 md:inset-x-auto md:bottom-6 md:left-8 md:w-[26rem] tc-vidrio p-5 pointer-events-auto">
+              <div className="flex items-center justify-between text-xs text-white/60">
+                <span className="tc-etiqueta !text-[#e0917a]">{pasoActual.grupo}</span>
+                <span className="tc-num font-mono">{pasoActual.pasoGrupo}</span>
               </div>
-              <span className="tc-etiqueta text-white/45">Haz clic en cualquier sección para ir a ella</span>
-            </div>
 
-            <ol className="mt-5 grid grid-cols-1 gap-x-8 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
-              {CONTENIDO_INDICE.map((item) => (
-                <li key={item.id} className="border-b border-white/10 py-2">
+              <h3 className="text-xl font-semibold text-white mt-1.5 leading-snug">
+                {pasoActual.titulo}
+              </h3>
+
+              <div className="mt-3 pt-3 tc-regla flex items-baseline justify-between gap-3">
+                <div className="tc-num text-3xl md:text-4xl font-semibold text-white">
+                  {pasoActual.cifra}
+                </div>
+                <div className="text-[11px] text-white/65 text-right leading-tight max-w-[11rem]">
+                  {pasoActual.subCifra}
+                </div>
+              </div>
+
+              {/* Pestañas interactivas dentro de la tarjeta flotante */}
+              <div className="flex gap-1.5 mt-3 pt-3 tc-regla">
+                {[
+                  { id: 'resumen', label: 'Diagnóstico' },
+                  { id: 'piloto', label: 'Piloto en Bocachica' },
+                  { id: 'producto', label: 'Entregable' },
+                ].map((tab) => (
                   <button
+                    key={tab.id}
                     type="button"
-                    onClick={() => irASeccion(item.id)}
-                    className="group flex w-full items-baseline gap-3 text-left cursor-pointer"
+                    onClick={() => setLentePaso(tab.id)}
+                    className={`tc-ficha ${lentePaso === tab.id ? 'tc-ficha-activa' : ''}`}
                   >
-                    <span className="tc-etiqueta text-[#4fb6b0] w-6 shrink-0">{item.num}</span>
-                    <span className="flex-1 text-xs sm:text-[13px] text-white/85 group-hover:text-[#4fb6b0] transition-colors">
-                      {item.titulo}
-                    </span>
-                    <span className="tc-num text-[11px] text-white/35 group-hover:text-white/70">
-                      p.{item.pag}
-                    </span>
+                    {tab.label}
                   </button>
-                </li>
-              ))}
-            </ol>
+                ))}
+              </div>
 
-            <div className="mt-6 grid gap-4 border-t border-white/12 pt-5 sm:grid-cols-2">
-              {AULA_META.lecturaDocumento.map((par, i) => (
-                <p key={i} className="text-xs leading-relaxed text-white/65">
-                  <strong className="tc-etiqueta text-white/85 mr-2">
-                    {i === 0 ? 'Lectura y validación:' : 'Figuras y mes de inicio:'}
-                  </strong>
-                  {par}
-                </p>
-              ))}
+              <p className="text-xs text-white/85 mt-3 leading-relaxed min-h-[3.6rem]">
+                {lentePaso === 'resumen' && pasoActual.resumen}
+                {lentePaso === 'piloto' && pasoActual.piloto}
+                {lentePaso === 'producto' && pasoActual.producto}
+              </p>
+
+              {/* Controles rápidos de navegación de pasos y progreso */}
+              <div className="mt-3 pt-2.5 tc-regla flex items-center justify-between text-xs text-white/65">
+                <button
+                  type="button"
+                  disabled={pasoIdx === 0}
+                  onClick={() => irAPaso3D(Math.max(0, pasoIdx - 1))}
+                  className="hover:text-white disabled:opacity-30"
+                >
+                  ← Anterior
+                </button>
+                <span className="tc-num text-[11px]">Paso 3D {pasoIdx + 1} / {PASOS_3D.length}</span>
+                <button
+                  type="button"
+                  disabled={pasoIdx === PASOS_3D.length - 1}
+                  onClick={() => irAPaso3D(Math.min(PASOS_3D.length - 1, pasoIdx + 1))}
+                  className="hover:text-white disabled:opacity-30"
+                >
+                  Siguiente →
+                </button>
+              </div>
+              <div className="h-0.5 bg-white/10 rounded mt-2 overflow-hidden">
+                <div className="h-full bg-[#e0917a]" style={{ width: `${Math.round(pasoProg * 100)}%` }} />
+              </div>
+            </aside>
+          )}
+        </>
+      )}
+
+      {/* =====================================================================
+          00 · PORTADA A PANTALLA COMPLETA SOBRE LA ISLA 3D
+      ===================================================================== */}
+      <section id="cap-00" className="relative z-10 h-[100svh] flex items-end px-6 md:px-16 pb-12 md:pb-16 pointer-events-none">
+        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/35 to-transparent" />
+        <div className="relative w-full grid md:grid-cols-12 gap-6 items-end pointer-events-auto">
+          <div className="md:col-span-8">
+            <div className="tc-etiqueta mb-3">
+              Cartagena de Indias · Isla de Tierra Bomba · Bocachica · Programa marco v0.1
+            </div>
+            <h1 className="text-[clamp(3.2rem,12vw,9.8rem)] font-semibold leading-[0.88] tracking-[-0.045em] text-white">
+              Aula Ambiental
+            </h1>
+            <div className="tc-trazo mt-6" />
+          </div>
+          <div className="md:col-span-4 md:pb-2 text-white/85">
+            <p className="text-base md:text-lg leading-snug">
+              Memorias territoriales, planificación y diseño sostenible en Bocachica: seis líneas de investigación, seis pilotos y un gemelo digital progresivo.
+            </p>
+            <div className="mt-5 pt-4 tc-regla flex items-center justify-between text-xs text-white/65">
+              <span>Arq. Alejandro Serrano Sierra · PUJ</span>
+              <span className="animate-pulse text-[#e0917a]">Desplázate ↓</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===================================================================== */}
-      {/* CUERPO PRINCIPAL DE LOS 17 CAPÍTULOS (ESTÉTICA TESIS TERCER CORTE)    */}
-      {/* ===================================================================== */}
-      <div className="mx-auto max-w-6xl px-5 sm:px-10">
-        {/* ------------------------------------------------------------------- */}
-        {/* 01 · RESUMEN EJECUTIVO Y PROPÓSITO DEL PROGRAMA (Pág. 3)            */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-01"
-          num="01"
-          pag={3}
-          titulo="Resumen ejecutivo y propósito del programa"
-          bajada="Articulación de investigación, formación y experimentación situada en Tierra Bomba con primer núcleo en Bocachica."
-          fuente="Documentos base [R1–R8]"
-        >
-          <div className="space-y-4 text-[15px] leading-relaxed text-white/82">
-            {CAP_01.parrafos.map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-          </div>
-
-          <div className="rounded-xl border-l-4 border-[#4fb6b0] bg-[#4fb6b0]/10 p-5">
-            <p className="tc-etiqueta text-[#4fb6b0]">Énfasis operativo del arranque</p>
-            <p className="mt-2 text-sm sm:text-base font-medium leading-relaxed text-white">
-              “{CAP_01.destacado}”
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/14 bg-white/[0.03] p-5 sm:p-6">
-            <p className="tc-etiqueta text-[#c86d51]">Decisión que se propone a los interlocutores</p>
-            <p className="mt-2 text-sm sm:text-[15px] leading-relaxed text-white/90">
-              {CAP_01.decisionInterlocutores}
-            </p>
-          </div>
-
-          <TablaAula tabla={CAP_01.tabla1} />
-        </BloqueCapitulo>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 02 · ANTECEDENTES Y BASE DOCUMENTAL (Pág. 4)                        */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-02"
-          num="02"
-          pag={4}
-          titulo="Antecedentes y base documental"
-          bajada="Proceso realizado por ACOPI y el proyecto arquitectónico de pregrado dirigido por el Arq. Alejandro Serrano en Bocachica."
-          fuente="[R1] a [R8] y R9 (en proceso)"
-        >
-          <div className="space-y-4 text-[15px] leading-relaxed text-white/82">
-            {CAP_02.parrafos.map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-          </div>
-
-          <TablaAula tabla={CAP_02.tabla2} />
-
-          {/* R9 en proceso */}
-          <div className="rounded-2xl border border-[#4fb6b0]/45 bg-[#091315] p-6">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="tc-etiqueta text-[#4fb6b0]">{CAP_02.r9.codigo}</span>
-              <span className="tc-etiqueta rounded-full bg-[#4fb6b0]/20 px-3 py-1 text-[#8fe0da]">
-                Recursos asegurados para sombra y cancha preescolar
-              </span>
-            </div>
-            <h3 className="mt-2 text-xl font-bold text-white">{CAP_02.r9.titulo}</h3>
-            <p className="mt-2 text-sm sm:text-[15px] leading-relaxed text-white/85">
-              {CAP_02.r9.texto}
-            </p>
-          </div>
-        </BloqueCapitulo>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 03 · TERRITORIO Y PROBLEMA DE INVESTIGACIÓN (Pág. 5)                */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-03"
-          num="03"
-          pag={5}
-          titulo="Territorio y problema de investigación"
-          bajada="Superposición entre función histórica del canal y sus fortificaciones, vida insular cotidiana, oficios del mar y presiones turísticas."
-          fuente="[R2–R7], Diagnóstico comunitario [R8]"
-        >
-          <div className="space-y-4 text-[15px] leading-relaxed text-white/82">
-            {CAP_03.parrafos.map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-          </div>
-
-          <div className="rounded-xl border-l-4 border-[#c86d51] bg-[#c86d51]/12 p-5">
-            <p className="tc-etiqueta text-[#e0917a]">Tensión central del problema</p>
-            <p className="mt-2 text-base font-semibold leading-relaxed text-white">
-              “{CAP_03.destacado}”
-            </p>
-          </div>
-
-          <TablaAula tabla={CAP_03.tabla3} />
-
-          <p className="border-t border-white/12 pt-4 text-xs leading-relaxed text-white/60">
-            {CAP_03.cierre}
-          </p>
-        </BloqueCapitulo>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 04 · JUSTIFICACIÓN Y PERTINENCIA (Pág. 6)                           */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-04"
-          num="04"
-          pag={6}
-          titulo="Justificación y pertinencia"
-          bajada="Cuatro dimensiones de pertinencia: comunitaria y educativa, científica y arquitectónica, territorial y productiva, y acercamiento digital previo."
-          fuente="[R1, R4, R5, R6, R7, R8]"
-        >
-          <div className="grid gap-5 sm:grid-cols-2">
-            {CAP_04.bloques.map((b, idx) => (
-              <article
-                key={b.subtitulo}
-                className="flex flex-col justify-between rounded-2xl border border-white/14 bg-white/[0.03] p-6"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="tc-etiqueta text-[#4fb6b0]">04.{idx + 1}</span>
-                    <span className="tc-etiqueta text-white/40">{b.refs}</span>
-                  </div>
-                  <h3 className="mt-2 text-xl font-bold text-white">{b.subtitulo}</h3>
-                  {b.destacado && (
-                    <p className="mt-3 rounded-lg border border-[#4fb6b0]/30 bg-[#4fb6b0]/10 p-3 text-xs leading-relaxed text-[#d6f5f2]">
-                      {b.destacado}
-                    </p>
-                  )}
-                  <div className="mt-3 space-y-3 text-sm leading-relaxed text-white/80">
-                    {b.parrafos.map((p, i) => (
-                      <p key={i}>{p}</p>
-                    ))}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </BloqueCapitulo>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 05 · MARCO CONCEPTUAL Y MEMORIAS TERRITORIALES (Pág. 7)             */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-05"
-          num="05"
-          pag={7}
-          titulo="Marco conceptual y memorias territoriales"
-          bajada="Tierra Bomba → Bocachica → Memorias vivas y vernacularidad → Aula Ambiental y planificación compartida."
-          fuente="[R4, R6]"
-        >
-          <div className="space-y-4 text-[15px] leading-relaxed text-white/82">
-            {CAP_05.parrafos.map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-          </div>
-
-          <div className="rounded-xl border-l-4 border-[#4fb6b0] bg-[#4fb6b0]/10 p-4">
-            <p className="tc-etiqueta text-[#4fb6b0]">Concepto eje</p>
-            <p className="mt-1 text-base font-semibold text-white">“{CAP_05.destacado}”</p>
-          </div>
-
-          <RedConceptualAula figura={CAP_05.figura1} />
-
-          <TablaAula tabla={CAP_05.tabla4} />
-        </BloqueCapitulo>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 06 · PREGUNTAS DE INVESTIGACIÓN E HIPÓTESIS DE TRABAJO (Pág. 8)     */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-06"
-          num="06"
-          pag={8}
-          titulo="Preguntas de investigación e hipótesis de trabajo"
-          bajada="Pregunta articuladora, cinco preguntas específicas y tres hipótesis orientadoras para contrastar en el proceso."
-          fuente="Formulación del Programa Marco v0.1"
-        >
-          <div className="rounded-2xl border border-white/14 bg-[#070a0d] p-6 sm:p-8">
-            <p className="tc-etiqueta text-[#4fb6b0]">Pregunta articuladora</p>
+      {/* =====================================================================
+          01 · EL PROBLEMA (ScrollWords + Red Conceptual Progresiva)
+      ===================================================================== */}
+      <section id="cap-01" className="relative z-10">
+        <div className="min-h-[130svh] flex items-center px-6 md:px-16 py-28 bg-black/50">
+          <div className="max-w-5xl mx-auto">
+            <div className="tc-etiqueta mb-6">01 · El problema y la pregunta central</div>
             <ScrollWords
-              text={CAP_06.preguntaArticuladora}
-              className="mt-4 text-2xl font-bold leading-[1.14] tracking-tight text-white sm:text-3xl lg:text-4xl"
+              text="En Bocachica convergen una riqueza histórica, cultural y ecológica extraordinaria con vulnerabilidades críticas en agua, confort térmico escolar, residuos, erosión costera y fragilidad de los oficios del mar — mientras los estudios académicos previos permanecían dispersos y sin retorno a la comunidad."
+              className="text-3xl md:text-5xl font-semibold leading-[1.12] tracking-[-0.025em]"
             />
-          </div>
-
-          <div>
-            <h3 className="tc-etiqueta text-white/55">Preguntas específicas</h3>
-            <ol className="tc-regla mt-3">
-              {CAP_06.preguntasEspecificas.map((q, i) => (
-                <li
-                  key={i}
-                  className="tc-regla grid grid-cols-[2.5rem_1fr] gap-3 py-4 first:border-t-0 text-sm sm:text-[15px] leading-relaxed text-white/85"
-                >
-                  <span className="tc-etiqueta text-[#4fb6b0]">{String(i + 1).padStart(2, '0')}</span>
-                  <p>{q}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <div>
-            <h3 className="tc-etiqueta text-white/55">Hipótesis orientadoras</h3>
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
-              {CAP_06.hipotesis.map((h) => (
-                <div
-                  key={h.codigo}
-                  className="rounded-2xl border border-white/14 bg-white/[0.03] p-5 flex flex-col justify-between"
-                >
-                  <div>
-                    <span className="tc-num text-2xl font-extrabold text-[#4fb6b0]">{h.codigo}</span>
-                    <h4 className="mt-2 text-base font-bold text-white">{h.titulo}</h4>
-                    <p className="mt-2 text-xs sm:text-sm leading-relaxed text-white/75">{h.texto}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="mt-4 text-xs leading-relaxed text-white/55">{CAP_06.notaHipotesis}</p>
-          </div>
-        </BloqueCapitulo>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 07 · OBJETIVOS (Pág. 9)                                             */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-07"
-          num="07"
-          pag={9}
-          titulo="Objetivos"
-          bajada="Objetivo general y seis objetivos específicos (OE1 a OE6) con sus evidencias y criterios de revisión."
-          fuente="Tabla 5 · Matriz de objetivos"
-        >
-          <div className="rounded-2xl border border-[#4fb6b0]/35 bg-[#4fb6b0]/[0.06] p-6">
-            <p className="tc-etiqueta text-[#4fb6b0]">Objetivo general</p>
-            <p className="mt-2 text-base sm:text-lg font-medium leading-relaxed text-white">
-              {CAP_07.objetivoGeneral}
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {CAP_07.objetivosEspecificos.map((oe) => (
-              <div
-                key={oe.codigo}
-                className="rounded-xl border border-white/12 bg-white/[0.025] p-5 transition-colors hover:border-[#4fb6b0]/60"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="tc-etiqueta text-[#4fb6b0]">{oe.codigo}</span>
-                  <span className="tc-etiqueta text-white/40">{oe.evidencia}</span>
-                </div>
-                <h3 className="mt-1.5 text-base font-bold text-white">{oe.titulo}</h3>
-                <p className="mt-2 text-xs sm:text-sm leading-relaxed text-white/80">{oe.texto}</p>
-              </div>
-            ))}
-          </div>
-
-          <TablaAula tabla={CAP_07.tabla5} />
-        </BloqueCapitulo>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 08 · ARQUITECTURA DEL AULA AMBIENTAL (Pág. 10)                      */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-08"
-          num="08"
-          pag={10}
-          titulo="Arquitectura del Aula Ambiental"
-          bajada="Cinco componentes conectados que crecen mediante nodos y actividades antes de requerir infraestructura física consolidada."
-          fuente="Figura 2 · Arquitectura funcional"
-        >
-          <p className="text-[15px] leading-relaxed text-white/82">{CAP_08.introduccion}</p>
-
-          {/* Figura 2 · Diagrama arquitectónico funcional fiel a la página 10 */}
-          <div className="rounded-2xl border border-white/14 bg-[#070a0d] p-5 sm:p-8">
-            <p className="tc-etiqueta text-[#4fb6b0]">{CAP_08.figura2.titulo}</p>
-
-            {/* Nivel 1: Gobernanza */}
-            <div className="mt-5 rounded-xl border border-[#4fb6b0]/50 bg-[#0d191b] p-4 text-center">
-              <p className="text-base font-bold text-white">
-                Gobernanza comunitaria e interinstitucional
-              </p>
-              <p className="mt-1 text-xs text-[#8fe0da]">
-                Prioridades · decisiones · recursos · cuidado
-              </p>
-            </div>
-
-            <div className="my-2 flex justify-center text-[#4fb6b0]" aria-hidden="true">
-              ↓
-            </div>
-
-            {/* Nivel 2: Tres componentes articulados horizontalmente */}
-            <div className="grid gap-3 md:grid-cols-3">
-              {[
-                CAP_08.figura2.componentes[1],
-                CAP_08.figura2.componentes[2],
-                CAP_08.figura2.componentes[3],
-              ].map((comp, i) => (
-                <div
-                  key={comp.id}
-                  className="rounded-xl border border-white/15 bg-white/[0.04] p-4 text-center"
-                >
-                  <p className="tc-etiqueta text-[#4fb6b0]">0{i + 1}</p>
-                  <h4 className="mt-1 text-base font-bold text-white">{comp.titulo}</h4>
-                  <ul className="mt-2.5 space-y-1 text-xs text-white/75">
-                    {comp.items.map((it) => (
-                      <li key={it}>{it}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-
-            <div className="my-2 flex justify-center text-[#4fb6b0]" aria-hidden="true">
-              ↘ &nbsp;&nbsp;&nbsp; ↓ &nbsp;&nbsp;&nbsp; ↙
-            </div>
-
-            {/* Nivel 3: Laboratorios y pilotos */}
-            <div className="rounded-xl border border-[#c86d51]/50 bg-[#c86d51]/10 p-4 text-center">
-              <p className="text-base font-bold text-white">
-                Laboratorios y pilotos de investigación
-              </p>
-              <p className="mt-1 text-xs text-white/80">
-                Agua · sombra y vegetación · residuos y plástico · Oficios · materiales · patrimonio turístico
-              </p>
-            </div>
-
-            <div className="my-2 flex justify-center text-[#4fb6b0]" aria-hidden="true">
-              ↓
-            </div>
-
-            {/* Nivel 4: Resultados */}
-            <div className="rounded-xl border border-white/20 bg-white/[0.05] p-4 text-center">
-              <p className="text-base font-bold text-white">
-                Resultados para la planificación y la formación
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-3 text-sm sm:text-[15px] leading-relaxed text-white/80">
-            <h3 className="tc-etiqueta text-white/55">Funciones y relación entre componentes</h3>
-            {CAP_08.funcionesRelacion.map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-          </div>
-        </BloqueCapitulo>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 09 · LÍNEAS DE INVESTIGACIÓN Y PILOTOS (Págs. 11–12)                */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-09"
-          num="09"
-          pag="11–12"
-          titulo="Líneas de investigación y pilotos"
-          bajada="Seis campos de trabajo conectados (9.1 a 9.6), cada uno con su piloto candidato sujeto a priorización y evaluación técnica."
-          fuente="[R1–R8] y Tabla 6"
-        >
-          <p className="text-[15px] leading-relaxed text-white/82">{CAP_09.introduccion}</p>
-
-          {/* Selector interactivo estilo fichas de tesis_tercer_corte */}
-          <div className="rounded-2xl border border-white/14 bg-[#070a0d] p-5 sm:p-7">
-            <p className="tc-etiqueta text-white/50">Explorar línea de investigación y piloto candidato</p>
-            <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Líneas de investigación">
-              {CAP_09.lineas.map((l, i) => (
-                <button
-                  key={l.codigo}
-                  type="button"
-                  className="tc-ficha"
-                  aria-pressed={lineaSel === i}
-                  onClick={() => setLineaSel(i)}
-                >
-                  {l.codigo} · {l.corto}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-6 border-t border-white/14 pt-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="tc-etiqueta" style={{ color: lineaActiva.color }}>
-                  Línea {lineaActiva.codigo} · {lineaActiva.refs}
-                </span>
-                <span className="tc-etiqueta text-white/45">
-                  Producto inicial: {lineaActiva.productoInicial}
-                </span>
-              </div>
-              <h3 className="mt-2 text-2xl font-bold text-white">{lineaActiva.titulo}</h3>
-              <p className="mt-3 text-sm sm:text-[15px] leading-relaxed text-white/85">
-                {lineaActiva.descripcion}
-              </p>
-              <div className="mt-4 rounded-xl border border-white/14 bg-white/[0.04] p-4">
-                <p className="tc-etiqueta text-[#4fb6b0]">Piloto candidato ({lineaActiva.codigo})</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-white/90">{lineaActiva.piloto}</p>
-                <p className="mt-2 text-xs text-white/55">
-                  <strong className="text-white/75">Cruce interdisciplinario:</strong> {lineaActiva.cruce}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Vista completa de las 6 líneas para lectura continua */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            {CAP_09.lineas.map((l, i) => (
-              <article
-                key={l.codigo}
-                onClick={() => setLineaSel(i)}
-                className={`rounded-xl border p-5 transition-colors cursor-pointer ${
-                  lineaSel === i
-                    ? 'border-[#4fb6b0] bg-[#0c1518]'
-                    : 'border-white/12 bg-white/[0.02] hover:border-white/30'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="tc-etiqueta" style={{ color: l.color }}>
-                    {l.codigo}
-                  </span>
-                  <span className="tc-etiqueta text-white/40">{l.refs}</span>
-                </div>
-                <h4 className="mt-1.5 text-lg font-bold text-white">{l.titulo}</h4>
-                <p className="mt-2 text-xs leading-relaxed text-white/75">{l.descripcion}</p>
-                <p className="mt-3 border-t border-white/10 pt-2.5 text-xs leading-relaxed text-[#8fe0da]">
-                  <strong className="text-white">Piloto candidato:</strong> {l.piloto}
-                </p>
-              </article>
-            ))}
-          </div>
-
-          <TablaAula tabla={CAP_09.tabla6} />
-          <p className="text-xs text-white/55">{CAP_09.notaEquipos}</p>
-        </BloqueCapitulo>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 10 · COMPONENTE DIGITAL Y MODELO TERRITORIAL (Pág. 13)              */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-10"
-          num="10"
-          pag={13}
-          titulo="Componente digital y modelo territorial"
-          bajada="Construcción progresiva en 5 niveles hacia un gemelo digital documentado, con capas, metadatos y fechas de actualización."
-          fuente="Tabla 7 · Niveles del componente digital"
-        >
-          <p className="text-[15px] leading-relaxed text-white/82">{CAP_10.introduccion}</p>
-
-          {/* Escalera interactiva de 5 niveles */}
-          <div className="rounded-2xl border border-white/14 bg-[#070a0d] p-5 sm:p-6">
-            <p className="tc-etiqueta text-[#4fb6b0]">Construcción progresiva (Niveles 1 a 5)</p>
-            <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-5">
-              {CAP_10.tabla7.filas.map((f, idx) => {
-                const activo = nivelDigitalSel === idx;
-                return (
-                  <button
-                    key={f[0]}
-                    type="button"
-                    onClick={() => setNivelDigitalSel(idx)}
-                    className={`rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
-                      activo
-                        ? 'border-[#4fb6b0] bg-[#4fb6b0]/15'
-                        : 'border-white/12 bg-white/[0.03] hover:border-white/30'
-                    }`}
-                  >
-                    <span className="tc-etiqueta text-[#4fb6b0]">Nivel 0{idx + 1}</span>
-                    <p className="mt-1 text-sm font-bold text-white">{f[0].replace(/^\d+\s*/, '')}</p>
-                    <p className="mt-1.5 text-[11px] leading-snug text-white/65">{f[1]}</p>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="mt-4 rounded-xl border border-white/10 bg-black/50 p-4 text-xs sm:text-sm text-white/85">
-              <span className="tc-etiqueta text-[#4fb6b0] mr-2">
-                Condición para avanzar ({CAP_10.tabla7.filas[nivelDigitalSel][0]}):
-              </span>
-              {CAP_10.tabla7.filas[nivelDigitalSel][2]}
-            </div>
-          </div>
-
-          <TablaAula tabla={CAP_10.tabla7} />
-
-          {/* Capas prioritarias y Metadatos */}
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div className="rounded-xl border border-white/12 bg-white/[0.025] p-5">
-              <p className="tc-etiqueta text-[#4fb6b0]">8 Capas prioritarias del modelo</p>
-              <ul className="mt-3 flex flex-wrap gap-2">
-                {CAP_10.capasPrioritarias.map((c) => (
-                  <li
-                    key={c}
-                    className="rounded-lg border border-white/15 bg-white/[0.04] px-2.5 py-1 text-xs text-white/85"
-                  >
-                    {c}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-xl border border-white/12 bg-white/[0.025] p-5">
-              <p className="tc-etiqueta text-[#c86d51]">10 Atributos de trazabilidad por registro</p>
-              <ul className="mt-3 flex flex-wrap gap-1.5">
-                {CAP_10.metadatosRegistro.map((m) => (
-                  <li
-                    key={m}
-                    className="rounded border border-white/12 bg-black/40 px-2 py-1 text-[11px] text-white/75"
-                  >
-                    {m}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {CAP_10.bloques.map((b) => (
-              <div key={b.subtitulo} className="border-t border-white/12 pt-4">
-                <h3 className="text-base font-bold text-white">{b.subtitulo}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-white/78">{b.texto}</p>
-              </div>
-            ))}
-          </div>
-        </BloqueCapitulo>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 11 · METODOLOGÍA DE INVESTIGACIÓN Y PARTICIPACIÓN (Págs. 14–15)     */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-11"
-          num="11"
-          pag="14–15"
-          titulo="Metodología de investigación y participación"
-          bajada="Ciclo de seis momentos basado en el principio operativo: Devolver · validar · transformar."
-          fuente="[R1, R8], Figura 3 y Tabla 8"
-        >
-          <p className="text-[15px] leading-relaxed text-white/82">{CAP_11.introduccion}</p>
-
-          {/* Figura 3 · Ciclo metodológico de 6 momentos */}
-          <div className="rounded-2xl border border-white/14 bg-[#070a0d] p-5 sm:p-7">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="tc-etiqueta text-[#4fb6b0]">
-                Figura 3 · Ciclo metodológico de investigación y aprendizaje
-              </p>
-              <span className="tc-etiqueta text-white/45">Clic en cada etapa para ver el detalle</span>
-            </div>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              {CAP_11.cicloPasos.map((paso, idx) => {
-                const activo = cicloSel === idx;
-                return (
-                  <button
-                    key={paso.n}
-                    type="button"
-                    onClick={() => setCicloSel(idx)}
-                    className={`rounded-xl border p-4 text-left transition-all cursor-pointer ${
-                      activo
-                        ? 'border-[#4fb6b0] bg-[#0e1b1d]'
-                        : 'border-white/12 bg-white/[0.03] hover:border-white/30'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="tc-etiqueta text-[#4fb6b0]">Momento 0{paso.n}</span>
-                      <span className="text-xs text-white/40">{idx < 5 ? '→' : '↺ al 01'}</span>
-                    </div>
-                    <h4 className="mt-1 text-base font-bold text-white">{paso.titulo}</h4>
-                    <ul className="mt-2 space-y-0.5 text-xs text-white/70">
-                      {paso.items.map((it) => (
-                        <li key={it}>• {it}</li>
-                      ))}
-                    </ul>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-4 rounded-xl border border-white/12 bg-black/50 p-4 text-sm text-white/85">
-              <strong className="text-[#4fb6b0] mr-2">{CAP_11.cicloPasos[cicloSel].titulo}:</strong>
-              {CAP_11.cicloPasos[cicloSel].detalle}
-            </div>
-
-            <div className="mt-4 rounded-xl border border-[#4fb6b0]/40 bg-[#4fb6b0]/10 p-4 text-center">
-              <p className="text-base font-bold tracking-tight text-white">
-                {CAP_11.principio.lema}
-              </p>
-              <p className="mt-0.5 text-xs text-[#8fe0da]">{CAP_11.principio.subtitulo}</p>
-            </div>
-            <p className="mt-3 text-xs leading-relaxed text-white/60">{CAP_11.principio.nota}</p>
-          </div>
-
-          <div className="space-y-6">
-            {CAP_11.secciones.map((s) => (
-              <div key={s.subtitulo} className="border-t border-white/12 pt-5">
-                <h3 className="text-lg font-bold text-white">{s.subtitulo}</h3>
-                <div className="mt-2 space-y-3 text-sm sm:text-[15px] leading-relaxed text-white/80">
-                  {s.parrafos.map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <TablaAula tabla={CAP_11.tabla8} />
-        </BloqueCapitulo>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 12 · FASES Y CRONOGRAMA DE 24 MESES (Págs. 16–17)                   */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-12"
-          num="12"
-          pag="16–17"
-          titulo="Fases y cronograma de 24 meses"
-          bajada="Seis fases escalonadas (F1 a F6) y tres ejes continuos (formación, gobernanza y archivo) relativos al mes 1 acordado."
-          fuente="[R1], Tabla 9 y Figura 4"
-        >
-          <p className="text-[15px] leading-relaxed text-white/82">{CAP_12.introduccion}</p>
-
-          <Cronograma24Meses />
-
-          <TablaAula tabla={CAP_12.tabla9} />
-
-          {/* Lectura por semestres y dependencias */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-white/12 bg-white/[0.03] p-5">
-              <p className="tc-etiqueta text-[#4fb6b0]">Lectura por semestres</p>
-              <ul className="mt-3 space-y-2 text-xs sm:text-sm text-white/80">
-                {CAP_12.semestres.map((s) => (
-                  <li key={s.sem}>
-                    <strong className="text-white">{s.meses}:</strong> {s.desc}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-xl border border-white/12 bg-white/[0.03] p-5 flex flex-col justify-between">
+            <div className="mt-10 pt-6 tc-regla grid sm:grid-cols-2 gap-6 text-sm text-white/80 max-w-3xl">
               <div>
-                <p className="tc-etiqueta text-[#c86d51]">Dependencias principales</p>
-                <p className="mt-2 text-xs sm:text-sm leading-relaxed text-white/80">
-                  {CAP_12.dependencias}
-                </p>
+                <div className="tc-etiqueta !text-[#e0917a] mb-1">La pregunta orientadora</div>
+                ¿Cómo articular las memorias territoriales, los saberes locales y las capacidades interdisciplinarias de la Javeriana y sus aliados para co-diseñar en Bocachica un Aula Ambiental viva que mejore el hábitat y fortalezca la gobernanza local?
               </div>
-              <p className="mt-3 border-t border-white/10 pt-2.5 text-[11px] text-white/55">
-                {CAP_12.notaVisitas}
-              </p>
-            </div>
-          </div>
-        </BloqueCapitulo>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 13 · ACTORES Y GOBERNANZA (Págs. 18–19)                             */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-13"
-          num="13"
-          pag="18–19"
-          titulo="Actores y gobernanza"
-          bajada="Articulación entre representación comunitaria, coordinación académica y capacidades técnicas y productivas."
-          fuente="[R1, R6, R7, R8], Tablas 10 y 11"
-        >
-          <p className="text-[15px] leading-relaxed text-white/82">{CAP_13.introduccion}</p>
-
-          <div className="rounded-xl border border-dashed border-white/25 bg-white/[0.02] p-4 text-xs sm:text-sm text-white/75">
-            {CAP_13.estadoAcuerdos}
-          </div>
-
-          <MatricesActoresTabs />
-
-          <div className="grid gap-6 border-t border-white/12 pt-6 sm:grid-cols-2">
-            <div>
-              <h3 className="text-lg font-bold text-white">Estructura propuesta</h3>
-              <div className="mt-2 space-y-3 text-sm leading-relaxed text-white/80">
-                {CAP_13.estructuraPropuesta.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
+              <div>
+                <div className="tc-etiqueta !text-[#35d08a] mb-1">El principio rector</div>
+                <strong className="text-white">Devolver, validar y transformar:</strong> ningún dato se levanta en Bocachica sin regresar traducido en cartografía abierta, material pedagógico para la escuela (<span className="tc-num text-white">R9</span>) y pilotos demostrativos.
               </div>
             </div>
-            <div>
-              <h3 className="text-lg font-bold text-white">Instrumentos de formalización</h3>
-              <p className="mt-2 text-sm leading-relaxed text-white/80">
-                {CAP_13.instrumentosFormalizacion}
-              </p>
-            </div>
           </div>
-        </BloqueCapitulo>
+        </div>
 
-        {/* ------------------------------------------------------------------- */}
-        {/* 14 · PRODUCTOS E INDICADORES (Pág. 20)                              */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-14"
-          num="14"
-          pag={20}
-          titulo="Productos e indicadores"
-          bajada="Matriz inicial de nueve productos (P1 a P9), indicadores de calidad participativa e indicadores específicos de pilotos."
-          fuente="Tabla 12 · Matriz de verificación"
-        >
-          <p className="text-[15px] leading-relaxed text-white/82">{CAP_14.introduccion}</p>
-
-          <TablaAula tabla={CAP_14.tabla12} />
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="rounded-xl border border-white/12 bg-white/[0.03] p-5">
-              <p className="tc-etiqueta text-[#4fb6b0]">Indicadores de calidad y participación</p>
-              <p className="mt-2 text-sm leading-relaxed text-white/80">
-                {CAP_14.indicadoresCalidad}
+        <div className="px-6 md:px-16 py-24 md:py-32 bg-black/90 backdrop-blur-sm">
+          <div className="max-w-6xl mx-auto">
+            <div className="max-w-2xl mb-10">
+              <div className="tc-etiqueta">Red de problemas y oportunidades en Bocachica</div>
+              <h2 className="text-3xl md:text-4xl font-semibold mt-2 leading-tight text-white">
+                Un sistema socioecológico donde memoria, agua, escuela y oficios son inseparables.
+              </h2>
+              <p className="text-white/70 text-sm mt-3">
+                Recorre la red paso a paso con el botón <span className="text-white font-medium">Revelar siguiente relación</span> o haz clic en cada nodo para ver cómo el Aula Ambiental articula las brechas del territorio.
               </p>
             </div>
-            <div className="rounded-xl border border-white/12 bg-white/[0.03] p-5">
-              <p className="tc-etiqueta text-[#c86d51]">Indicadores específicos de los pilotos</p>
-              <p className="mt-2 text-sm leading-relaxed text-white/80">
-                {CAP_14.indicadoresPilotos}
-              </p>
-            </div>
+            <RedProblemaAula />
           </div>
-        </BloqueCapitulo>
+        </div>
+      </section>
 
-        {/* ------------------------------------------------------------------- */}
-        {/* 15 · FINANCIACIÓN Y SOSTENIBILIDAD (Pág. 21)                        */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-15"
-          num="15"
-          pag={21}
-          titulo="Financiación y sostenibilidad"
-          bajada="Programa marco común combinado con proyectos de alcance delimitado y estructura de ocho rubros verificables."
-          fuente="Tabla 13 · Estructura presupuestal"
-        >
-          <p className="text-[15px] leading-relaxed text-white/82">{CAP_15.introduccion}</p>
+      {/* =====================================================================
+          02 · LO QUE DICEN LOS ANTECEDENTES (R1-R9) Y LAS MEMORIAS
+      ===================================================================== */}
+      <SeccionMemoriasYBase />
 
-          <TablaAula tabla={CAP_15.tabla13} />
+      {/* =====================================================================
+          03 · LAS 6 LÍNEAS EN EL TERRITORIO (Scrollytelling 3D: 6 pasos × 95svh)
+      ===================================================================== */}
+      <section
+        id="cap-03"
+        ref={secLineasRef}
+        style={{ height: `${6 * ALTO_PASO}svh` }}
+        className="relative z-10 pointer-events-none"
+        aria-label="Recorrido 3D por las 6 líneas de investigación en Bocachica"
+      />
 
-          <p className="rounded-xl border border-white/12 bg-white/[0.03] p-4 text-xs sm:text-sm leading-relaxed text-white/75">
-            {CAP_15.notaPresupuesto}
-          </p>
+      {/* =====================================================================
+          04 · GEMELO DIGITAL PROGRESIVO EN 3D (Scrollytelling 3D: 5 pasos × 95svh)
+      ===================================================================== */}
+      <section
+        id="cap-04"
+        ref={secGemeloRef}
+        style={{ height: `${5 * ALTO_PASO}svh` }}
+        className="relative z-10 pointer-events-none"
+        aria-label="Recorrido 3D por los 5 niveles del Gemelo Digital de Bocachica"
+      />
 
-          <div className="space-y-3 border-t border-white/12 pt-4">
-            <h3 className="text-lg font-bold text-white">Continuidad y criterios de financiación</h3>
-            {CAP_15.continuidadCriterios.map((p, i) => (
-              <p key={i} className="text-sm sm:text-[15px] leading-relaxed text-white/80">
-                {p}
-              </p>
+      {/* =====================================================================
+          05 · PROYECTO PILOTO R9 EN 3D (3 pasos × 95svh) + ESQUEMA EN PLANTA
+      ===================================================================== */}
+      <section
+        id="cap-05"
+        ref={secPilotoR9Ref}
+        style={{ height: `${3 * ALTO_PASO}svh` }}
+        className="relative z-10 pointer-events-none"
+        aria-label="Recorrido 3D por el Gimnasio Cristiano de Bocachica R9"
+      />
+      <SeccionEsquemaAula />
+
+      {/* =====================================================================
+          06 · HOJA DE RUTA DE 24 MESES Y RED DE 15 ACTORES
+      ===================================================================== */}
+      <SeccionHojaDeRutaYGobernanza />
+
+      {/* =====================================================================
+          07 · CIERRE (Idéntico a Cierre en Relato.jsx)
+      ===================================================================== */}
+      <footer id="cap-07" className="relative z-10 bg-[#05080b] px-6 md:px-16 py-24 md:py-32">
+        <div className="max-w-5xl mx-auto">
+          <div className="tc-etiqueta">07 · Síntesis ejecutiva</div>
+          <h2 className="text-3xl md:text-5xl font-semibold mt-2 leading-tight max-w-3xl text-white">
+            Diez decisiones que convierten la investigación en infraestructura viva para Bocachica.
+          </h2>
+
+          <ol className="mt-10 grid md:grid-cols-2 gap-6 text-sm">
+            {SINTESIS_EJECUTIVA_10.map((s) => (
+              <li key={s.n} className="pt-4 tc-regla">
+                <div className="tc-num text-[#e0917a] text-xs font-semibold">0{s.n}</div>
+                <div className="text-white font-medium mt-1">{s.titulo}</div>
+                <p className="text-white/70 mt-1 leading-relaxed">{s.texto}</p>
+              </li>
             ))}
-          </div>
-        </BloqueCapitulo>
+          </ol>
 
-        {/* ------------------------------------------------------------------- */}
-        {/* 16 · CRITERIOS ÉTICOS Y GESTIÓN DE RIESGOS (Pág. 22)                */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-16"
-          num="16"
-          pag={22}
-          titulo="Criterios éticos y gestión de riesgos"
-          bajada="Reconocimiento de la comunidad como productora de conocimiento, protección de la infancia y aplicación científica responsable."
-          fuente="[R1, R8] y Tabla 14"
-        >
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="rounded-xl border border-white/12 bg-white/[0.03] p-5 space-y-3">
-              <p className="tc-etiqueta text-[#4fb6b0]">Participación y reconocimiento</p>
-              {CAP_16.participacionReconocimiento.map((p, i) => (
-                <p key={i} className="text-sm leading-relaxed text-white/80">
-                  {p}
-                </p>
-              ))}
+          <div className="mt-14 pt-6 tc-regla text-xs text-white/70 leading-relaxed space-y-2 border-l border-white/25 pl-4">
+            <div className="text-white/90 font-semibold uppercase tracking-wider text-[11px]">
+              Alcance del programa marco (versión 0.1 · Octubre de 2026)
             </div>
-            <div className="rounded-xl border border-white/12 bg-white/[0.03] p-5">
-              <p className="tc-etiqueta text-[#c86d51]">Investigación y aplicación responsable</p>
-              <p className="mt-3 text-sm leading-relaxed text-white/80">
-                {CAP_16.investigacionResponsable}
-              </p>
-            </div>
-          </div>
-
-          <TablaAula tabla={CAP_16.tabla14} />
-
-          <p className="text-xs leading-relaxed text-white/60">{CAP_16.notaNormativa}</p>
-        </BloqueCapitulo>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 17 · RUTA DE FORMULACIÓN Y REFERENCIAS (Págs. 23–24)                */}
-        {/* ------------------------------------------------------------------- */}
-        <BloqueCapitulo
-          id="cap-17"
-          num="17"
-          pag="23–24"
-          titulo="Ruta de formulación y referencias documentales"
-          bajada="Siete pasos para convertir el programa marco en proyecto, asuntos por resolver al inicio y corpus documental R1–R9."
-          fuente="Tabla 15 y Referencias R1 a R9"
-        >
-          <div className="rounded-2xl border border-[#4fb6b0]/35 bg-[#4fb6b0]/[0.07] p-5 sm:p-6">
-            <p className="tc-etiqueta text-[#4fb6b0]">Agenda inicial de trabajo</p>
-            <p className="mt-2 text-sm sm:text-[15px] leading-relaxed text-white/90">
-              {CAP_17.agendaInicial}
+            <p>
+              Este programa articula docencia, investigación y proyección social entre la Pontificia Universidad Javeriana, el Gimnasio Cristiano de Bocachica (<span className="tc-num text-white">R9</span>), organizaciones comunitarias de Bocachica y aliados técnicos (<span className="tc-num text-white">ACOPI, Verde que te Quiero Verde, Jardín Botánico de Cartagena, Universidad de Lleida</span>). Todas las intervenciones físicas requieren validación previa de la Mesa Comunitaria Local.
             </p>
           </div>
 
-          <TablaAula tabla={CAP_17.tabla15} />
-
-          <div className="space-y-3 border-t border-white/12 pt-5">
-            <h3 className="text-lg font-bold text-white">Asuntos que deben resolverse</h3>
-            {CAP_17.asuntosPorResolver.map((p, i) => (
-              <p key={i} className="text-sm sm:text-[15px] leading-relaxed text-white/80">
-                {p}
-              </p>
-            ))}
-          </div>
-
-          {/* Referencias documentales R1 a R9 */}
-          <div className="rounded-2xl border border-white/14 bg-[#070a0d] p-6 sm:p-8">
-            <p className="tc-etiqueta text-[#4fb6b0]">
-              Página 24 · Referencias documentales del programa (R1–R9)
-            </p>
-            <ol className="tc-regla mt-4">
-              {CAP_17.referencias.map((r) => (
-                <li
-                  key={r.ref}
-                  className="tc-regla grid grid-cols-[3rem_1fr] gap-3 py-3.5 first:border-t-0 text-xs sm:text-sm leading-relaxed text-white/85"
-                >
-                  <span className="tc-etiqueta text-[#4fb6b0] font-bold">{r.ref}</span>
-                  <p>{r.cita}</p>
-                </li>
-              ))}
-            </ol>
-
-            <div className="mt-6 border-t border-white/12 pt-4 space-y-2 text-xs text-white/60">
-              <p className="tc-etiqueta text-white/75">Uso de las referencias</p>
-              {CAP_17.usoReferencias.map((u, i) => (
-                <p key={i}>{u}</p>
+          <details className="mt-8 pt-6 tc-regla text-xs text-white/65 leading-relaxed group">
+            <summary className="cursor-pointer select-none text-white/85 font-semibold uppercase tracking-wider text-[11px] flex items-center justify-between py-1 hover:text-white">
+              <span>Corpus documental de referencia (R1–R9)</span>
+              <span className="text-white/50 group-open:rotate-180 transition-transform">▾</span>
+            </summary>
+            <div className="mt-4 grid md:grid-cols-2 gap-4">
+              {ANTECEDENTES_CORPUS.map((r) => (
+                <div key={r.id}>
+                  <span className="tc-num text-[#e0917a] font-semibold mr-1.5">{r.id}</span>
+                  <span className="text-white font-medium">{r.titulo}</span>
+                  <span className="block text-white/50">{r.autores} ({r.anio}) · {r.institucion}</span>
+                </div>
               ))}
             </div>
-          </div>
+          </details>
 
-          {/* Enlaces de cierre estilo tesis_tercer_corte */}
-          {onNavigateModule && (
-            <div className="grid gap-4 pt-4 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => onNavigateModule('resumen')}
-                className="group block rounded-2xl border border-white/14 bg-white/[0.03] p-6 text-left transition-colors hover:border-[#4fb6b0] hover:bg-white/[0.06] cursor-pointer"
-              >
-                <p className="tc-etiqueta text-white/55">Recorrido de la comunidad</p>
-                <p className="mt-2 text-xl font-bold tracking-tight text-white">
-                  Explorar módulos interactivos (00–04){' '}
-                  <span className="inline-block transition-transform group-hover:translate-x-1 text-[#4fb6b0]">
-                    →
-                  </span>
-                </p>
-                <p className="mt-1.5 text-xs text-white/65">
-                  Resumen del proyecto, territorio, historia de la isla, mapa de riesgos y visor 3D.
-                </p>
-              </button>
-              <a
-                href="https://alejagoguti-cpu.github.io/tesis_tercer_corte/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block rounded-2xl border border-white/14 bg-white/[0.03] p-6 text-left transition-colors hover:border-[#4fb6b0] hover:bg-white/[0.06]"
-              >
-                <p className="tc-etiqueta text-white/55">Referencia visual</p>
-                <p className="mt-2 text-xl font-bold tracking-tight text-white">
-                  Tesis · Tercer corte{' '}
-                  <span className="inline-block transition-transform group-hover:translate-x-1 text-[#4fb6b0]">
-                    ↗
-                  </span>
-                </p>
-                <p className="mt-1.5 text-xs text-white/65">
-                  Simulación 3D de erosión, sintaxis espacial, plan maestro y red de especies.
-                </p>
-              </a>
+          {/* Navegación de retorno a los otros módulos de #/comunidad sin borrar nada */}
+          {(volverFn || navegarFn) && (
+            <div className="mt-12 pt-8 tc-regla flex flex-wrap items-center justify-between gap-4">
+              <div className="text-xs text-white/60">
+                Continúa explorando los demás capítulos de <span className="text-white font-medium">Tierra Bomba · Comunidad</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {volverFn && (
+                  <button
+                    type="button"
+                    onClick={volverFn}
+                    className="tc-ficha tc-ficha-activa !text-white !border-[#e0917a]"
+                  >
+                    ← Volver a la portada de Comunidad
+                  </button>
+                )}
+                {navegarFn && (
+                  <>
+                    <button type="button" onClick={() => navegarFn('resumen')} className="tc-ficha">
+                      00 · Isla de Tierra Bomba
+                    </button>
+                    <button type="button" onClick={() => navegarFn('territorio')} className="tc-ficha">
+                      01 · Erosión costera 3D
+                    </button>
+                    <button type="button" onClick={() => navegarFn('3dviewer')} className="tc-ficha">
+                      04 · Territorio en 3D
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           )}
 
-          <footer className="border-t border-white/12 pt-6 text-xs leading-relaxed text-white/50">
-            <p>
-              PROYECTO AULA AMBIENTAL | TIERRA BOMBA / BOCACHICA COMO AULA AMBIENTAL · Programa marco v0.1 · Promotor académico: Arq. Alejandro Serrano Sierra · Pontificia Universidad Javeriana · 26 de octubre de 2026.
-            </p>
-          </footer>
-        </BloqueCapitulo>
-      </div>
+          <div className="mt-12 pt-6 tc-regla flex flex-wrap justify-between gap-4 text-xs text-white/50">
+            <span>Tierra Bomba · Aula Ambiental (Bocachica) · Promotor académico: Arq. Alejandro Serrano Sierra</span>
+            <span>Pontificia Universidad Javeriana · Facultad de Arquitectura y Diseño</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

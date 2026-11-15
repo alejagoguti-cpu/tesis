@@ -1021,3 +1021,197 @@ export const CAP_17 = {
     'Las figuras, las matrices de formulación y el cronograma organizan la propuesta de programa marco. Las metas y los periodos propuestos deberán actualizarse al confirmar participantes, recursos y convocatoria.',
   ],
 };
+
+// =============================================================================
+// COLECCIONES NORMALIZADAS PARA DIAGRAMAS INTERACTIVOS Y SCROLLYTELLING 3D
+// =============================================================================
+
+export const ANTECEDENTES_CORPUS = [
+  {
+    id: 'R1',
+    anio: '2026',
+    institucion: 'PUJ · Programa de Arquitectura',
+    titulo: 'Plan metodológico integral de la salida de campo (vol. 2)',
+    autores: 'Arq. Alejandro Serrano Sierra',
+    temas: 'Metodología, devolución y escuela',
+    aporte: 'Establece el principio operativo "devolver, validar y transformar", posiciona la escuela como núcleo y plantea la consolidación gradual por fases.',
+    vacio: 'Las fechas y actividades de visita requieren continuidad intersemestral y acuerdos formales de mantenimiento.',
+  },
+  {
+    id: 'R2',
+    anio: 's.f.',
+    institucion: 'Proyecto AKOS Bocachica · Cap. 1',
+    titulo: 'Cartográfico-defensivo: arquitectura del control y trabajo vivo',
+    autores: 'Equipo AKOS Bocachica',
+    temas: 'Cartografía histórica y bahía',
+    aporte: 'Reconstruye la lógica defensiva del canal de Bocachica y las relaciones históricas entre fortificaciones, bahía y trabajo local.',
+    vacio: 'Necesidad de cruzar la cartografía militar histórica con las rutas cotidianas actuales de la comunidad.',
+  },
+  {
+    id: 'R3',
+    anio: 's.f.',
+    institucion: 'Proyecto AKOS Bocachica · Cap. 2',
+    titulo: 'Patrimonio fortificado: de la piedra monumental a la piedra habitada',
+    autores: 'Equipo AKOS Bocachica',
+    temas: 'Patrimonio habitado y paisaje',
+    aporte: 'Desplaza la mirada meramente monumental para entender los fuertes como paisaje habitado, conservado y narrado por Bocachica.',
+    vacio: 'Articular un recorrido pedagógico que conecte el patrimonio fortificado con la escuela y los oficios.',
+  },
+  {
+    id: 'R4',
+    anio: 's.f.',
+    institucion: 'Proyecto AKOS Bocachica · Cap. 3',
+    titulo: 'Territorio vivido: arquitectura de la necesidad y trabajo vivo',
+    autores: 'Equipo AKOS Bocachica',
+    temas: 'Agua, vivienda y cuidado cotidiano',
+    aporte: 'Documenta el esfuerzo diario del agua, la movilidad insular, las técnicas constructivas vernáculas y la economía del cuidado.',
+    vacio: 'Traducir el diagnóstico del agua y la vivienda en pilotos medibles de captación pluvial y confort térmico.',
+  },
+  {
+    id: 'R5',
+    anio: 's.f.',
+    institucion: 'Proyecto AKOS Bocachica · Cap. 4',
+    titulo: 'Escuela y comunidad: el territorio que aprende, cuida y se imagina',
+    autores: 'Equipo AKOS Bocachica',
+    temas: 'Escuela, infancia y memoria afro',
+    aporte: 'Sitúa la escuela comunitaria, la infancia y la memoria afrodescendiente como centro de una pedagogía del cuidado territorial.',
+    vacio: 'Dotar al espacio escolar de infraestructura bioclimática de sombra, agua y archivo vivo accesible.',
+  },
+  {
+    id: 'R6',
+    anio: 's.f.',
+    institucion: 'Proyecto AKOS Bocachica · Cap. 5',
+    titulo: 'Oficios y saberes del mar: pesca y carpintería de ribera',
+    autores: 'Equipo AKOS Bocachica',
+    temas: 'Carpintería de ribera y pesca',
+    aporte: 'Registra la pesca artesanal, la carpintería de ribera, las maderas tradicionales y el cambio tecnológico hacia fibra de vidrio.',
+    vacio: 'Estructurar una escuela-taller intergeneracional con reconocimiento de autoría y manejo de residuos del oficio.',
+  },
+  {
+    id: 'R7',
+    anio: 's.f.',
+    institucion: 'Proyecto AKOS Bocachica · Cap. 6',
+    titulo: 'Arquitecturas de la valorización: turismo y disputa territorial',
+    autores: 'Equipo AKOS Bocachica',
+    temas: 'Turismo, bordes y permanencia',
+    aporte: 'Analiza las tensiones entre flujos turísticos, infraestructura, acceso a playas y permanencia digna de la población local.',
+    vacio: 'Construir acuerdos de uso y doble cartografía (visitante vs. habitante) para distribuir beneficios localmente.',
+  },
+  {
+    id: 'R8',
+    anio: 's.f.',
+    institucion: 'Diagnóstico Comunitario · U. de Lleida',
+    titulo: 'Resultados del análisis del diagnóstico comunitario de Bocachica',
+    autores: 'Equipo psicosocial vinculado a U. de Lleida',
+    temas: 'Diagnóstico psicosocial y agua',
+    aporte: 'Recoge las voces locales sobre sentido de pertenencia, centralidad de la escuela, urgencia del agua y aspiraciones infantiles.',
+    vacio: 'Superar los límites de sistematización previa mediante validación participativa y devolución documentada.',
+  },
+  {
+    id: 'R9',
+    anio: '2026',
+    institucion: 'Gimnasio Cristiano de Bocachica · PUJ · ACOPI',
+    titulo: 'Intervención Aula Ambiental en el Gimnasio Cristiano de Bocachica',
+    autores: 'Arq. Alejandro Serrano Sierra y aliados (en proceso)',
+    temas: 'Refugio climático escolar y cancha preescolar',
+    aporte: 'Antecedente proyectual directo en marcha: cuenta con recursos iniciales para espacios de sombra y cancha de preescolar como nodo pedagógico.',
+    vacio: 'Articular esta primera obra con el programa marco de 24 meses, el protocolo de mantenimiento y las 6 líneas.',
+  },
+];
+
+export const DIMENSIONES_MEMORIA = CAP_05.tabla4.filas.map(([dimension, instrumentos, producto]) => ({
+  dimension,
+  enfoque: `Registro activo y plural de la dimensión ${dimension.toLowerCase()} en Bocachica para orientar decisiones compartidas de planificación y cuidado.`,
+  instrumentos,
+  producto,
+}));
+
+export const CICLO_METODOLOGICO = CAP_11.cicloPasos.map((p) => ({
+  paso: Number(p.n),
+  nombre: p.titulo.replace(/^\d+\s+/, ''),
+  descripcion: p.detalle,
+  entregable: p.items.join(' · '),
+}));
+
+export const LINEAS_INVESTIGACION = CAP_09.lineas.map((l) => ({
+  id: l.codigo,
+  titulo: l.titulo,
+  color: l.color,
+  piloto: {
+    titulo: l.corto,
+    alcance: l.piloto,
+  },
+  productos: [l.productoInicial, l.cruce],
+}));
+
+export const GEMELO_DIGITAL_NIVELES = CAP_10.tabla7.filas.map(([nivel, contenido, condicion]) => ({
+  nivel,
+  contenido,
+  condicion,
+}));
+
+export const FASES_24_MESES = [
+  {
+    id: 'F0',
+    meses: 'Mes 0',
+    nombre: 'Mesa de formulación inicial',
+    actividades: 'Reunión de formulación con promotor académico, representación comunitaria, Gimnasio Cristiano (R9) y aliados para delimitar alcance.',
+    hito: 'Acta de alcance y agenda de validación',
+    controlEtico: 'Distinguir propuestas de compromisos confirmados.',
+  },
+  ...CAP_12.tabla9.filas.map(([fase, meses, actividades, hito], idx) => ({
+    id: `F${idx + 1}`,
+    meses: `Meses ${meses}`,
+    nombre: fase.replace(/^F\d+\s+/, ''),
+    actividades,
+    hito,
+    controlEtico: 'Validación comunitaria, trazabilidad de fuentes y acuerdo previo de cuidado.',
+  })),
+];
+
+export const PRODUCTOS_ESPERADOS = CAP_14.tabla12.filas.map(([prod, formato, verificacion, linea]) => {
+  const [codigo, ...resto] = prod.split(' ');
+  return {
+    codigo,
+    producto: resto.join(' '),
+    formato,
+    verificacion,
+    linea,
+  };
+});
+
+export const ACTORES_GOBERNANZA = [
+  ...CAP_13.tabla10.filas.map(([actor, tipo, rol]) => ({
+    actor,
+    tipo,
+    rol,
+    lineas: 'Líneas 9.1 a 9.6 · Gobernanza y pilotos',
+  })),
+  ...CAP_13.tabla11.filas.map(([actor, tipo, rol]) => ({
+    actor,
+    tipo,
+    rol,
+    lineas: 'Convocatoria por necesidad específica',
+  })),
+];
+
+export const PRINCIPIOS_ETICOS = [
+  { principio: 'Comunidad como co-autora', mecanismo: 'Autorización, crédito y deliberación vinculante' },
+  { principio: 'Devolución obligatoria', mecanismo: 'Copias locales impresas y digitales en cada ciclo' },
+  { principio: 'Protección de infancia', mecanismo: 'Consentimiento informado y resguardo de identidad' },
+  { principio: 'Cuidado y mantenimiento previo', mecanismo: 'Ningún piloto se instala sin responsable y recursos' },
+];
+
+export const SINTESIS_EJECUTIVA_10 = [
+  { n: 1, titulo: 'Bocachica como primer núcleo situado', texto: 'Tierra Bomba se estructura como Aula Ambiental comenzando con un núcleo delimitado y verificable en Bocachica.' },
+  { n: 2, titulo: 'Articulación del corpus R1–R9', texto: 'Reúne los 8 documentos base de pregrado y diagnóstico junto con la intervención activa R9 en el Gimnasio Cristiano.' },
+  { n: 3, titulo: 'Principio rector: devolver, validar y transformar', texto: 'Toda investigación devuelve resultados comprensibles, recoge desacuerdos y valida prioridades antes de intervenir.' },
+  { n: 4, titulo: 'El Gimnasio Cristiano (R9) como nodo semilla', texto: 'El patio escolar articula refugio climático, sombra, cosecha de agua, vivero y aprendizaje intergeneracional.' },
+  { n: 5, titulo: 'Seis líneas y seis pilotos conectados', texto: 'Memorias (9.1), agua (9.2), silvicultura (9.3), plástico (9.4), carpintería de ribera (9.5) y patrimonio (9.6).' },
+  { n: 6, titulo: 'Gemelo digital progresivo en 5 niveles', texto: 'Evoluciona desde archivo vivo y cartografía hasta modelo 2D/3D, simulación de escenarios y actualización semestral.' },
+  { n: 7, titulo: 'Horizonte de 24 meses en 4 semestres', texto: 'Seis fases superpuestas (F1–F6) que garantizan continuidad entre cohortes estudiantiles sin reiniciar diagnósticos.' },
+  { n: 8, titulo: 'Gobernanza tripartita con 15 actores', texto: 'Mesa territorial comunitaria, comité académico-científico (PUJ y aliados) y coordinación operativa.' },
+  { n: 9, titulo: 'Nueve productos verificables (P1–P9)', texto: 'Desde la línea base y el atlas de memorias hasta la cartera de pilotos construidos y propuestas de financiación.' },
+  { n: 10, titulo: 'Ética y mantenimiento como condición', texto: 'Reconocimiento del trabajo local, rigor científico en ensayos de agua/materiales y prohibición de obras sin cuidado.' },
+];
+
