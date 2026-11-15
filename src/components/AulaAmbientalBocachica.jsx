@@ -2152,6 +2152,8 @@ export default function AulaAmbientalBocachica({
   const [catActiva, setCatActiva] = useState(null); // null o objeto de EXPLORA_CATEGORIAS
 
   const activarCategoria = (cat) => {
+    setPanelJuego(false);
+    setBusqAbierta(false);
     if (catActiva?.id === cat.id) {
       setCatActiva(null);
       return;
@@ -2161,6 +2163,9 @@ export default function AulaAmbientalBocachica({
     escena?.set({
       cam: cat.cam,
       dim: 0,
+      cartografia: cat.id === 'corregimientos' ? 0.32 : 0,
+      lluvia: cat.id === 'colegio' ? 0.55 : 0,
+      sombraExtra: cat.id === 'naturaleza' ? 0.45 : 0,
       zonas: cat.zonas,
       rutas: cat.rutas,
       nodosActivos: cat.nodos,
@@ -2450,10 +2455,10 @@ export default function AulaAmbientalBocachica({
         </div>
       )}
 
-      {/* CABECERA FLOTANTE */}
+      {/* CABECERA ÚNICA Y LIMPIA (Sin barras duplicadas) */}
       {enVistaAula && (
-      <header className="fixed top-4 inset-x-0 z-30 px-4 md:px-8 flex items-center justify-between gap-2 pointer-events-none">
-        <div className="tc-vidrio px-3.5 py-2 flex items-center gap-2.5 pointer-events-auto">
+      <header className="fixed top-3 inset-x-0 z-30 px-3 md:px-6 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        <div className="tc-vidrio px-3 py-1.5 flex items-center gap-2 pointer-events-auto">
           {volverFn && (
             <button
               type="button"
@@ -2464,37 +2469,41 @@ export default function AulaAmbientalBocachica({
             </button>
           )}
           <span className="w-2 h-2 rounded-full bg-[#e0917a]" />
-          <span className="text-xs font-medium tracking-wide">Tierra Bomba · Bocachica</span>
+          <span className="text-xs font-medium tracking-wide">Tierra Bomba</span>
         </div>
 
-        <nav className="hidden lg:flex items-center gap-0.5 tc-vidrio px-1.5 py-1 !rounded-full pointer-events-auto">
-          {CAPITULOS.map((c) => {
-            const act = capActual.id === c.id;
+        {/* 5 pestañas guiadas en orden: 1. Corregimientos -> 2. Patrimonio -> 3. Talleres -> 4. Colegio -> 5. Manglar */}
+        <nav className="tc-vidrio px-1.5 py-1 !rounded-full flex items-center gap-1 overflow-x-auto max-w-full pointer-events-auto order-3 lg:order-2">
+          {EXPLORA_CATEGORIAS.map((cat) => {
+            const on = catActiva?.id === cat.id && !panelJuego;
             return (
               <button
-                key={c.id}
+                key={cat.id}
                 type="button"
-                onClick={() => irACapitulo(c.ancla)}
-                className={`tc-nav-cap ${act ? 'tc-nav-cap-activo' : ''}`}
+                onClick={() => activarCategoria(cat)}
+                className={`whitespace-nowrap px-2.5 py-1 rounded-full text-[11px] font-medium transition flex items-center gap-1 ${
+                  on
+                    ? 'bg-white/20 text-white shadow'
+                    : 'text-white/75 hover:bg-white/10 hover:text-white'
+                }`}
               >
-                <span className="tc-num text-[10px] opacity-60 mr-1">{c.id}</span>
-                <span>{c.nombre}</span>
+                <span>{cat.icono}</span>
+                <span>{cat.label}</span>
               </button>
             );
           })}
         </nav>
 
-        <div className="tc-vidrio px-2.5 py-1.5 text-xs text-white/85 flex items-center gap-2 pointer-events-auto relative">
-          {/* Buscador rápido de lugares y temas */}
+        <div className="tc-vidrio px-2 py-1 text-xs text-white/85 flex items-center gap-1.5 pointer-events-auto relative order-2 lg:order-3">
           <div className="relative">
             <input
               type="text"
               value={busqueda}
               onFocus={() => setBusqAbierta(true)}
               onChange={(e) => { setBusqueda(e.target.value); setBusqAbierta(true); }}
-              placeholder="🔍 Buscar lugar o tema..."
-              aria-label="Buscar lugar o tema en Bocachica"
-              className="w-36 sm:w-48 bg-white/10 border border-white/15 rounded-full px-3 py-1 text-xs text-white placeholder-white/55 focus:outline-none focus:border-[#e0917a]"
+              placeholder="🔍 Buscar..."
+              aria-label="Buscar lugar o tema en Tierra Bomba"
+              className="w-28 sm:w-40 bg-white/10 border border-white/15 rounded-full px-2.5 py-1 text-xs text-white placeholder-white/55 focus:outline-none focus:border-[#e0917a]"
             />
             {busqAbierta && (
               <div className="absolute right-0 mt-2 w-72 sm:w-80 tc-vidrio p-2 z-50 max-h-80 overflow-y-auto shadow-2xl">
@@ -2503,13 +2512,13 @@ export default function AulaAmbientalBocachica({
                   <button type="button" onClick={() => setBusqAbierta(false)} className="text-white/70 hover:text-white">✕</button>
                 </div>
                 {resultadosBusqueda.length === 0 ? (
-                  <div className="px-2 py-3 text-xs text-white/60">No encontramos ese tema. Prueba con &ldquo;agua&rdquo;, &ldquo;colegio&rdquo;, &ldquo;manglar&rdquo; o &ldquo;fuerte&rdquo;.</div>
+                  <div className="px-2 py-3 text-xs text-white/60">Prueba con &ldquo;Bocachica&rdquo;, &ldquo;Caño de Loro&rdquo;, &ldquo;fuerte&rdquo;, &ldquo;taller&rdquo; o &ldquo;agua&rdquo;.</div>
                 ) : (
                   resultadosBusqueda.map((it) => (
                     <button
                       key={it.id}
                       type="button"
-                      onClick={() => seleccionarBusqueda(it)}
+                      onClick={() => { setCatActiva(null); setPanelJuego(false); seleccionarBusqueda(it); }}
                       className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-white/10 transition flex items-start gap-2"
                     >
                       <span className="text-xs mt-0.5">{it.tipo === 'modal' ? '🛠' : '📍'}</span>
@@ -2526,41 +2535,39 @@ export default function AulaAmbientalBocachica({
 
           <button
             type="button"
-            onClick={() => { setPanelJuego((v) => !v); setBusqAbierta(false); }}
+            onClick={() => { setPanelJuego((v) => !v); setBusqAbierta(false); if (!panelJuego) setCatActiva(null); }}
             className={`px-2.5 py-1 rounded-full border text-[11px] font-medium transition ${
               panelJuego
                 ? 'bg-[#35d08a]/25 border-[#35d08a] text-white'
                 : 'border-[#35d08a]/60 text-[#9ff3c9] hover:bg-[#35d08a]/15'
             }`}
           >
-            🎮 Jugar y probar
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setAnimPausada((v) => !v)}
-            className="hidden sm:inline-flex px-2 py-0.5 rounded border border-white/15 text-[11px] text-white/80 hover:text-white hover:border-white/35 transition"
-            title="Pausar o reanudar animaciones (Accesibilidad WCAG 2.2.2)"
-          >
-            {animPausada ? '▶ Animar' : '⏸ Pausar'}
+            🎮 Jugar
           </button>
         </div>
       </header>
       )}
 
-      {/* CONTROLES DE MAPA 3D SIEMPRE DISPONIBLES + ÍNDICE LATERAL + PANEL FLOTANTE COMPACTO .tc-vidrio */}
-      {enVistaAula && (
-        <ControlesVista
-          libre={libre}
-          onToggleLibre={() => setLibre((v) => !v)}
-          oculto={panelOculto}
-          onToggleOculto={() => setPanelOculto((v) => !v)}
-          onZoom={(f) => escena?.vista.zoom(f)}
-          onReset={() => escena?.vista.reset()}
-        />
+      {/* CONTROLES MINIMALISTAS DEL MAPA 3D (Esquina inferior derecha, sin estorbar) */}
+      {enVistaAula && !modalDiagrama && (
+        <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-20 tc-vidrio px-2 py-1.5 flex items-center gap-1 pointer-events-auto">
+          <button
+            type="button"
+            onClick={() => setLibre((v) => !v)}
+            className={`px-2 py-1 rounded text-[11px] transition ${
+              libre ? 'bg-[#e0917a]/30 text-white' : 'text-white/75 hover:text-white'
+            }`}
+            title="Arrastra y gira el mapa 3D libremente"
+          >
+            {libre ? '✓ Libre' : '✋ Mover'}
+          </button>
+          <button type="button" onClick={() => escena?.vista.zoom(0.8)} className="px-2 py-1 text-xs text-white/80 hover:text-white" title="Acercar">+</button>
+          <button type="button" onClick={() => escena?.vista.zoom(1.25)} className="px-2 py-1 text-xs text-white/80 hover:text-white" title="Alejar">−</button>
+          <button type="button" onClick={() => escena?.vista.reset()} className="px-2 py-1 text-xs text-white/80 hover:text-white" title="Reiniciar vista">↻</button>
+        </div>
       )}
 
-      {enPasos3D && (
+      {enPasos3D && !catActiva && !panelJuego && !lugarActivo && (
         <>
           <IndiceLateral total={PASOS_3D.length} activo={pasoIdx} onIr={irAPaso3D} />
 
@@ -2770,87 +2777,48 @@ export default function AulaAmbientalBocachica({
         </>
       )}
 
-      {/* BARRA GUIADA POR TEMAS (1. Corregimientos -> 2. Patrimonio -> 3. Talleres -> 4. Colegio -> 5. Manglar) */}
-      {enVistaAula && !modalDiagrama && (
-        <div className="fixed top-16 inset-x-0 z-20 px-4 md:px-8 flex flex-col items-center pointer-events-none">
-          <div className="tc-vidrio px-2 py-1.5 flex items-center gap-1.5 overflow-x-auto max-w-full pointer-events-auto !rounded-full">
-            {EXPLORA_CATEGORIAS.map((cat) => {
-              const on = catActiva?.id === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => activarCategoria(cat)}
-                  className={`whitespace-nowrap px-3 py-1 rounded-full text-[11px] font-medium border transition flex items-center gap-1.5 ${
-                    on
-                      ? 'bg-white/20 border-white text-white shadow'
-                      : 'border-white/15 text-white/80 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <span>{cat.icono}</span>
-                  <span>{cat.label}</span>
-                </button>
-              );
-            })}
+      {/* TARJETA ÚNICA IZQUIERDA: Muestra solo UNA cosa a la vez (Tema activo OR Lugar buscado OR Jugar) */}
+      {enVistaAula && catActiva && !panelJuego && !modalDiagrama && (
+        <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,24.5rem)] tc-vidrio p-4 tc-paso-anim shadow-2xl">
+          <div className="flex items-center justify-between gap-2 pb-2 border-b border-white/15">
+            <span className="text-xs font-semibold text-white">{catActiva.icono} {catActiva.label}</span>
+            <button type="button" onClick={() => setCatActiva(null)} className="text-xs text-white/60 hover:text-white px-1">✕</button>
           </div>
-
-          {catActiva && (
-            <div className="mt-2 w-[min(94vw,44rem)] tc-vidrio p-3.5 pointer-events-auto tc-paso-anim">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-xs text-white/90 leading-snug">
-                  <strong className="text-white">{catActiva.icono} {catActiva.label}:</strong> {catActiva.resumen}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setCatActiva(null)}
-                  className="text-xs text-white/60 hover:text-white px-1"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="mt-2.5 grid sm:grid-cols-2 gap-1.5">
-                {catActiva.lugares.map((lug) => (
-                  <button
-                    key={lug.nodo}
-                    type="button"
-                    onClick={() => {
-                      setLugarActivo({ titulo: lug.nombre, sub: lug.desc, nodo: lug.nodo });
-                      escena?.irANodo?.(lug.nodo, 300);
-                    }}
-                    className={`text-left p-2 rounded-lg border transition ${
-                      lugarActivo?.nodo === lug.nodo
-                        ? 'bg-[#e0917a]/20 border-[#e0917a] text-white'
-                        : 'border-white/15 bg-white/5 hover:bg-white/10 text-white/85'
-                    }`}
-                  >
-                    <div className="text-xs font-semibold flex items-center justify-between">
-                      <span>📍 {lug.nombre}</span>
-                      <span className="text-[10px] text-[#e0917a]">Ir al mapa →</span>
-                    </div>
-                    <div className="text-[11px] text-white/65 leading-tight mt-0.5">{lug.desc}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+          <p className="text-xs text-white/85 mt-2 leading-snug">{catActiva.resumen}</p>
+          <div className="mt-2.5 space-y-1.5 max-h-56 overflow-y-auto pr-0.5">
+            {catActiva.lugares.map((lug) => (
+              <button
+                key={lug.nodo}
+                type="button"
+                onClick={() => {
+                  setLugarActivo({ titulo: lug.nombre, sub: lug.desc, nodo: lug.nodo });
+                  escena?.irANodo?.(lug.nodo, 320);
+                }}
+                className={`w-full text-left p-2 rounded-lg border transition ${
+                  lugarActivo?.nodo === lug.nodo
+                    ? 'bg-[#e0917a]/25 border-[#e0917a] text-white'
+                    : 'border-white/15 bg-white/5 hover:bg-white/10 text-white/90'
+                }`}
+              >
+                <div className="text-xs font-semibold flex items-center justify-between">
+                  <span>📍 {lug.nombre}</span>
+                  <span className="text-[10px] text-[#e0917a]">Volar en 3D →</span>
+                </div>
+                <div className="text-[11px] text-white/65 leading-tight mt-0.5">{lug.desc}</div>
+              </button>
+            ))}
+          </div>
+        </aside>
       )}
 
-      {/* TARJETA FLOTANTE DEL LUGAR BUSCADO EN EL MAPA 3D */}
-      {enVistaAula && lugarActivo && !modalDiagrama && (
-        <div className="fixed top-20 left-4 md:left-8 z-30 w-[min(90vw,22rem)] tc-vidrio p-4 tc-paso-anim">
+      {enVistaAula && lugarActivo && !catActiva && !panelJuego && !modalDiagrama && (
+        <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,24rem)] tc-vidrio p-4 tc-paso-anim shadow-2xl">
           <div className="flex items-start justify-between gap-2">
             <div>
               <div className="tc-etiqueta !text-[#e0917a]">📍 Lugar en el mapa 3D</div>
               <h4 className="text-sm font-semibold text-white mt-0.5">{lugarActivo.titulo}</h4>
             </div>
-            <button
-              type="button"
-              onClick={() => setLugarActivo(null)}
-              className="text-xs text-white/60 hover:text-white px-1.5"
-            >
-              ✕
-            </button>
+            <button type="button" onClick={() => setLugarActivo(null)} className="text-xs text-white/60 hover:text-white px-1.5">✕</button>
           </div>
           <p className="text-xs text-white/80 mt-1.5 leading-relaxed">{lugarActivo.sub}</p>
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -2862,12 +2830,11 @@ export default function AulaAmbientalBocachica({
               🎮 Probar sombra y lluvia aquí
             </button>
           </div>
-        </div>
+        </aside>
       )}
 
-      {/* PANEL INTERACTIVO PARA JUGAR, PROBAR Y BUSCAR SIN HACER SCROLL */}
       {enVistaAula && panelJuego && !modalDiagrama && (
-        <div className="fixed bottom-5 right-4 md:right-8 z-30 w-[min(94vw,24rem)] tc-vidrio p-4 tc-paso-anim shadow-2xl">
+        <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,24rem)] tc-vidrio p-4 tc-paso-anim shadow-2xl">
           <div className="flex items-center justify-between pb-2 mb-3 border-b border-white/15">
             <span className="text-xs font-semibold text-white">🎮 Laboratorio comunitario 3D</span>
             <button
@@ -3051,7 +3018,7 @@ export default function AulaAmbientalBocachica({
               ))}
             </div>
           )}
-        </div>
+        </aside>
       )}
 
       {/* MODAL DE VIDRIO TRANSLÚCIDO SOBRE EL MAPA 3D (Cuando el usuario quiere ver un diagrama 2D en detalle) */}
@@ -3080,9 +3047,14 @@ export default function AulaAmbientalBocachica({
       {/* =====================================================================
           00 · PORTADA A PANTALLA COMPLETA SOBRE LA ISLA 3D
       ===================================================================== */}
-      <section id="cap-00" className="relative z-10 h-[100svh] flex items-end px-6 md:px-16 pb-12 md:pb-16 pointer-events-none">
+      <section
+        id="cap-00"
+        className={`relative z-10 h-[100svh] flex items-end px-6 md:px-16 pb-14 md:pb-16 pointer-events-none transition-opacity duration-300 ${
+          catActiva || panelJuego || lugarActivo ? 'opacity-0' : 'opacity-100'
+        }`}
+      >
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
-        <div className="relative w-full grid md:grid-cols-12 gap-6 items-end pointer-events-auto">
+        <div className={`relative w-full grid md:grid-cols-12 gap-6 items-end ${catActiva || panelJuego || lugarActivo ? 'pointer-events-none' : 'pointer-events-auto'}`}>
           <div className="md:col-span-8">
             <div className="tc-etiqueta mb-3">
               Isla de Tierra Bomba · Bocachica · Proyecto para la comunidad
@@ -3094,34 +3066,23 @@ export default function AulaAmbientalBocachica({
           </div>
           <div className="md:col-span-4 md:pb-2 text-white/85">
             <p className="text-base md:text-lg leading-snug">
-              Un mapa interactivo para que toda la comunidad de Bocachica busque lugares, juegue con la sombra y el agua, y vea qué construiremos juntos en el colegio Gimnasio Cristiano.
+              Explora los 4 corregimientos, el patrimonio, los talleres, el colegio y el manglar directamente sobre el mapa 3D.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
                 type="button"
+                onClick={() => activarCategoria(EXPLORA_CATEGORIAS[0])}
+                className="tc-ficha tc-ficha-activa !border-[#e0917a] !text-white"
+              >
+                🏘 1. Ver los 4 Corregimientos (en planta)
+              </button>
+              <button
+                type="button"
                 onClick={() => { setPanelJuego(true); setTabJuego('isla'); }}
-                className="tc-ficha tc-ficha-activa !border-[#35d08a] !text-white"
+                className="tc-ficha !border-[#35d08a]/70 !text-[#9ff3c9]"
               >
-                🎮 Jugar con el mapa 3D
+                🎮 Jugar con la isla
               </button>
-              <button
-                type="button"
-                onClick={() => { setPanelJuego(true); setTabJuego('reto'); }}
-                className="tc-ficha !border-[#e0917a]/70 !text-white"
-              >
-                🎯 Mini-reto Bocachica
-              </button>
-              <button
-                type="button"
-                onClick={() => setModalDiagrama('plano2D')}
-                className="tc-ficha !border-white/30 !text-white/90"
-              >
-                🏫 Ver colegio Hoy vs. Nuevo
-              </button>
-            </div>
-            <div className="mt-4 pt-3 tc-regla flex items-center justify-between text-xs text-white/65">
-              <span>Arq. Alejandro Serrano Sierra · PUJ</span>
-              <span className="animate-pulse text-[#e0917a]">Usa el buscador arriba o baja ↓</span>
             </div>
           </div>
         </div>

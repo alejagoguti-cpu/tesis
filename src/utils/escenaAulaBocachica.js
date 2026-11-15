@@ -408,8 +408,11 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       zc.arc(x, y, rPx, 0, Math.PI * 2);
       zc.fill();
     };
-    // R: Casco de Bocachica + Fuertes patrimoniales
-    circulo('rgb(255,0,0)', NODOS_BOCACHICA.casco.lon, NODOS_BOCACHICA.casco.lat, 240);
+    // R: Casco de Bocachica + Fuertes patrimoniales + Corregimientos de la isla
+    circulo('rgb(255,0,0)', NODOS_BOCACHICA.casco.lon, NODOS_BOCACHICA.casco.lat, 260);
+    circulo('rgb(255,0,0)', NODOS_BOCACHICA.tierraBomba.lon, NODOS_BOCACHICA.tierraBomba.lat, 280);
+    circulo('rgb(255,0,0)', NODOS_BOCACHICA.canoDeLoro.lon, NODOS_BOCACHICA.canoDeLoro.lat, 260);
+    circulo('rgb(255,0,0)', NODOS_BOCACHICA.puntaArena.lon, NODOS_BOCACHICA.puntaArena.lat, 260);
     circulo('rgb(255,0,0)', NODOS_BOCACHICA.sanFernando.lon, NODOS_BOCACHICA.sanFernando.lat, 190);
     circulo('rgb(255,0,0)', NODOS_BOCACHICA.sanJose.lon, NODOS_BOCACHICA.sanJose.lat, 150);
     circulo('rgb(255,0,0)', NODOS_BOCACHICA.sanRafael.lon, NODOS_BOCACHICA.sanRafael.lat, 170);
@@ -1267,6 +1270,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     residuos: crearEtiqueta('Taller de Plástico', 'Plástico recogido convertido en bancas', nodosXZ.residuos.x, nodosXZ.residuos.z, 38, '#f5b45a'),
     ribera: crearEtiqueta('Carpintería de Ribera', 'Maestros de botes y pesca artesanal', nodosXZ.ribera.x, nodosXZ.ribera.z, 38, '#e8a86b'),
     sanFernando: crearEtiqueta('Fuerte San Fernando', 'Historia viva contada por nuestra gente', nodosXZ.sanFernando.x, nodosXZ.sanFernando.z, 42, '#f4f1ec'),
+    sanJose: crearEtiqueta('Batería de San José', 'Fuerte sobre el arrecife en el canal', nodosXZ.sanJose.x, nodosXZ.sanJose.z, 42, '#c490ff'),
     sanRafael: crearEtiqueta('Batería Ángel San Rafael', 'Mirador y sendero educativo del cerro', nodosXZ.sanRafael.x, nodosXZ.sanRafael.z, 52, '#e0917a'),
     tierraBomba: crearEtiqueta('Tierra Bomba (Centro)', 'Corregimiento en el norte de la isla', nodosXZ.tierraBomba.x, nodosXZ.tierraBomba.z, 55, '#f5b45a'),
     canoDeLoro: crearEtiqueta('Caño de Loro', 'Corregimiento frente a la bahía', nodosXZ.canoDeLoro.x, nodosXZ.canoDeLoro.z, 55, '#6ec6e6'),
@@ -1327,9 +1331,9 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const dx = () => (window.innerWidth >= 1024 ? -220 : 0);
   const dxIsla = () => (window.innerWidth >= 1024 ? -1350 : 0);
   const POSES = {
-    isla_completa: (t) => ({
-      pos: new THREE.Vector3(Math.sin(t * 0.05) * 420, 3200, 4600),
-      look: new THREE.Vector3(0, 12, 180),
+    isla_completa: () => ({
+      pos: new THREE.Vector3(dxIsla() * 0.4, 7800, 1450),
+      look: new THREE.Vector3(dxIsla() * 0.4, 0, 160),
     }),
     hero: (t) => {
       const a = THREE.MathUtils.degToRad(202) + Math.sin(t * 0.06) * 0.38;
