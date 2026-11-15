@@ -4676,7 +4676,7 @@ export default function AulaAmbientalBocachica({
           )}
 
           <div className="mt-12 pt-6 tc-regla flex flex-wrap justify-between gap-4 text-xs text-white/50">
-            <span>Tierra Bomba · Aula Ambiental (Bocachica) · Promotor académico: Arq. Alejandro Serrano Sierra</span>
+            <span>Tierra Bomba · Comunidad y Territorio</span>
             <span>Pontificia Universidad Javeriana · Facultad de Arquitectura y Diseño</span>
           </div>
         </div>
