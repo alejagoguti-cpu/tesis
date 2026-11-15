@@ -2864,15 +2864,21 @@ export default function AulaAmbientalBocachica({
   const [temaViernes, setTemaViernes] = useState(TEMAS_VIERNES[0]);
   const [nombreViernes, setNombreViernes] = useState('');
   const [corregViernes, setCorregViernes] = useState('Bocachica');
+  const [beneficioViernes, setBeneficioViernes] = useState('alimentacion');
   const [confirmViernes, setConfirmViernes] = useState(false);
 
   const agendarClaseViernes = (e) => {
     e.preventDefault();
+    const beneficioTexto =
+      beneficioViernes === 'alimentacion'
+        ? 'Bono de alimentación'
+        : 'Cupo lancha ida y vuelta a Cartagena';
     const nueva = {
       id: Date.now(),
       tema: temaViernes,
       nombre: nombreViernes.trim() || 'Habitante de la isla',
       corregimiento: corregViernes,
+      beneficio: beneficioTexto,
       fecha: 'Próximo viernes · 4:00 p.m.',
     };
     const next = [nueva, ...clasesViernes].slice(0, 6);
@@ -3211,7 +3217,7 @@ export default function AulaAmbientalBocachica({
               onChange={(e) => { setBusqueda(e.target.value); setBusqAbierta(true); }}
               placeholder="Buscar lugar..."
               aria-label="Buscar lugar o tema en Tierra Bomba"
-              className="w-28 sm:w-40 h-7 bg-white/8 border border-white/10 rounded-full pl-8 pr-3 text-xs text-white placeholder-white/50 focus:outline-none focus:bg-white/12 focus:border-[#e0917a]/80 transition-all"
+              className="w-28 sm:w-40 h-7 bg-white/10 border border-white/15 rounded-full pl-8 pr-3 text-xs text-white placeholder-white/50 focus:outline-none focus:bg-white/15 focus:border-[#e0917a]/80 transition-all"
             />
             {busqAbierta && (
               <div className="absolute right-0 top-full mt-2.5 w-72 sm:w-80 tc-vidrio p-2 z-50 max-h-80 overflow-y-auto shadow-2xl">
@@ -4030,6 +4036,40 @@ export default function AulaAmbientalBocachica({
                       ))}
                     </select>
                   </div>
+
+                  {/* Beneficio incluido en cada actividad */}
+                  <div className="space-y-1.5">
+                    <div className="text-[10px] font-mono uppercase tracking-wider text-white/65">
+                      Elige tu beneficio incluido en esta actividad
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setBeneficioViernes('alimentacion')}
+                        className={`px-2.5 py-2 rounded-xl border text-left transition flex items-center gap-2 cursor-pointer ${
+                          beneficioViernes === 'alimentacion'
+                            ? 'bg-white/15 border-white text-white shadow-sm'
+                            : 'bg-white/5 border-white/15 text-white/70 hover:bg-white/10 hover:text-white'
+                        }`}
+                      >
+                        <Utensils className="w-3.5 h-3.5 shrink-0" style={{ color: act.color }} />
+                        <span className="text-[11px] font-semibold leading-tight">Bono de alimentación</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBeneficioViernes('transporte')}
+                        className={`px-2.5 py-2 rounded-xl border text-left transition flex items-center gap-2 cursor-pointer ${
+                          beneficioViernes === 'transporte'
+                            ? 'bg-white/15 border-white text-white shadow-sm'
+                            : 'bg-white/5 border-white/15 text-white/70 hover:bg-white/10 hover:text-white'
+                        }`}
+                      >
+                        <Anchor className="w-3.5 h-3.5 shrink-0" style={{ color: act.color }} />
+                        <span className="text-[11px] font-semibold leading-tight">Cupo ida y vuelta a Cartagena</span>
+                      </button>
+                    </div>
+                  </div>
+
                   <button
                     type="submit"
                     className="w-full py-3 px-4 rounded-xl text-sm font-black text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer shadow-xl transition hover:scale-[1.02] active:scale-[0.99]"
@@ -4043,7 +4083,13 @@ export default function AulaAmbientalBocachica({
                 {confirmViernes && (
                   <div className="p-2.5 rounded-xl bg-[#35d08a]/20 border border-[#35d08a]/50 flex items-center gap-2 text-xs text-[#9ff3c9] font-bold">
                     <Check className="w-4 h-4 shrink-0" />
-                    <span>¡Inscripción lista! Te esperamos el viernes {act.dia} {act.mes} a las 4:00 PM.</span>
+                    <span>
+                      ¡Inscripción lista! Incluye tu{' '}
+                      {beneficioViernes === 'alimentacion'
+                        ? 'Bono de alimentación'
+                        : 'Cupo ida y vuelta a Cartagena'}{' '}
+                      para el viernes {act.dia} {act.mes} (4:00 PM).
+                    </span>
                   </div>
                 )}
 
