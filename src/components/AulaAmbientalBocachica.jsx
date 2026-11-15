@@ -3160,25 +3160,26 @@ export default function AulaAmbientalBocachica({
         </div>
       )}
 
-      {/* CABECERA ÚNICA Y LIMPIA (Sin barras duplicadas) */}
+      {/* CABECERA ÚNICA Y LIMPIA · HUD ESPACIAL */}
       {enVistaAula && (
-      <header className="fixed top-3 inset-x-0 z-30 px-3 md:px-6 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        <div className="tc-vidrio px-3 py-1.5 flex items-center gap-2 pointer-events-auto">
+      <header className="fixed top-3.5 inset-x-0 z-30 px-3 md:px-6 flex flex-wrap items-center justify-between gap-2.5 pointer-events-none">
+        <div className="tc-vidrio h-10 px-3.5 !rounded-full flex items-center gap-2.5 pointer-events-auto">
           {volverFn && (
             <button
               type="button"
               onClick={volverFn}
-              className="text-xs font-mono text-[#e0917a] hover:underline pr-2 border-r border-white/15"
+              className="text-xs font-medium text-[#e0917a] hover:text-white transition-colors pr-2.5 border-r border-white/15 flex items-center gap-1 cursor-pointer"
             >
-              ← Comunidad
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Comunidad</span>
             </button>
           )}
-          <span className="w-2 h-2 rounded-full bg-[#e0917a]" />
-          <span className="text-xs font-medium tracking-wide">Tierra Bomba</span>
+          <span className="w-2 h-2 rounded-full bg-[#e0917a] shadow-[0_0_8px_#e0917a]" />
+          <span className="text-xs font-semibold tracking-wide text-white">Tierra Bomba</span>
         </div>
 
         {/* 4 pestañas guiadas en orden con iconos vectoriales */}
-        <nav className="tc-vidrio px-1.5 py-1 !rounded-full flex items-center gap-1 overflow-x-auto max-w-full pointer-events-auto order-3 lg:order-2">
+        <nav className="tc-vidrio h-10 px-1.5 !rounded-full flex items-center gap-1 overflow-x-auto max-w-full pointer-events-auto order-3 lg:order-2">
           {EXPLORA_CATEGORIAS.map((cat) => {
             const on = (cat.id === 'memorias' ? panelJuego : catActiva?.id === cat.id && !panelJuego);
             const Icono = ICONOS_CAT[cat.id] || MapPin;
@@ -3187,10 +3188,10 @@ export default function AulaAmbientalBocachica({
                 key={cat.id}
                 type="button"
                 onClick={() => activarCategoria(cat)}
-                className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
+                className={`whitespace-nowrap h-7 px-3.5 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
                   on
-                    ? 'bg-white text-[#0b1016] shadow font-semibold'
-                    : 'text-white/80 hover:bg-white/10 hover:text-white'
+                    ? 'bg-white text-[#0b1016] shadow-[0_2px_12px_rgba(255,255,255,0.28)] font-semibold'
+                    : 'text-white/75 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 <Icono className="w-3.5 h-3.5 shrink-0" />
@@ -3200,9 +3201,9 @@ export default function AulaAmbientalBocachica({
           })}
         </nav>
 
-        <div className="tc-vidrio px-2.5 py-1 text-xs text-white/85 flex items-center gap-2 pointer-events-auto relative order-2 lg:order-3">
+        <div className="tc-vidrio h-10 px-1.5 !rounded-full text-xs text-white/85 flex items-center gap-1.5 pointer-events-auto relative order-2 lg:order-3">
           <div className="relative flex items-center">
-            <Search className="w-3.5 h-3.5 text-white/55 absolute left-2.5 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-white/50 absolute left-3 pointer-events-none" />
             <input
               type="text"
               value={busqueda}
@@ -3210,25 +3211,25 @@ export default function AulaAmbientalBocachica({
               onChange={(e) => { setBusqueda(e.target.value); setBusqAbierta(true); }}
               placeholder="Buscar lugar..."
               aria-label="Buscar lugar o tema en Tierra Bomba"
-              className="w-28 sm:w-40 bg-white/10 border border-white/15 rounded-full pl-8 pr-2.5 py-1 text-xs text-white placeholder-white/55 focus:outline-none focus:border-[#e0917a]"
+              className="w-28 sm:w-40 h-7 bg-white/8 border border-white/10 rounded-full pl-8 pr-3 text-xs text-white placeholder-white/50 focus:outline-none focus:bg-white/12 focus:border-[#e0917a]/80 transition-all"
             />
             {busqAbierta && (
-              <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 tc-vidrio p-2 z-50 max-h-80 overflow-y-auto shadow-2xl">
-                <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b border-white/10 text-[11px] text-white/65">
-                  <span>Elige un lugar para ir en el mapa</span>
-                  <button type="button" onClick={() => setBusqAbierta(false)} className="text-white/70 hover:text-white p-0.5">
+              <div className="absolute right-0 top-full mt-2.5 w-72 sm:w-80 tc-vidrio p-2 z-50 max-h-80 overflow-y-auto shadow-2xl">
+                <div className="flex items-center justify-between px-2.5 pb-2 mb-1 border-b border-white/10 text-[11px] text-white/60 font-medium">
+                  <span>Ir a un lugar en el mapa</span>
+                  <button type="button" onClick={() => setBusqAbierta(false)} className="text-white/60 hover:text-white p-0.5 rounded-full hover:bg-white/10 transition">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 {resultadosBusqueda.length === 0 ? (
-                  <div className="px-2 py-3 text-xs text-white/60">Prueba con &ldquo;Bocachica&rdquo;, &ldquo;Caño de Loro&rdquo;, &ldquo;Fuerte&rdquo; o &ldquo;Taller&rdquo;.</div>
+                  <div className="px-2.5 py-3 text-xs text-white/60">Prueba con &ldquo;Bocachica&rdquo;, &ldquo;Caño de Loro&rdquo;, &ldquo;Fuerte&rdquo; o &ldquo;Taller&rdquo;.</div>
                 ) : (
                   resultadosBusqueda.map((it) => (
                     <button
                       key={it.id}
                       type="button"
                       onClick={() => { setCatActiva(null); setPanelJuego(false); seleccionarBusqueda(it); }}
-                      className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-white/10 transition flex items-start gap-2.5 cursor-pointer"
+                      className="w-full text-left px-2.5 py-2 rounded-xl hover:bg-white/10 transition flex items-start gap-2.5 cursor-pointer"
                     >
                       {it.tipo === 'modal' ? (
                         <Layers className="w-4 h-4 text-[#e0917a] shrink-0 mt-0.5" />
@@ -3237,7 +3238,7 @@ export default function AulaAmbientalBocachica({
                       )}
                       <div>
                         <div className="text-xs font-medium text-white">{it.titulo}</div>
-                        <div className="text-[11px] text-white/65 leading-tight">{it.sub}</div>
+                        <div className="text-[11px] text-white/60 leading-tight">{it.sub}</div>
                       </div>
                     </button>
                   ))
@@ -3249,36 +3250,37 @@ export default function AulaAmbientalBocachica({
           <button
             type="button"
             onClick={() => activarCategoria(EXPLORA_CATEGORIAS[3])}
-            className={`px-3 py-1 rounded-full text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
-              panelJuego
-                ? 'bg-[#35d08a] text-[#07140d]'
-                : 'bg-[#35d08a]/20 border border-[#35d08a]/70 text-[#9ff3c9] hover:bg-[#35d08a] hover:text-[#07140d]'
+            className={`h-7 px-3 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+              panelJuego || musicaSonando
+                ? 'bg-[#35d08a] text-[#07140d] shadow-[0_2px_12px_rgba(53,208,138,0.35)]'
+                : 'bg-[#35d08a]/15 border border-[#35d08a]/40 text-[#9ff3c9] hover:bg-[#35d08a] hover:text-[#07140d]'
             }`}
           >
-            <Music className="w-3.5 h-3.5" />
+            <Music className={`w-3.5 h-3.5 ${musicaSonando ? 'animate-pulse' : ''}`} />
             <span>{musicaSonando ? 'Sonando' : 'Bailes'}</span>
           </button>
         </div>
       </header>
       )}
 
-      {/* CONTROLES MINIMALISTAS DEL MAPA 3D (Esquina inferior derecha, sin estorbar) */}
+      {/* CONTROLES MINIMALISTAS DEL MAPA 3D */}
       {enVistaAula && !modalDiagrama && (
-        <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-20 tc-vidrio px-2 py-1.5 flex items-center gap-1 pointer-events-auto">
+        <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-20 tc-vidrio h-10 px-1.5 !rounded-full flex items-center gap-0.5 pointer-events-auto">
           <button
             type="button"
             onClick={() => setLibre((v) => !v)}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition flex items-center gap-1.5 cursor-pointer ${
-              libre ? 'bg-[#e0917a] text-[#0b1016]' : 'text-white/80 hover:text-white'
+            className={`h-7 px-3 rounded-full text-[11px] font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+              libre ? 'bg-[#e0917a] text-[#0b1016] font-semibold shadow-sm' : 'text-white/80 hover:bg-white/10 hover:text-white'
             }`}
             title="Arrastra y gira el mapa 3D libremente"
           >
             {libre ? <Check className="w-3.5 h-3.5" /> : <Hand className="w-3.5 h-3.5" />}
             <span>{libre ? 'Soltar' : 'Mover mapa'}</span>
           </button>
-          <button type="button" onClick={() => escena?.vista.zoom(0.8)} className="px-2 py-1 text-xs font-semibold text-white/80 hover:text-white cursor-pointer" title="Acercar">+</button>
-          <button type="button" onClick={() => escena?.vista.zoom(1.25)} className="px-2 py-1 text-xs font-semibold text-white/80 hover:text-white cursor-pointer" title="Alejar">-</button>
-          <button type="button" onClick={() => escena?.vista.reset()} className="p-1.5 text-white/80 hover:text-white cursor-pointer" title="Reiniciar vista">
+          <span className="w-px h-4 bg-white/12 mx-0.5" />
+          <button type="button" onClick={() => escena?.vista.zoom(0.8)} className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white transition cursor-pointer" title="Acercar" aria-label="Acercar mapa">+</button>
+          <button type="button" onClick={() => escena?.vista.zoom(1.25)} className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white transition cursor-pointer" title="Alejar" aria-label="Alejar mapa">−</button>
+          <button type="button" onClick={() => escena?.vista.reset()} className="w-7 h-7 rounded-full flex items-center justify-center text-white/80 hover:bg-white/10 hover:text-white transition cursor-pointer" title="Reiniciar vista" aria-label="Reiniciar vista">
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -3546,30 +3548,32 @@ export default function AulaAmbientalBocachica({
                 >
                   <span className="relative flex flex-col items-center">
                     <span
-                      className="absolute -inset-2 rounded-full animate-ping opacity-45"
+                      className="absolute -inset-1.5 rounded-2xl animate-pulse opacity-30 blur-[6px]"
                       style={{ backgroundColor: item.color }}
                     />
                     <span
-                      className={`relative w-12 h-12 rounded-2xl border-2 flex items-center justify-center shadow-2xl transition-transform duration-200 group-hover:scale-115 ${
-                        sel ? 'scale-125 ring-4 ring-white/40' : ''
+                      className={`relative w-11 h-11 rounded-2xl border flex items-center justify-center shadow-[0_12px_28px_-6px_rgba(0,0,0,0.85)] backdrop-blur-md transition-all duration-300 group-hover:-translate-y-1 group-hover:scale-110 ${
+                        sel ? 'scale-115 ring-2 ring-white/50' : ''
                       }`}
                       style={{
-                        backgroundColor: '#0b1016',
-                        borderColor: item.color,
+                        backgroundColor: 'rgba(11, 16, 22, 0.88)',
+                        borderColor: `${item.color}cc`,
                         color: item.color,
+                        boxShadow: `0 10px 26px -6px ${item.color}55, inset 0 1px 0 rgba(255,255,255,0.18)`,
                       }}
                     >
-                      <IconoPin className="w-6 h-6" />
+                      <IconoPin className="w-5 h-5" />
                     </span>
-                    <span className="mt-1.5 px-2.5 py-0.5 rounded-full bg-[#0b1016]/90 border border-white/20 text-[11px] font-bold text-white whitespace-nowrap shadow-lg flex items-center gap-1.5 group-hover:bg-white group-hover:text-[#0b1016] transition">
+                    <span className="mt-1.5 px-2.5 py-0.5 rounded-full bg-[#0b1016]/90 backdrop-blur-md border border-white/15 text-[11px] font-semibold text-white whitespace-nowrap shadow-[0_6px_18px_rgba(0,0,0,0.65)] flex items-center gap-1.5 group-hover:bg-white group-hover:text-[#0b1016] transition-all duration-200">
+                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
                       <span>{item.corto}</span>
                       {esCorreg && item.nodo === 'tierraBomba' && (
-                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#e8a86b]/25 text-[#f7c896]">
+                        <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded-full bg-[#e8a86b]/20 text-[#f7c896] group-hover:bg-[#0b1016]/15 group-hover:text-[#0b1016]">
                           180° · 2x
                         </span>
                       )}
                       {!esCorreg && (
-                        <span className="text-[10px] font-mono opacity-80">
+                        <span className="text-[10px] font-mono opacity-75">
                           {esPatrimonio ? item.anio : `${item.dia} ${item.mes}`}
                         </span>
                       )}
@@ -3591,20 +3595,21 @@ export default function AulaAmbientalBocachica({
 
         if (catActiva.id === 'corregimientos' && !corregSel) {
           return (
-            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-md tc-vidrio px-4 py-3 tc-paso-anim shadow-2xl flex items-center justify-between gap-3">
+            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-sm tc-vidrio pl-3.5 pr-3 py-3 tc-paso-anim flex items-center justify-between gap-3 border-l-2 border-l-[#e0917a]">
               <div className="flex items-center gap-3 min-w-0">
-                <span className="w-10 h-10 rounded-xl bg-[#e0917a]/20 text-[#e0917a] flex items-center justify-center shrink-0 animate-pulse">
-                  <MapPin className="w-5 h-5" />
+                <span className="w-9 h-9 rounded-xl bg-[#e0917a]/15 border border-[#e0917a]/30 text-[#e0917a] flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4" />
                 </span>
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-white">Los 4 Corregimientos de Tierra Bomba</div>
-                  <div className="text-[11px] text-white/75 leading-snug">
-                    Toca cualquier icono animado en la isla para conocer cómo llegar, qué hacer y su gente.
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-[#e0917a]">Guía del mapa · 01</div>
+                  <div className="text-xs font-semibold text-white">Los 4 Corregimientos de Tierra Bomba</div>
+                  <div className="text-[11px] text-white/70 leading-snug mt-0.5">
+                    Toca un pin para su historia · 2x en Tierra Bomba abre vista 180°.
                   </div>
                 </div>
               </div>
-              <button type="button" onClick={() => setCatActiva(null)} className="text-white/60 hover:text-white p-1 shrink-0">
-                <X className="w-4 h-4" />
+              <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           );
@@ -3754,20 +3759,21 @@ export default function AulaAmbientalBocachica({
 
         if (catActiva.id === 'patrimonio' && !patrimonioSel) {
           return (
-            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-md tc-vidrio px-4 py-3 tc-paso-anim shadow-2xl flex items-center justify-between gap-3">
+            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-sm tc-vidrio pl-3.5 pr-3 py-3 tc-paso-anim flex items-center justify-between gap-3 border-l-2 border-l-[#f4f1ec]">
               <div className="flex items-center gap-3 min-w-0">
-                <span className="w-10 h-10 rounded-xl bg-[#f4f1ec]/15 text-[#f4f1ec] flex items-center justify-center shrink-0 animate-pulse">
-                  <Landmark className="w-5 h-5" />
+                <span className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 text-[#f4f1ec] flex items-center justify-center shrink-0">
+                  <Landmark className="w-4 h-4" />
                 </span>
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-white">Patrimonio de Bocachica y Tierra Bomba</div>
-                  <div className="text-[11px] text-white/75 leading-snug">
-                    Toca cualquier icono animado sobre los fuertes para abrir su historia y arquitectura.
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-white/65">Guía del mapa · 02</div>
+                  <div className="text-xs font-semibold text-white">Patrimonio de Bocachica y Tierra Bomba</div>
+                  <div className="text-[11px] text-white/70 leading-snug mt-0.5">
+                    Toca un pin sobre los fuertes para abrir su historia y arquitectura.
                   </div>
                 </div>
               </div>
-              <button type="button" onClick={() => setCatActiva(null)} className="text-white/60 hover:text-white p-1 shrink-0">
-                <X className="w-4 h-4" />
+              <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           );
@@ -3924,20 +3930,21 @@ export default function AulaAmbientalBocachica({
 
         if (catActiva.id === 'talleres' && !actividadViernesSel) {
           return (
-            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-md tc-vidrio px-4 py-3 tc-paso-anim shadow-2xl flex items-center justify-between gap-3">
+            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-sm tc-vidrio pl-3.5 pr-3 py-3 tc-paso-anim flex items-center justify-between gap-3 border-l-2 border-l-[#e8a86b]">
               <div className="flex items-center gap-3 min-w-0">
-                <span className="w-10 h-10 rounded-xl bg-[#e8a86b]/20 text-[#e8a86b] flex items-center justify-center shrink-0 animate-pulse">
-                  <Calendar className="w-5 h-5" />
+                <span className="w-9 h-9 rounded-xl bg-[#e8a86b]/15 border border-[#e8a86b]/30 text-[#e8a86b] flex items-center justify-center shrink-0">
+                  <Calendar className="w-4 h-4" />
                 </span>
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-white">Clases cada viernes · Toda la isla</div>
-                  <div className="text-[11px] text-white/75 leading-snug">
-                    Toca cualquier icono animado en el mapa para abrir la clase e inscribirte.
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-[#e8a86b]">Guía del mapa · 03</div>
+                  <div className="text-xs font-semibold text-white">Clases cada viernes · Toda la isla</div>
+                  <div className="text-[11px] text-white/70 leading-snug mt-0.5">
+                    Toca cualquier pin en el mapa para abrir el taller e inscribirte gratis.
                   </div>
                 </div>
               </div>
-              <button type="button" onClick={() => setCatActiva(null)} className="text-white/60 hover:text-white p-1 shrink-0">
-                <X className="w-4 h-4" />
+              <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           );

@@ -1902,20 +1902,20 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       escuelaG.userData.agua.scale.y = Math.max(0.25, 4.3 * Math.max(0.2, cur.lluvia));
     }
 
-    // Nodos, haces de luz y etiquetas
-    const hBeam = THREE.MathUtils.clamp(dist * 0.055, 38, 320);
-    const pulsoRing = 1 + 0.25 * Math.sin(t * 2.8);
+    // Nodos, haces de luz y etiquetas (limpios: sin cajas 3D duplicadas sobre los pines React)
+    const hBeam = THREE.MathUtils.clamp(dist * 0.04, 24, 180);
+    const pulsoRing = 1 + 0.16 * Math.sin(t * 2.4);
     for (const [k, m] of Object.entries(marcadores)) {
-      const activo = !T.nodosActivos || T.nodosActivos.includes(k);
-      const op = activo ? (1 - cur.dim * 0.65) : 0.12;
-      m.bMat.opacity += (op * 0.72 - m.bMat.opacity) * expo(dt, 5);
-      m.rMat.opacity += (op * 0.9 - m.rMat.opacity) * expo(dt, 5);
-      m.beam.scale.set(hBeam * 0.015, hBeam, hBeam * 0.015);
-      m.ring.scale.setScalar((activo ? 26 : 14) * pulsoRing);
+      const activo = Array.isArray(T.nodosActivos) ? T.nodosActivos.includes(k) : true;
+      const op = activo ? (1 - cur.dim * 0.65) : 0;
+      m.bMat.opacity += (op * 0.28 - m.bMat.opacity) * expo(dt, 6);
+      m.rMat.opacity += (op * 0.45 - m.rMat.opacity) * expo(dt, 6);
+      m.beam.scale.set(hBeam * 0.006, hBeam, hBeam * 0.006);
+      m.ring.scale.setScalar((activo ? 14 : 6) * pulsoRing);
       if (etqMap[k]) {
-        const maxDist = T.nodosActivos && T.nodosActivos.length <= 5 ? 18000 : 3200;
-        const wantEtq = activo && dist < maxDist && cur.dim < 0.5 ? 0.96 : 0;
-        etqMap[k].material.opacity += (wantEtq - etqMap[k].material.opacity) * expo(dt, 5);
+        const soloUno = Array.isArray(T.nodosActivos) && T.nodosActivos.length === 1 && activo;
+        const wantEtq = soloUno && dist < 1300 && cur.dim < 0.4 ? 0.92 : 0;
+        etqMap[k].material.opacity += (wantEtq - etqMap[k].material.opacity) * expo(dt, 6);
       }
     }
 
