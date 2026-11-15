@@ -36,11 +36,96 @@ const CAPITULOS = [
   { id: '07', nombre: 'Cierre', ancla: 'cap-07' },
 ];
 
-// Pasos 3D sobre la isla (Capítulos 03, 04 y 05)
+// Pasos 3D continuos sobre la isla (Capítulos 01 al 06 — 20 vistas del mapa 3D)
 const PASOS_3D = [
-  // --- CAP 03: LAS 6 LÍNEAS EN EL TERRITORIO (índices 0..5) ---
+  // --- CAP 01: EL PROBLEMA EN EL TERRITORIO (índices 0..1) ---
+  {
+    id: 'p01',
+    capId: '01',
+    grupo: '01 · El problema en el territorio',
+    pasoGrupo: '01 / 02',
+    titulo: 'Riqueza biocultural frente a vulnerabilidad hídrica, térmica y costera',
+    cam: 'problema',
+    zonas: [0.45, 0.25, 0.85],
+    rutas: { agua: 0.6, verde: 0.2, residuos: 0.7, oficios: 0.4, patrimonio: 0.5 },
+    nodosActivos: ['casco', 'escuelaR9', 'agua', 'residuos', 'sanFernando'],
+    lluvia: 0,
+    cartografia: 0.35,
+    gemelo: 0,
+    cifra: '6 brechas',
+    subCifra: 'Agua · calor escolar · residuos · oficios · erosión · estudios dispersos',
+    resumen: 'En el extremo sur de Tierra Bomba, Bocachica concentra un patrimonio vivo extraordinario junto con presiones críticas en agua potable, estrés térmico en aulas y acumulación de plástico.',
+    piloto: 'Articulación territorial alrededor del Gimnasio Cristiano de Bocachica (R9) como infraestructura pública viva.',
+    producto: 'Programa marco v0.1 integrado con la comunidad.',
+    interactivo: 'simulador4pasos',
+  },
+  {
+    id: 'p02',
+    capId: '01',
+    grupo: '01 · Principio rector en Bocachica',
+    pasoGrupo: '02 / 02',
+    titulo: 'Devolver, validar y transformar desde la escuela y el barrio',
+    cam: 'bocachica_general',
+    zonas: [0.75, 0.75, 0.75],
+    rutas: { agua: 0.8, verde: 0.8, residuos: 0.8, oficios: 0.8, patrimonio: 0.8 },
+    nodosActivos: null,
+    lluvia: 0,
+    cartografia: 0,
+    gemelo: 0,
+    cifra: '100 % retorno',
+    subCifra: 'Ningún dato se extrae sin volver traducido a la escuela y al territorio',
+    resumen: 'Supera la fragmentación de los diagnósticos académicos previos conectando universidad, colegio R9, junta comunitaria, pescadores y artesanos en una sola red operativa.',
+    piloto: 'Protocolo ético comunitario y archivo abierto instalado en el Gimnasio Cristiano de Bocachica.',
+    producto: 'Acuerdo de gobernanza local + red socioecológica.',
+    interactivo: 'redProblema',
+  },
+
+  // --- CAP 02: ANTECEDENTES R1-R9 Y MEMORIAS EN EL MAPA 3D (índices 2..3) ---
+  {
+    id: 'm01',
+    capId: '02',
+    grupo: '02 · Corpus documental R1–R9 sobre el mapa',
+    pasoGrupo: '01 / 02',
+    titulo: 'Nueve estudios previos conectados sobre el tejido real de Bocachica',
+    cam: 'memorias_r9',
+    zonas: [0.85, 0.55, 0.45],
+    rutas: { agua: 0.4, verde: 0.6, residuos: 0, oficios: 0.5, patrimonio: 0.8 },
+    nodosActivos: ['casco', 'escuelaR9', 'sanFernando', 'ribera'],
+    lluvia: 0,
+    cartografia: 0.2,
+    gemelo: 0,
+    cifra: 'Corpus R1–R9',
+    subCifra: 'Haz clic en R1–R9 abajo para explorar cada estudio sobre el mapa 3D',
+    resumen: 'Desde el plan de manejo del paisaje fortificado (R2) hasta el diseño del Gimnasio Cristiano de Bocachica (R9), los 9 estudios alimentan directamente el modelo territorial.',
+    piloto: 'Integración de los 9 antecedentes en el repositorio escolar y barrial.',
+    producto: 'P1 · Repositorio documental abierto R1–R9.',
+    interactivo: 'corpusR9',
+  },
+  {
+    id: 'm02',
+    capId: '02',
+    grupo: '02 · Seis dimensiones de la memoria biocultural',
+    pasoGrupo: '02 / 02',
+    titulo: 'La memoria del agua, los oficios, el monte y el habitar vernáculo',
+    cam: 'linea_memoria',
+    zonas: [0.95, 0.4, 0.6],
+    rutas: { agua: 0.7, verde: 0.5, residuos: 0.3, oficios: 0.8, patrimonio: 0.9 },
+    nodosActivos: ['casco', 'agua', 'vivero', 'ribera', 'sanRafael'],
+    lluvia: 0,
+    cartografia: 0,
+    gemelo: 0,
+    cifra: '6 memorias',
+    subCifra: 'Cultural · territorial · material · oficios · hídrica · ecológica',
+    resumen: 'Las viviendas vernáculas con techos a 4 aguas, patios arbolados y aljibes demuestran un saber climático acumulado que guía las intervenciones contemporáneas.',
+    piloto: 'Recorridos comentados y cartografía social con sabedores mayores y jóvenes del colegio.',
+    producto: 'P3 · Atlas vivo de memorias territoriales.',
+    interactivo: 'memorias6',
+  },
+
+  // --- CAP 03: LAS 6 LÍNEAS EN EL TERRITORIO (índices 4..9) ---
   {
     id: 'l91',
+    capId: '03',
     grupo: '03 · Línea 9.1 — Memorias y vernáculo',
     pasoGrupo: '01 / 06',
     titulo: 'Atlas de memorias y arquitectura vernácula',
@@ -51,14 +136,15 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: '6 dimensiones',
-    subCifra: 'Cultural · territorial · material · oficios · hídrica · ecológica',
+    cifra: '2.600 casas 3D',
+    subCifra: 'Tejido vernáculo real con muros encalados, aleros y cubiertas a 4 aguas',
     resumen: 'Documenta la historia barrial de Bocachica, las tipologías de vivienda vernácula caribeña (ventilación cruzada, aleros, patios sombreados) y los lugares de memoria viva.',
     piloto: 'Atlas vivo de memorias territoriales y catálogo de patrones bioclimáticos vernáculos aplicables al hábitat insular.',
     producto: 'P3 · Atlas comunitario + P9 · Exposición itinerante y señalética.',
   },
   {
     id: 'l92',
+    capId: '03',
     grupo: '03 · Línea 9.2 — Agua y memorias hídricas',
     pasoGrupo: '02 / 06',
     titulo: 'Cosecha de lluvia, aljibes y metabolismo hídrico',
@@ -77,6 +163,7 @@ const PASOS_3D = [
   },
   {
     id: 'l93',
+    capId: '03',
     grupo: '03 · Línea 9.3 — Vegetación y refugio climático',
     pasoGrupo: '03 / 06',
     titulo: 'Silvicultura comunitaria y sombra escolar',
@@ -95,6 +182,7 @@ const PASOS_3D = [
   },
   {
     id: 'l94',
+    capId: '03',
     grupo: '03 · Línea 9.4 — Residuos y plástico circular',
     pasoGrupo: '04 / 06',
     titulo: 'De residuo costero a componente constructivo',
@@ -113,6 +201,7 @@ const PASOS_3D = [
   },
   {
     id: 'l95',
+    capId: '03',
     grupo: '03 · Línea 9.5 — Carpintería de ribera y mar',
     pasoGrupo: '05 / 06',
     titulo: 'Astilleros tradicionales, pesca y saberes náuticos',
@@ -131,6 +220,7 @@ const PASOS_3D = [
   },
   {
     id: 'l96',
+    capId: '03',
     grupo: '03 · Línea 9.6 — Patrimonio y doble recorrido',
     pasoGrupo: '06 / 06',
     titulo: 'Paisaje fortificado: mirada del habitante vs. visitante',
@@ -141,16 +231,17 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: '3 fortificaciones',
+    cifra: '3 fuertes 3D',
     subCifra: 'San Fernando · San José · Batería del Ángel San Rafael',
     resumen: 'Supera la visión monumentalista aislada para integrar las fortificaciones coloniales con la vida cotidiana de Bocachica, sus ecosistemas y su memoria afrodescendiente.',
     piloto: 'Circuito pedagógico de doble lectura (recorrido formativo local + ruta interpretativa para visitantes) con estaciones bioclimáticas.',
     producto: 'P8 · Propuesta de recorrido patrimonial y guion museográfico.',
   },
 
-  // --- CAP 04: GEMELO DIGITAL PROGRESIVO (índices 6..10) ---
+  // --- CAP 04: GEMELO DIGITAL PROGRESIVO (índices 10..14) ---
   {
     id: 'g01',
+    capId: '04',
     grupo: '04 · Gemelo Digital — Nivel 1',
     pasoGrupo: 'Nivel 01 / 05',
     titulo: 'Archivo vivo comunitario georreferenciado',
@@ -169,9 +260,10 @@ const PASOS_3D = [
   },
   {
     id: 'g02',
+    capId: '04',
     grupo: '04 · Gemelo Digital — Nivel 2',
     pasoGrupo: 'Nivel 02 / 05',
-    titulo: 'Cartografía temática multicapa',
+    titulo: 'Cartografía temática multicapa sobre el relieve 3D',
     cam: 'bocachica_general',
     zonas: [0.65, 0.65, 0.65],
     rutas: { agua: 0.85, verde: 0.85, residuos: 0.6, oficios: 0.6, patrimonio: 0.85 },
@@ -187,9 +279,10 @@ const PASOS_3D = [
   },
   {
     id: 'g03',
+    capId: '04',
     grupo: '04 · Gemelo Digital — Nivel 3',
     pasoGrupo: 'Nivel 03 / 05',
-    titulo: 'Modelo 2D/3D base de Bocachica y su escuela',
+    titulo: 'Modelo 3D arquitectónico de Bocachica y su escuela',
     cam: 'linea_memoria',
     zonas: [0.45, 0.85, 0.45],
     rutas: { agua: 0.6, verde: 0.8, residuos: 0, oficios: 0, patrimonio: 0.6 },
@@ -197,17 +290,18 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0.25,
     gemelo: 0,
-    cifra: '2.600 huellas 3D',
-    subCifra: 'Morfología urbana + levantamiento arquitectónico R9',
-    resumen: 'Integra el levantamiento tridimensional del tejido edificado de la isla, el dosel arbóreo escaneado y el modelo BIM/3D detallado del Gimnasio Cristiano de Bocachica.',
+    cifra: 'Escala 1:1',
+    subCifra: '2.600 viviendas con fachada y cubierta + modelo 3D del colegio R9',
+    resumen: 'Integra el levantamiento tridimensional a escala real del tejido edificado de la isla, el dosel arbóreo y el modelo 3D detallado del Gimnasio Cristiano de Bocachica.',
     piloto: 'Maqueta digital interactiva para codiseñar intervenciones arquitectónicas y de espacio público con estudiantes y docentes.',
     producto: 'Modelo 3D base + levantamiento del nodo escolar R9.',
   },
   {
     id: 'g04',
+    capId: '04',
     grupo: '04 · Gemelo Digital — Nivel 4',
     pasoGrupo: 'Nivel 04 / 05',
-    titulo: 'Simulación de escenarios comparativos',
+    titulo: 'Simulación de escenarios comparativos en vivo',
     cam: 'escuela_r9',
     zonas: [0.2, 0.95, 0.95],
     rutas: { agua: 1, verde: 1, residuos: 0.5, oficios: 0, patrimonio: 0 },
@@ -220,12 +314,14 @@ const PASOS_3D = [
     resumen: 'Permite evaluar visual y cuantitativamente el impacto de techar con cubiertas captadoras, sembrar corredores de sombra y recolectar agua lluvia antes de construir.',
     piloto: 'Simulador de balance hídrico escolar y asoleamiento para priorizar inversiones por fases.',
     producto: 'Escenarios comparativos de inversión y confort.',
+    interactivo: 'antesDespuesR9',
   },
   {
     id: 'g05',
+    capId: '04',
     grupo: '04 · Gemelo Digital — Nivel 5',
     pasoGrupo: 'Nivel 05 / 05',
-    titulo: 'Nube de puntos y monitoreo comunitario continuo',
+    titulo: 'Nube de puntos 3D y monitoreo comunitario continuo',
     cam: 'gemelo',
     zonas: [0.8, 0.8, 0.8],
     rutas: { agua: 0.9, verde: 0.9, residuos: 0.9, oficios: 0.9, patrimonio: 0.9 },
@@ -240,13 +336,14 @@ const PASOS_3D = [
     producto: 'Sistema de monitoreo y actualización intersemestral.',
   },
 
-  // --- CAP 05: PROYECTO PILOTO R9 (GIMNASIO CRISTIANO DE BOCACHICA) (índices 11..13) ---
+  // --- CAP 05: PROYECTO PILOTO R9 (GIMNASIO CRISTIANO DE BOCACHICA) (índices 15..17) ---
   {
     id: 'r9_1',
+    capId: '05',
     grupo: '05 · Piloto R9 — Gimnasio Cristiano de Bocachica',
     pasoGrupo: '01 / 03',
     titulo: 'El colegio como corazón del Aula Ambiental (R9)',
-    cam: 'escuela_r9',
+    cam: 'escuela_cerca',
     zonas: [0.3, 0.98, 0.4],
     rutas: { agua: 0.5, verde: 1, residuos: 0.5, oficios: 0, patrimonio: 0.5 },
     nodosActivos: ['escuelaR9', 'casco', 'vivero'],
@@ -254,13 +351,15 @@ const PASOS_3D = [
     cartografia: 0,
     gemelo: 0,
     cifra: 'Nodo R9',
-    subCifra: 'Antecedente proyectual directo en el territorio (Serrano, 2026)',
+    subCifra: 'Pabellones con celosías · cancha de preescolar · ágora y vivero',
     resumen: 'El Gimnasio Cristiano de Bocachica articula espacialmente el programa: funciona como sede pedagógica, laboratorio bioclimático, punto de cosecha de agua y archivo comunitario.',
-    piloto: 'Pabellón educativo con envolvente permeable, pérgolas de sombra, vivero escolar y ágora abierta para asambleas barriales.',
+    piloto: 'Pabellón educativo con envolvente permeable, cancha múltiple sombreada, vivero escolar y ágora abierta para asambleas barriales.',
     producto: 'P5 · Proyecto arquitectónico y bioclimático del nodo escolar.',
+    interactivo: 'antesDespuesR9',
   },
   {
     id: 'r9_2',
+    capId: '05',
     grupo: '05 · Piloto R9 — Cosecha pluvial y confort',
     pasoGrupo: '02 / 03',
     titulo: 'Cubierta captadora en V, aljibe y enfriamiento pasivo',
@@ -271,17 +370,19 @@ const PASOS_3D = [
     lluvia: 1,
     cartografia: 0,
     gemelo: 0,
-    cifra: 'Agua + Sombra',
-    subCifra: 'Captación pluvial en cubierta + biofiltración y ventilación cruzada',
+    cifra: '85 % lluvia',
+    subCifra: 'Captación pluvial en cubierta en V + biofiltración hacia el aljibe',
     resumen: 'Durante las lluvias caribeñas, la cubierta actúa como un embudo que conduce el agua hacia el aljibe escolar filtrado; en época seca, su doble piel ventilada abate la carga térmica.',
     piloto: 'Módulo demostrativo de captación pluvial, filtro biológico, lavado de manos y jardín de lluvia pedagógico.',
     producto: 'Prototipo funcional agua-clima en el Gimnasio Cristiano.',
+    interactivo: 'antesDespuesR9',
   },
   {
     id: 'r9_3',
+    capId: '05',
     grupo: '05 · Piloto R9 — Red de 6 pilotos articulados',
     pasoGrupo: '03 / 03',
-    titulo: 'De la escuela al territorio: los 6 pilotos conectados',
+    titulo: 'De la escuela al territorio: los 6 pilotos conectados en el mapa',
     cam: 'bocachica_general',
     zonas: [0.9, 0.9, 0.9],
     rutas: { agua: 1, verde: 1, residuos: 1, oficios: 1, patrimonio: 1 },
@@ -294,6 +395,49 @@ const PASOS_3D = [
     resumen: 'Desde el Gimnasio Cristiano (R9), el Aula Ambiental irradia hacia el casco urbano, los aljibes históricos, el manglar, los astilleros de ribera y los fuertes del canal.',
     piloto: 'Red territorial de micro-intervenciones señalizadas y conectadas mediante corredores sombreados y rutas pedagógicas.',
     producto: 'Programa marco articulado a 24 meses (F1–F6).',
+    interactivo: 'plano2D',
+  },
+
+  // --- CAP 06: HOJA DE RUTA DE 24 MESES Y RED DE 15 ACTORES SOBRE EL MAPA 3D (índices 18..19) ---
+  {
+    id: 'hr_1',
+    capId: '06',
+    grupo: '06 · Hoja de ruta de 24 meses en el mapa 3D',
+    pasoGrupo: '01 / 02',
+    titulo: 'Cuatro semestres continuos (F0–F6) y 9 productos en el territorio',
+    cam: 'hoja_ruta',
+    zonas: [0.75, 0.85, 0.75],
+    rutas: { agua: 0.9, verde: 0.9, residuos: 0.7, oficios: 0.7, patrimonio: 0.9 },
+    nodosActivos: null,
+    lluvia: 0,
+    cartografia: 0.15,
+    gemelo: 0,
+    cifra: '24 meses',
+    subCifra: 'Desliza el control de meses abajo para ver avanzar las fases en el mapa',
+    resumen: 'El programa supera la discontinuidad semestral mediante 6 fases progresivas (F0 a F6) donde cada cohorte estudiantil entrega insumos verificables a la siguiente.',
+    piloto: 'Calendario intersemestral con puntos de control ético obligatorios ante la Mesa Comunitaria Local.',
+    producto: '9 productos verificables (P1–P9) instalados en Bocachica.',
+    interactivo: 'cronograma24m',
+  },
+  {
+    id: 'hr_2',
+    capId: '06',
+    grupo: '06 · Gobernanza y 15 actores en red',
+    pasoGrupo: '02 / 02',
+    titulo: 'Comunidad, colegio R9, Javeriana y aliados co-gobernando el Aula',
+    cam: 'isla',
+    zonas: [0.85, 0.85, 0.85],
+    rutas: { agua: 1, verde: 1, residuos: 1, oficios: 1, patrimonio: 1 },
+    nodosActivos: null,
+    lluvia: 0,
+    cartografia: 0.35,
+    gemelo: 0,
+    cifra: '15 actores',
+    subCifra: 'Mesa Comunitaria + Gimnasio Cristiano R9 + 5 Facultades PUJ + Aliados',
+    resumen: 'La toma de decisiones se organiza en tres instancias: Mesa Comunitaria Local en Bocachica, Comité Coordinador en el nodo R9 y Red de Aliados Técnicos e Internacionales.',
+    piloto: 'Protocolo de consentimiento previo, coautoría comunitaria y custodia compartida del Gemelo Digital.',
+    producto: 'Modelo de gobernanza replicable en el Caribe insular.',
+    interactivo: 'actores15',
   },
 ];
 
@@ -1135,7 +1279,7 @@ function SeccionMemoriasYBase() {
   const PESOS_DIM = [92, 88, 85, 84, 96, 94];
 
   return (
-    <section id="cap-02" className="relative z-10 bg-black px-6 md:px-16 py-24 md:py-32">
+    <div className="relative z-10 py-2">
       <div className="max-w-6xl mx-auto">
         <div className="max-w-3xl">
           <div className="tc-etiqueta">02 · Antecedentes, memorias y ciclo metodológico</div>
@@ -1376,7 +1520,7 @@ function SeccionMemoriasYBase() {
           </div>
         </BloqueVisual>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -1509,7 +1653,7 @@ function SeccionEsquemaAula() {
   ];
 
   return (
-    <section className="relative z-10 bg-black px-6 md:px-16 py-24 md:py-28">
+    <div className="relative z-10 py-2">
       <div className="max-w-6xl mx-auto">
         <div className="max-w-3xl">
           <div className="tc-etiqueta">05 · Esquema en planta y proyectos piloto</div>
@@ -1563,7 +1707,7 @@ function SeccionEsquemaAula() {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -1584,7 +1728,7 @@ function SeccionHojaDeRutaYGobernanza() {
   }) || FASES_24_MESES[1];
 
   return (
-    <section id="cap-06" className="relative z-10 bg-black px-6 md:px-16 py-24 md:py-32">
+    <div className="relative z-10 py-2">
       <div className="max-w-6xl mx-auto">
         <div className="max-w-3xl">
           <div className="tc-etiqueta">06 · Hoja de ruta a 24 meses, productos y gobernanza</div>
@@ -1773,7 +1917,7 @@ function SeccionHojaDeRutaYGobernanza() {
           </div>
         </BloqueVisual>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -1852,10 +1996,17 @@ export default function AulaAmbientalBocachica({
   const [panelOculto, setPanelOculto] = useState(false);
   const [animPausada, setAnimPausada] = useState(false);
   const [tour3DActivo, setTour3DActivo] = useState(false);
+  const [modalDiagrama, setModalDiagrama] = useState(null); // null | 'simulador4pasos' | 'redProblema' | 'memorias' | 'plano2D' | 'hojaRuta'
+  const [docHudSel, setDocHudSel] = useState(ANTECEDENTES_CORPUS[8]); // R9 por defecto en HUD
+  const [conProyectoHud, setConProyectoHud] = useState(true);
+  const [mesHud, setMesHud] = useState(6);
 
+  const secProblemaRef = useRef(null);
+  const secMemoriasRef = useRef(null);
   const secLineasRef = useRef(null);
   const secGemeloRef = useRef(null);
   const secPilotoR9Ref = useRef(null);
+  const secHojaRutaRef = useRef(null);
 
   // Inicializar escena 3D
   useEffect(() => {
@@ -1878,7 +2029,7 @@ export default function AulaAmbientalBocachica({
     };
   }, []);
 
-  // Control de cámara y pasos por scroll
+  // Control de cámara y pasos por scroll (El mapa 3D es protagonista en todos los capítulos 00..06)
   useEffect(() => {
     let raf = 0;
     const evaluarScroll = () => {
@@ -1899,14 +2050,20 @@ export default function AulaAmbientalBocachica({
       }
       setCapActual(cap);
 
-      // Evaluar si estamos dentro de alguno de los 3 tramos de scrollytelling 3D:
-      // Tramo A: secLineasRef (pasos 0..5, 6 pasos)
-      // Tramo B: secGemeloRef (pasos 6..10, 5 pasos)
-      // Tramo C: secPilotoR9Ref (pasos 11..13, 3 pasos)
+      // Evaluar en cuál de los 6 tramos continuos del mapa 3D estamos (20 pasos 3D en total):
+      // Cap 01 (El problema): pasos 0..1 (2 pasos)
+      // Cap 02 (Memorias y R1-R9): pasos 2..3 (2 pasos)
+      // Cap 03 (Seis líneas 3D): pasos 4..9 (6 pasos)
+      // Cap 04 (Gemelo 3D): pasos 10..14 (5 pasos)
+      // Cap 05 (Piloto R9): pasos 15..17 (3 pasos)
+      // Cap 06 (Hoja de ruta y actores): pasos 18..19 (2 pasos)
       const tramos = [
-        { ref: secLineasRef, offset: 0, count: 6 },
-        { ref: secGemeloRef, offset: 6, count: 5 },
-        { ref: secPilotoR9Ref, offset: 11, count: 3 },
+        { ref: secProblemaRef, offset: 0, count: 2 },
+        { ref: secMemoriasRef, offset: 2, count: 2 },
+        { ref: secLineasRef, offset: 4, count: 6 },
+        { ref: secGemeloRef, offset: 10, count: 5 },
+        { ref: secPilotoR9Ref, offset: 15, count: 3 },
+        { ref: secHojaRutaRef, offset: 18, count: 2 },
       ];
 
       let hallado = null;
@@ -1914,7 +2071,7 @@ export default function AulaAmbientalBocachica({
         const el = tr.ref.current;
         if (!el) continue;
         const r = el.getBoundingClientRect();
-        if (r.top <= vh * 0.45 && r.bottom >= vh * 0.55) {
+        if (r.top <= vh * 0.48 && r.bottom >= vh * 0.52) {
           const pasoPx = (ALTO_PASO / 100) * vh;
           const raw = Math.max(0, -r.top / pasoPx);
           const localIdx = Math.min(tr.count - 1, Math.floor(raw));
@@ -1943,22 +2100,25 @@ export default function AulaAmbientalBocachica({
         });
       } else {
         setEnPasos3D(false);
-        setLibre(false);
         if (cap.id === '00') {
           escena?.set({
             cam: 'hero',
             dim: 0,
             zonas: [0.45, 0.45, 0.45],
-            rutas: { agua: 0.3, verde: 0.3, residuos: 0, oficios: 0, patrimonio: 0.4 },
+            rutas: { agua: 0.35, verde: 0.35, residuos: 0, oficios: 0, patrimonio: 0.45 },
             nodosActivos: ['casco', 'escuelaR9', 'sanFernando'],
             lluvia: 0,
             cartografia: 0,
             gemelo: 0,
           });
         } else {
+          // Capítulo 07 (Cierre): el mapa 3D sigue visible de fondo con iluminación suave
           escena?.set({
-            cam: 'problema',
-            dim: 0.72,
+            cam: 'bocachica_general',
+            dim: 0.22,
+            zonas: [0.7, 0.7, 0.7],
+            rutas: { agua: 0.7, verde: 0.7, residuos: 0.5, oficios: 0.5, patrimonio: 0.7 },
+            nodosActivos: null,
             lluvia: 0,
             gemelo: 0,
           });
@@ -2016,6 +2176,7 @@ export default function AulaAmbientalBocachica({
   }, [escena, libre]);
 
   const irACapitulo = (ancla) => {
+    setModalDiagrama(null);
     const el = document.getElementById(ancla);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
@@ -2023,15 +2184,17 @@ export default function AulaAmbientalBocachica({
   const irAPaso3D = (idx) => {
     const vh = window.innerHeight || 1;
     const pasoPx = (ALTO_PASO / 100) * vh;
-    let targetEl = secLineasRef.current;
-    let localIdx = idx;
-    if (idx >= 11) {
-      targetEl = secPilotoR9Ref.current;
-      localIdx = idx - 11;
-    } else if (idx >= 6) {
-      targetEl = secGemeloRef.current;
-      localIdx = idx - 6;
-    }
+    const tramos = [
+      { ref: secProblemaRef, offset: 0, count: 2 },
+      { ref: secMemoriasRef, offset: 2, count: 2 },
+      { ref: secLineasRef, offset: 4, count: 6 },
+      { ref: secGemeloRef, offset: 10, count: 5 },
+      { ref: secPilotoR9Ref, offset: 15, count: 3 },
+      { ref: secHojaRutaRef, offset: 18, count: 2 },
+    ];
+    const tr = tramos.find((t) => idx >= t.offset && idx < t.offset + t.count) || tramos[0];
+    const targetEl = tr.ref.current;
+    const localIdx = idx - tr.offset;
     if (!targetEl) return;
     const topDoc = targetEl.getBoundingClientRect().top + window.scrollY;
     window.scrollTo({ top: topDoc + localIdx * pasoPx + 12, behavior: 'smooth' });
@@ -2048,6 +2211,12 @@ export default function AulaAmbientalBocachica({
   }, [tour3DActivo, animPausada, enPasos3D, pasoIdx]);
 
   const pasoActual = PASOS_3D[pasoIdx] || PASOS_3D[0];
+  const faseHudActual = FASES_24_MESES.find((f) => {
+    if (f.id === 'F0') return mesHud === 0;
+    const mMatch = f.meses.match(/(\d+)\D+(\d+)/);
+    if (!mMatch) return false;
+    return mesHud >= Number(mMatch[1]) && mesHud <= Number(mMatch[2]);
+  }) || FASES_24_MESES[1];
 
   return (
     <div
@@ -2061,12 +2230,12 @@ export default function AulaAmbientalBocachica({
           <div className="h-full w-full bg-gradient-to-r from-[#e0917a] via-[#35d08a] to-[#6ec6e6] tc-barra-lectura" />
         </div>
       )}
-      {/* ESCENA 3D FIJA A PANTALLA COMPLETA (Idéntica a App.jsx en tesis_tercer_corte) */}
+      {/* ESCENA 3D FIJA A PANTALLA COMPLETA (Visible en todo el recorrido) */}
       <div
         ref={mount3DRef}
         className={`fixed inset-0 z-0 transition-opacity duration-500 ${
           enVistaAula ? 'opacity-100' : 'opacity-0'
-        } ${libre && enPasos3D ? 'pointer-events-auto cursor-grab active:cursor-grabbing' : 'pointer-events-none'}`}
+        } ${libre ? 'pointer-events-auto cursor-grab active:cursor-grabbing' : 'pointer-events-none'}`}
       />
 
       {/* INDICADOR DE CARGA */}
@@ -2082,7 +2251,7 @@ export default function AulaAmbientalBocachica({
         </div>
       )}
 
-      {/* CABECERA FLOTANTE (Idéntica a Cabecera en Relato.jsx) */}
+      {/* CABECERA FLOTANTE */}
       {enVistaAula && (
       <header className="fixed top-4 inset-x-0 z-30 px-4 md:px-8 flex items-center justify-between gap-2 pointer-events-none">
         <div className="tc-vidrio px-3.5 py-2 flex items-center gap-2.5 pointer-events-auto">
@@ -2134,23 +2303,26 @@ export default function AulaAmbientalBocachica({
       </header>
       )}
 
-      {/* CONTROLES DE MAPA 3D + ÍNDICE LATERAL + PANEL FLOTANTE .tc-vidrio EN CAPÍTULOS 3D */}
+      {/* CONTROLES DE MAPA 3D SIEMPRE DISPONIBLES + ÍNDICE LATERAL + PANEL FLOTANTE COMPACTO .tc-vidrio */}
+      {enVistaAula && (
+        <ControlesVista
+          libre={libre}
+          onToggleLibre={() => setLibre((v) => !v)}
+          oculto={panelOculto}
+          onToggleOculto={() => setPanelOculto((v) => !v)}
+          onZoom={(f) => escena?.vista.zoom(f)}
+          onReset={() => escena?.vista.reset()}
+        />
+      )}
+
       {enPasos3D && (
         <>
-          <ControlesVista
-            libre={libre}
-            onToggleLibre={() => setLibre((v) => !v)}
-            oculto={panelOculto}
-            onToggleOculto={() => setPanelOculto((v) => !v)}
-            onZoom={(f) => escena?.vista.zoom(f)}
-            onReset={() => escena?.vista.reset()}
-          />
           <IndiceLateral total={PASOS_3D.length} activo={pasoIdx} onIr={irAPaso3D} />
 
           {!panelOculto && (
             <aside
               key={pasoActual.id}
-              className="fixed z-20 bottom-4 inset-x-4 md:inset-x-auto md:bottom-6 md:left-8 md:w-[26.5rem] tc-vidrio p-5 pointer-events-auto tc-hud-enter tc-paso-anim"
+              className="fixed z-20 bottom-4 inset-x-4 md:inset-x-auto md:bottom-6 md:left-8 md:w-[26.5rem] tc-vidrio p-4 md:p-5 pointer-events-auto tc-hud-enter tc-paso-anim"
             >
               <div className="flex items-center justify-between text-xs text-white/60">
                 <span className="tc-etiqueta !text-[#e0917a]">{pasoActual.grupo}</span>
@@ -2170,21 +2342,99 @@ export default function AulaAmbientalBocachica({
                 </div>
               </div>
 
-              <h3 className="text-xl font-semibold text-white mt-1.5 leading-snug">
+              <h3 className="text-lg md:text-xl font-semibold text-white mt-1 leading-snug">
                 {pasoActual.titulo}
               </h3>
 
-              <div className="mt-3 pt-3 tc-regla flex items-baseline justify-between gap-3">
-                <div className="tc-num text-3xl md:text-4xl font-semibold text-white">
+              <div className="mt-2.5 pt-2.5 tc-regla flex items-baseline justify-between gap-3">
+                <div className="tc-num text-2xl md:text-3xl font-semibold text-white">
                   {pasoActual.cifra}
                 </div>
-                <div className="text-[11px] text-white/65 text-right leading-tight max-w-[11rem]">
+                <div className="text-[11px] text-white/65 text-right leading-tight max-w-[11.5rem]">
                   {pasoActual.subCifra}
                 </div>
               </div>
 
+              {/* MINI-CONTROLES INTERACTIVOS EN EL MAPA 3D SEGÚN EL CAPÍTULO */}
+              {pasoActual.interactivo === 'corpusR9' && (
+                <div className="mt-2.5 pt-2.5 tc-regla">
+                  <div className="flex flex-wrap gap-1">
+                    {ANTECEDENTES_CORPUS.map((d) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => setDocHudSel(d)}
+                        className={`px-2 py-0.5 rounded text-[10px] font-mono border transition ${
+                          docHudSel.id === d.id
+                            ? 'bg-[#e0917a]/25 border-[#e0917a] text-white'
+                            : 'border-white/15 text-white/65 hover:text-white'
+                        }`}
+                      >
+                        {d.id}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-1.5 text-[11px] text-white/85 leading-snug">
+                    <strong className="text-[#e0917a]">{docHudSel.id} ({docHudSel.anio}):</strong> {docHudSel.titulo}
+                  </div>
+                </div>
+              )}
+
+              {pasoActual.interactivo === 'antesDespuesR9' && (
+                <div className="mt-2.5 pt-2.5 tc-regla flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConProyectoHud(false);
+                      escena?.set({ lluvia: 0, zonas: [0.2, 0.1, 0.1], rutas: { agua: 0, verde: 0, residuos: 0, oficios: 0, patrimonio: 0 } });
+                    }}
+                    className={`tc-ficha flex-1 text-center ${!conProyectoHud ? 'tc-ficha-activa !border-[#e0917a]' : ''}`}
+                  >
+                    ☀ Hoy: 36,0 °C (18% sombra)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConProyectoHud(true);
+                      escena?.set({ lluvia: 1, zonas: [0.2, 0.98, 0.98], rutas: { agua: 1, verde: 1, residuos: 0.4, oficios: 0, patrimonio: 0 } });
+                    }}
+                    className={`tc-ficha flex-1 text-center ${conProyectoHud ? 'tc-ficha-activa !border-[#35d08a]' : ''}`}
+                  >
+                    🌳 Con Piloto R9: 31,5 °C
+                  </button>
+                </div>
+              )}
+
+              {pasoActual.interactivo === 'cronograma24m' && (
+                <div className="mt-2.5 pt-2.5 tc-regla">
+                  <div className="flex items-center justify-between text-[11px] mb-1">
+                    <span className="font-mono text-[#e0917a]">{faseHudActual.id} · {faseHudActual.nombre}</span>
+                    <span className="tc-num text-white font-semibold">Mes {mesHud}/24</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={24}
+                    step={1}
+                    value={mesHud}
+                    onChange={(e) => {
+                      const m = Number(e.target.value);
+                      setMesHud(m);
+                      const k = m / 24;
+                      escena?.set({
+                        zonas: [0.35 + k * 0.6, 0.35 + k * 0.6, 0.35 + k * 0.6],
+                        rutas: { agua: k, verde: k, residuos: k * 0.9, oficios: k * 0.9, patrimonio: k },
+                        lluvia: m >= 9 ? 0.55 : 0,
+                      });
+                    }}
+                    className="tc-slider"
+                    aria-label="Mes del programa en el mapa 3D"
+                  />
+                </div>
+              )}
+
               {/* Pestañas interactivas dentro de la tarjeta flotante */}
-              <div className="flex gap-1.5 mt-3 pt-3 tc-regla">
+              <div className="flex gap-1.5 mt-2.5 pt-2.5 tc-regla">
                 {[
                   { id: 'resumen', label: 'Diagnóstico' },
                   { id: 'piloto', label: 'Piloto en Bocachica' },
@@ -2201,14 +2451,54 @@ export default function AulaAmbientalBocachica({
                 ))}
               </div>
 
-              <p className="text-xs text-white/85 mt-3 leading-relaxed min-h-[3.6rem]">
+              <p className="text-xs text-white/85 mt-2.5 leading-relaxed">
                 {lentePaso === 'resumen' && pasoActual.resumen}
                 {lentePaso === 'piloto' && pasoActual.piloto}
                 {lentePaso === 'producto' && pasoActual.producto}
               </p>
 
+              {/* Botón opcional para abrir diagramas 2D interactivos sin tapar el mapa por defecto */}
+              <div className="mt-2.5 pt-2 tc-regla flex flex-wrap items-center justify-between gap-2">
+                {pasoActual.capId === '01' && (
+                  <button
+                    type="button"
+                    onClick={() => setModalDiagrama(pasoActual.id === 'p01' ? 'simulador4pasos' : 'redProblema')}
+                    className="tc-ficha !border-[#e0917a]/60 !text-[#f4f1ec]"
+                  >
+                    ✦ Abrir {pasoActual.id === 'p01' ? 'simulador animado (4 pasos)' : 'red interactiva de nodos'}
+                  </button>
+                )}
+                {pasoActual.capId === '02' && (
+                  <button
+                    type="button"
+                    onClick={() => setModalDiagrama('memorias')}
+                    className="tc-ficha !border-[#6ec6e6]/60 !text-[#f4f1ec]"
+                  >
+                    ✦ Ver diagramas R1–R9 y ciclo metodológico
+                  </button>
+                )}
+                {(pasoActual.capId === '05' || pasoActual.id === 'g04') && (
+                  <button
+                    type="button"
+                    onClick={() => setModalDiagrama('plano2D')}
+                    className="tc-ficha !border-[#35d08a]/60 !text-[#f4f1ec]"
+                  >
+                    ✦ Abrir plano esquemático 2D y comparador R9
+                  </button>
+                )}
+                {pasoActual.capId === '06' && (
+                  <button
+                    type="button"
+                    onClick={() => setModalDiagrama('hojaRuta')}
+                    className="tc-ficha !border-[#f5b45a]/60 !text-[#f4f1ec]"
+                  >
+                    ✦ Abrir constelación de 15 actores y productos P1–P9
+                  </button>
+                )}
+              </div>
+
               {/* Controles rápidos de navegación de pasos y progreso */}
-              <div className="mt-3 pt-2.5 tc-regla flex items-center justify-between text-xs text-white/65">
+              <div className="mt-2.5 pt-2 tc-regla flex items-center justify-between text-xs text-white/65">
                 <button
                   type="button"
                   disabled={pasoIdx === 0}
@@ -2217,7 +2507,7 @@ export default function AulaAmbientalBocachica({
                 >
                   ← Anterior
                 </button>
-                <span className="tc-num text-[11px]">Paso 3D {pasoIdx + 1} / {PASOS_3D.length}</span>
+                <span className="tc-num text-[11px]">Vista 3D {pasoIdx + 1} / {PASOS_3D.length}</span>
                 <button
                   type="button"
                   disabled={pasoIdx === PASOS_3D.length - 1}
@@ -2235,11 +2525,34 @@ export default function AulaAmbientalBocachica({
         </>
       )}
 
+      {/* MODAL DE VIDRIO TRANSLÚCIDO SOBRE EL MAPA 3D (Cuando el usuario quiere ver un diagrama 2D en detalle) */}
+      {modalDiagrama && (
+        <div className="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 md:p-10 overflow-y-auto">
+          <div className="relative w-full max-w-6xl max-h-[88svh] overflow-y-auto tc-vidrio p-5 md:p-8 tc-paso-anim">
+            <div className="sticky top-0 z-10 flex items-center justify-between pb-3 mb-4 border-b border-white/15 bg-[#070a0e]/85 backdrop-blur-md px-2 py-1.5 rounded">
+              <span className="tc-etiqueta !text-[#e0917a]">Vista gráfica interactiva sobre el mapa 3D de Bocachica</span>
+              <button
+                type="button"
+                onClick={() => setModalDiagrama(null)}
+                className="tc-ficha tc-ficha-activa !border-[#e0917a] !text-white"
+              >
+                ✕ Volver al mapa 3D limpio
+              </button>
+            </div>
+            {modalDiagrama === 'simulador4pasos' && <SimuladorAulaEn4Pasos animPausada={animPausada} />}
+            {modalDiagrama === 'redProblema' && <RedProblemaAula />}
+            {modalDiagrama === 'memorias' && <SeccionMemoriasYBase />}
+            {modalDiagrama === 'plano2D' && <SeccionEsquemaAula />}
+            {modalDiagrama === 'hojaRuta' && <SeccionHojaDeRutaYGobernanza />}
+          </div>
+        </div>
+      )}
+
       {/* =====================================================================
           00 · PORTADA A PANTALLA COMPLETA SOBRE LA ISLA 3D
       ===================================================================== */}
       <section id="cap-00" className="relative z-10 h-[100svh] flex items-end px-6 md:px-16 pb-12 md:pb-16 pointer-events-none">
-        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/35 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
         <div className="relative w-full grid md:grid-cols-12 gap-6 items-end pointer-events-auto">
           <div className="md:col-span-8">
             <div className="tc-etiqueta mb-3">
@@ -2252,65 +2565,37 @@ export default function AulaAmbientalBocachica({
           </div>
           <div className="md:col-span-4 md:pb-2 text-white/85">
             <p className="text-base md:text-lg leading-snug">
-              Memorias territoriales, planificación y diseño sostenible en Bocachica: seis líneas de investigación, seis pilotos y un gemelo digital progresivo.
+              Memorias territoriales, planificación y diseño sostenible en Bocachica: seis líneas de investigación, seis pilotos y un gemelo digital 3D.
             </p>
             <div className="mt-5 pt-4 tc-regla flex items-center justify-between text-xs text-white/65">
               <span>Arq. Alejandro Serrano Sierra · PUJ</span>
-              <span className="animate-pulse text-[#e0917a]">Desplázate ↓</span>
+              <span className="animate-pulse text-[#e0917a]">Desplázate por el mapa 3D ↓</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* =====================================================================
-          01 · EL PROBLEMA (ScrollWords + Red Conceptual Progresiva)
+          01 · EL PROBLEMA EN EL MAPA 3D (Scrollytelling 3D: 2 pasos × 95svh)
       ===================================================================== */}
-      <section id="cap-01" className="relative z-10">
-        <div className="min-h-[130svh] flex items-center px-6 md:px-16 py-28 bg-black/50">
-          <div className="max-w-5xl mx-auto">
-            <div className="tc-etiqueta mb-6">01 · El problema y la pregunta central</div>
-            <ScrollWords
-              text="En Bocachica convergen una riqueza histórica, cultural y ecológica extraordinaria con vulnerabilidades críticas en agua, confort térmico escolar, residuos, erosión costera y fragilidad de los oficios del mar — mientras los estudios académicos previos permanecían dispersos y sin retorno a la comunidad."
-              className="text-3xl md:text-5xl font-semibold leading-[1.12] tracking-[-0.025em]"
-            />
-            <div className="mt-10 pt-6 tc-regla grid sm:grid-cols-2 gap-6 text-sm text-white/80 max-w-3xl">
-              <div>
-                <div className="tc-etiqueta !text-[#e0917a] mb-1">La pregunta orientadora</div>
-                ¿Cómo articular las memorias territoriales, los saberes locales y las capacidades interdisciplinarias de la Javeriana y sus aliados para co-diseñar en Bocachica un Aula Ambiental viva que mejore el hábitat y fortalezca la gobernanza local?
-              </div>
-              <div>
-                <div className="tc-etiqueta !text-[#35d08a] mb-1">El principio rector</div>
-                <strong className="text-white">Devolver, validar y transformar:</strong> ningún dato se levanta en Bocachica sin regresar traducido en cartografía abierta, material pedagógico para la escuela (<span className="tc-num text-white">R9</span>) y pilotos demostrativos.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="px-6 md:px-16 py-24 md:py-32 bg-black/90 backdrop-blur-sm">
-          <div className="max-w-6xl mx-auto space-y-16">
-            {/* NUEVO: Explicación animada en 4 pasos fáciles de entender */}
-            <SimuladorAulaEn4Pasos animPausada={animPausada} />
-
-            <div>
-              <div className="max-w-2xl mb-10">
-                <div className="tc-etiqueta">Red interactiva de problemas y soluciones en Bocachica</div>
-                <h2 className="text-3xl md:text-4xl font-semibold mt-2 leading-tight text-white">
-                  Un sistema socioecológico donde memoria, agua, escuela y oficios son inseparables.
-                </h2>
-                <p className="text-white/70 text-sm mt-3">
-                  Recorre la red paso a paso con el botón <span className="text-white font-medium">Revelar siguiente relación</span> o haz clic en cada nodo para ver cómo el Aula Ambiental articula las brechas del territorio.
-                </p>
-              </div>
-              <RedProblemaAula />
-            </div>
-          </div>
-        </div>
-      </section>
+      <section
+        id="cap-01"
+        ref={secProblemaRef}
+        style={{ height: `${2 * ALTO_PASO}svh` }}
+        className="relative z-10 pointer-events-none"
+        aria-label="Recorrido 3D por el problema territorial de Bocachica"
+      />
 
       {/* =====================================================================
-          02 · LO QUE DICEN LOS ANTECEDENTES (R1-R9) Y LAS MEMORIAS
+          02 · MEMORIAS Y ANTECEDENTES R1–R9 EN EL MAPA 3D (Scrollytelling 3D: 2 pasos × 95svh)
       ===================================================================== */}
-      <SeccionMemoriasYBase />
+      <section
+        id="cap-02"
+        ref={secMemoriasRef}
+        style={{ height: `${2 * ALTO_PASO}svh` }}
+        className="relative z-10 pointer-events-none"
+        aria-label="Recorrido 3D por los antecedentes R1 a R9 y las memorias de Bocachica"
+      />
 
       {/* =====================================================================
           03 · LAS 6 LÍNEAS EN EL TERRITORIO (Scrollytelling 3D: 6 pasos × 95svh)
@@ -2335,7 +2620,7 @@ export default function AulaAmbientalBocachica({
       />
 
       {/* =====================================================================
-          05 · PROYECTO PILOTO R9 EN 3D (3 pasos × 95svh) + ESQUEMA EN PLANTA
+          05 · PROYECTO PILOTO R9 EN 3D (Scrollytelling 3D: 3 pasos × 95svh)
       ===================================================================== */}
       <section
         id="cap-05"
@@ -2344,17 +2629,22 @@ export default function AulaAmbientalBocachica({
         className="relative z-10 pointer-events-none"
         aria-label="Recorrido 3D por el Gimnasio Cristiano de Bocachica R9"
       />
-      <SeccionEsquemaAula />
 
       {/* =====================================================================
-          06 · HOJA DE RUTA DE 24 MESES Y RED DE 15 ACTORES
+          06 · HOJA DE RUTA DE 24 MESES Y RED DE 15 ACTORES EN EL MAPA 3D (2 pasos × 95svh)
       ===================================================================== */}
-      <SeccionHojaDeRutaYGobernanza />
+      <section
+        id="cap-06"
+        ref={secHojaRutaRef}
+        style={{ height: `${2 * ALTO_PASO}svh` }}
+        className="relative z-10 pointer-events-none"
+        aria-label="Recorrido 3D por la hoja de ruta de 24 meses y red de 15 actores"
+      />
 
       {/* =====================================================================
-          07 · CIERRE (Idéntico a Cierre en Relato.jsx)
+          07 · CIERRE COMPACTO CON EL MAPA 3D VISIBLE DE FONDO
       ===================================================================== */}
-      <footer id="cap-07" className="relative z-10 bg-[#05080b] px-6 md:px-16 py-24 md:py-32">
+      <footer id="cap-07" className="relative z-10 bg-black/55 backdrop-blur-md px-6 md:px-16 py-20 md:py-24 border-t border-white/10">
         <div className="max-w-5xl mx-auto">
           <div className="tc-etiqueta">07 · Síntesis ejecutiva</div>
           <h2 className="text-3xl md:text-5xl font-semibold mt-2 leading-tight max-w-3xl text-white">

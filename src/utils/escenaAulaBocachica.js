@@ -529,8 +529,109 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   }
   const treesGroup = instanceTrees(especies, treeBase, 55, false);
 
-  // ---------- construcciones reales (2.600 huellas) ----------
-  onProgreso(0.90, 'Levantando las 2.600 construcciones y el nodo escolar R9');
+  // ---------- construcciones reales (2.600 viviendas vernáculas caribeñas con muros + cubiertas a 4 aguas) ----------
+  onProgreso(0.90, 'Levantando las 2.600 viviendas caribeñas, fuertes históricos y el nodo escolar R9');
+
+  // Textura procedural de fachada arquitectónica (mampostería/madera, zócalo, ventanas con marco y puerta)
+  const crearTexturaFachada = () => {
+    const c = document.createElement('canvas');
+    c.width = 256;
+    c.height = 128;
+    const g = c.getContext('2d');
+    // Fondo de muro encalado con ligera variación de revoque
+    g.fillStyle = '#f6f2eb';
+    g.fillRect(0, 0, 256, 128);
+    for (let y = 0; y < 128; y += 4) {
+      g.fillStyle = y % 8 === 0 ? 'rgba(0,0,0,0.025)' : 'rgba(255,255,255,0.03)';
+      g.fillRect(0, y, 256, 2);
+    }
+    // Sombra bajo el alero superior
+    const gradTop = g.createLinearGradient(0, 0, 0, 22);
+    gradTop.addColorStop(0, 'rgba(20,15,10,0.38)');
+    gradTop.addColorStop(1, 'rgba(20,15,10,0.0)');
+    g.fillStyle = gradTop;
+    g.fillRect(0, 0, 256, 22);
+    // Zócalo inferior de concreto/piedra coralina
+    g.fillStyle = 'rgba(75,62,52,0.28)';
+    g.fillRect(0, 102, 256, 26);
+    g.fillStyle = 'rgba(40,32,26,0.35)';
+    g.fillRect(0, 100, 256, 3);
+
+    // Función para dibujar ventana con calado/postigos caribeños
+    const ventana = (x, y, w, h) => {
+      g.fillStyle = 'rgba(255,255,255,0.88)';
+      g.fillRect(x - 3, y - 3, w + 6, h + 6);
+      g.fillStyle = '#24323d';
+      g.fillRect(x, y, w, h);
+      // Postigos / persianas de madera
+      g.fillStyle = 'rgba(255,255,255,0.65)';
+      g.fillRect(x + w * 0.48, y, 2, h);
+      g.fillRect(x, y + h * 0.46, w, 2);
+      // Alféizar con sombra
+      g.fillStyle = 'rgba(30,24,20,0.35)';
+      g.fillRect(x - 4, y + h + 3, w + 8, 3);
+    };
+
+    ventana(26, 36, 36, 42);
+    ventana(194, 36, 36, 42);
+    ventana(82, 38, 28, 36);
+
+    // Puerta de madera vernácula con calado superior (ventilación cruzada)
+    const px = 128;
+    const py = 34;
+    const pw = 34;
+    const ph = 92;
+    g.fillStyle = 'rgba(255,255,255,0.85)';
+    g.fillRect(px - 3, py - 3, pw + 6, ph + 3);
+    g.fillStyle = '#5c3c28';
+    g.fillRect(px, py + 16, pw, ph - 16);
+    // Calado superior de ventilación sobre la puerta
+    g.fillStyle = '#1e2933';
+    g.fillRect(px + 2, py + 2, pw - 4, 11);
+    g.fillStyle = 'rgba(255,255,255,0.55)';
+    for (let lx = px + 6; lx < px + pw - 4; lx += 6) {
+      g.fillRect(lx, py + 2, 2, 11);
+    }
+    // Tableros de la puerta
+    g.strokeStyle = 'rgba(30,18,10,0.45)';
+    g.lineWidth = 2;
+    g.strokeRect(px + 5, py + 22, pw - 10, 30);
+    g.strokeRect(px + 5, py + 58, pw - 10, 28);
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.needsUpdate = true;
+    return tex;
+  };
+
+  // Textura procedural de cubierta (nervaduras de teja/zinc acanalado y cumbrera)
+  const crearTexturaTecho = () => {
+    const c = document.createElement('canvas');
+    c.width = 128;
+    c.height = 128;
+    const g = c.getContext('2d');
+    g.fillStyle = '#d8d2cb';
+    g.fillRect(0, 0, 128, 128);
+    for (let x = 0; x < 128; x += 6) {
+      g.fillStyle = x % 12 === 0 ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.08)';
+      g.fillRect(x, 0, 3, 128);
+    }
+    for (let y = 0; y < 128; y += 16) {
+      g.fillStyle = 'rgba(0,0,0,0.09)';
+      g.fillRect(0, y, 128, 2);
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.needsUpdate = true;
+    return tex;
+  };
+
+  const fachadaTex = crearTexturaFachada();
+  const techoTex = crearTexturaTecho();
+
   const houses = [];
   for (const [, refH, ring] of construcciones.buildings) {
     let cx = 0;
@@ -550,51 +651,123 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       minA = Math.min(minA, a); maxA = Math.max(maxA, a); minB = Math.min(minB, b); maxB = Math.max(maxB, b);
     }
     if (distAt(cx, cy) < 0) continue;
+    // Dejamos libre el predio del Gimnasio Cristiano R9 para que su modelo 3D detallado luzca limpio
+    if (Math.hypot(cx - nodosXZ.escuelaR9.x, cy - nodosXZ.escuelaR9.z) < 42) continue;
     const distBoca = Math.hypot(cx - bx, cy - bz);
+    const wReal = THREE.MathUtils.clamp(maxA - minA, 4.2, 22);
+    const dReal = THREE.MathUtils.clamp(maxB - minB, 4.2, 22);
+    const hReal = THREE.MathUtils.clamp(refH || 3.8, 3.2, 7.2);
     houses.push({
-      x: cx, z: cy, ang,
-      w: Math.max(3, maxA - minA),
-      d: Math.max(3, maxB - minB),
-      h: refH || 4,
+      x: cx,
+      z: cy,
+      ang,
+      w: wReal,
+      d: dReal,
+      h: hReal,
       y: heightAtXZ(cx, cy),
       enBocachica: distBoca < 1350,
     });
   }
-  const houseGeo = new THREE.BoxGeometry(1, 1, 1);
-  houseGeo.translate(0, 0.5, 0);
-  const houseMat = new THREE.MeshStandardMaterial({ roughness: 0.82, metalness: 0.05, transparent: true, opacity: 1 });
-  const houseMesh = new THREE.InstancedMesh(houseGeo, houseMat, houses.length);
-  houseMesh.frustumCulled = false;
+
+  // Geometría 1: Muros con textura de fachada
+  const wallGeo = new THREE.BoxGeometry(1, 1, 1);
+  wallGeo.translate(0, 0.5, 0);
+  const wallMat = new THREE.MeshStandardMaterial({
+    map: fachadaTex,
+    roughness: 0.86,
+    metalness: 0.04,
+  });
+  const houseWallsMesh = new THREE.InstancedMesh(wallGeo, wallMat, houses.length);
+  houseWallsMesh.frustumCulled = false;
+
+  // Geometría 2: Cubiertas piramidales / a 4 aguas con alero caribeño
+  const roofGeo = new THREE.ConeGeometry(0.78, 1, 4);
+  roofGeo.rotateY(Math.PI / 4);
+  roofGeo.translate(0, 0.5, 0);
+  const roofMat = new THREE.MeshStandardMaterial({
+    map: techoTex,
+    roughness: 0.74,
+    metalness: 0.14,
+  });
+  const houseRoofsMesh = new THREE.InstancedMesh(roofGeo, roofMat, houses.length);
+  houseRoofsMesh.frustumCulled = false;
+
   const m4 = new THREE.Matrix4();
   const qn = new THREE.Quaternion();
   const upV = new THREE.Vector3(0, 1, 0);
   const sv = new THREE.Vector3();
   const pv = new THREE.Vector3();
-  const roof = new THREE.Color();
-  const ARCILLA = new THREE.Color(0xe0917a);
-  const updateHouses = (resaltarBocachica, escala) => {
+  const wallCol = new THREE.Color();
+  const roofCol = new THREE.Color();
+
+  // Paletas arquitectónicas reales del Caribe insular (muros claros + cubiertas de barro/zinc)
+  const PALETA_MUROS = [
+    new THREE.Color(0xf5efe4), // Blanco cal cálido
+    new THREE.Color(0xede3d2), // Piedra coralina clara
+    new THREE.Color(0xe6d6be), // Arena de Bocachica
+    new THREE.Color(0xf2dfd5), // Rosa coral suave
+    new THREE.Color(0xdcece7), // Verde mar caribeño pálido
+    new THREE.Color(0xf0e2c4), // Ocre colonial suave
+    new THREE.Color(0xdfeaf2), // Azul brisa claro
+  ];
+  const PALETA_TECHOS_BOCA = [
+    new THREE.Color(0xb85d44), // Teja de barro cocido
+    new THREE.Color(0xc96e4b), // Terracota caribeña
+    new THREE.Color(0x919ca6), // Zinc galvanizado
+    new THREE.Color(0x826658), // Lámina oxidada cálida
+    new THREE.Color(0xb87b4f), // Ocre arcilla
+  ];
+  const PALETA_TECHOS_ISLA = [
+    new THREE.Color(0xa66a56),
+    new THREE.Color(0x8e969d),
+    new THREE.Color(0x997b66),
+    new THREE.Color(0xb3785c),
+  ];
+
+  let ultimaEscalaCasas = -1;
+  const updateHouses = (resaltarBocachica, escala = 1.0) => {
+    ultimaEscalaCasas = escala;
     houses.forEach((hh, k) => {
       qn.setFromAxisAngle(upV, -hh.ang);
-      pv.set(hh.x, hh.y, hh.z);
-      sv.set(hh.w * escala, hh.h * escala, hh.d * escala);
+      const wScaled = hh.w * escala;
+      const dScaled = hh.d * escala;
+      const hWall = hh.h * 0.74 * Math.min(1.25, escala);
+      const hRoof = Math.max(1.35, hh.h * 0.42) * Math.min(1.25, escala);
+
+      // Matriz de muros (hundimos 0.35m la base para asentar en pendientes)
+      pv.set(hh.x, hh.y - 0.35, hh.z);
+      sv.set(wScaled, hWall + 0.35, dScaled);
       m4.compose(pv, qn, sv);
-      houseMesh.setMatrixAt(k, m4);
+      houseWallsMesh.setMatrixAt(k, m4);
+
+      // Matriz de cubierta con alero de 1.12x sobre el muro
+      pv.set(hh.x, hh.y + hWall - 0.05, hh.z);
+      sv.set(wScaled * 1.12, hRoof, dScaled * 1.12);
+      m4.compose(pv, qn, sv);
+      houseRoofsMesh.setMatrixAt(k, m4);
+
+      // Color de muros y cubiertas
+      wallCol.copy(PALETA_MUROS[k % PALETA_MUROS.length]).offsetHSL(0, 0, ((k * 13) % 7 - 3) * 0.01);
+      houseWallsMesh.setColorAt(k, wallCol);
+
       if (resaltarBocachica && hh.enBocachica) {
-        roof.copy(ARCILLA).offsetHSL(0, 0, ((k * 17) % 10 - 5) * 0.015);
+        roofCol.copy(PALETA_TECHOS_BOCA[k % PALETA_TECHOS_BOCA.length]).offsetHSL(0, 0, ((k * 19) % 7 - 3) * 0.012);
       } else {
-        roof.setHSL(0.09, 0.08 + ((k * 37) % 10) / 100, 0.76 + ((k * 53) % 10) / 100);
+        roofCol.copy(PALETA_TECHOS_ISLA[k % PALETA_TECHOS_ISLA.length]).offsetHSL(0, 0, ((k * 23) % 7 - 3) * 0.012);
       }
-      houseMesh.setColorAt(k, roof);
+      houseRoofsMesh.setColorAt(k, roofCol);
     });
-    houseMesh.instanceMatrix.needsUpdate = true;
-    if (houseMesh.instanceColor) houseMesh.instanceColor.needsUpdate = true;
+    houseWallsMesh.instanceMatrix.needsUpdate = true;
+    houseRoofsMesh.instanceMatrix.needsUpdate = true;
+    if (houseWallsMesh.instanceColor) houseWallsMesh.instanceColor.needsUpdate = true;
+    if (houseRoofsMesh.instanceColor) houseRoofsMesh.instanceColor.needsUpdate = true;
   };
-  updateHouses(true, CASA_ESCALA);
+  updateHouses(true, 1.0);
 
   // ---------- escena, cielo, mar, luces ----------
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x9fc6d4, 0.000012);
-  scene.add(terrain, patch, houseMesh, treesGroup);
+  scene.add(terrain, patch, houseWallsMesh, houseRoofsMesh, treesGroup);
 
   const sky = new Sky();
   sky.scale.setScalar(450000);
@@ -713,24 +886,40 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const aulaGroup = new THREE.Group();
   scene.add(aulaGroup);
 
-  // Prototipo 3D en el Gimnasio Cristiano de Bocachica (R9)
+  // Prototipo 3D en el Gimnasio Cristiano de Bocachica (R9):
+  // Pabellones de aulas con celosías, cancha de preescolar sombreada, cubierta en V captadora, aljibe y ágora
   const sNode = nodosXZ.escuelaR9;
   const escuelaG = new THREE.Group();
   escuelaG.position.set(sNode.x, sNode.y, sNode.z);
   aulaGroup.add(escuelaG);
   {
-    // Pabellón escolar existente + pérgola de refugio climático
-    const muro = new THREE.Mesh(
-      new THREE.BoxGeometry(64, 6.2, 22),
-      new THREE.MeshStandardMaterial({ color: 0xefe8dc, roughness: 0.88 })
-    );
-    muro.position.y = 3.1;
-    escuelaG.add(muro);
+    const matMuroEsc = new THREE.MeshStandardMaterial({ map: fachadaTex, color: 0xf4efe4, roughness: 0.85 });
+    const matMadera = new THREE.MeshStandardMaterial({ color: 0xa66e46, roughness: 0.78 });
+    const matPlaca = new THREE.MeshStandardMaterial({ color: 0xd8cec0, roughness: 0.92 });
 
-    // Cubierta captadora bioclimática en V (macro-embudo escolar)
+    // Basamento / patio escolar permeable
+    const patio = new THREE.Mesh(new THREE.BoxGeometry(86, 0.6, 56), matPlaca);
+    patio.position.set(6, 0.3, 4);
+    escuelaG.add(patio);
+
+    // Pabellón 1 (Aulas principales) + Pabellón 2 (Talleres en L)
+    const pab1 = new THREE.Mesh(new THREE.BoxGeometry(52, 6.4, 15), matMuroEsc);
+    pab1.position.set(-8, 3.5, -6);
+    const pab2 = new THREE.Mesh(new THREE.BoxGeometry(16, 6.0, 28), matMuroEsc);
+    pab2.position.set(-26, 3.3, 14);
+    escuelaG.add(pab1, pab2);
+
+    // Celosías bioclimáticas de madera en fachadas escolares
+    for (let x = -30; x <= 14; x += 5.5) {
+      const cel = new THREE.Mesh(new THREE.BoxGeometry(0.45, 5.8, 16.2), matMadera);
+      cel.position.set(x, 3.5, -6);
+      escuelaG.add(cel);
+    }
+
+    // Cubierta captadora bioclimática en V (macro-embudo escolar de cosecha pluvial)
     const pos4 = new Float32Array([
-      -34, 9.2, -13, 34, 9.2, -13, 34, 6.2, 0, -34, 6.2, 0,
-      -34, 6.2, 0, 34, 6.2, 0, 34, 9.2, 13, -34, 9.2, 13,
+      -36, 9.8, -17, 22, 9.8, -17, 22, 6.6, -6, -36, 6.6, -6,
+      -36, 6.6, -6, 22, 6.6, -6, 22, 9.8, 5, -36, 9.8, 5,
     ]);
     const rg = new THREE.BufferGeometry();
     rg.setAttribute('position', new THREE.BufferAttribute(pos4, 3));
@@ -746,35 +935,88 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     escuelaG.add(techo);
     escuelaG.userData.techoMat = techo.material;
 
+    // Cancha múltiple de preescolar (con cubierta ligera de sombra)
+    const cancha = new THREE.Mesh(
+      new THREE.BoxGeometry(28, 0.35, 18),
+      new THREE.MeshStandardMaterial({ color: 0x2e7d67, roughness: 0.75 })
+    );
+    cancha.position.set(16, 0.72, 16);
+    const techoCancha = new THREE.Mesh(
+      new THREE.BoxGeometry(30, 0.45, 20),
+      new THREE.MeshStandardMaterial({ color: 0xe6dccb, roughness: 0.65, transparent: true, opacity: 0.88 })
+    );
+    techoCancha.position.set(16, 7.6, 16);
+    escuelaG.add(cancha, techoCancha);
+
     // Aljibe escolar en corte (vidrio + nivel de agua animado)
     const tanque = new THREE.Mesh(
-      new THREE.BoxGeometry(24, 5, 16),
-      new THREE.MeshStandardMaterial({ color: 0x9fd8e6, transparent: true, opacity: 0.25, roughness: 0.1, depthWrite: false })
+      new THREE.BoxGeometry(20, 5.2, 14),
+      new THREE.MeshStandardMaterial({ color: 0x9fd8e6, transparent: true, opacity: 0.28, roughness: 0.1, depthWrite: false })
     );
-    tanque.position.set(0, 2.5, 30);
+    tanque.position.set(-6, 2.9, 18);
     escuelaG.add(tanque);
 
     const agua = new THREE.Mesh(
-      new THREE.BoxGeometry(22.6, 1, 14.6),
+      new THREE.BoxGeometry(18.6, 1, 12.6),
       new THREE.MeshStandardMaterial({ color: 0x2f9fd0, transparent: true, opacity: 0.9, roughness: 0.2 })
     );
     agua.geometry.translate(0, 0.5, 0);
-    agua.position.set(0, 0.2, 30);
+    agua.position.set(-6, 0.5, 18);
     escuelaG.add(agua);
     escuelaG.userData.agua = agua;
 
     // Ágora pedagógica sombreada (Aula Ambiental abierta)
     const agora = new THREE.Mesh(
-      new THREE.CylinderGeometry(12, 12, 0.5, 36),
+      new THREE.CylinderGeometry(11, 11, 0.6, 36),
       new THREE.MeshStandardMaterial({ color: 0xd9c7a3 })
     );
-    agora.position.set(48, 0.25, -12);
+    agora.position.set(36, 0.6, -8);
     const agoraTecho = new THREE.Mesh(
-      new THREE.ConeGeometry(14, 4.5, 36),
-      new THREE.MeshStandardMaterial({ color: 0xe0917a, roughness: 0.78 })
+      new THREE.ConeGeometry(13, 4.2, 8),
+      new THREE.MeshStandardMaterial({ map: techoTex, color: 0xc86e4b, roughness: 0.74 })
     );
-    agoraTecho.position.set(48, 7.2, -12);
+    agoraTecho.position.set(36, 6.8, -8);
     escuelaG.add(agora, agoraTecho);
+  }
+
+  // Fortificaciones históricas 3D de Bocachica (Piedra coralina: San Fernando, San José y Ángel San Rafael)
+  const fuertesGroup = new THREE.Group();
+  aulaGroup.add(fuertesGroup);
+  {
+    const matPiedraCoral = new THREE.MeshStandardMaterial({ color: 0xd2c2a8, roughness: 0.92, metalness: 0.04 });
+    const matTerraplen = new THREE.MeshStandardMaterial({ color: 0x7b8856, roughness: 0.95 });
+
+    // 1. Fuerte de San Fernando de Bocachica (baluartes en herradura frente al canal)
+    const sf = new THREE.Group();
+    sf.position.set(nodosXZ.sanFernando.x, nodosXZ.sanFernando.y, nodosXZ.sanFernando.z);
+    const sfBase = new THREE.Mesh(new THREE.CylinderGeometry(42, 48, 8.5, 6), matPiedraCoral);
+    sfBase.position.y = 4.2;
+    const sfPatio = new THREE.Mesh(new THREE.CylinderGeometry(24, 24, 9.0, 6), matTerraplen);
+    sfPatio.position.y = 4.4;
+    const sfBaluarteN = new THREE.Mesh(new THREE.ConeGeometry(22, 8.5, 4), matPiedraCoral);
+    sfBaluarteN.position.set(-32, 4.2, -18);
+    const sfBaluarteS = new THREE.Mesh(new THREE.ConeGeometry(22, 8.5, 4), matPiedraCoral);
+    sfBaluarteS.position.set(32, 4.2, -18);
+    sf.add(sfBase, sfPatio, sfBaluarteN, sfBaluarteS);
+    fuertesGroup.add(sf);
+
+    // 2. Batería del Ángel San Rafael (en la colina con galería y mirador)
+    const sr = new THREE.Group();
+    sr.position.set(nodosXZ.sanRafael.x, nodosXZ.sanRafael.y, nodosXZ.sanRafael.z);
+    const srMuro = new THREE.Mesh(new THREE.CylinderGeometry(28, 34, 6.5, 5), matPiedraCoral);
+    srMuro.position.y = 3.2;
+    const srGlacis = new THREE.Mesh(new THREE.CylinderGeometry(18, 18, 7.0, 5), matTerraplen);
+    srGlacis.position.y = 3.4;
+    sr.add(srMuro, srGlacis);
+    fuertesGroup.add(sr);
+
+    // 3. Batería de San José (plataforma artillera sobre el arrecife del canal)
+    const sj = new THREE.Group();
+    sj.position.set(nodosXZ.sanJose.x, Math.max(0.2, nodosXZ.sanJose.y), nodosXZ.sanJose.z);
+    const sjMuro = new THREE.Mesh(new THREE.BoxGeometry(46, 5.2, 28), matPiedraCoral);
+    sjMuro.position.y = 2.6;
+    sj.add(sjMuro);
+    fuertesGroup.add(sj);
   }
 
   // Lluvia sobre el Gimnasio Cristiano R9 (600 trazos)
@@ -971,59 +1213,71 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   }
 
   // ---------- poses de cámara sobre Tierra Bomba y Bocachica ----------
-  const dx = () => (window.innerWidth >= 1024 ? -320 : 0);
-  const dxIsla = () => (window.innerWidth >= 1024 ? -1400 : 0);
+  const dx = () => (window.innerWidth >= 1024 ? -220 : 0);
+  const dxIsla = () => (window.innerWidth >= 1024 ? -1350 : 0);
   const POSES = {
     hero: (t) => {
-      const a = THREE.MathUtils.degToRad(200) + Math.sin(t * 0.06) * 0.42;
+      const a = THREE.MathUtils.degToRad(202) + Math.sin(t * 0.06) * 0.38;
       return {
-        pos: new THREE.Vector3(bx + Math.sin(a) * 680, 240, bz + Math.cos(a) * 680),
-        look: new THREE.Vector3(bx, 6, bz),
+        pos: new THREE.Vector3(bx + Math.sin(a) * 520, 175, bz + Math.cos(a) * 520),
+        look: new THREE.Vector3(bx, 8, bz),
       };
     },
     isla: () => ({
-      pos: new THREE.Vector3(500 + dxIsla(), 7400, 8200),
-      look: new THREE.Vector3(dxIsla(), 0, 450),
+      pos: new THREE.Vector3(480 + dxIsla(), 6900, 7800),
+      look: new THREE.Vector3(dxIsla(), 0, 420),
     }),
     problema: () => ({
-      pos: new THREE.Vector3(bx + 420 + dx(), 1450, bz + 1650),
-      look: new THREE.Vector3(bx + dx() * 0.6, 10, bz),
+      pos: new THREE.Vector3(bx + 360 + dx(), 1180, bz + 1420),
+      look: new THREE.Vector3(bx + dx() * 0.5, 10, bz),
     }),
     bocachica_general: () => ({
-      pos: new THREE.Vector3(bx + 320 + dx(), 880, bz + 1120),
-      look: new THREE.Vector3(bx + dx() * 0.45, 12, bz - 40),
+      pos: new THREE.Vector3(bx + 260 + dx(), 680, bz + 920),
+      look: new THREE.Vector3(bx + dx() * 0.4, 12, bz - 30),
+    }),
+    memorias_r9: (t) => ({
+      pos: new THREE.Vector3(nodosXZ.casco.x + Math.sin(t * 0.07) * 140 + dx() * 0.35, 290, nodosXZ.casco.z + 420),
+      look: new THREE.Vector3(nodosXZ.casco.x + dx() * 0.2, 8, nodosXZ.casco.z - 20),
     }),
     linea_memoria: () => ({
-      pos: new THREE.Vector3(nodosXZ.casco.x + 190 + dx() * 0.4, 380, nodosXZ.casco.z + 520),
-      look: new THREE.Vector3(nodosXZ.casco.x + dx() * 0.25, 10, nodosXZ.casco.z),
+      pos: new THREE.Vector3(nodosXZ.casco.x + 145 + dx() * 0.3, 250, nodosXZ.casco.z + 360),
+      look: new THREE.Vector3(nodosXZ.casco.x + dx() * 0.18, 9, nodosXZ.casco.z),
     }),
     linea_agua: () => ({
-      pos: new THREE.Vector3(nodosXZ.agua.x + 180 + dx() * 0.35, 360, nodosXZ.agua.z + 490),
-      look: new THREE.Vector3(nodosXZ.agua.x + dx() * 0.2, 8, nodosXZ.agua.z),
+      pos: new THREE.Vector3(nodosXZ.agua.x + 140 + dx() * 0.3, 240, nodosXZ.agua.z + 350),
+      look: new THREE.Vector3(nodosXZ.agua.x + dx() * 0.18, 8, nodosXZ.agua.z),
     }),
     linea_verde: () => ({
-      pos: new THREE.Vector3(nodosXZ.vivero.x + 210 + dx() * 0.35, 410, nodosXZ.vivero.z + 540),
-      look: new THREE.Vector3(nodosXZ.vivero.x + dx() * 0.2, 10, nodosXZ.vivero.z),
+      pos: new THREE.Vector3(nodosXZ.vivero.x + 165 + dx() * 0.3, 270, nodosXZ.vivero.z + 390),
+      look: new THREE.Vector3(nodosXZ.vivero.x + dx() * 0.18, 9, nodosXZ.vivero.z),
     }),
     linea_residuos: () => ({
-      pos: new THREE.Vector3(nodosXZ.residuos.x + 160 + dx() * 0.3, 330, nodosXZ.residuos.z + 440),
-      look: new THREE.Vector3(nodosXZ.residuos.x + dx() * 0.2, 8, nodosXZ.residuos.z),
+      pos: new THREE.Vector3(nodosXZ.residuos.x + 135 + dx() * 0.25, 230, nodosXZ.residuos.z + 330),
+      look: new THREE.Vector3(nodosXZ.residuos.x + dx() * 0.15, 8, nodosXZ.residuos.z),
     }),
     linea_oficios: () => ({
-      pos: new THREE.Vector3(nodosXZ.ribera.x - 180 + dx() * 0.3, 310, nodosXZ.ribera.z + 430),
-      look: new THREE.Vector3(nodosXZ.ribera.x + dx() * 0.2, 6, nodosXZ.ribera.z),
+      pos: new THREE.Vector3(nodosXZ.ribera.x - 145 + dx() * 0.25, 215, nodosXZ.ribera.z + 320),
+      look: new THREE.Vector3(nodosXZ.ribera.x + dx() * 0.15, 6, nodosXZ.ribera.z),
     }),
     linea_patrimonio: () => ({
-      pos: new THREE.Vector3(nodosXZ.sanFernando.x + 260 + dx() * 0.4, 460, nodosXZ.sanFernando.z + 640),
-      look: new THREE.Vector3(nodosXZ.sanFernando.x + dx() * 0.2, 10, nodosXZ.sanFernando.z - 80),
+      pos: new THREE.Vector3(nodosXZ.sanFernando.x + 210 + dx() * 0.3, 310, nodosXZ.sanFernando.z + 460),
+      look: new THREE.Vector3(nodosXZ.sanFernando.x + dx() * 0.15, 10, nodosXZ.sanFernando.z - 50),
     }),
     escuela_r9: () => ({
-      pos: new THREE.Vector3(sNode.x + 85, sNode.y + 115, sNode.z + 185),
-      look: new THREE.Vector3(sNode.x - 12, sNode.y + 5, sNode.z),
+      pos: new THREE.Vector3(sNode.x + 78, sNode.y + 88, sNode.z + 155),
+      look: new THREE.Vector3(sNode.x - 8, sNode.y + 5, sNode.z + 4),
+    }),
+    escuela_cerca: (t) => ({
+      pos: new THREE.Vector3(sNode.x + Math.sin(t * 0.09) * 35 + 58, sNode.y + 62, sNode.z + 118),
+      look: new THREE.Vector3(sNode.x - 4, sNode.y + 4, sNode.z + 6),
     }),
     gemelo: (t) => ({
-      pos: new THREE.Vector3(bx + Math.sin(t * 0.08) * 380 + dx(), 1250, bz + 1450),
-      look: new THREE.Vector3(bx + dx() * 0.4, 15, bz),
+      pos: new THREE.Vector3(bx + Math.sin(t * 0.08) * 320 + dx(), 980, bz + 1220),
+      look: new THREE.Vector3(bx + dx() * 0.35, 14, bz),
+    }),
+    hoja_ruta: (t) => ({
+      pos: new THREE.Vector3(bx + Math.cos(t * 0.06) * 280 + dx(), 580, bz + 860),
+      look: new THREE.Vector3(bx + dx() * 0.3, 10, bz - 20),
     }),
   };
 
@@ -1160,8 +1414,12 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       camera.updateProjectionMatrix();
     }
 
-    // Árboles y escuela R9
-    treesGroup.visible = dist < 4200;
+    // Árboles, viviendas 1:1 y escuela R9
+    const escalaCasasObjetivo = dist > 3800 ? 1.22 : 1.0;
+    if (Math.abs(escalaCasasObjetivo - ultimaEscalaCasas) > 0.05) {
+      updateHouses(true, escalaCasasObjetivo);
+    }
+    treesGroup.visible = dist < 4800;
     escuelaG.visible = cur.escuela > 0.02;
     escuelaG.scale.set(1, Math.max(0.001, cur.escuela), 1);
 
