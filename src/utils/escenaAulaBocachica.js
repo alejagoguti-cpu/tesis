@@ -1127,7 +1127,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     const piedraTex = new THREE.CanvasTexture(cPiedra);
     piedraTex.colorSpace = THREE.SRGBColorSpace;
     piedraTex.wrapS = piedraTex.wrapT = THREE.RepeatWrapping;
-    piedraTex.repeat.set(3, 2);
+    piedraTex.repeat.set(0.065, 0.065);
 
     // Textura de plaza de armas (tierra compactada y lajas)
     const cPlaza = document.createElement('canvas');
@@ -1145,33 +1145,36 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     const plazaTex = new THREE.CanvasTexture(cPlaza);
     plazaTex.colorSpace = THREE.SRGBColorSpace;
     plazaTex.wrapS = plazaTex.wrapT = THREE.RepeatWrapping;
-    plazaTex.repeat.set(4, 4);
+    plazaTex.repeat.set(0.045, 0.045);
 
-    const matPiedraCoral = new THREE.MeshStandardMaterial({ map: piedraTex, color: 0xddd2be, roughness: 0.92, metalness: 0.04 });
-    const matPiedraOscura = new THREE.MeshStandardMaterial({ map: piedraTex, color: 0xa69882, roughness: 0.95, metalness: 0.04 });
+    const matPiedraCoral = new THREE.MeshStandardMaterial({ map: piedraTex, bumpMap: piedraTex, bumpScale: 0.45, color: 0xddd2be, roughness: 0.9, metalness: 0.04 });
+    const matPiedraOscura = new THREE.MeshStandardMaterial({ map: piedraTex, bumpMap: piedraTex, bumpScale: 0.45, color: 0xa69882, roughness: 0.94, metalness: 0.04 });
     const matPlazaFuerte = new THREE.MeshStandardMaterial({ map: plazaTex, roughness: 0.95, metalness: 0.02 });
-    const matArcoOscuro = new THREE.MeshStandardMaterial({ color: 0x2a1d15, roughness: 0.95 });
+    const matArcoOscuro = new THREE.MeshStandardMaterial({ color: 0x241812, roughness: 0.96 });
+    const matLadrillo = new THREE.MeshStandardMaterial({ color: 0x9b4d34, roughness: 0.85 });
+    const matBronce = new THREE.MeshStandardMaterial({ color: 0x2f2d28, roughness: 0.45, metalness: 0.72 });
+    const matFoso = new THREE.MeshStandardMaterial({ color: 0x3b4d2b, roughness: 0.25, metalness: 0.1 });
     const matTechoFuerte = new THREE.MeshStandardMaterial({ map: techoTex, color: 0xc96a47, roughness: 0.72 });
     const matMaderaMuelle = new THREE.MeshStandardMaterial({ color: 0x7a5c3e, roughness: 0.88 });
     const matTerraplen = new THREE.MeshStandardMaterial({ color: 0x7b8856, roughness: 0.95 });
 
-    // 1. Fuerte / Castillo de San Fernando de Bocachica (modelado arquitectónico fiel)
+    // 1. Fuerte / Castillo de San Fernando de Bocachica (escala real 1:1 ~165m + alto detalle arquitectónico)
     const sf = new THREE.Group();
-    sf.position.set(nodosXZ.sanFernando.x, Math.max(0.15, nodosXZ.sanFernando.y), nodosXZ.sanFernando.z);
+    sf.position.set(nodosXZ.sanFernando.x, Math.max(0.05, nodosXZ.sanFernando.y - 0.6), nodosXZ.sanFernando.z);
     sf.rotation.y = -0.38; // Orientado frente al canal de Bocachica
+    sf.scale.setScalar(1.75);
 
     // A) Batería semicircular en herradura + baluartes con patio interior (Plaza de Armas)
     const shapeBateria = new THREE.Shape();
     const R_OUT = 44;
-    // Arco semicircular frontal (lado canal, -X)
-    for (let i = 0; i <= 32; i++) {
-      const a = Math.PI * 0.5 + (Math.PI * i) / 32; // de +90° a +270°
+    // Arco semicircular frontal suave (48 segmentos)
+    for (let i = 0; i <= 48; i++) {
+      const a = Math.PI * 0.5 + (Math.PI * i) / 48;
       const x = Math.cos(a) * R_OUT - 10;
       const z = Math.sin(a) * (R_OUT * 0.92);
       if (i === 0) shapeBateria.moveTo(x, z);
       else shapeBateria.lineTo(x, z);
     }
-    // Baluarte sur-este y flanco hacia el foso
     shapeBateria.lineTo(28, -36);
     shapeBateria.lineTo(42, -16);
     shapeBateria.lineTo(30, -4);
@@ -1180,10 +1183,9 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     shapeBateria.lineTo(26, 36);
     shapeBateria.closePath();
 
-    // Hueco interior: Plaza de Armas ovalada/herradura
     const holePlaza = new THREE.Path();
-    for (let i = 0; i <= 28; i++) {
-      const a = (Math.PI * 2 * i) / 28;
+    for (let i = 0; i <= 40; i++) {
+      const a = (Math.PI * 2 * i) / 40;
       const hx = Math.cos(a) * 23 - 12;
       const hz = Math.sin(a) * 18;
       if (i === 0) holePlaza.moveTo(hx, hz);
@@ -1194,14 +1196,13 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     const geoBateria = new THREE.ExtrudeGeometry(shapeBateria, {
       depth: 7.4,
       bevelEnabled: true,
-      bevelThickness: 0.7,
-      bevelSize: 1.4,
-      bevelSegments: 2,
-      curveSegments: 24,
+      bevelThickness: 0.75,
+      bevelSize: 1.5,
+      bevelSegments: 4,
+      curveSegments: 40,
     });
     geoBateria.rotateX(-Math.PI / 2);
-    const meshBateria = new THREE.Mesh(geoBateria, matPiedraCoral);
-    sf.add(meshBateria);
+    sf.add(new THREE.Mesh(geoBateria, matPiedraCoral));
 
     // B) Piso de la Plaza de Armas interior
     const shapePlaza = new THREE.Shape();
@@ -1217,31 +1218,42 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     const meshPlaza = new THREE.Mesh(geoPlaza, matPlazaFuerte);
     sf.add(meshPlaza);
 
-    // C) Bóvedas / casamatas con arcos de medio punto alrededor de la Plaza de Armas
-    for (let i = 0; i < 14; i++) {
-      const a = (Math.PI * 2 * i) / 14;
+    // C) Bóvedas / casamatas con arcos de medio punto y rosca de ladrillo alrededor de la Plaza de Armas
+    for (let i = 0; i < 18; i++) {
+      const a = (Math.PI * 2 * i) / 18;
       const ax = Math.cos(a) * 22.8 - 12;
       const az = Math.sin(a) * 17.8;
-      const arco = new THREE.Mesh(new THREE.BoxGeometry(3.4, 3.6, 1.2), matArcoOscuro);
+      const arco = new THREE.Mesh(new THREE.BoxGeometry(2.8, 3.6, 1.4), matArcoOscuro);
       arco.position.set(ax, 3.9, az);
       arco.lookAt(-12, 3.9, 0);
-      const dintel = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.7, 1.25, 12, 1, false, 0, Math.PI), matArcoOscuro);
-      dintel.rotation.z = Math.PI / 2;
-      dintel.position.set(ax, 5.6, az);
-      dintel.lookAt(-12, 5.6, 0);
-      sf.add(arco, dintel);
+      const rosca = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.28, 8, 14, Math.PI), matLadrillo);
+      rosca.position.set(ax, 5.5, az);
+      rosca.lookAt(-12, 5.5, 0);
+      sf.add(arco, rosca);
     }
 
-    // D) Parapetos y almenas (troneras para cañones) todo alrededor de la batería curvo-poligonal
-    for (let i = 0; i < 24; i++) {
-      const a = Math.PI * 0.48 + (Math.PI * 1.04 * i) / 23;
+    // D) Parapetos, almenas y cañones de bronce apuntando al canal
+    for (let i = 0; i < 28; i++) {
+      const a = Math.PI * 0.48 + (Math.PI * 1.04 * i) / 27;
       const mx = Math.cos(a) * (R_OUT - 1.2) - 10;
       const mz = Math.sin(a) * (R_OUT * 0.92 - 1.2);
-      const almena = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.5, 2.2), matPiedraOscura);
+      const almena = new THREE.Mesh(new THREE.BoxGeometry(3.0, 1.4, 2.0), matPiedraOscura);
       almena.position.set(mx, 8.7, mz);
       almena.lookAt(-10, 8.7, 0);
       sf.add(almena);
+      if (i % 3 === 1) {
+        const canon = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.36, 3.8, 10), matBronce);
+        canon.rotation.x = Math.PI / 2;
+        canon.position.set(Math.cos(a) * (R_OUT - 0.2) - 10, 8.6, Math.sin(a) * (R_OUT * 0.92 - 0.2));
+        canon.lookAt(Math.cos(a) * (R_OUT + 15) - 10, 8.6, Math.sin(a) * (R_OUT * 0.92 + 15));
+        sf.add(canon);
+      }
     }
+
+    // Foso de agua verde oliva entre la batería principal y el baluarte oriental
+    const fosoAgua = new THREE.Mesh(new THREE.BoxGeometry(20, 0.6, 56), matFoso);
+    fosoAgua.position.set(44, 0.5, 0);
+    sf.add(fosoAgua);
 
     // E) Baluarte oriental separado por foso de agua + contrafuerte
     const shapeBalE = new THREE.Shape();
@@ -1595,8 +1607,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       look: new THREE.Vector3(nodosXZ.ribera.x + dx() * 0.15, 6, nodosXZ.ribera.z),
     }),
     linea_patrimonio: () => ({
-      pos: new THREE.Vector3(nodosXZ.sanFernando.x + 210 + dx() * 0.3, 310, nodosXZ.sanFernando.z + 460),
-      look: new THREE.Vector3(nodosXZ.sanFernando.x + dx() * 0.15, 10, nodosXZ.sanFernando.z - 50),
+      pos: new THREE.Vector3(nodosXZ.sanFernando.x + 155, 140, nodosXZ.sanFernando.z + 245),
+      look: new THREE.Vector3(nodosXZ.sanFernando.x + 10, 8, nodosXZ.sanFernando.z),
     }),
     escuela_r9: () => ({
       pos: new THREE.Vector3(sNode.x + 78, sNode.y + 88, sNode.z + 155),

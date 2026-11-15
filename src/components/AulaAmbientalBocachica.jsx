@@ -2806,7 +2806,7 @@ export default function AulaAmbientalBocachica({
                 type="button"
                 onClick={() => {
                   setLugarActivo({ titulo: lug.nombre, sub: lug.desc, nodo: lug.nodo });
-                  escena?.irANodo?.(lug.nodo, 320);
+                  escena?.irANodo?.(lug.nodo, lug.nodo === 'sanFernando' ? 235 : 320);
                 }}
                 className={`w-full text-left p-2 rounded-lg border transition ${
                   lugarActivo?.nodo === lug.nodo
