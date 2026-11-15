@@ -1,4 +1,23 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  MapPin,
+  Landmark,
+  Hammer,
+  Calendar,
+  Gamepad2,
+  Search,
+  Trees,
+  CloudRain,
+  Home,
+  Hand,
+  RotateCcw,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  X,
+  Award,
+  Layers,
+} from 'lucide-react';
 import { crearEscenaAula } from '../utils/escenaAulaBocachica';
 import {
   ANTECEDENTES_CORPUS,
@@ -2025,79 +2044,86 @@ const PREGUNTAS_RETO = [
 ];
 
 const TEMAS_VIERNES = [
-  '💻 Cómo usar esta plataforma 3D de Tierra Bomba',
-  '🪵 Carpintería de ribera y construcción en madera',
-  '🌿 Siembra de manglar y vivero comunitario',
-  '🏰 Historia y guianza del Fuerte San Fernando',
-  '💧 Cosecha de agua lluvia y cuidado del aljibe',
+  'Cómo usar esta plataforma 3D de Tierra Bomba',
+  'Carpintería de ribera y construcción en madera',
+  'Siembra de manglar y vivero comunitario',
+  'Historia y guianza del Fuerte San Fernando',
+  'Cosecha de agua lluvia y cuidado del aljibe',
 ];
+
+const ICONOS_CAT = {
+  corregimientos: MapPin,
+  patrimonio: Landmark,
+  talleres: Hammer,
+  juego: Gamepad2,
+};
 
 const EXPLORA_CATEGORIAS = [
   {
     id: 'corregimientos',
     ancla: 'sec-corregimientos',
     label: '1. Corregimientos',
-    icono: '🏘',
+    cta: 'Explorar los 4 pueblos',
     color: '#e0917a',
     cam: 'isla_completa',
     nodos: ['casco', 'tierraBomba', 'canoDeLoro', 'puntaArena'],
     rutas: { agua: 0, verde: 0.2, residuos: 0, oficios: 0.2, patrimonio: 0.2 },
     zonas: [0.55, 0.2, 0.2],
-    resumen: 'Los 4 corregimientos de Tierra Bomba: Bocachica, Tierra Bomba, Caño de Loro y Punta Arena. Toca cualquiera para acercarte.',
+    resumen: 'Los 4 pueblos de Tierra Bomba. Toca cualquiera para verlo de cerca.',
     lugares: [
-      { nodo: 'casco', nombre: 'Bocachica', desc: 'Corregimiento al sur con su casco histórico, el colegio y los fuertes.' },
-      { nodo: 'tierraBomba', nombre: 'Tierra Bomba', desc: 'Corregimiento del norte conectado por trochas, lanchas y bosque seco.' },
-      { nodo: 'canoDeLoro', nombre: 'Caño de Loro', desc: 'Corregimiento sobre la bahía rodeado de manglares y pesca artesanal.' },
-      { nodo: 'puntaArena', nombre: 'Punta Arena', desc: 'Corregimiento frente a Cartagena con playas y turismo comunitario.' },
+      { nodo: 'casco', nombre: 'Bocachica', desc: 'Casco histórico, colegio y fuertes al sur.' },
+      { nodo: 'tierraBomba', nombre: 'Tierra Bomba', desc: 'Corregimiento del norte y bosque seco.' },
+      { nodo: 'canoDeLoro', nombre: 'Caño de Loro', desc: 'Corregimiento sobre la bahía y manglares.' },
+      { nodo: 'puntaArena', nombre: 'Punta Arena', desc: 'Playas y turismo frente a Cartagena.' },
     ],
   },
   {
     id: 'patrimonio',
     ancla: 'sec-patrimonio',
     label: '2. Patrimonio',
-    icono: '🏰',
+    cta: 'Descubrir fuertes',
     color: '#f4f1ec',
     cam: 'linea_patrimonio',
     nodos: ['sanFernando', 'sanRafael', 'sanJose', 'casco'],
     rutas: { agua: 0, verde: 0, residuos: 0, oficios: 0, patrimonio: 1 },
     zonas: [0.95, 0.1, 0.1],
-    resumen: 'Los fuertes de piedra coralina, miradores e historia viva que hacen único a nuestro territorio.',
+    resumen: 'Fuertes de piedra coralina e historia viva de nuestra isla.',
     lugares: [
-      { nodo: 'sanFernando', nombre: 'Fuerte San Fernando', desc: 'Castillo histórico frente al canal, cuidado junto a guías y jóvenes locales.' },
-      { nodo: 'sanRafael', nombre: 'Batería Ángel San Rafael', desc: 'Mirador en lo alto de la loma con vista a toda la bahía.' },
-      { nodo: 'sanJose', nombre: 'Batería de San José', desc: 'Fuerte sobre el arrecife en la entrada de la bahía de Cartagena.' },
-      { nodo: 'casco', nombre: 'Casco Histórico de Bocachica', desc: 'Calles tradicionales y casas de herencia caribeña.' },
+      { nodo: 'sanFernando', nombre: 'Fuerte San Fernando', desc: 'Castillo histórico frente al canal.' },
+      { nodo: 'sanRafael', nombre: 'Batería Ángel San Rafael', desc: 'Mirador en lo alto de la loma.' },
+      { nodo: 'sanJose', nombre: 'Batería de San José', desc: 'Fuerte sobre el arrecife en la bahía.' },
+      { nodo: 'casco', nombre: 'Casco Histórico', desc: 'Calles tradicionales de Bocachica.' },
     ],
   },
   {
     id: 'talleres',
     ancla: 'sec-talleres',
     label: '3. Talleres y Viernes',
-    icono: '🪵',
+    cta: 'Agendar clase del viernes',
     color: '#e8a86b',
     cam: 'linea_oficios',
     nodos: ['ribera', 'residuos', 'vivero', 'escuelaR9'],
     rutas: { agua: 0.3, verde: 0.4, residuos: 0.9, oficios: 1, patrimonio: 0 },
     zonas: [0.1, 0.4, 0.95],
-    resumen: 'Talleres de oficios de la isla y programación de clases virtuales cada viernes para aprender tradiciones o usar esta plataforma.',
+    resumen: 'Talleres de oficios y clases virtuales cada viernes para aprender juntos.',
     lugares: [
-      { nodo: 'ribera', nombre: 'Carpintería de Ribera', desc: 'Maestros carpinteros que enseñan construcción de botes y madera.' },
-      { nodo: 'residuos', nombre: 'Taller de Plástico', desc: 'Transformación de plástico reciclado en bancas y mobiliario.' },
-      { nodo: 'vivero', nombre: 'Vivero Comunitario', desc: 'Siembra de manglar, almendros y frutales junto a vecinos.' },
-      { nodo: 'escuelaR9', nombre: 'Colegio Gimnasio Cristiano', desc: 'Aula viva para encuentros, agua lluvia y formación.' },
+      { nodo: 'ribera', nombre: 'Carpintería de Ribera', desc: 'Construcción de botes y madera.' },
+      { nodo: 'residuos', nombre: 'Taller de Plástico', desc: 'Plástico reciclado hecho mobiliario.' },
+      { nodo: 'vivero', nombre: 'Vivero Comunitario', desc: 'Siembra de manglar y frutales.' },
+      { nodo: 'escuelaR9', nombre: 'Gimnasio Cristiano', desc: 'Aula viva y tanque de agua lluvia.' },
     ],
   },
   {
     id: 'juego',
     ancla: 'sec-juego',
     label: '4. Juego',
-    icono: '🎮',
+    cta: 'Jugar ahora',
     color: '#35d08a',
     cam: 'escuela_r9',
     nodos: ['escuelaR9', 'vivero', 'casco'],
     rutas: { agua: 0.8, verde: 0.9, residuos: 0, oficios: 0, patrimonio: 0 },
     zonas: [0.2, 0.95, 0.85],
-    resumen: 'Interactúa con Tierra Bomba en 3D: siembra árboles, simula la lluvia y pon a prueba lo que sabes de tu isla.',
+    resumen: 'Siembra árboles, haz llover en el mapa 3D y responde el reto de la isla.',
     lugares: [],
   },
 ];
@@ -2477,56 +2503,64 @@ export default function AulaAmbientalBocachica({
           <span className="text-xs font-medium tracking-wide">Tierra Bomba</span>
         </div>
 
-        {/* 5 pestañas guiadas en orden: 1. Corregimientos -> 2. Patrimonio -> 3. Talleres -> 4. Colegio -> 5. Manglar */}
+        {/* 4 pestañas guiadas en orden con iconos vectoriales */}
         <nav className="tc-vidrio px-1.5 py-1 !rounded-full flex items-center gap-1 overflow-x-auto max-w-full pointer-events-auto order-3 lg:order-2">
           {EXPLORA_CATEGORIAS.map((cat) => {
-            const on = catActiva?.id === cat.id && !panelJuego;
+            const on = (cat.id === 'juego' ? panelJuego : catActiva?.id === cat.id && !panelJuego);
+            const Icono = ICONOS_CAT[cat.id] || MapPin;
             return (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => activarCategoria(cat)}
-                className={`whitespace-nowrap px-2.5 py-1 rounded-full text-[11px] font-medium transition flex items-center gap-1 ${
+                className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
                   on
-                    ? 'bg-white/20 text-white shadow'
-                    : 'text-white/75 hover:bg-white/10 hover:text-white'
+                    ? 'bg-white text-[#0b1016] shadow font-semibold'
+                    : 'text-white/80 hover:bg-white/10 hover:text-white'
                 }`}
               >
-                <span>{cat.icono}</span>
+                <Icono className="w-3.5 h-3.5 shrink-0" />
                 <span>{cat.label}</span>
               </button>
             );
           })}
         </nav>
 
-        <div className="tc-vidrio px-2 py-1 text-xs text-white/85 flex items-center gap-1.5 pointer-events-auto relative order-2 lg:order-3">
-          <div className="relative">
+        <div className="tc-vidrio px-2.5 py-1 text-xs text-white/85 flex items-center gap-2 pointer-events-auto relative order-2 lg:order-3">
+          <div className="relative flex items-center">
+            <Search className="w-3.5 h-3.5 text-white/55 absolute left-2.5 pointer-events-none" />
             <input
               type="text"
               value={busqueda}
               onFocus={() => setBusqAbierta(true)}
               onChange={(e) => { setBusqueda(e.target.value); setBusqAbierta(true); }}
-              placeholder="🔍 Buscar..."
+              placeholder="Buscar lugar..."
               aria-label="Buscar lugar o tema en Tierra Bomba"
-              className="w-28 sm:w-40 bg-white/10 border border-white/15 rounded-full px-2.5 py-1 text-xs text-white placeholder-white/55 focus:outline-none focus:border-[#e0917a]"
+              className="w-28 sm:w-40 bg-white/10 border border-white/15 rounded-full pl-8 pr-2.5 py-1 text-xs text-white placeholder-white/55 focus:outline-none focus:border-[#e0917a]"
             />
             {busqAbierta && (
-              <div className="absolute right-0 mt-2 w-72 sm:w-80 tc-vidrio p-2 z-50 max-h-80 overflow-y-auto shadow-2xl">
-                <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b border-white/10 text-[10px] text-white/60">
-                  <span>Toca un lugar para volar en el mapa 3D</span>
-                  <button type="button" onClick={() => setBusqAbierta(false)} className="text-white/70 hover:text-white">✕</button>
+              <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 tc-vidrio p-2 z-50 max-h-80 overflow-y-auto shadow-2xl">
+                <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b border-white/10 text-[11px] text-white/65">
+                  <span>Elige un lugar para ir en el mapa</span>
+                  <button type="button" onClick={() => setBusqAbierta(false)} className="text-white/70 hover:text-white p-0.5">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 </div>
                 {resultadosBusqueda.length === 0 ? (
-                  <div className="px-2 py-3 text-xs text-white/60">Prueba con &ldquo;Bocachica&rdquo;, &ldquo;Caño de Loro&rdquo;, &ldquo;fuerte&rdquo;, &ldquo;taller&rdquo; o &ldquo;agua&rdquo;.</div>
+                  <div className="px-2 py-3 text-xs text-white/60">Prueba con &ldquo;Bocachica&rdquo;, &ldquo;Caño de Loro&rdquo;, &ldquo;Fuerte&rdquo; o &ldquo;Taller&rdquo;.</div>
                 ) : (
                   resultadosBusqueda.map((it) => (
                     <button
                       key={it.id}
                       type="button"
                       onClick={() => { setCatActiva(null); setPanelJuego(false); seleccionarBusqueda(it); }}
-                      className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-white/10 transition flex items-start gap-2"
+                      className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-white/10 transition flex items-start gap-2.5 cursor-pointer"
                     >
-                      <span className="text-xs mt-0.5">{it.tipo === 'modal' ? '🛠' : '📍'}</span>
+                      {it.tipo === 'modal' ? (
+                        <Layers className="w-4 h-4 text-[#e0917a] shrink-0 mt-0.5" />
+                      ) : (
+                        <MapPin className="w-4 h-4 text-[#35d08a] shrink-0 mt-0.5" />
+                      )}
                       <div>
                         <div className="text-xs font-medium text-white">{it.titulo}</div>
                         <div className="text-[11px] text-white/65 leading-tight">{it.sub}</div>
@@ -2540,14 +2574,15 @@ export default function AulaAmbientalBocachica({
 
           <button
             type="button"
-            onClick={() => { setPanelJuego((v) => !v); setBusqAbierta(false); if (!panelJuego) setCatActiva(null); }}
-            className={`px-2.5 py-1 rounded-full border text-[11px] font-medium transition ${
+            onClick={() => activarCategoria(EXPLORA_CATEGORIAS[3])}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
               panelJuego
-                ? 'bg-[#35d08a]/25 border-[#35d08a] text-white'
-                : 'border-[#35d08a]/60 text-[#9ff3c9] hover:bg-[#35d08a]/15'
+                ? 'bg-[#35d08a] text-[#07140d]'
+                : 'bg-[#35d08a]/20 border border-[#35d08a]/70 text-[#9ff3c9] hover:bg-[#35d08a] hover:text-[#07140d]'
             }`}
           >
-            🎮 Jugar
+            <Gamepad2 className="w-3.5 h-3.5" />
+            <span>Jugar</span>
           </button>
         </div>
       </header>
@@ -2559,16 +2594,19 @@ export default function AulaAmbientalBocachica({
           <button
             type="button"
             onClick={() => setLibre((v) => !v)}
-            className={`px-2 py-1 rounded text-[11px] transition ${
-              libre ? 'bg-[#e0917a]/30 text-white' : 'text-white/75 hover:text-white'
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition flex items-center gap-1.5 cursor-pointer ${
+              libre ? 'bg-[#e0917a] text-[#0b1016]' : 'text-white/80 hover:text-white'
             }`}
             title="Arrastra y gira el mapa 3D libremente"
           >
-            {libre ? '✓ Libre' : '✋ Mover'}
+            {libre ? <Check className="w-3.5 h-3.5" /> : <Hand className="w-3.5 h-3.5" />}
+            <span>{libre ? 'Soltar' : 'Mover mapa'}</span>
           </button>
-          <button type="button" onClick={() => escena?.vista.zoom(0.8)} className="px-2 py-1 text-xs text-white/80 hover:text-white" title="Acercar">+</button>
-          <button type="button" onClick={() => escena?.vista.zoom(1.25)} className="px-2 py-1 text-xs text-white/80 hover:text-white" title="Alejar">−</button>
-          <button type="button" onClick={() => escena?.vista.reset()} className="px-2 py-1 text-xs text-white/80 hover:text-white" title="Reiniciar vista">↻</button>
+          <button type="button" onClick={() => escena?.vista.zoom(0.8)} className="px-2 py-1 text-xs font-semibold text-white/80 hover:text-white cursor-pointer" title="Acercar">+</button>
+          <button type="button" onClick={() => escena?.vista.zoom(1.25)} className="px-2 py-1 text-xs font-semibold text-white/80 hover:text-white cursor-pointer" title="Alejar">-</button>
+          <button type="button" onClick={() => escena?.vista.reset()} className="p-1.5 text-white/80 hover:text-white cursor-pointer" title="Reiniciar vista">
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
@@ -2782,163 +2820,223 @@ export default function AulaAmbientalBocachica({
         </>
       )}
 
-      {/* TARJETA ÚNICA IZQUIERDA: Muestra solo UNA cosa a la vez (Tema activo OR Lugar buscado OR Jugar) */}
-      {enVistaAula && catActiva && !panelJuego && !modalDiagrama && (
-        <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,26rem)] max-h-[76svh] overflow-y-auto tc-vidrio p-4 tc-paso-anim shadow-2xl">
-          <div className="flex items-center justify-between gap-2 pb-2 border-b border-white/15">
-            <span className="text-xs font-semibold text-white">{catActiva.icono} {catActiva.label}</span>
-            <button type="button" onClick={() => setCatActiva(null)} className="text-xs text-white/60 hover:text-white px-1">✕</button>
-          </div>
-          <p className="text-xs text-white/85 mt-2 leading-snug">{catActiva.resumen}</p>
-          <div className="mt-2.5 space-y-1.5">
-            {catActiva.lugares.map((lug) => (
-              <button
-                key={lug.nodo}
-                type="button"
-                onClick={() => {
-                  setLugarActivo({ titulo: lug.nombre, sub: lug.desc, nodo: lug.nodo });
-                  escena?.irANodo?.(lug.nodo, lug.nodo === 'sanFernando' ? 235 : 320);
-                }}
-                className={`w-full text-left p-2 rounded-lg border transition ${
-                  lugarActivo?.nodo === lug.nodo
-                    ? 'bg-[#e0917a]/25 border-[#e0917a] text-white'
-                    : 'border-white/15 bg-white/5 hover:bg-white/10 text-white/90'
-                }`}
-              >
-                <div className="text-xs font-semibold flex items-center justify-between">
-                  <span>📍 {lug.nombre}</span>
-                  <span className="text-[10px] text-[#e0917a]">Volar en 3D →</span>
-                </div>
-                <div className="text-[11px] text-white/65 leading-tight mt-0.5">{lug.desc}</div>
-              </button>
-            ))}
-          </div>
-
-          {/* PROGRAMACIÓN DE CLASES VIRTUALES DE LOS VIERNES (Tradiciones + Uso de la plataforma) */}
-          {catActiva.id === 'talleres' && (
-            <div className="mt-3 pt-3 border-t border-white/15 space-y-2">
-              <div className="text-xs font-semibold text-[#e8a86b]">
-                📅 Clases virtuales de los viernes · 4:00 p.m.
+      {/* TARJETA ÚNICA IZQUIERDA: Visual, clara, sin emojis, con botones grandes de acción */}
+      {enVistaAula && catActiva && !panelJuego && !modalDiagrama && (() => {
+        const IconoCat = ICONOS_CAT[catActiva.id] || MapPin;
+        const idxCat = EXPLORA_CATEGORIAS.findIndex((c) => c.id === catActiva.id);
+        const catAnt = idxCat > 0 ? EXPLORA_CATEGORIAS[idxCat - 1] : null;
+        const catSig = idxCat < EXPLORA_CATEGORIAS.length - 1 ? EXPLORA_CATEGORIAS[idxCat + 1] : null;
+        return (
+          <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,26rem)] max-h-[78svh] overflow-y-auto tc-vidrio p-4 md:p-5 tc-paso-anim shadow-2xl">
+            <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-white/15">
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center text-[#e0917a]">
+                  <IconoCat className="w-4 h-4" />
+                </span>
+                <span className="text-sm font-semibold text-white">{catActiva.label}</span>
               </div>
-              <p className="text-[11px] text-white/70 leading-snug">
-                Programa aquí tu clase del viernes para aprender una tradición de Tierra Bomba o cómo usar esta plataforma:
-              </p>
-              <form onSubmit={agendarClaseViernes} className="space-y-1.5">
-                <select
-                  value={temaViernes}
-                  onChange={(e) => setTemaViernes(e.target.value)}
-                  className="w-full bg-white/10 border border-white/15 rounded-lg px-2.5 py-1.5 text-[11px] text-white focus:outline-none focus:border-[#e8a86b]"
-                >
-                  {TEMAS_VIERNES.map((t) => (
-                    <option key={t} value={t} className="bg-[#0b1016] text-white">{t}</option>
-                  ))}
-                </select>
-                <div className="grid grid-cols-2 gap-1.5">
-                  <input
-                    type="text"
-                    value={nombreViernes}
-                    onChange={(e) => setNombreViernes(e.target.value)}
-                    placeholder="Tu nombre..."
-                    className="bg-white/10 border border-white/15 rounded-lg px-2.5 py-1.5 text-[11px] text-white placeholder-white/50 focus:outline-none focus:border-[#e8a86b]"
-                  />
-                  <select
-                    value={corregViernes}
-                    onChange={(e) => setCorregViernes(e.target.value)}
-                    className="bg-white/10 border border-white/15 rounded-lg px-2 py-1.5 text-[11px] text-white focus:outline-none focus:border-[#e8a86b]"
+              <button type="button" onClick={() => setCatActiva(null)} className="text-white/60 hover:text-white p-1">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-white/85 mt-2.5 leading-snug">{catActiva.resumen}</p>
+
+            <div className="mt-3 grid grid-cols-1 gap-2">
+              {catActiva.lugares.map((lug) => {
+                const act = lugarActivo?.nodo === lug.nodo;
+                return (
+                  <button
+                    key={lug.nodo}
+                    type="button"
+                    onClick={() => {
+                      setLugarActivo({ titulo: lug.nombre, sub: lug.desc, nodo: lug.nodo });
+                      escena?.irANodo?.(lug.nodo, lug.nodo === 'sanFernando' ? 235 : 320);
+                    }}
+                    className={`w-full text-left p-2.5 rounded-xl border transition flex items-center justify-between gap-3 cursor-pointer ${
+                      act
+                        ? 'bg-white text-[#0b1016] border-white shadow-lg'
+                        : 'border-white/15 bg-white/5 hover:bg-white/15 text-white'
+                    }`}
                   >
-                    {['Bocachica', 'Tierra Bomba', 'Caño de Loro', 'Punta Arena'].map((c) => (
-                      <option key={c} value={c} className="bg-[#0b1016] text-white">{c}</option>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${act ? 'bg-[#e0917a]/20 text-[#b84c31]' : 'bg-white/10 text-[#e0917a]'}`}>
+                        <MapPin className="w-4 h-4" />
+                      </span>
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold truncate">{lug.nombre}</div>
+                        <div className={`text-[11px] leading-tight truncate ${act ? 'text-[#0b1016]/75' : 'text-white/65'}`}>{lug.desc}</div>
+                      </div>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0 flex items-center gap-1 ${
+                      act ? 'bg-[#0b1016] text-white' : 'bg-[#e0917a] text-[#0b1016]'
+                    }`}>
+                      Ver
+                      <ArrowRight className="w-3 h-3" />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* PROGRAMACIÓN DE CLASES VIRTUALES DE LOS VIERNES */}
+            {catActiva.id === 'talleres' && (
+              <div className="mt-4 pt-3.5 border-t border-white/15 space-y-2.5">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#e8a86b]">
+                  <Calendar className="w-4 h-4 shrink-0" />
+                  <span>Clases virtuales · Todos los viernes 4:00 p.m.</span>
+                </div>
+                <form onSubmit={agendarClaseViernes} className="space-y-2">
+                  <select
+                    value={temaViernes}
+                    onChange={(e) => setTemaViernes(e.target.value)}
+                    className="w-full bg-white/10 border border-white/15 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#e8a86b]"
+                  >
+                    {TEMAS_VIERNES.map((t) => (
+                      <option key={t} value={t} className="bg-[#0b1016] text-white">{t}</option>
                     ))}
                   </select>
-                </div>
-                <button
-                  type="submit"
-                  className="w-full py-1.5 px-3 rounded-lg bg-[#e8a86b]/25 border border-[#e8a86b] text-white text-[11px] font-medium hover:bg-[#e8a86b]/35 transition"
-                >
-                  ✓ Programar clase del próximo viernes
-                </button>
-              </form>
-              {confirmViernes && (
-                <div className="text-[11px] text-[#35d08a] font-medium">
-                  ¡Listo! Tu clase del viernes quedó programada.
-                </div>
-              )}
-              <div className="space-y-1 pt-1">
-                <div className="text-[10px] uppercase tracking-wider text-white/50">Próximos viernes programados</div>
-                {clasesViernes.slice(0, 3).map((cv) => (
-                  <div key={cv.id} className="p-1.5 rounded bg-white/5 border border-white/10 text-[10px] text-white/85">
-                    <div className="font-medium text-white">{cv.tema}</div>
-                    <div className="text-white/60">{cv.nombre} ({cv.corregimiento}) · {cv.fecha}</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      value={nombreViernes}
+                      onChange={(e) => setNombreViernes(e.target.value)}
+                      placeholder="Tu nombre"
+                      className="bg-white/10 border border-white/15 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-white/50 focus:outline-none focus:border-[#e8a86b]"
+                    />
+                    <select
+                      value={corregViernes}
+                      onChange={(e) => setCorregViernes(e.target.value)}
+                      className="bg-white/10 border border-white/15 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#e8a86b]"
+                    >
+                      {['Bocachica', 'Tierra Bomba', 'Caño de Loro', 'Punta Arena'].map((c) => (
+                        <option key={c} value={c} className="bg-[#0b1016] text-white">{c}</option>
+                      ))}
+                    </select>
                   </div>
-                ))}
+                  <button
+                    type="submit"
+                    className="w-full py-2 px-3 rounded-xl bg-[#e8a86b] text-[#0b1016] text-xs font-bold hover:brightness-110 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Programar mi clase del viernes</span>
+                  </button>
+                </form>
+                {confirmViernes && (
+                  <div className="flex items-center gap-1.5 text-xs text-[#35d08a] font-medium">
+                    <Check className="w-4 h-4" />
+                    <span>Clase programada para el próximo viernes.</span>
+                  </div>
+                )}
+                <div className="space-y-1 pt-1">
+                  {clasesViernes.slice(0, 2).map((cv) => (
+                    <div key={cv.id} className="p-2 rounded-lg bg-white/5 border border-white/10 text-[11px] text-white/85">
+                      <div className="font-medium text-white truncate">{cv.tema}</div>
+                      <div className="text-white/60">{cv.nombre} ({cv.corregimiento}) · {cv.fecha}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
+            )}
+
+            {/* CALL TO ACTIONS DE NAVEGACIÓN DIRECTA */}
+            <div className="mt-4 pt-3 border-t border-white/15 flex items-center justify-between gap-2">
+              {catAnt ? (
+                <button
+                  type="button"
+                  onClick={() => activarCategoria(catAnt)}
+                  className="px-3 py-1.5 rounded-xl border border-white/20 text-xs text-white/85 hover:bg-white/10 transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Anterior</span>
+                </button>
+              ) : <span />}
+              {catSig && (
+                <button
+                  type="button"
+                  onClick={() => activarCategoria(catSig)}
+                  className="px-4 py-1.5 rounded-xl bg-white text-[#0b1016] text-xs font-bold hover:bg-white/90 transition flex items-center gap-1.5 cursor-pointer ml-auto"
+                >
+                  <span>{catSig.cta}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
-          )}
-        </aside>
-      )}
+          </aside>
+        );
+      })()}
 
       {enVistaAula && lugarActivo && !catActiva && !panelJuego && !modalDiagrama && (
         <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,24rem)] tc-vidrio p-4 tc-paso-anim shadow-2xl">
           <div className="flex items-start justify-between gap-2">
-            <div>
-              <div className="tc-etiqueta !text-[#e0917a]">📍 Lugar en el mapa 3D</div>
-              <h4 className="text-sm font-semibold text-white mt-0.5">{lugarActivo.titulo}</h4>
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-[#e0917a] shrink-0" />
+              <h4 className="text-sm font-semibold text-white">{lugarActivo.titulo}</h4>
             </div>
-            <button type="button" onClick={() => setLugarActivo(null)} className="text-xs text-white/60 hover:text-white px-1.5">✕</button>
+            <button type="button" onClick={() => setLugarActivo(null)} className="text-white/60 hover:text-white p-1">
+              <X className="w-4 h-4" />
+            </button>
           </div>
-          <p className="text-xs text-white/80 mt-1.5 leading-relaxed">{lugarActivo.sub}</p>
-          <div className="mt-3 flex flex-wrap gap-1.5">
+          <p className="text-xs text-white/80 mt-2 leading-relaxed">{lugarActivo.sub}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => { setPanelJuego(true); setTabJuego('isla'); }}
-              className="tc-ficha !border-[#35d08a]/60 !text-[#9ff3c9]"
+              onClick={() => activarCategoria(EXPLORA_CATEGORIAS[3])}
+              className="px-3.5 py-1.5 rounded-xl bg-[#35d08a] text-[#07140d] text-xs font-bold flex items-center gap-1.5 cursor-pointer"
             >
-              🎮 Probar sombra y lluvia aquí
+              <Gamepad2 className="w-3.5 h-3.5" />
+              <span>Jugar en este lugar</span>
             </button>
           </div>
         </aside>
       )}
 
       {enVistaAula && panelJuego && !modalDiagrama && (
-        <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,24rem)] tc-vidrio p-4 tc-paso-anim shadow-2xl">
-          <div className="flex items-center justify-between pb-2 mb-3 border-b border-white/15">
-            <span className="text-xs font-semibold text-white">🎮 Laboratorio comunitario 3D</span>
+        <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,25rem)] tc-vidrio p-4 md:p-5 tc-paso-anim shadow-2xl">
+          <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-white/15">
+            <div className="flex items-center gap-2">
+              <Gamepad2 className="w-4 h-4 text-[#35d08a]" />
+              <span className="text-sm font-semibold text-white">4. Juego de Tierra Bomba</span>
+            </div>
             <button
               type="button"
               onClick={() => setPanelJuego(false)}
-              className="text-xs text-white/60 hover:text-white px-1.5"
+              className="text-white/60 hover:text-white p-1"
             >
-              ✕ Cerrar
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-1 mb-3">
+          <div className="grid grid-cols-2 gap-1.5 mb-3">
             {[
-              { id: 'isla', label: '🌳 Jugar isla' },
-              { id: 'reto', label: '🎯 Reto (4)' },
-              { id: 'herramientas', label: '🛠 Dibujos' },
+              { id: 'isla', label: 'Jugar con la isla', Icon: Trees },
+              { id: 'reto', label: 'Trivia (4 retos)', Icon: Award },
             ].map((t) => (
               <button
                 key={t.id}
                 type="button"
                 onClick={() => setTabJuego(t.id)}
-                className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border transition ${
+                className={`py-2 px-2.5 rounded-xl text-xs font-semibold border transition flex items-center justify-center gap-1.5 cursor-pointer ${
                   tabJuego === t.id
-                    ? 'bg-[#e0917a]/25 border-[#e0917a] text-white'
-                    : 'border-white/15 text-white/70 hover:text-white'
+                    ? 'bg-white text-[#0b1016] border-white'
+                    : 'border-white/15 text-white/75 hover:text-white'
                 }`}
               >
-                {t.label}
+                <t.Icon className="w-3.5 h-3.5" />
+                <span>{t.label}</span>
               </button>
             ))}
           </div>
 
           {tabJuego === 'isla' && (
             <div className="space-y-3 text-xs">
-              <div>
-                <div className="flex justify-between text-white/85 mb-1">
-                  <span>🌳 Plantar sombra y árboles</span>
-                  <strong className="text-[#35d08a]">{(36 - (sombraJuego / 100) * 4.5).toFixed(1)} °C</strong>
+              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-center justify-between text-white mb-1.5">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <Trees className="w-4 h-4 text-[#35d08a]" />
+                    <span>Sembrar sombra</span>
+                  </span>
+                  <strong className="text-[#35d08a] text-sm">{(36 - (sombraJuego / 100) * 4.5).toFixed(1)} °C</strong>
                 </div>
                 <input
                   type="range"
@@ -2952,16 +3050,24 @@ export default function AulaAmbientalBocachica({
                   }}
                   className="w-full accent-[#35d08a]"
                 />
-                <div className="flex justify-between text-[10px] text-white/55">
-                  <span>Hoy (más calor)</span>
-                  <span>+Árboles (-4,5 °C)</span>
+                <div className="mt-1.5 flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => { setSombraJuego(100); aplicarJuegoEscena(100, lluviaJuego, capasJuego); }}
+                    className="flex-1 py-1.5 rounded-lg bg-[#35d08a] text-[#07140d] font-bold text-[11px] cursor-pointer"
+                  >
+                    Llenar de árboles (-4,5 °C)
+                  </button>
                 </div>
               </div>
 
-              <div>
-                <div className="flex justify-between text-white/85 mb-1">
-                  <span>🌧 Lluvia y marea alta</span>
-                  <strong className="text-[#6ec6e6]">{Math.round((lluviaJuego / 100) * 45000).toLocaleString('es-CO')} L</strong>
+              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-center justify-between text-white mb-1.5">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <CloudRain className="w-4 h-4 text-[#6ec6e6]" />
+                    <span>Lluvia y agua</span>
+                  </span>
+                  <strong className="text-[#6ec6e6] text-sm">{Math.round((lluviaJuego / 100) * 45000).toLocaleString('es-CO')} L</strong>
                 </div>
                 <input
                   type="range"
@@ -2975,39 +3081,42 @@ export default function AulaAmbientalBocachica({
                   }}
                   className="w-full accent-[#6ec6e6]"
                 />
-                <div className="flex justify-between text-[10px] text-white/55">
-                  <span>Día seco</span>
-                  <span>Lluvia fuerte (llena aljibe)</span>
+                <div className="mt-1.5 flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => { setLluviaJuego(100); aplicarJuegoEscena(sombraJuego, 100, capasJuego); }}
+                    className="flex-1 py-1.5 rounded-lg bg-[#6ec6e6] text-[#07141a] font-bold text-[11px] cursor-pointer"
+                  >
+                    Hacer llover ahora
+                  </button>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-white/10">
-                <div className="text-[11px] text-white/65 mb-1.5">Ver / ocultar en el mapa 3D:</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {[
-                    { k: 'casas', label: '🏠 Casas' },
-                    { k: 'arboles', label: '🌳 Árboles' },
-                    { k: 'pilotos', label: '🏫 Pilotos' },
-                  ].map((c) => {
-                    const on = capasJuego[c.k];
-                    return (
-                      <button
-                        key={c.k}
-                        type="button"
-                        onClick={() => {
-                          const next = { ...capasJuego, [c.k]: !on };
-                          setCapasJuego(next);
-                          aplicarJuegoEscena(sombraJuego, lluviaJuego, next);
-                        }}
-                        className={`px-2.5 py-1 rounded-full text-[11px] border transition ${
-                          on ? 'bg-white/15 border-white/40 text-white' : 'border-white/15 text-white/45'
-                        }`}
-                      >
-                        {c.label}
-                      </button>
-                    );
-                  })}
-                </div>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { k: 'casas', label: 'Casas', Icon: Home },
+                  { k: 'arboles', label: 'Árboles', Icon: Trees },
+                  { k: 'pilotos', label: 'Castillos y aulas', Icon: Landmark },
+                ].map((c) => {
+                  const on = capasJuego[c.k];
+                  return (
+                    <button
+                      key={c.k}
+                      type="button"
+                      onClick={() => {
+                        const next = { ...capasJuego, [c.k]: !on };
+                        setCapasJuego(next);
+                        aplicarJuegoEscena(sombraJuego, lluviaJuego, next);
+                      }}
+                      className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition flex items-center gap-1.5 cursor-pointer ${
+                        on ? 'bg-white text-[#0b1016] border-white' : 'border-white/15 text-white/55'
+                      }`}
+                    >
+                      <c.Icon className="w-3.5 h-3.5" />
+                      <span>{c.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -3016,17 +3125,20 @@ export default function AulaAmbientalBocachica({
             <div className="space-y-2.5 text-xs">
               <div className="flex items-center justify-between text-[11px] text-white/65">
                 <span>Pregunta {retoIdx + 1} de {PREGUNTAS_RETO.length}</span>
-                <span className="text-[#35d08a] font-semibold">Puntos: {retoPuntos}/{PREGUNTAS_RETO.length}</span>
+                <span className="text-[#35d08a] font-bold flex items-center gap-1">
+                  <Award className="w-3.5 h-3.5" />
+                  {retoPuntos}/{PREGUNTAS_RETO.length}
+                </span>
               </div>
-              <p className="text-white font-medium leading-snug">{PREGUNTAS_RETO[retoIdx].q}</p>
+              <p className="text-white text-sm font-medium leading-snug">{PREGUNTAS_RETO[retoIdx].q}</p>
               <div className="space-y-1.5">
                 {PREGUNTAS_RETO[retoIdx].opciones.map((op, i) => {
                   const elegida = retoResp === i;
                   const esOk = i === PREGUNTAS_RETO[retoIdx].correcta;
-                  let cls = 'border-white/15 text-white/85 hover:bg-white/10';
+                  let cls = 'border-white/15 bg-white/5 text-white hover:bg-white/15';
                   if (retoResp !== null) {
-                    if (esOk) cls = 'bg-[#35d08a]/25 border-[#35d08a] text-white';
-                    else if (elegida) cls = 'bg-red-500/25 border-red-400 text-white';
+                    if (esOk) cls = 'bg-[#35d08a] border-[#35d08a] text-[#07140d] font-bold';
+                    else if (elegida) cls = 'bg-red-500/30 border-red-400 text-white';
                   }
                   return (
                     <button
@@ -3038,7 +3150,7 @@ export default function AulaAmbientalBocachica({
                         if (i === PREGUNTAS_RETO[retoIdx].correcta) setRetoPuntos((p) => p + 1);
                         escena?.irANodo?.(PREGUNTAS_RETO[retoIdx].nodo, 280);
                       }}
-                      className={`w-full text-left px-3 py-2 rounded-lg border transition ${cls}`}
+                      className={`w-full text-left px-3 py-2.5 rounded-xl border transition cursor-pointer ${cls}`}
                     >
                       {op}
                     </button>
@@ -3046,7 +3158,7 @@ export default function AulaAmbientalBocachica({
                 })}
               </div>
               {retoResp !== null && (
-                <div className="p-2.5 rounded-lg bg-white/10 text-[11px] text-white/90 space-y-2">
+                <div className="p-3 rounded-xl bg-white/10 text-xs text-white/95 space-y-2">
                   <p>{PREGUNTAS_RETO[retoIdx].dato}</p>
                   <button
                     type="button"
@@ -3055,33 +3167,13 @@ export default function AulaAmbientalBocachica({
                       if (retoIdx + 1 < PREGUNTAS_RETO.length) setRetoIdx((i) => i + 1);
                       else { setRetoIdx(0); setRetoPuntos(0); }
                     }}
-                    className="tc-ficha !border-[#e0917a] !text-white"
+                    className="w-full py-2 rounded-xl bg-white text-[#0b1016] font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    {retoIdx + 1 < PREGUNTAS_RETO.length ? 'Siguiente pregunta →' : '↻ Volver a jugar'}
+                    <span>{retoIdx + 1 < PREGUNTAS_RETO.length ? 'Siguiente pregunta' : 'Volver a jugar'}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
-            </div>
-          )}
-
-          {tabJuego === 'herramientas' && (
-            <div className="space-y-1.5 text-xs">
-              {[
-                { m: 'simulador4pasos', t: '✦ Ver dibujos explicativos en 4 pasos' },
-                { m: 'plano2D', t: '✦ Comparar el colegio: Hoy vs. Nuevo' },
-                { m: 'redProblema', t: '✦ Ver cómo se conectan los problemas' },
-                { m: 'memorias', t: '✦ Ver los 9 estudios y las 6 memorias' },
-                { m: 'hojaRuta', t: '✦ Ver el plan a 2 años y participantes' },
-              ].map((h) => (
-                <button
-                  key={h.m}
-                  type="button"
-                  onClick={() => setModalDiagrama(h.m)}
-                  className="w-full text-left px-3 py-2 rounded-lg border border-white/15 hover:bg-white/10 text-white/90 transition"
-                >
-                  {h.t}
-                </button>
-              ))}
             </div>
           )}
         </aside>
@@ -3132,22 +3224,25 @@ export default function AulaAmbientalBocachica({
           </div>
           <div className="md:col-span-4 md:pb-2 text-white/85">
             <p className="text-base md:text-lg leading-snug">
-              Explora los 4 corregimientos, el patrimonio, los talleres, el colegio y el manglar directamente sobre el mapa 3D.
+              Explora los 4 corregimientos, el patrimonio, los talleres de los viernes y juega en el mapa 3D.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => activarCategoria(EXPLORA_CATEGORIAS[0])}
-                className="tc-ficha tc-ficha-activa !border-[#e0917a] !text-white"
+                className="px-4 py-2.5 rounded-xl bg-white text-[#0b1016] text-xs font-bold hover:bg-white/90 transition flex items-center gap-2 cursor-pointer"
               >
-                🏘 1. Ver los 4 Corregimientos (en planta)
+                <MapPin className="w-4 h-4" />
+                <span>Explorar corregimientos</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
               <button
                 type="button"
-                onClick={() => { setPanelJuego(true); setTabJuego('isla'); }}
-                className="tc-ficha !border-[#35d08a]/70 !text-[#9ff3c9]"
+                onClick={() => activarCategoria(EXPLORA_CATEGORIAS[3])}
+                className="px-4 py-2.5 rounded-xl bg-[#35d08a] text-[#07140d] text-xs font-bold hover:brightness-110 transition flex items-center gap-2 cursor-pointer"
               >
-                🎮 Jugar con la isla
+                <Gamepad2 className="w-4 h-4" />
+                <span>Jugar ahora</span>
               </button>
             </div>
           </div>
