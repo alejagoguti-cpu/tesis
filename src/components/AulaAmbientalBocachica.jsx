@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { crearEscenaAula } from '../utils/escenaAulaBocachica';
 import { crearReproductorComunidad, PISTAS_MEMORIA } from '../utils/musicaComunidad';
+import { Escena3DMojarra, Escena3DBailarCartagenero } from './Juegos3DComunidad';
 
 /** Card interactiva que se ilumina suavemente donde pasa el cursor */
 function CardIluminada({ children, color = '#e8a86b', className = '', onClick }) {
@@ -172,50 +173,13 @@ function JuegoCocinarMojarra({ color = '#e8a86b' }) {
         </div>
       </div>
 
-      {/* ETAPA 1: ADOBAR LA MOJARRA */}
+      {/* ETAPA 1: ADOBAR LA MOJARRA 3D */}
       {etapa === 'adobar' && (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-          <div className="md:col-span-7 rounded-2xl bg-[#101822] border border-white/10 p-4 flex flex-col items-center justify-center relative overflow-hidden">
-            <svg viewBox="0 0 360 190" className="w-full max-w-sm">
-              {/* Tabla de madera */}
-              <rect x="20" y="25" width="320" height="145" rx="22" fill="#6f4a2d" stroke="#8c623e" strokeWidth="4" />
-              <rect x="34" y="37" width="292" height="121" rx="14" fill="#7d5535" />
-              {/* Mojarra */}
-              <ellipse cx="175" cy="98" rx="84" ry="42" fill={colorPez} className="transition-colors duration-500" />
-              <polygon points="252,98 298,66 288,98 298,130" fill={colorPez} className="transition-colors duration-500" />
-              <polygon points="155,58 195,40 205,60" fill="#7c93a3" />
-              <circle cx="116" cy="90" r="6" fill="#0b1016" />
-              <circle cx="114" cy="88" r="2" fill="#ffffff" />
-              {/* Cortes diagonales */}
-              <path d="M148 76 L166 116 M172 74 L190 118 M196 76 L212 114" stroke="#4f2918" strokeWidth="3.5" strokeLinecap="round" />
-              {/* Efectos visuales de cada adobo */}
-              {adobos.limon && (
-                <g>
-                  <circle cx="72" cy="128" r="14" fill="#9de055" stroke="#eef7b2" strokeWidth="3" />
-                  <circle cx="165" cy="85" r="4" fill="#c9f27c" opacity="0.85" />
-                  <circle cx="205" cy="105" r="3.5" fill="#c9f27c" opacity="0.85" />
-                </g>
-              )}
-              {adobos.ajo && (
-                <g fill="#f5e9c6">
-                  <circle cx="152" cy="96" r="3.5" />
-                  <circle cx="179" cy="88" r="3.5" />
-                  <circle cx="188" cy="108" r="3.5" />
-                  <circle cx="215" cy="94" r="3" />
-                </g>
-              )}
-              {adobos.sal && (
-                <g fill="#ffffff" opacity="0.9">
-                  <circle cx="142" cy="86" r="2" />
-                  <circle cx="160" cy="106" r="2" />
-                  <circle cx="176" cy="96" r="2" />
-                  <circle cx="198" cy="88" r="2" />
-                  <circle cx="220" cy="102" r="2" />
-                </g>
-              )}
-            </svg>
-            <div className="text-[11px] text-white/70 mt-1">
-              {todoAdobado ? '¡Mojarra adobada con sabor isleño!' : 'Haz clic en los 3 ingredientes para sazonarla'}
+          <div className="md:col-span-7 space-y-2">
+            <Escena3DMojarra etapa={etapa} adobos={adobos} friendo={friendo} coccion={coccion} plato={plato} />
+            <div className="text-[11px] text-white/70 text-center">
+              {todoAdobado ? '¡Mojarra adobada en 3D con sabor isleño!' : 'Haz clic en los 3 ingredientes para sazonarla en 3D'}
             </div>
           </div>
 
@@ -267,36 +231,14 @@ function JuegoCocinarMojarra({ color = '#e8a86b' }) {
         </div>
       )}
 
-      {/* ETAPA 2: FREÍR EN CALDERO CALIENTE */}
+      {/* ETAPA 2: FREÍR EN CALDERO CALIENTE 3D */}
       {etapa === 'freir' && (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-          <div className="md:col-span-7 rounded-2xl bg-[#101822] border border-white/10 p-4 flex flex-col items-center">
-            <svg viewBox="0 0 360 190" className="w-full max-w-sm">
-              {/* Llamas del fogón */}
-              <g className={friendo ? 'animate-pulse' : 'opacity-50'}>
-                <path d="M120 170 Q135 135 150 170 Q165 130 180 170 Q195 135 210 170 Q225 135 240 170 Z" fill="#f97316" />
-                <path d="M140 170 Q155 148 170 170 Q185 142 200 170 Q215 148 228 170 Z" fill="#fde047" />
-              </g>
-              {/* Caldero isleño */}
-              <ellipse cx="180" cy="108" rx="112" ry="48" fill="#1e242b" stroke="#4b5563" strokeWidth="5" />
-              <ellipse cx="180" cy="106" rx="96" ry="38" fill="#d99b26" opacity="0.88" />
-              {/* Burbujas de aceite */}
-              {friendo && (
-                <g fill="#fef08a" opacity="0.8">
-                  <circle cx="115" cy="95" r="4" className="animate-ping" />
-                  <circle cx="242" cy="112" r="3.5" className="animate-ping" />
-                  <circle cx="190" cy="80" r="3" className="animate-ping" />
-                  <circle cx="145" cy="126" r="3.5" className="animate-ping" />
-                </g>
-              )}
-              {/* Mojarra friéndose */}
-              <ellipse cx="175" cy="106" rx="68" ry="30" fill={colorPez} className="transition-colors duration-200" />
-              <polygon points="238,106 274,84 266,106 274,128" fill={colorPez} />
-              <path d="M150 90 L164 122 M172 88 L186 122 M194 90 L206 118" stroke="#451a03" strokeWidth="3" strokeLinecap="round" />
-            </svg>
+          <div className="md:col-span-7 space-y-2.5">
+            <Escena3DMojarra etapa={etapa} adobos={adobos} friendo={friendo} coccion={coccion} plato={plato} />
 
             {/* Barra de punto dorado */}
-            <div className="w-full max-w-sm space-y-1.5 mt-2">
+            <div className="w-full space-y-1.5">
               <div className="flex justify-between text-[11px] font-bold">
                 <span className="text-white/70">Nivel de dorado</span>
                 <span style={{ color }}>{Math.round(coccion)} %</span>
@@ -369,58 +311,13 @@ function JuegoCocinarMojarra({ color = '#e8a86b' }) {
         </div>
       )}
 
-      {/* ETAPA 3: EMPLATAR EL PLATO ISLEÑO */}
+      {/* ETAPA 3: EMPLATAR EL PLATO ISLEÑO 3D */}
       {(etapa === 'emplatar' || etapa === 'listo') && (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-          <div className="md:col-span-7 rounded-2xl bg-[#101822] border border-white/10 p-4 flex flex-col items-center">
-            <svg viewBox="0 0 360 220" className="w-full max-w-sm">
-              {/* Individual tejido de palma */}
-              <rect x="28" y="18" width="304" height="184" rx="20" fill="#8b6943" stroke="#b0895a" strokeWidth="3" />
-              {/* Plato blanco costero */}
-              <circle cx="180" cy="110" r="82" fill="#f5f1ea" stroke="#d6cfc4" strokeWidth="4" />
-              <circle cx="180" cy="110" r="64" fill="#fbf9f5" stroke="#e8e1d5" strokeWidth="2" />
-
-              {/* Arroz con coco y titoté */}
-              {plato.arroz && (
-                <g>
-                  <circle cx="145" cy="78" r="24" fill="#b6895b" />
-                  <circle cx="139" cy="72" r="2.5" fill="#4a2c14" />
-                  <circle cx="152" cy="80" r="2.5" fill="#4a2c14" />
-                  <circle cx="147" cy="68" r="2" fill="#4a2c14" />
-                </g>
-              )}
-
-              {/* Patacones crocantes */}
-              {plato.patacones && (
-                <g>
-                  <circle cx="222" cy="78" r="14" fill="#eab308" stroke="#ca8a04" strokeWidth="2" />
-                  <circle cx="236" cy="96" r="14" fill="#facc15" stroke="#ca8a04" strokeWidth="2" />
-                  <circle cx="216" cy="100" r="13" fill="#eab308" stroke="#ca8a04" strokeWidth="2" />
-                </g>
-              )}
-
-              {/* Ensalada fresca + limón */}
-              {plato.ensalada && (
-                <g>
-                  <circle cx="138" cy="146" r="16" fill="#4ade80" opacity="0.85" />
-                  <circle cx="132" cy="144" r="5" fill="#ef4444" />
-                  <circle cx="145" cy="150" r="5" fill="#ef4444" />
-                  <path d="M214 148 A14 14 0 0 0 236 138 Z" fill="#a3e635" stroke="#ecfccb" strokeWidth="2" />
-                </g>
-              )}
-
-              {/* Mojarra dorada en el centro */}
-              {plato.mojarra && (
-                <g>
-                  <ellipse cx="180" cy="116" rx="56" ry="24" fill="#d6822b" />
-                  <polygon points="232,116 260,96 253,116 260,136" fill="#c26d1f" />
-                  <path d="M160 102 L172 128 M178 100 L190 128 M196 102 L206 126" stroke="#5c2b0e" strokeWidth="2.8" strokeLinecap="round" />
-                  <circle cx="140" cy="112" r="3.5" fill="#1c1917" />
-                </g>
-              )}
-            </svg>
-            <div className="text-xs font-bold text-white/85 mt-1">
-              {todoEmplatado ? '¡Plato típico de Tierra Bomba listo para servir!' : 'Toca cada acompañamiento para armar tu plato'}
+          <div className="md:col-span-7 space-y-2">
+            <Escena3DMojarra etapa={etapa} adobos={adobos} friendo={friendo} coccion={coccion} plato={plato} />
+            <div className="text-xs font-bold text-white/85 text-center">
+              {todoEmplatado ? '¡Plato típico de Tierra Bomba servido en 3D!' : 'Toca cada acompañamiento para armar tu plato 3D'}
             </div>
           </div>
 
@@ -603,47 +500,21 @@ function JuegoBailarCartagenero({ item, color = '#35d08a', sonando, onToggleMusi
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-        <div className="md:col-span-7 rounded-2xl bg-gradient-to-b from-[#132230] to-[#0c141c] border border-white/10 p-4 flex flex-col items-center relative overflow-hidden">
-          <div className="w-full rounded-xl bg-white/10 border border-white/15 px-3 py-2 text-xs text-white font-semibold text-center mb-2">
+        <div className="md:col-span-7 space-y-2.5">
+          <div className="w-full rounded-xl bg-white/10 border border-white/15 px-3 py-2 text-xs text-white font-semibold text-center">
             &ldquo;{feedback}&rdquo;
           </div>
 
-          <svg viewBox="0 0 360 205" className="w-full max-w-sm">
-            <rect x="0" y="135" width="360" height="70" fill="#134e6f" opacity="0.55" />
-            <ellipse cx="180" cy="175" rx="135" ry="18" fill="#473322" stroke="#7c5b3e" strokeWidth="2" />
-
-            <g transform="translate(275, 118)">
-              <polygon points="-16,0 16,0 11,48 -11,48" fill="#8b5a2b" stroke="#5c3a1b" strokeWidth="2" />
-              <ellipse cx="0" cy="0" rx="17" ry="6" fill="#f3e5ab" stroke="#5c3a1b" strokeWidth="2" />
-              <circle cx="0" cy="-12" r="3" fill={color} className="animate-ping" opacity="0.65" />
-            </g>
-
-            <g transform={`translate(${170 + cuerpoShiftX}, ${105 + cuerpoShiftY})`} className="transition-transform duration-300">
-              <line x1="-10" y1="32" x2={animPose === 0 ? -22 : -12} y2="66" stroke="#e5e7eb" strokeWidth="9" strokeLinecap="round" />
-              <line x1="10" y1="32" x2={animPose === 1 ? 22 : 12} y2="66" stroke="#e5e7eb" strokeWidth="9" strokeLinecap="round" />
-              <rect x="-18" y="-12" width="36" height="46" rx="12" fill="#f8fafc" />
-              <polygon points="-11,-10 11,-10 0,8" fill="#dc2626" />
-              <g transform={`translate(-18, -4) rotate(${brazoIzqRot})`}>
-                <line x1="0" y1="0" x2="-24" y2="14" stroke="#7c4a2d" strokeWidth="7.5" strokeLinecap="round" />
-                {animPose === 1 && <circle cx="-26" cy="14" r="5" fill="#fef08a" />}
-              </g>
-              <g transform={`translate(18, -4) rotate(${brazoDerRot})`}>
-                <line x1="0" y1="0" x2="24" y2="14" stroke="#7c4a2d" strokeWidth="7.5" strokeLinecap="round" />
-              </g>
-              <circle cx="0" cy="-28" r="15" fill="#7c4a2d" />
-              <circle cx="-5" cy="-30" r="2" fill="#111827" />
-              <circle cx="5" cy="-30" r="2" fill="#111827" />
-              <path d="M-6 -23 Q0 -18 6 -23" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" />
-              <g transform={animPose === 1 ? 'translate(-24, -46) rotate(-18)' : 'translate(0, -40)'}>
-                <ellipse cx="0" cy="4" rx="28" ry="6" fill="#f3ebd3" stroke="#1f2937" strokeWidth="2.5" />
-                <path d="M-13 3 L-9 -10 L9 -10 L13 3 Z" fill="#f3ebd3" stroke="#1f2937" strokeWidth="2.2" />
-                <line x1="-10" y1="-3" x2="10" y2="-3" stroke="#1f2937" strokeWidth="2.5" />
-              </g>
-            </g>
-          </svg>
+          <Escena3DBailarCartagenero
+            esMapale={esMapale}
+            animPose={animPose}
+            combo={combo}
+            terminado={terminado}
+            sonando={sonando}
+          />
 
           {!terminado && (
-            <div className="w-full max-w-sm space-y-1 mt-2">
+            <div className="w-full space-y-1">
               <div className="flex justify-between text-[10px] font-mono text-white/70">
                 <span>Pulso del tambor</span>
                 <span style={{ color }}>Toca el paso cuando entre al centro verde</span>
