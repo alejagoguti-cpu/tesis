@@ -5,4 +5,15 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: './', // Permite que funcione perfectamente en GitHub Pages y rutas relativas
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          three: ['three'],
+          lucide: ['lucide-react'],
+        },
+      },
+    },
+  },
 })

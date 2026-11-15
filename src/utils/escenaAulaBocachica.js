@@ -185,7 +185,7 @@ function parchearTerrenoAula(mat, U) {
 export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const small = window.innerWidth < 768;
 
-  const renderer = new THREE.WebGLRenderer({ antialias: !small, powerPreference: 'high-performance' });
+  const renderer = new THREE.WebGLRenderer({ antialias: !small, powerPreference: 'high-performance', stencil: false });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, small ? 1.25 : 1.35));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -316,7 +316,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     return demPx(x0, y0) * (1 - ax) * (1 - ay) + demPx(x0 + 1, y0) * ax * (1 - ay) + demPx(x0, y0 + 1) * (1 - ax) * ay + demPx(x0 + 1, y0 + 1) * ax * ay;
   };
 
-  const NX = small ? 130 : 180;
+  const NX = small ? 110 : 150;
   const NY = Math.round((NX * H) / W);
   const pos = new Float32Array((NX + 1) * (NY + 1) * 3);
   const uvSat = new Float32Array((NX + 1) * (NY + 1) * 2);
@@ -1288,7 +1288,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   {
     const reliefPos = [];
     const reliefCol = [];
-    const PS = small ? 6 : 4;
+    const PS = small ? 8 : 5;
     for (let py = 2; py < H; py += PS) {
       for (let px = 2; px < W; px += PS) {
         if (!land[py * W + px]) continue;

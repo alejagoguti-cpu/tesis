@@ -1,21 +1,22 @@
-﻿import React, { useState, useEffect, Component } from 'react';
+﻿import React, { useState, useEffect, Component, Suspense, lazy } from 'react';
 import { flushSync } from 'react-dom';
 import DashboardSidebar from './components/DashboardSidebar';
 import DashboardHeader from './components/DashboardHeader';
-import ThesisFramework from './components/ThesisFramework';
-import DiagnosisMap from './components/DiagnosisMap';
-import ModelViewer3D from './components/ModelViewer3D';
-import RevitModule from './components/RevitModule';
-import Module11Territory from './components/Module11Territory';
-import RedColaborativa from './components/RedColaborativa';
-import RedRizoma from './components/RedRizoma';
-import RedTerritorio from './components/RedTerritorio';
 import IntroLandingIndex from './components/IntroLandingIndex';
 import ProjectOverview from './components/ProjectOverview';
-import AulaAmbientalBocachica from './components/AulaAmbientalBocachica';
-import ThesisHome from './components/ThesisHome';
 import Hero from './components/Hero';
 import Footer from './components/Footer';
+
+const ThesisFramework = lazy(() => import('./components/ThesisFramework'));
+const DiagnosisMap = lazy(() => import('./components/DiagnosisMap'));
+const ModelViewer3D = lazy(() => import('./components/ModelViewer3D'));
+const RevitModule = lazy(() => import('./components/RevitModule'));
+const Module11Territory = lazy(() => import('./components/Module11Territory'));
+const RedColaborativa = lazy(() => import('./components/RedColaborativa'));
+const RedRizoma = lazy(() => import('./components/RedRizoma'));
+const RedTerritorio = lazy(() => import('./components/RedTerritorio'));
+const AulaAmbientalBocachica = lazy(() => import('./components/AulaAmbientalBocachica'));
+const ThesisHome = lazy(() => import('./components/ThesisHome'));
 
 // Robust Error Boundary to prevent any blank screen in production
 class SafeSection extends Component {
@@ -48,7 +49,11 @@ class SafeSection extends Component {
         </div>
       );
     }
-    return this.props.children;
+    return (
+      <Suspense fallback={<div className="p-8 text-xs text-slate-400">Cargando...</div>}>
+        {this.props.children}
+      </Suspense>
+    );
   }
 }
 
@@ -113,7 +118,11 @@ export default function App() {
 
   // PÁGINA PRINCIPAL: PRESENTACIÓN DE LA TESIS
   if (viewMode === 'tesis') {
-    return <ThesisHome onGoCommunity={() => setViewMode('index')} />;
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-[#070a0e]" />}>
+        <ThesisHome onGoCommunity={() => setViewMode('index')} />
+      </Suspense>
+    );
   }
 
   // TRUE INDEX LANDING PAGE VIEW (FULL-SCREEN, NO SIDEBAR, CLEAN WHITE EDITORIAL)

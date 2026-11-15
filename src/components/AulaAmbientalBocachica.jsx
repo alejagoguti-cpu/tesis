@@ -42,21 +42,21 @@ const PASOS_3D = [
   {
     id: 'p01',
     capId: '01',
-    grupo: '01 · ¿Qué pasa hoy en Bocachica?',
+    grupo: '01 · Los 4 Corregimientos de Tierra Bomba',
     pasoGrupo: '01 / 02',
-    titulo: 'Un pueblo lleno de historia, pero con retos en agua, calor y basuras',
-    cam: 'problema',
-    zonas: [0.45, 0.25, 0.85],
-    rutas: { agua: 0.6, verde: 0.2, residuos: 0.7, oficios: 0.4, patrimonio: 0.5 },
-    nodosActivos: ['casco', 'escuelaR9', 'agua', 'residuos', 'sanFernando'],
+    titulo: 'Toda la isla en planta: Bocachica, Tierra Bomba, Caño de Loro y Punta Arena',
+    cam: 'isla_completa',
+    zonas: [0.55, 0.2, 0.2],
+    rutas: { agua: 0, verde: 0.2, residuos: 0, oficios: 0.2, patrimonio: 0.2 },
+    nodosActivos: ['casco', 'tierraBomba', 'canoDeLoro', 'puntaArena'],
     lluvia: 0,
-    cartografia: 0.35,
+    cartografia: 0.32,
     gemelo: 0,
-    cifra: '6 retos',
-    subCifra: 'Agua dulce · calor en el colegio · plástico · oficios · erosión · estudios sin retorno',
-    resumen: 'Bocachica tiene un enorme valor cultural y natural, pero sufre por falta de agua limpia, salones muy calientes en el colegio, plásticos en las orillas y trabajos que antes se hacían y no volvían al barrio.',
-    piloto: 'Unir a las familias, estudiantes, docentes y aliados alrededor del Gimnasio Cristiano de Bocachica para buscar soluciones prácticas.',
-    producto: 'Un proyecto hecho con la comunidad y pensado para quedarse en el barrio.',
+    cifra: '4 pueblos',
+    subCifra: 'Bocachica · Tierra Bomba · Caño de Loro · Punta Arena',
+    resumen: 'Al desplazarte ves toda la isla de Tierra Bomba con sus cuatro corregimientos iluminados. Desde aquí puedes explorar el patrimonio, los talleres, el colegio y el manglar.',
+    piloto: 'Conectar los cuatro corregimientos alrededor del Gimnasio Cristiano de Bocachica como aula abierta para toda la isla.',
+    producto: 'Un mapa vivo donde la comunidad ubica sus pueblos, caminos y proyectos.',
     interactivo: 'simulador4pasos',
   },
   {
@@ -2305,16 +2305,30 @@ export default function AulaAmbientalBocachica({
       } else {
         setEnPasos3D(false);
         if (cap.id === '00') {
-          escena?.set({
-            cam: 'hero',
-            dim: 0,
-            zonas: [0.45, 0.45, 0.45],
-            rutas: { agua: 0.35, verde: 0.35, residuos: 0, oficios: 0, patrimonio: 0.45 },
-            nodosActivos: ['casco', 'escuelaR9', 'sanFernando'],
-            lluvia: 0,
-            cartografia: 0,
-            gemelo: 0,
-          });
+          const yaScrolleo = window.scrollY > 40;
+          escena?.set(
+            yaScrolleo
+              ? {
+                  cam: 'isla_completa',
+                  dim: 0,
+                  zonas: [0.55, 0.2, 0.2],
+                  rutas: { agua: 0, verde: 0.2, residuos: 0, oficios: 0.2, patrimonio: 0.2 },
+                  nodosActivos: ['casco', 'tierraBomba', 'canoDeLoro', 'puntaArena'],
+                  lluvia: 0,
+                  cartografia: 0.32,
+                  gemelo: 0,
+                }
+              : {
+                  cam: 'hero',
+                  dim: 0,
+                  zonas: [0.45, 0.45, 0.45],
+                  rutas: { agua: 0.35, verde: 0.35, residuos: 0, oficios: 0, patrimonio: 0.45 },
+                  nodosActivos: ['casco', 'escuelaR9', 'sanFernando'],
+                  lluvia: 0,
+                  cartografia: 0,
+                  gemelo: 0,
+                }
+          );
         } else {
           // Capítulo 07 (Cierre): el mapa 3D sigue visible de fondo con iluminación suave
           escena?.set({
