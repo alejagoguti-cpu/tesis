@@ -186,7 +186,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const small = window.innerWidth < 768;
 
   const renderer = new THREE.WebGLRenderer({ antialias: !small, powerPreference: 'high-performance', stencil: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, small ? 1.25 : 1.35));
+  const prBase = Math.min(window.devicePixelRatio, small ? 1.0 : 1.25);
+  renderer.setPixelRatio(prBase);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.02;
@@ -951,9 +952,11 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
         vec2 p = vWorld.xz;
         float lod = 1.0 - smoothstep(250.0, 2600.0, dc);
         vec2 n2 = nm(p / 180.0 + vec2(uTime * 0.012, uTime * 0.008)) * 0.9
-                + nm(p / 61.0 + vec2(-uTime * 0.02, uTime * 0.013)) * 0.7
-                + nm(p / 17.0 + vec2(uTime * 0.035, -uTime * 0.03)) * 0.55 * lod
-                + nm(p / 5.3 + vec2(-uTime * 0.05, uTime * 0.045)) * 0.3 * lod;
+                + nm(p / 61.0 + vec2(-uTime * 0.02, uTime * 0.013)) * 0.7;
+        if (lod > 0.02) {
+          n2 += nm(p / 17.0 + vec2(uTime * 0.035, -uTime * 0.03)) * 0.55 * lod
+              + nm(p / 5.3 + vec2(-uTime * 0.05, uTime * 0.045)) * 0.3 * lod;
+        }
         float k = mix(0.16, 0.32, lod);
         vec3 n = normalize(vec3(n2.x * k, 1.0, n2.y * k));
         vec3 V = normalize(cameraPosition - vWorld);
@@ -1545,8 +1548,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const dxIsla = () => (window.innerWidth >= 1024 ? -1350 : 0);
   const POSES = {
     isla_completa: () => ({
-      pos: new THREE.Vector3(dxIsla() * 0.4, 7800, 1450),
-      look: new THREE.Vector3(dxIsla() * 0.4, 0, 160),
+      pos: new THREE.Vector3(dxIsla() * 0.28, 12200, 1950),
+      look: new THREE.Vector3(dxIsla() * 0.28, 0, -180),
     }),
     hero: (t) => {
       const a = THREE.MathUtils.degToRad(202) + Math.sin(t * 0.06) * 0.38;
@@ -1765,13 +1768,9 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       camera.updateProjectionMatrix();
     }
 
-    // Árboles reales en toda la isla, viviendas 1:1 y escuela R9
-    const escalaCasasObjetivo = dist > 3800 ? 1.22 : 1.0;
-    if (Math.abs(escalaCasasObjetivo - ultimaEscalaCasas) > 0.05) {
-      updateHouses(true, escalaCasasObjetivo);
-    }
+    // LOD por distancia: en vista de isla completa (>4.8 km) ocultamos hojas 3D sub-píxel para mantener 60 FPS
     houseWallsMesh.visible = houseRoofsMesh.visible = !!T.mostrarCasas;
-    treesGroup.visible = !enNubePura && !!T.mostrarArboles;
+    treesGroup.visible = !enNubePura && !!T.mostrarArboles && dist < 4800;
     const escalaArbol = 1 + cur.sombraExtra * 0.38;
     treesGroup.scale.set(escalaArbol, escalaArbol, escalaArbol);
     aulaGroup.visible = !!T.mostrarPilotos;
@@ -1806,7 +1805,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       m.beam.scale.set(hBeam * 0.015, hBeam, hBeam * 0.015);
       m.ring.scale.setScalar((activo ? 26 : 14) * pulsoRing);
       if (etqMap[k]) {
-        const maxDist = T.nodosActivos && T.nodosActivos.length <= 5 ? 9500 : 3200;
+        const maxDist = T.nodosActivos && T.nodosActivos.length <= 5 ? 18000 : 3200;
         const wantEtq = activo && dist < maxDist && cur.dim < 0.5 ? 0.96 : 0;
         etqMap[k].material.opacity += (wantEtq - etqMap[k].material.opacity) * expo(dt, 5);
       }
