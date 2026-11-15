@@ -2277,7 +2277,7 @@ export default function AulaAmbientalBocachica({
   const [retoResp, setRetoResp] = useState(null);
   const [retoPuntos, setRetoPuntos] = useState(0);
   const [lugarActivo, setLugarActivo] = useState(null);
-  const [catActiva, setCatActiva] = useState(null); // null o objeto de EXPLORA_CATEGORIAS
+  const [catActiva, setCatActiva] = useState(EXPLORA_CATEGORIAS[0]); // Inicia directo mostrando toda la isla y corregimientos
 
   // Reproductor de música tradicional y bailes de la comunidad
   const repRef = useRef(null);
@@ -2400,8 +2400,9 @@ export default function AulaAmbientalBocachica({
         dx: -40,
         dy: 48,
         fichas: [
+          { titulo: 'Historia', texto: 'Pueblo ribereño nacido junto al canal de Bocachica y sus fortificaciones del siglo XVIII. Desde 1753 ha sido guardián del acceso marítimo a Cartagena y hogar de una comunidad afrocaribeña orgullosa de sus raíces.' },
           { titulo: 'Llegada en lancha', texto: 'Zarpando desde el Muelle de la Bodeguita o Bazurto en Cartagena, llegas en unos 25 a 35 minutos directo al muelle comunitario.' },
-          { titulo: 'Qué hacer', texto: 'Recorrer sus fuertes coloniales, visitar el Aula Ambiental en el Colegio R9 y disfrutar del pescado frito frente al mar.' },
+          { titulo: 'Qué hacer', texto: 'Recorrer sus fuertes coloniales, visitar sus calles históricas y disfrutar del pescado frito frente al mar.' },
           { titulo: 'Gente y oficios', texto: 'Hogar de carpinteros de ribera, pescadores artesanales, cocineras tradicionales y ruedas de bullerengue.' },
         ],
       },
@@ -2415,6 +2416,7 @@ export default function AulaAmbientalBocachica({
         dx: -55,
         dy: -28,
         fichas: [
+          { titulo: 'Historia', texto: 'Asentamiento histórico en la zona norte de la isla, marcado por la vida frente a la bahía de Cartagena, los caminos de bosque seco y la memoria viva de sus mayores.' },
           { titulo: 'Llegada en lancha', texto: 'A solo 10 minutos en lancha desde Castillogrande o El Laguito hasta las playas y muelles del sector norte.' },
           { titulo: 'Qué hacer', texto: 'Caminar por senderos de bosque seco tropical, probar los dulces de Doña Isnelia y contemplar la bahía de Cartagena.' },
           { titulo: 'Gente y oficios', texto: 'Comunidad reconocida por su cocina tradicional, dulcería isleña y memoria afrocaribeña frente a la ciudad.' },
@@ -2430,6 +2432,7 @@ export default function AulaAmbientalBocachica({
         dx: 70,
         dy: 20,
         fichas: [
+          { titulo: 'Historia', texto: 'Comunidad resiliente asentada entre esteros de manglar y aguas calmas de la bahía. Su historia está ligada al cuidado del mangle, la pesca tradicional y la reconstrucción comunitaria.' },
           { titulo: 'Llegada en lancha', texto: 'Acceso por la bahía interior en unos 15 minutos desde Cartagena, bordeando los esteros tranquilos de manglar.' },
           { titulo: 'Qué hacer', texto: 'Visitar el vivero comunitario, observar aves costeras y recorrer en canoa los canales de mangle rojo.' },
           { titulo: 'Gente y oficios', texto: 'Guardianes del manglar, viveristas comunitarios y pescadores de atarraya en aguas calmas.' },
@@ -2445,6 +2448,7 @@ export default function AulaAmbientalBocachica({
         dx: 55,
         dy: -24,
         fichas: [
+          { titulo: 'Historia', texto: 'Punta costera frente a Bocagrande que pasó de ranchería de pescadores a referente cultural y turístico de la isla, conservando sus cantos de patio y tradiciones del mar.' },
           { titulo: 'Llegada en lancha', texto: 'Trayecto rápido de 10 minutos desde las playas de Castillogrande o Bocagrande hacia su franja de arena blanca.' },
           { titulo: 'Qué hacer', texto: 'Disfrutar de playas tranquilas frente al perfil de Cartagena, música de patio y gastronomía costera.' },
           { titulo: 'Gente y oficios', texto: 'Anfitriones comunitarios, pescadores y bailadores de bullerengue y cumbia junto al mar.' },
@@ -3002,21 +3006,9 @@ export default function AulaAmbientalBocachica({
           activarCategoria(hallada, false);
         }
       } else if (window.scrollY <= 40) {
-        if (ultimaSeccionRef.current !== 'hero') {
-          ultimaSeccionRef.current = 'hero';
-          setCatActiva(null);
-          setPanelJuego(false);
-          setLugarActivo(null);
-          escena?.set({
-            cam: 'hero',
-            dim: 0,
-            zonas: [0.45, 0.45, 0.45],
-            rutas: { agua: 0.35, verde: 0.35, residuos: 0, oficios: 0, patrimonio: 0.45 },
-            nodosActivos: ['casco', 'escuelaR9', 'sanFernando'],
-            lluvia: 0,
-            cartografia: 0,
-            gemelo: 0,
-          });
+        if (ultimaSeccionRef.current !== 'corregimientos') {
+          ultimaSeccionRef.current = 'corregimientos';
+          activarCategoria(EXPLORA_CATEGORIAS[0], false);
         }
       } else if (cap.id === '00' && window.scrollY > 40) {
         if (ultimaSeccionRef.current !== 'corregimientos') {
@@ -3599,107 +3591,122 @@ export default function AulaAmbientalBocachica({
           const fichaActual = cor.fichas[corregSecIdx] || cor.fichas[0];
           const sigFichaIdx = (corregSecIdx + 1) % cor.fichas.length;
           return (
-            <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(94vw,30rem)] tc-paso-anim">
-              <CardIluminada
-                color={cor.color}
-                className="tc-vidrio p-5 rounded-2xl border shadow-2xl space-y-3.5"
-              >
-                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-white/15">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCorregSel(null);
-                      escena?.set({ cam: 'isla_completa', nodosActivos: [] });
-                    }}
-                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-semibold text-white flex items-center gap-1 cursor-pointer"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>Ver toda la isla</span>
-                  </button>
-                  <span className="px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/90 text-[10px] font-bold uppercase tracking-wider">
-                    Corregimiento {idxCor + 1} / {corregimientosIsla.length}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3.5">
-                  <span
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border-2 shadow-xl"
-                    style={{
-                      backgroundColor: `${cor.color}22`,
-                      borderColor: cor.color,
-                      color: cor.color,
-                    }}
-                  >
-                    <IconoCor className="w-8 h-8" />
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-[11px] font-bold uppercase tracking-widest" style={{ color: cor.color }}>
-                      {cor.zona}
+            <div className="fixed inset-0 z-30 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="w-[min(94vw,32rem)] tc-paso-anim">
+                <CardIluminada
+                  color={cor.color}
+                  className="tc-vidrio p-5 md:p-6 rounded-3xl border shadow-2xl space-y-4"
+                >
+                  <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-white/15">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCorregSel(null);
+                        escena?.set({ cam: 'isla_completa', nodosActivos: [] });
+                      }}
+                      className="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-semibold text-white flex items-center gap-1 cursor-pointer"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Ver toda la isla</span>
+                    </button>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/90 text-[10px] font-bold uppercase tracking-wider">
+                        {idxCor + 1} / {corregimientosIsla.length}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCorregSel(null);
+                          escena?.set({ cam: 'isla_completa', nodosActivos: [] });
+                        }}
+                        aria-label="Cerrar pop-up"
+                        className="p-1 rounded-full text-white/60 hover:text-white hover:bg-white/10 cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
-                    <h3 className="text-lg font-extrabold text-white leading-tight mt-0.5">{cor.nombre}</h3>
-                  </div>
-                </div>
-
-                <div className="space-y-2.5 pt-2 border-t border-white/15">
-                  <div className="flex flex-wrap gap-1.5">
-                    {cor.fichas.map((f, i) => {
-                      const activa = i === corregSecIdx;
-                      return (
-                        <button
-                          key={f.titulo}
-                          type="button"
-                          onClick={() => setCorregSecIdx(i)}
-                          className={`px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer transition ${
-                            activa
-                              ? 'text-[#0b1016] shadow-md'
-                              : 'bg-white/10 text-white/75 hover:bg-white/20 hover:text-white'
-                          }`}
-                          style={activa ? { backgroundColor: cor.color } : undefined}
-                        >
-                          {f.titulo}
-                        </button>
-                      );
-                    })}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setCorregSecIdx(sigFichaIdx)}
-                    className="w-full text-left rounded-xl bg-white/[0.06] hover:bg-white/[0.11] border border-white/15 p-3.5 cursor-pointer transition group"
-                  >
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className="text-[11px] font-extrabold uppercase tracking-wider" style={{ color: cor.color }}>
-                        {fichaActual.titulo}
-                      </span>
-                      <span className="text-[10px] font-bold text-white/60 group-hover:text-white flex items-center gap-1">
-                        <span>Siguiente dato</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </span>
+                  <div className="flex items-center gap-3.5">
+                    <span
+                      className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border-2 shadow-xl"
+                      style={{
+                        backgroundColor: `${cor.color}22`,
+                        borderColor: cor.color,
+                        color: cor.color,
+                      }}
+                    >
+                      <IconoCor className="w-8 h-8" />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold uppercase tracking-widest" style={{ color: cor.color }}>
+                        {cor.zona}
+                      </div>
+                      <h3 className="text-xl font-extrabold text-white leading-tight mt-0.5">{cor.nombre}</h3>
                     </div>
-                    <p className="text-xs md:text-[13px] text-white/90 leading-relaxed">{fichaActual.texto}</p>
-                  </button>
-                </div>
+                  </div>
 
-                <div className="pt-2.5 border-t border-white/15 flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    onClick={() => seleccionarCorregimiento(corAnt)}
-                    className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>Anterior</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => seleccionarCorregimiento(corSig)}
-                    className="px-3.5 py-1.5 rounded-xl bg-white text-[#0b1016] hover:bg-white/90 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-lg transition"
-                  >
-                    <span>Siguiente pueblo</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </CardIluminada>
-            </aside>
+                  <div className="space-y-2.5 pt-2 border-t border-white/15">
+                    <div className="flex flex-wrap gap-1.5">
+                      {cor.fichas.map((f, i) => {
+                        const activa = i === corregSecIdx;
+                        return (
+                          <button
+                            key={f.titulo}
+                            type="button"
+                            onClick={() => setCorregSecIdx(i)}
+                            className={`px-3 py-1 rounded-full text-[11px] font-bold cursor-pointer transition ${
+                              activa
+                                ? 'text-[#0b1016] shadow-md'
+                                : 'bg-white/10 text-white/75 hover:bg-white/20 hover:text-white'
+                            }`}
+                            style={activa ? { backgroundColor: cor.color } : undefined}
+                          >
+                            {f.titulo}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setCorregSecIdx(sigFichaIdx)}
+                      className="w-full text-left rounded-2xl bg-white/[0.06] hover:bg-white/[0.11] border border-white/15 p-4 cursor-pointer transition group"
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider" style={{ color: cor.color }}>
+                          {fichaActual.titulo}
+                        </span>
+                        <span className="text-[10px] font-bold text-white/60 group-hover:text-white flex items-center gap-1">
+                          <span>Siguiente dato</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </span>
+                      </div>
+                      <p className="text-sm text-white/95 leading-relaxed">{fichaActual.texto}</p>
+                    </button>
+                  </div>
+
+                  <div className="pt-2.5 border-t border-white/15 flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => seleccionarCorregimiento(corAnt)}
+                      className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Anterior</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => seleccionarCorregimiento(corSig)}
+                      className="px-4 py-2 rounded-xl bg-white text-[#0b1016] hover:bg-white/90 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-lg transition"
+                    >
+                      <span>Siguiente pueblo</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </CardIluminada>
+              </div>
+            </div>
           );
         }
 
@@ -4598,55 +4605,8 @@ export default function AulaAmbientalBocachica({
       )}
 
       {/* =====================================================================
-          00 · PORTADA A PANTALLA COMPLETA SOBRE LA ISLA 3D
-      ===================================================================== */}
-      <section
-        id="cap-00"
-        className={`relative z-10 h-[100svh] flex items-end px-6 md:px-16 pb-14 md:pb-16 pointer-events-none transition-opacity duration-300 ${
-          catActiva || panelJuego || lugarActivo ? 'opacity-0' : 'opacity-100'
-        }`}
-      >
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
-        <div className={`relative w-full grid md:grid-cols-12 gap-6 items-end ${catActiva || panelJuego || lugarActivo ? 'pointer-events-none' : 'pointer-events-auto'}`}>
-          <div className="md:col-span-8">
-            <div className="tc-etiqueta mb-3">
-              Isla de Tierra Bomba · Bocachica · Proyecto para la comunidad
-            </div>
-            <h1 className="text-[clamp(3.2rem,12vw,9.8rem)] font-semibold leading-[0.88] tracking-[-0.045em] text-white">
-              Aula Ambiental
-            </h1>
-            <div className="tc-trazo mt-6" />
-          </div>
-          <div className="md:col-span-4 md:pb-2 text-white/85">
-            <p className="text-base md:text-lg leading-snug">
-              Explora los 4 corregimientos, el patrimonio, los talleres de los viernes y las memorias y bailes de Tierra Bomba.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => activarCategoria(EXPLORA_CATEGORIAS[0])}
-                className="px-4 py-2.5 rounded-xl bg-white text-[#0b1016] text-xs font-bold hover:bg-white/90 transition flex items-center gap-2 cursor-pointer"
-              >
-                <MapPin className="w-4 h-4" />
-                <span>Explorar corregimientos</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => activarCategoria(EXPLORA_CATEGORIAS[3])}
-                className="px-4 py-2.5 rounded-xl bg-[#35d08a] text-[#07140d] text-xs font-bold hover:brightness-110 transition flex items-center gap-2 cursor-pointer"
-              >
-                <Music className="w-4 h-4" />
-                <span>Escuchar bailes</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================================
           4 SECCIONES CLARAS AL HACER SCROLL:
-          1. Corregimientos -> 2. Patrimonio -> 3. Talleres y Viernes -> 4. Juego
+          1. Corregimientos -> 2. Patrimonio -> 3. Talleres y Viernes -> 4. Memorias
       ===================================================================== */}
       <section
         id="sec-corregimientos"
