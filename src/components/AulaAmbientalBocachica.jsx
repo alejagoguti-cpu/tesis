@@ -27,24 +27,24 @@ const ALTO_PASO = 95; // svh por paso de scrollytelling 3D (idéntico a tesis_te
 
 const CAPITULOS = [
   { id: '00', nombre: 'Inicio', ancla: 'cap-00' },
-  { id: '01', nombre: 'El problema', ancla: 'cap-01' },
-  { id: '02', nombre: 'Memorias y base', ancla: 'cap-02' },
-  { id: '03', nombre: 'Seis líneas 3D', ancla: 'cap-03' },
-  { id: '04', nombre: 'Gemelo 3D', ancla: 'cap-04' },
-  { id: '05', nombre: 'Piloto R9 y plan', ancla: 'cap-05' },
-  { id: '06', nombre: 'Hoja de ruta y red', ancla: 'cap-06' },
-  { id: '07', nombre: 'Cierre', ancla: 'cap-07' },
+  { id: '01', nombre: '¿Qué pasa hoy?', ancla: 'cap-01' },
+  { id: '02', nombre: 'Nuestras memorias', ancla: 'cap-02' },
+  { id: '03', nombre: '6 Soluciones 3D', ancla: 'cap-03' },
+  { id: '04', nombre: 'Mapa vivo 3D', ancla: 'cap-04' },
+  { id: '05', nombre: 'El Colegio', ancla: 'cap-05' },
+  { id: '06', nombre: 'Plan 2 años', ancla: 'cap-06' },
+  { id: '07', nombre: 'Resumen', ancla: 'cap-07' },
 ];
 
-// Pasos 3D continuos sobre la isla (Capítulos 01 al 06 — 20 vistas del mapa 3D)
+// Pasos 3D continuos sobre la isla (Capítulos 01 al 06 — explicados en lenguaje claro para la comunidad)
 const PASOS_3D = [
-  // --- CAP 01: EL PROBLEMA EN EL TERRITORIO (índices 0..1) ---
+  // --- CAP 01: ¿QUÉ PASA HOY EN BOCACHICA? (índices 0..1) ---
   {
     id: 'p01',
     capId: '01',
-    grupo: '01 · El problema en el territorio',
+    grupo: '01 · ¿Qué pasa hoy en Bocachica?',
     pasoGrupo: '01 / 02',
-    titulo: 'Riqueza biocultural frente a vulnerabilidad hídrica, térmica y costera',
+    titulo: 'Un pueblo lleno de historia, pero con retos en agua, calor y basuras',
     cam: 'problema',
     zonas: [0.45, 0.25, 0.85],
     rutas: { agua: 0.6, verde: 0.2, residuos: 0.7, oficios: 0.4, patrimonio: 0.5 },
@@ -52,19 +52,19 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0.35,
     gemelo: 0,
-    cifra: '6 brechas',
-    subCifra: 'Agua · calor escolar · residuos · oficios · erosión · estudios dispersos',
-    resumen: 'En el extremo sur de Tierra Bomba, Bocachica concentra un patrimonio vivo extraordinario junto con presiones críticas en agua potable, estrés térmico en aulas y acumulación de plástico.',
-    piloto: 'Articulación territorial alrededor del Gimnasio Cristiano de Bocachica (R9) como infraestructura pública viva.',
-    producto: 'Programa marco v0.1 integrado con la comunidad.',
+    cifra: '6 retos',
+    subCifra: 'Agua dulce · calor en el colegio · plástico · oficios · erosión · estudios sin retorno',
+    resumen: 'Bocachica tiene un enorme valor cultural y natural, pero sufre por falta de agua limpia, salones muy calientes en el colegio, plásticos en las orillas y trabajos que antes se hacían y no volvían al barrio.',
+    piloto: 'Unir a las familias, estudiantes, docentes y aliados alrededor del Gimnasio Cristiano de Bocachica para buscar soluciones prácticas.',
+    producto: 'Un proyecto hecho con la comunidad y pensado para quedarse en el barrio.',
     interactivo: 'simulador4pasos',
   },
   {
     id: 'p02',
     capId: '01',
-    grupo: '01 · Principio rector en Bocachica',
+    grupo: '01 · Nuestro compromiso con la comunidad',
     pasoGrupo: '02 / 02',
-    titulo: 'Devolver, validar y transformar desde la escuela y el barrio',
+    titulo: 'Todo lo que se investigue debe volver convertido en algo útil para el barrio',
     cam: 'bocachica_general',
     zonas: [0.75, 0.75, 0.75],
     rutas: { agua: 0.8, verde: 0.8, residuos: 0.8, oficios: 0.8, patrimonio: 0.8 },
@@ -72,21 +72,21 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: '100 % retorno',
-    subCifra: 'Ningún dato se extrae sin volver traducido a la escuela y al territorio',
-    resumen: 'Supera la fragmentación de los diagnósticos académicos previos conectando universidad, colegio R9, junta comunitaria, pescadores y artesanos en una sola red operativa.',
-    piloto: 'Protocolo ético comunitario y archivo abierto instalado en el Gimnasio Cristiano de Bocachica.',
-    producto: 'Acuerdo de gobernanza local + red socioecológica.',
+    cifra: '100 % para el barrio',
+    subCifra: 'Nada se hace sin el visto bueno y la participación de la gente de Bocachica',
+    resumen: 'Antes venían universidades, tomaban fotos o datos y se iban. Aquí la regla es clara: cada estudio regresa como mapas fáciles de leer, materiales para el colegio y obras reales.',
+    piloto: 'Una mesa comunitaria local que aprueba y vigila cada paso del proyecto desde el colegio.',
+    producto: 'Acuerdo comunitario y red de trabajo entre barrio, escuela y universidad.',
     interactivo: 'redProblema',
   },
 
-  // --- CAP 02: ANTECEDENTES R1-R9 Y MEMORIAS EN EL MAPA 3D (índices 2..3) ---
+  // --- CAP 02: ESTUDIOS ANTERIORES Y MEMORIAS DEL PUEBLO (índices 2..3) ---
   {
     id: 'm01',
     capId: '02',
-    grupo: '02 · Corpus documental R1–R9 sobre el mapa',
+    grupo: '02 · Trabajos anteriores reunidos',
     pasoGrupo: '01 / 02',
-    titulo: 'Nueve estudios previos conectados sobre el tejido real de Bocachica',
+    titulo: 'Reunimos 9 estudios ya hechos sobre Bocachica para no empezar de cero',
     cam: 'memorias_r9',
     zonas: [0.85, 0.55, 0.45],
     rutas: { agua: 0.4, verde: 0.6, residuos: 0, oficios: 0.5, patrimonio: 0.8 },
@@ -94,19 +94,19 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0.2,
     gemelo: 0,
-    cifra: 'Corpus R1–R9',
-    subCifra: 'Haz clic en R1–R9 abajo para explorar cada estudio sobre el mapa 3D',
-    resumen: 'Desde el plan de manejo del paisaje fortificado (R2) hasta el diseño del Gimnasio Cristiano de Bocachica (R9), los 9 estudios alimentan directamente el modelo territorial.',
-    piloto: 'Integración de los 9 antecedentes en el repositorio escolar y barrial.',
-    producto: 'P1 · Repositorio documental abierto R1–R9.',
+    cifra: '9 estudios (R1–R9)',
+    subCifra: 'Toca los botones R1 a R9 abajo para ver qué aportó cada trabajo al barrio',
+    resumen: 'Ya existían 9 investigaciones valiosas sobre Bocachica (sobre sus fuertes, el agua, las playas y el colegio), pero estaban regadas. Ahora todas quedan juntas y al servicio del pueblo.',
+    piloto: 'Un archivo abierto en el colegio donde cualquier vecino o estudiante puede consultar esta información sin gastar datos de internet.',
+    producto: 'Biblioteca digital y física de Bocachica en el Gimnasio Cristiano.',
     interactivo: 'corpusR9',
   },
   {
     id: 'm02',
     capId: '02',
-    grupo: '02 · Seis dimensiones de la memoria biocultural',
+    grupo: '02 · Los saberes de nuestros mayores',
     pasoGrupo: '02 / 02',
-    titulo: 'La memoria del agua, los oficios, el monte y el habitar vernáculo',
+    titulo: 'La memoria del agua, las casas frescas, la pesca y los árboles',
     cam: 'linea_memoria',
     zonas: [0.95, 0.4, 0.6],
     rutas: { agua: 0.7, verde: 0.5, residuos: 0.3, oficios: 0.8, patrimonio: 0.9 },
@@ -114,21 +114,21 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: '6 memorias',
-    subCifra: 'Cultural · territorial · material · oficios · hídrica · ecológica',
-    resumen: 'Las viviendas vernáculas con techos a 4 aguas, patios arbolados y aljibes demuestran un saber climático acumulado que guía las intervenciones contemporáneas.',
-    piloto: 'Recorridos comentados y cartografía social con sabedores mayores y jóvenes del colegio.',
-    producto: 'P3 · Atlas vivo de memorias territoriales.',
+    cifra: '6 saberes vivos',
+    subCifra: 'Historia del barrio · casas · agua · oficios del mar · monte · comunidad',
+    resumen: 'Nuestros abuelos sabían cómo mantener frescas las casas con techos altos y patios con árboles, y dónde recoger agua lluvia en aljibes. Ese conocimiento es la base de todo lo nuevo.',
+    piloto: 'Caminatas y charlas con mayores, pescadores y jóvenes para dibujar juntos el mapa de recuerdos del pueblo.',
+    producto: 'Libro y mapa ilustrado con las historias y lugares importantes de Bocachica.',
     interactivo: 'memorias6',
   },
 
-  // --- CAP 03: LAS 6 LÍNEAS EN EL TERRITORIO (índices 4..9) ---
+  // --- CAP 03: LAS 6 SOLUCIONES EN EL MAPA DE BOCACHICA (índices 4..9) ---
   {
     id: 'l91',
     capId: '03',
-    grupo: '03 · Línea 9.1 — Memorias y vernáculo',
+    grupo: '03 · Solución 1 — Casas e historia del barrio',
     pasoGrupo: '01 / 06',
-    titulo: 'Atlas de memorias y arquitectura vernácula',
+    titulo: 'Cuidar nuestras casas tradicionales y contar la historia del pueblo',
     cam: 'linea_memoria',
     zonas: [0.95, 0.15, 0.15],
     rutas: { agua: 0, verde: 0, residuos: 0, oficios: 0, patrimonio: 0.45 },
@@ -136,18 +136,18 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: '2.600 casas 3D',
-    subCifra: 'Tejido vernáculo real con muros encalados, aleros y cubiertas a 4 aguas',
-    resumen: 'Documenta la historia barrial de Bocachica, las tipologías de vivienda vernácula caribeña (ventilación cruzada, aleros, patios sombreados) y los lugares de memoria viva.',
-    piloto: 'Atlas vivo de memorias territoriales y catálogo de patrones bioclimáticos vernáculos aplicables al hábitat insular.',
-    producto: 'P3 · Atlas comunitario + P9 · Exposición itinerante y señalética.',
+    cifra: '2.600 casas reales',
+    subCifra: 'Cada casa del pueblo con sus techos frescos, ventanas y patios',
+    resumen: 'Reconocemos cómo están construidas las casas reales de Bocachica (techos inclinados, ventanas para que entre la brisa, aleros para el sol) para no perder esa forma fresca y nuestra de vivir.',
+    piloto: 'Guía sencilla para mejorar viviendas manteniendo la brisa y la sombra, más carteles con la historia de cada sector.',
+    producto: 'Mapa de memorias del barrio y muestra cultural hecha con los estudiantes.',
   },
   {
     id: 'l92',
     capId: '03',
-    grupo: '03 · Línea 9.2 — Agua y memorias hídricas',
+    grupo: '03 · Solución 2 — Agua limpia y lluvia',
     pasoGrupo: '02 / 06',
-    titulo: 'Cosecha de lluvia, aljibes y metabolismo hídrico',
+    titulo: 'Recoger el agua de lluvia y recuperar los aljibes y pozos',
     cam: 'linea_agua',
     zonas: [0.15, 0.2, 0.95],
     rutas: { agua: 1, verde: 0, residuos: 0, oficios: 0, patrimonio: 0 },
@@ -155,18 +155,18 @@ const PASOS_3D = [
     lluvia: 0.85,
     cartografia: 0,
     gemelo: 0,
-    cifra: '5 fases hídricas',
-    subCifra: 'Captación · almacenamiento · tratamiento · uso · reúso',
-    resumen: 'Integra la memoria histórica de los aljibes coloniales y pozos comunitarios con soluciones descentralizadas de captación pluvial, biofiltración y monitoreo microbiológico.',
-    piloto: 'Sistema demostrativo de cosecha de aguas lluvias, tren de filtrado e infiltración con jardines de lluvia en el nodo escolar.',
-    producto: 'P4 · Cartografía socio-hídrica y prototipo escolar de captación.',
+    cifra: '5 pasos del agua',
+    subCifra: 'Recoger lluvia · guardar en aljibe · filtrar · usar · cuidar el agua',
+    resumen: 'En lugar de perder el agua cuando llueve o pagar caro por pimpinas, aprendemos a recoger la lluvia en los techos, limpiarla con filtros naturales y cuidar los pozos del pueblo.',
+    piloto: 'Instalación de un sistema real de recolección y filtrado de agua lluvia en el Gimnasio Cristiano.',
+    producto: 'Agua más segura en el colegio y mapa comunitario de pozos y aljibes.',
   },
   {
     id: 'l93',
     capId: '03',
-    grupo: '03 · Línea 9.3 — Vegetación y refugio climático',
+    grupo: '03 · Solución 3 — Árboles y sombra fresca',
     pasoGrupo: '03 / 06',
-    titulo: 'Silvicultura comunitaria y sombra escolar',
+    titulo: 'Sembrar árboles nativos y manglar para bajar el calor del colegio',
     cam: 'linea_verde',
     zonas: [0.1, 0.98, 0.2],
     rutas: { agua: 0.3, verde: 1, residuos: 0, oficios: 0, patrimonio: 0 },
@@ -174,18 +174,18 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: '−4,5 °C',
-    subCifra: 'Reducción térmica superficial en patios escolares sombreados',
-    resumen: 'Conecta la restauración del manglar y el bosque seco tropical con un vivero-escuela comunitario para crear corredores de sombra y confort higrotérmico.',
-    piloto: 'Vivero bioclimático escolar y arborización de patios y corredores peatonales entre el Gimnasio Cristiano (R9) y el borde costero.',
-    producto: 'P5 · Diseño participativo del refugio climático + catálogo botánico.',
+    cifra: '−4,5 °C menos',
+    subCifra: 'Patios y caminos mucho más frescos gracias a la sombra de los árboles',
+    resumen: 'Sembrar árboles del lugar y cuidar el manglar en la orilla protege el suelo de las olas y baja el calor en el patio del colegio para que los niños puedan jugar y estudiar cómodos.',
+    piloto: 'Crear un vivero escolar donde niños y familias siembren árboles para el colegio y las calles del barrio.',
+    producto: 'Vivero funcionando en el colegio y corredores con sombra hasta la orilla.',
   },
   {
     id: 'l94',
     capId: '03',
-    grupo: '03 · Línea 9.4 — Residuos y plástico circular',
+    grupo: '03 · Solución 4 — Plástico convertido en muebles',
     pasoGrupo: '04 / 06',
-    titulo: 'De residuo costero a componente constructivo',
+    titulo: 'Recoger el plástico de las playas y volverlo bancas para el barrio',
     cam: 'linea_residuos',
     zonas: [0.2, 0.25, 0.92],
     rutas: { agua: 0, verde: 0, residuos: 1, oficios: 0.4, patrimonio: 0 },
@@ -193,18 +193,18 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: '100 % trazable',
-    subCifra: 'Recolección · clasificación · trituración · extrusión · mobiliario',
-    resumen: 'Transforma los puntos críticos de acumulación de plástico y recalada marina en una cadena circular de micro-manufactura local para mobiliario escolar y señalética.',
-    piloto: 'Ruta de acopio diferenciada y taller de transformación de plástico reciclado en perfiles, bancas y elementos del Aula Ambiental.',
-    producto: 'P6 · Hoja de ruta de residuos y prototipo en plástico transformado.',
+    cifra: 'Basura → Muebles',
+    subCifra: 'Recoger · separar · moler · moldear bancas y letreros útiles',
+    resumen: 'El plástico que llega por el mar o se acumula en el pueblo deja de ser un problema de suciedad: se separa, se transforma y sirve para hacer bancas, mesas y letreros para el colegio.',
+    piloto: 'Puntos limpios de recolección en el barrio y taller práctico de reciclaje de plástico.',
+    producto: 'Bancas, mesas y señalización hechas con plástico reciclado de Bocachica.',
   },
   {
     id: 'l95',
     capId: '03',
-    grupo: '03 · Línea 9.5 — Carpintería de ribera y mar',
+    grupo: '03 · Solución 5 — Oficios del mar y botes',
     pasoGrupo: '05 / 06',
-    titulo: 'Astilleros tradicionales, pesca y saberes náuticos',
+    titulo: 'Enseñar a los jóvenes la carpintería de botes y la pesca tradicional',
     cam: 'linea_oficios',
     zonas: [0.35, 0.15, 0.95],
     rutas: { agua: 0, verde: 0, residuos: 0.3, oficios: 1, patrimonio: 0 },
@@ -213,17 +213,17 @@ const PASOS_3D = [
     cartografia: 0,
     gemelo: 0,
     cifra: 'Oficio vivo',
-    subCifra: 'Maestros carpinteros · careneros · navegación tradicional',
-    resumen: 'Salvaguarda las técnicas constructivas de embarcaciones tradicionales, el conocimiento de maderas locales y las faenas de pesca artesanal frente a la presión turística.',
-    piloto: 'Escuela-taller de carpintería de ribera e inventario técnico de embarcaciones, herramientas y espacios de varada en la bahía.',
-    producto: 'P7 · Documentación de carpintería de ribera y guía de oficios.',
+    subCifra: 'Maestros carpinteros · reparación de lanchas · pesca artesanal',
+    resumen: 'Si los mayores no enseñan cómo construir y reparar botes de madera, el oficio se pierde. Queremos apoyar a los maestros de ribera para que transmitan su arte a los jóvenes.',
+    piloto: 'Escuela-taller en la bahía con los maestros carpinteros de ribera y pescadores del pueblo.',
+    producto: 'Manual ilustrado de construcción de botes y fortalecimiento del taller local.',
   },
   {
     id: 'l96',
     capId: '03',
-    grupo: '03 · Línea 9.6 — Patrimonio y doble recorrido',
+    grupo: '03 · Solución 6 — Fuertes y turismo justo',
     pasoGrupo: '06 / 06',
-    titulo: 'Paisaje fortificado: mirada del habitante vs. visitante',
+    titulo: 'Que el turismo conozca nuestra historia y beneficie al pueblo',
     cam: 'linea_patrimonio',
     zonas: [0.98, 0.2, 0.25],
     rutas: { agua: 0, verde: 0, residuos: 0, oficios: 0, patrimonio: 1 },
@@ -231,20 +231,20 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: '3 fuertes 3D',
-    subCifra: 'San Fernando · San José · Batería del Ángel San Rafael',
-    resumen: 'Supera la visión monumentalista aislada para integrar las fortificaciones coloniales con la vida cotidiana de Bocachica, sus ecosistemas y su memoria afrodescendiente.',
-    piloto: 'Circuito pedagógico de doble lectura (recorrido formativo local + ruta interpretativa para visitantes) con estaciones bioclimáticas.',
-    producto: 'P8 · Propuesta de recorrido patrimonial y guion museográfico.',
+    cifra: '3 fuertes históricos',
+    subCifra: 'San Fernando · San José · Ángel San Rafael unidos al pueblo',
+    resumen: 'Hoy muchos turistas visitan los fuertes sin entrar al pueblo ni conocer su cultura afrodescendiente. Proponemos una ruta guiada por la gente local que conecte los fuertes con el barrio.',
+    piloto: 'Dos recorridos: uno educativo para los niños del pueblo y otro turístico con guías locales y puntos con sombra.',
+    producto: 'Ruta cultural señalizada y guion contado por habitantes de Bocachica.',
   },
 
-  // --- CAP 04: GEMELO DIGITAL PROGRESIVO (índices 10..14) ---
+  // --- CAP 04: MAPA VIVO 3D DEL PUEBLO (índices 10..14) ---
   {
     id: 'g01',
     capId: '04',
-    grupo: '04 · Gemelo Digital — Nivel 1',
-    pasoGrupo: 'Nivel 01 / 05',
-    titulo: 'Archivo vivo comunitario georreferenciado',
+    grupo: '04 · Mapa vivo 3D — Paso 1',
+    pasoGrupo: 'Paso 01 / 05',
+    titulo: 'Guardar en un solo lugar las fotos, relatos y mapas del pueblo',
     cam: 'bocachica_general',
     zonas: [0.85, 0.35, 0.35],
     rutas: { agua: 0.2, verde: 0.2, residuos: 0.2, oficios: 0.2, patrimonio: 0.5 },
@@ -252,18 +252,18 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: '9 estudios R1–R9',
-    subCifra: 'Relatos orales · fotografías · planos · diagnósticos previos',
-    resumen: 'El primer estrato del gemelo digital reúne y devuelve a Bocachica la producción académica dispersa junto con los archivos familiares y relatos de sabedores locales.',
-    piloto: 'Repositorio abierto consultable sin internet pesado en el nodo escolar R9 y en dispositivos móviles.',
-    producto: 'P1 · Repositorio documental + catálogo indexado.',
+    cifra: 'Archivo del pueblo',
+    subCifra: 'Historias de mayores · fotos antiguas · planos y estudios',
+    resumen: 'Este mapa en 3D sirve como un baúl comunitario abierto donde cualquiera puede ver la historia de cada calle, cada pozo y cada lugar importante de Bocachica.',
+    piloto: 'Consulta fácil desde celulares o en el computador del colegio sin necesidad de internet rápido.',
+    producto: 'Archivo comunitario abierto y fácil de entender para todos.',
   },
   {
     id: 'g02',
     capId: '04',
-    grupo: '04 · Gemelo Digital — Nivel 2',
-    pasoGrupo: 'Nivel 02 / 05',
-    titulo: 'Cartografía temática multicapa sobre el relieve 3D',
+    grupo: '04 · Mapa vivo 3D — Paso 2',
+    pasoGrupo: 'Paso 02 / 05',
+    titulo: 'Ver en el mapa dónde falta agua, dónde hay calor y dónde llega la basura',
     cam: 'bocachica_general',
     zonas: [0.65, 0.65, 0.65],
     rutas: { agua: 0.85, verde: 0.85, residuos: 0.6, oficios: 0.6, patrimonio: 0.85 },
@@ -271,18 +271,18 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 1,
     gemelo: 0,
-    cifra: '6 capas SIG',
-    subCifra: 'Relieve hipso · agua · vegetación · residuos · oficios · patrimonio',
-    resumen: 'Superpone sobre el relieve real de Tierra Bomba las curvas de nivel, cuencas de escorrentía, parches de manglar, rutas de residuos y bordes de erosión costera.',
-    piloto: 'Visor cartográfico participativo para cruzar vulnerabilidad ambiental con infraestructura comunitaria.',
-    producto: 'P2 · Base SIG + visores temáticos de planificación.',
+    cifra: '6 capas claras',
+    subCifra: 'Relieve · agua · árboles · basuras · oficios · fuertes',
+    resumen: 'Al prender estas capas de colores sobre la isla real, la comunidad puede señalar exactamente por dónde corre el agua cuando llueve, qué zonas necesitan más árboles y dónde limpiar.',
+    piloto: 'Talleres con vecinos marcando sobre el mapa los puntos urgentes del barrio.',
+    producto: 'Mapas sencillos para tomar decisiones y pedir apoyos ante la alcaldía.',
   },
   {
     id: 'g03',
     capId: '04',
-    grupo: '04 · Gemelo Digital — Nivel 3',
-    pasoGrupo: 'Nivel 03 / 05',
-    titulo: 'Modelo 3D arquitectónico de Bocachica y su escuela',
+    grupo: '04 · Mapa vivo 3D — Paso 3',
+    pasoGrupo: 'Paso 03 / 05',
+    titulo: 'Todas las casas y los árboles reales de Tierra Bomba en 3D',
     cam: 'linea_memoria',
     zonas: [0.45, 0.85, 0.45],
     rutas: { agua: 0.6, verde: 0.8, residuos: 0, oficios: 0, patrimonio: 0.6 },
@@ -290,18 +290,18 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0.25,
     gemelo: 0,
-    cifra: 'Escala 1:1',
-    subCifra: '2.600 viviendas con fachada y cubierta + modelo 3D del colegio R9',
-    resumen: 'Integra el levantamiento tridimensional a escala real del tejido edificado de la isla, el dosel arbóreo y el modelo 3D detallado del Gimnasio Cristiano de Bocachica.',
-    piloto: 'Maqueta digital interactiva para codiseñar intervenciones arquitectónicas y de espacio público con estudiantes y docentes.',
-    producto: 'Modelo 3D base + levantamiento del nodo escolar R9.',
+    cifra: 'Tamaño real',
+    subCifra: '2.600 viviendas reales + vegetación real de toda la isla + el colegio',
+    resumen: 'Aquí puedes reconocer tu cuadra, los árboles del manglar y el colegio a escala real. Así todos pueden opinar viendo el espacio tal como es antes de construir nada.',
+    piloto: 'Usar esta maqueta 3D en las reuniones del colegio para que estudiantes y padres diseñen juntos.',
+    producto: 'Maqueta 3D fiel de Bocachica y del Gimnasio Cristiano.',
   },
   {
     id: 'g04',
     capId: '04',
-    grupo: '04 · Gemelo Digital — Nivel 4',
-    pasoGrupo: 'Nivel 04 / 05',
-    titulo: 'Simulación de escenarios comparativos en vivo',
+    grupo: '04 · Mapa vivo 3D — Paso 4',
+    pasoGrupo: 'Paso 04 / 05',
+    titulo: 'Probar las mejoras en el mapa antes de gastar recursos',
     cam: 'escuela_r9',
     zonas: [0.2, 0.95, 0.95],
     rutas: { agua: 1, verde: 1, residuos: 0.5, oficios: 0, patrimonio: 0 },
@@ -309,19 +309,19 @@ const PASOS_3D = [
     lluvia: 1,
     cartografia: 0,
     gemelo: 0,
-    cifra: 'Antes / Después',
-    subCifra: 'Escenario actual vs. refugio climático + cosecha pluvial',
-    resumen: 'Permite evaluar visual y cuantitativamente el impacto de techar con cubiertas captadoras, sembrar corredores de sombra y recolectar agua lluvia antes de construir.',
-    piloto: 'Simulador de balance hídrico escolar y asoleamiento para priorizar inversiones por fases.',
-    producto: 'Escenarios comparativos de inversión y confort.',
+    cifra: 'Antes y Después',
+    subCifra: 'Compara el patio hoy bajo el sol vs. con techo de lluvia y árboles',
+    resumen: 'Con el botón de abajo puedes comparar cómo está el colegio hoy y cómo mejora cuando se instala el techo recolector de lluvia, el tanque de agua y la sombra de los árboles.',
+    piloto: 'Simulación para mostrar cuánta agua se ahorra y cuánto baja la temperatura en el patio.',
+    producto: 'Comparador visual para decidir qué obra hacer primero.',
     interactivo: 'antesDespuesR9',
   },
   {
     id: 'g05',
     capId: '04',
-    grupo: '04 · Gemelo Digital — Nivel 5',
-    pasoGrupo: 'Nivel 05 / 05',
-    titulo: 'Nube de puntos 3D y monitoreo comunitario continuo',
+    grupo: '04 · Mapa vivo 3D — Paso 5',
+    pasoGrupo: 'Paso 05 / 05',
+    titulo: 'Los jóvenes del colegio miden y actualizan el mapa cada 6 meses',
     cam: 'gemelo',
     zonas: [0.8, 0.8, 0.8],
     rutas: { agua: 0.9, verde: 0.9, residuos: 0.9, oficios: 0.9, patrimonio: 0.9 },
@@ -329,20 +329,20 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0.3,
     gemelo: 1,
-    cifra: 'Ciclo semestral',
-    subCifra: 'Indicadores medidos por jóvenes y comité local en Bocachica',
-    resumen: 'El gemelo no es una entrega estática: se actualiza cada semestre con datos de lluvia captada, temperatura en aulas, árboles sobrevivientes y plástico transformado.',
-    piloto: 'Tablero de indicadores ambientales y bitácora de ciencia ciudadana operada desde el colegio.',
-    producto: 'Sistema de monitoreo y actualización intersemestral.',
+    cifra: 'Cada 6 meses',
+    subCifra: 'Estudiantes y comité local miden lluvia, calor y árboles vivos',
+    resumen: 'Este mapa no se queda quieto: cada semestre los estudiantes revisan cuánta agua lluvia se recogió, cuántos árboles crecieron y cuánto plástico se aprovechó.',
+    piloto: 'Brigada ambiental escolar cuidando y midiendo los avances del barrio.',
+    producto: 'Seguimiento continuo hecho por la misma comunidad.',
   },
 
-  // --- CAP 05: PROYECTO PILOTO R9 (GIMNASIO CRISTIANO DE BOCACHICA) (índices 15..17) ---
+  // --- CAP 05: EL COLEGIO COMO CORAZÓN DEL PROYECTO (índices 15..17) ---
   {
     id: 'r9_1',
     capId: '05',
-    grupo: '05 · Piloto R9 — Gimnasio Cristiano de Bocachica',
+    grupo: '05 · El Colegio — Gimnasio Cristiano de Bocachica',
     pasoGrupo: '01 / 03',
-    titulo: 'El colegio como corazón del Aula Ambiental (R9)',
+    titulo: 'El colegio se convierte en un lugar fresco, abierto y útil para todo el barrio',
     cam: 'escuela_cerca',
     zonas: [0.3, 0.98, 0.4],
     rutas: { agua: 0.5, verde: 1, residuos: 0.5, oficios: 0, patrimonio: 0.5 },
@@ -350,19 +350,19 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: 'Nodo R9',
-    subCifra: 'Pabellones con celosías · cancha de preescolar · ágora y vivero',
-    resumen: 'El Gimnasio Cristiano de Bocachica articula espacialmente el programa: funciona como sede pedagógica, laboratorio bioclimático, punto de cosecha de agua y archivo comunitario.',
-    piloto: 'Pabellón educativo con envolvente permeable, cancha múltiple sombreada, vivero escolar y ágora abierta para asambleas barriales.',
-    producto: 'P5 · Proyecto arquitectónico y bioclimático del nodo escolar.',
+    cifra: 'Corazón del plan',
+    subCifra: 'Salones ventilados · cancha con sombra · vivero y espacio de reunión',
+    resumen: 'El Gimnasio Cristiano será el punto de encuentro del proyecto: tendrá salones más frescos, una cancha de preescolar protegida del sol, un vivero y un espacio redondo para reuniones del barrio.',
+    piloto: 'Construcción por etapas junto con padres de familia, maestros y estudiantes de arquitectura.',
+    producto: 'Un colegio mejorado que también sirve como centro ambiental de Bocachica.',
     interactivo: 'antesDespuesR9',
   },
   {
     id: 'r9_2',
     capId: '05',
-    grupo: '05 · Piloto R9 — Cosecha pluvial y confort',
+    grupo: '05 · El Colegio — Agua de lluvia y frescura',
     pasoGrupo: '02 / 03',
-    titulo: 'Cubierta captadora en V, aljibe y enfriamiento pasivo',
+    titulo: 'Techo en forma de V para recoger la lluvia y guardarla limpia en el aljibe',
     cam: 'escuela_r9',
     zonas: [0.15, 0.85, 1.0],
     rutas: { agua: 1, verde: 0.8, residuos: 0, oficios: 0, patrimonio: 0 },
@@ -370,19 +370,19 @@ const PASOS_3D = [
     lluvia: 1,
     cartografia: 0,
     gemelo: 0,
-    cifra: '85 % lluvia',
-    subCifra: 'Captación pluvial en cubierta en V + biofiltración hacia el aljibe',
-    resumen: 'Durante las lluvias caribeñas, la cubierta actúa como un embudo que conduce el agua hacia el aljibe escolar filtrado; en época seca, su doble piel ventilada abate la carga térmica.',
-    piloto: 'Módulo demostrativo de captación pluvial, filtro biológico, lavado de manos y jardín de lluvia pedagógico.',
-    producto: 'Prototipo funcional agua-clima en el Gimnasio Cristiano.',
+    cifra: '85 % lluvia útil',
+    subCifra: 'El techo recoge el agua cuando llueve y la lleva al tanque filtrado',
+    resumen: 'Cuando cae aguacero, el techo en V guía el agua directo al aljibe con filtros naturales para lavarse las manos y regar el vivero. En días secos, el doble techo deja pasar la brisa y quita el calor.',
+    piloto: 'Sistema demostrativo de agua lluvia que también enseña a los niños cómo cuidar el agua.',
+    producto: 'Agua almacenada en el colegio y patio más fresco todo el año.',
     interactivo: 'antesDespuesR9',
   },
   {
     id: 'r9_3',
     capId: '05',
-    grupo: '05 · Piloto R9 — Red de 6 pilotos articulados',
+    grupo: '05 · Del colegio hacia todo Bocachica',
     pasoGrupo: '03 / 03',
-    titulo: 'De la escuela al territorio: los 6 pilotos conectados en el mapa',
+    titulo: 'Los 6 proyectos pequeños conectados por todo el pueblo',
     cam: 'bocachica_general',
     zonas: [0.9, 0.9, 0.9],
     rutas: { agua: 1, verde: 1, residuos: 1, oficios: 1, patrimonio: 1 },
@@ -390,21 +390,21 @@ const PASOS_3D = [
     lluvia: 0.35,
     cartografia: 0.2,
     gemelo: 0,
-    cifra: '6 pilotos',
-    subCifra: 'Memoria · Agua · Refugio R9 · Plástico · Ribera · Patrimonio',
-    resumen: 'Desde el Gimnasio Cristiano (R9), el Aula Ambiental irradia hacia el casco urbano, los aljibes históricos, el manglar, los astilleros de ribera y los fuertes del canal.',
-    piloto: 'Red territorial de micro-intervenciones señalizadas y conectadas mediante corredores sombreados y rutas pedagógicas.',
-    producto: 'Programa marco articulado a 24 meses (F1–F6).',
+    cifra: '6 obras unidas',
+    subCifra: 'Historias · Agua · Colegio · Plástico · Botes · Fuertes',
+    resumen: 'Lo que empieza en el Gimnasio Cristiano se conecta por calles con sombra hasta los pozos, el manglar, el taller de plástico, los astilleros de botes y los fuertes.',
+    piloto: 'Señalización clara y caminos sombreados para recorrer todo el circuito a pie.',
+    producto: 'Una red completa de mejoras visibles en toda Bocachica.',
     interactivo: 'plano2D',
   },
 
-  // --- CAP 06: HOJA DE RUTA DE 24 MESES Y RED DE 15 ACTORES SOBRE EL MAPA 3D (índices 18..19) ---
+  // --- CAP 06: PLAN A 2 AÑOS Y QUIÉNES PARTICIPAN (índices 18..19) ---
   {
     id: 'hr_1',
     capId: '06',
-    grupo: '06 · Hoja de ruta de 24 meses en el mapa 3D',
+    grupo: '06 · Plan paso a paso en 2 años (24 meses)',
     pasoGrupo: '01 / 02',
-    titulo: 'Cuatro semestres continuos (F0–F6) y 9 productos en el territorio',
+    titulo: 'Cuatro semestres seguidos para que las obras no queden a medias',
     cam: 'hoja_ruta',
     zonas: [0.75, 0.85, 0.75],
     rutas: { agua: 0.9, verde: 0.9, residuos: 0.7, oficios: 0.7, patrimonio: 0.9 },
@@ -413,18 +413,18 @@ const PASOS_3D = [
     cartografia: 0.15,
     gemelo: 0,
     cifra: '24 meses',
-    subCifra: 'Desliza el control de meses abajo para ver avanzar las fases en el mapa',
-    resumen: 'El programa supera la discontinuidad semestral mediante 6 fases progresivas (F0 a F6) donde cada cohorte estudiantil entrega insumos verificables a la siguiente.',
-    piloto: 'Calendario intersemestral con puntos de control ético obligatorios ante la Mesa Comunitaria Local.',
-    producto: '9 productos verificables (P1–P9) instalados en Bocachica.',
+    subCifra: 'Mueve la barra de meses abajo para ver qué se hace en cada etapa',
+    resumen: 'Para evitar que cada grupo que llega empiece desde cero, el trabajo se organiza en 2 años continuos: primero escuchar y acordar, luego hacer mapas, después construir prototipos y finalmente dejarlos en manos del pueblo.',
+    piloto: 'Reuniones de revisión con la comunidad al cierre de cada semestre antes de pasar al siguiente paso.',
+    producto: '9 resultados concretos entregados y funcionando en Bocachica.',
     interactivo: 'cronograma24m',
   },
   {
     id: 'hr_2',
     capId: '06',
-    grupo: '06 · Gobernanza y 15 actores en red',
+    grupo: '06 · Quiénes deciden y trabajan juntos',
     pasoGrupo: '02 / 02',
-    titulo: 'Comunidad, colegio R9, Javeriana y aliados co-gobernando el Aula',
+    titulo: 'La comunidad manda, el colegio coordina y la universidad apoya',
     cam: 'isla',
     zonas: [0.85, 0.85, 0.85],
     rutas: { agua: 1, verde: 1, residuos: 1, oficios: 1, patrimonio: 1 },
@@ -432,11 +432,11 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0.35,
     gemelo: 0,
-    cifra: '15 actores',
-    subCifra: 'Mesa Comunitaria + Gimnasio Cristiano R9 + 5 Facultades PUJ + Aliados',
-    resumen: 'La toma de decisiones se organiza en tres instancias: Mesa Comunitaria Local en Bocachica, Comité Coordinador en el nodo R9 y Red de Aliados Técnicos e Internacionales.',
-    piloto: 'Protocolo de consentimiento previo, coautoría comunitaria y custodia compartida del Gemelo Digital.',
-    producto: 'Modelo de gobernanza replicable en el Caribe insular.',
+    cifra: '15 aliados unidos',
+    subCifra: 'Líderes del barrio · Colegio · Pescadores · Javeriana · Jardín Botánico',
+    resumen: 'Las decisiones se toman en una Mesa Comunitaria de Bocachica. El Gimnasio Cristiano es el punto de coordinación y varias facultades y fundaciones aportan su trabajo técnico y materiales.',
+    piloto: 'Reglas claras de respeto: permiso previo de la comunidad, crédito a los sabedores locales y cuidado compartido.',
+    producto: 'Un modelo de trabajo conjunto que puede servir de ejemplo para toda Tierra Bomba.',
     interactivo: 'actores15',
   },
 ];
@@ -1934,15 +1934,15 @@ function ControlesVista({ libre, onToggleLibre, oculto, onToggleOculto, onZoom, 
           libre ? '!bg-[#e0917a]/25 !border-[#e0917a] text-white' : 'text-white/80 hover:text-white'
         }`}
       >
-        {libre ? '✓ Explorando el mapa 3D (Salir)' : 'Explorar el mapa 3D'}
+        {libre ? '✓ Dejar de mover el mapa' : 'Mover el mapa 3D'}
       </button>
       <button
         type="button"
         onClick={onToggleOculto}
         className="tc-vidrio px-2.5 py-1.5 text-xs text-white/75 hover:text-white"
-        title={oculto ? 'Mostrar panel' : 'Ocultar panel para ver la isla'}
+        title={oculto ? 'Mostrar información' : 'Esconder texto para ver solo la isla'}
       >
-        {oculto ? 'Mostrar panel' : 'Ocultar panel'}
+        {oculto ? 'Ver texto' : 'Ver solo el mapa'}
       </button>
       <div className="hidden sm:flex items-center tc-vidrio px-1 py-0.5 text-xs">
         <button type="button" onClick={() => onZoom(0.78)} className="px-2 py-1 text-white/80 hover:text-white" title="Acercar">+</button>
@@ -2336,7 +2336,7 @@ export default function AulaAmbientalBocachica({
                         : 'border-white/20 text-white/75 hover:text-white'
                     }`}
                   >
-                    {tour3DActivo ? '⏸ Pausar tour 3D' : '▶ Tour 3D auto'}
+                    {tour3DActivo ? '⏸ Pausar recorrido' : '▶ Recorrido automático'}
                   </button>
                   <span className="tc-num font-mono">{pasoActual.pasoGrupo}</span>
                 </div>
@@ -2433,12 +2433,12 @@ export default function AulaAmbientalBocachica({
                 </div>
               )}
 
-              {/* Pestañas interactivas dentro de la tarjeta flotante */}
+              {/* Pestañas interactivas dentro de la tarjeta flotante en lenguaje sencillo */}
               <div className="flex gap-1.5 mt-2.5 pt-2.5 tc-regla">
                 {[
-                  { id: 'resumen', label: 'Diagnóstico' },
-                  { id: 'piloto', label: 'Piloto en Bocachica' },
-                  { id: 'producto', label: 'Entregable' },
+                  { id: 'resumen', label: '¿Qué pasa hoy?' },
+                  { id: 'piloto', label: '¿Qué haremos?' },
+                  { id: 'producto', label: '¿Qué queda?' },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -2465,7 +2465,7 @@ export default function AulaAmbientalBocachica({
                     onClick={() => setModalDiagrama(pasoActual.id === 'p01' ? 'simulador4pasos' : 'redProblema')}
                     className="tc-ficha !border-[#e0917a]/60 !text-[#f4f1ec]"
                   >
-                    ✦ Abrir {pasoActual.id === 'p01' ? 'simulador animado (4 pasos)' : 'red interactiva de nodos'}
+                    ✦ {pasoActual.id === 'p01' ? 'Ver dibujos explicativos en 4 pasos' : 'Ver cómo se conectan los problemas y soluciones'}
                   </button>
                 )}
                 {pasoActual.capId === '02' && (
@@ -2474,7 +2474,7 @@ export default function AulaAmbientalBocachica({
                     onClick={() => setModalDiagrama('memorias')}
                     className="tc-ficha !border-[#6ec6e6]/60 !text-[#f4f1ec]"
                   >
-                    ✦ Ver diagramas R1–R9 y ciclo metodológico
+                    ✦ Ver los 9 estudios anteriores y las 6 memorias
                   </button>
                 )}
                 {(pasoActual.capId === '05' || pasoActual.id === 'g04') && (
@@ -2483,7 +2483,7 @@ export default function AulaAmbientalBocachica({
                     onClick={() => setModalDiagrama('plano2D')}
                     className="tc-ficha !border-[#35d08a]/60 !text-[#f4f1ec]"
                   >
-                    ✦ Abrir plano esquemático 2D y comparador R9
+                    ✦ Ver plano del colegio y comparar antes/después
                   </button>
                 )}
                 {pasoActual.capId === '06' && (
@@ -2492,7 +2492,7 @@ export default function AulaAmbientalBocachica({
                     onClick={() => setModalDiagrama('hojaRuta')}
                     className="tc-ficha !border-[#f5b45a]/60 !text-[#f4f1ec]"
                   >
-                    ✦ Abrir constelación de 15 actores y productos P1–P9
+                    ✦ Ver plan a 2 años y quiénes participan
                   </button>
                 )}
               </div>
@@ -2530,13 +2530,13 @@ export default function AulaAmbientalBocachica({
         <div className="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 md:p-10 overflow-y-auto">
           <div className="relative w-full max-w-6xl max-h-[88svh] overflow-y-auto tc-vidrio p-5 md:p-8 tc-paso-anim">
             <div className="sticky top-0 z-10 flex items-center justify-between pb-3 mb-4 border-b border-white/15 bg-[#070a0e]/85 backdrop-blur-md px-2 py-1.5 rounded">
-              <span className="tc-etiqueta !text-[#e0917a]">Vista gráfica interactiva sobre el mapa 3D de Bocachica</span>
+              <span className="tc-etiqueta !text-[#e0917a]">Explicación visual sobre el mapa de Bocachica</span>
               <button
                 type="button"
                 onClick={() => setModalDiagrama(null)}
                 className="tc-ficha tc-ficha-activa !border-[#e0917a] !text-white"
               >
-                ✕ Volver al mapa 3D limpio
+                ✕ Volver al mapa 3D
               </button>
             </div>
             {modalDiagrama === 'simulador4pasos' && <SimuladorAulaEn4Pasos animPausada={animPausada} />}
@@ -2556,7 +2556,7 @@ export default function AulaAmbientalBocachica({
         <div className="relative w-full grid md:grid-cols-12 gap-6 items-end pointer-events-auto">
           <div className="md:col-span-8">
             <div className="tc-etiqueta mb-3">
-              Cartagena de Indias · Isla de Tierra Bomba · Bocachica · Programa marco v0.1
+              Isla de Tierra Bomba · Bocachica · Proyecto para la comunidad
             </div>
             <h1 className="text-[clamp(3.2rem,12vw,9.8rem)] font-semibold leading-[0.88] tracking-[-0.045em] text-white">
               Aula Ambiental
@@ -2565,11 +2565,11 @@ export default function AulaAmbientalBocachica({
           </div>
           <div className="md:col-span-4 md:pb-2 text-white/85">
             <p className="text-base md:text-lg leading-snug">
-              Memorias territoriales, planificación y diseño sostenible en Bocachica: seis líneas de investigación, seis pilotos y un gemelo digital 3D.
+              Un mapa interactivo para que toda la comunidad de Bocachica conozca qué pasa hoy en la isla, qué vamos a construir en el colegio Gimnasio Cristiano y cómo cuidaremos el agua, los árboles, las casas y nuestra memoria.
             </p>
             <div className="mt-5 pt-4 tc-regla flex items-center justify-between text-xs text-white/65">
               <span>Arq. Alejandro Serrano Sierra · PUJ</span>
-              <span className="animate-pulse text-[#e0917a]">Desplázate por el mapa 3D ↓</span>
+              <span className="animate-pulse text-[#e0917a]">Baja o usa el mapa 3D ↓</span>
             </div>
           </div>
         </div>

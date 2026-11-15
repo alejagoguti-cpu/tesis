@@ -1322,14 +1322,14 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const etiquetasGroup = new THREE.Group();
   aulaGroup.add(etiquetasGroup);
   const etqMap = {
-    casco: crearEtiqueta('Casco de Bocachica', '9.1 · Atlas de memorias y vernáculo', nodosXZ.casco.x, nodosXZ.casco.z, 42, '#e0917a'),
-    escuelaR9: crearEtiqueta('Gimnasio Cristiano (R9)', '9.3 · Refugio climático y aula viva', nodosXZ.escuelaR9.x, nodosXZ.escuelaR9.z, 46, '#35d08a'),
-    agua: crearEtiqueta('Aljibes y Pozos', '9.2 · Memorias hídricas y cosecha pluvial', nodosXZ.agua.x, nodosXZ.agua.z, 38, '#6ec6e6'),
-    vivero: crearEtiqueta('Vivero y Manglar', '9.3 · Silvicultura comunitaria', nodosXZ.vivero.x, nodosXZ.vivero.z, 38, '#35d08a'),
-    residuos: crearEtiqueta('Taller de Plástico', '9.4 · Economía circular e infraestructura', nodosXZ.residuos.x, nodosXZ.residuos.z, 38, '#f5b45a'),
-    ribera: crearEtiqueta('Carpintería de Ribera', '9.5 · Astilleros y oficios del mar', nodosXZ.ribera.x, nodosXZ.ribera.z, 38, '#e8a86b'),
-    sanFernando: crearEtiqueta('Fuerte San Fernando', '9.6 · Paisaje fortificado del canal', nodosXZ.sanFernando.x, nodosXZ.sanFernando.z, 42, '#f4f1ec'),
-    sanRafael: crearEtiqueta('Batería Ángel San Rafael', '9.6 · Mirador y recorrido pedagógico', nodosXZ.sanRafael.x, nodosXZ.sanRafael.z, 52, '#e0917a'),
+    casco: crearEtiqueta('Pueblo de Bocachica', 'Nuestras casas, calles y memorias', nodosXZ.casco.x, nodosXZ.casco.z, 42, '#e0917a'),
+    escuelaR9: crearEtiqueta('Colegio Gimnasio Cristiano', 'Techo para lluvia, sombra y aula viva', nodosXZ.escuelaR9.x, nodosXZ.escuelaR9.z, 46, '#35d08a'),
+    agua: crearEtiqueta('Aljibes y Pozos', 'Cuidado del agua y lluvia limpia', nodosXZ.agua.x, nodosXZ.agua.z, 38, '#6ec6e6'),
+    vivero: crearEtiqueta('Vivero y Manglar', 'Árboles para dar sombra y cuidar la orilla', nodosXZ.vivero.x, nodosXZ.vivero.z, 38, '#35d08a'),
+    residuos: crearEtiqueta('Taller de Plástico', 'Plástico recogido convertido en bancas', nodosXZ.residuos.x, nodosXZ.residuos.z, 38, '#f5b45a'),
+    ribera: crearEtiqueta('Carpintería de Ribera', 'Maestros de botes y pesca artesanal', nodosXZ.ribera.x, nodosXZ.ribera.z, 38, '#e8a86b'),
+    sanFernando: crearEtiqueta('Fuerte San Fernando', 'Historia viva contada por nuestra gente', nodosXZ.sanFernando.x, nodosXZ.sanFernando.z, 42, '#f4f1ec'),
+    sanRafael: crearEtiqueta('Batería Ángel San Rafael', 'Mirador y sendero educativo del cerro', nodosXZ.sanRafael.x, nodosXZ.sanRafael.z, 52, '#e0917a'),
   };
   Object.values(etqMap).forEach((s) => etiquetasGroup.add(s));
 
