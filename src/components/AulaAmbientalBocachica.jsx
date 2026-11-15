@@ -2172,7 +2172,7 @@ const EXPLORA_CATEGORIAS = [
     cta: 'Explorar los 4 pueblos',
     color: '#e0917a',
     cam: 'isla_completa',
-    nodos: ['casco', 'tierraBomba', 'canoDeLoro', 'puntaArena'],
+    nodos: [],
     rutas: { agua: 0, verde: 0.2, residuos: 0, oficios: 0.2, patrimonio: 0.2 },
     zonas: [0.55, 0.2, 0.2],
     resumen: 'Los 4 pueblos de Tierra Bomba. Toca cualquiera para verlo de cerca.',
@@ -2385,6 +2385,74 @@ export default function AulaAmbientalBocachica({
   const [actividadViernesSel, setActividadViernesSel] = useState(null);
   const [patrimonioSel, setPatrimonioSel] = useState(null);
   const [patrimonioSecIdx, setPatrimonioSecIdx] = useState(0);
+  const [corregSel, setCorregSel] = useState(null);
+  const [corregSecIdx, setCorregSecIdx] = useState(0);
+
+  const corregimientosIsla = useMemo(
+    () => [
+      {
+        nodo: 'casco',
+        corto: 'Bocachica',
+        nombre: 'Corregimiento de Bocachica',
+        zona: 'Extremo sur · Canal de acceso',
+        color: '#e0917a',
+        Icon: Home,
+        dx: -40,
+        dy: 48,
+        fichas: [
+          { titulo: 'Llegada en lancha', texto: 'Zarpando desde el Muelle de la Bodeguita o Bazurto en Cartagena, llegas en unos 25 a 35 minutos directo al muelle comunitario.' },
+          { titulo: 'Qué hacer', texto: 'Recorrer sus fuertes coloniales, visitar el Aula Ambiental en el Colegio R9 y disfrutar del pescado frito frente al mar.' },
+          { titulo: 'Gente y oficios', texto: 'Hogar de carpinteros de ribera, pescadores artesanales, cocineras tradicionales y ruedas de bullerengue.' },
+        ],
+      },
+      {
+        nodo: 'tierraBomba',
+        corto: 'Tierra Bomba',
+        nombre: 'Corregimiento de Tierra Bomba',
+        zona: 'Norte y centro · Bosque seco',
+        color: '#e8a86b',
+        Icon: Trees,
+        dx: -55,
+        dy: -28,
+        fichas: [
+          { titulo: 'Llegada en lancha', texto: 'A solo 10 minutos en lancha desde Castillogrande o El Laguito hasta las playas y muelles del sector norte.' },
+          { titulo: 'Qué hacer', texto: 'Caminar por senderos de bosque seco tropical, probar los dulces de Doña Isnelia y contemplar la bahía de Cartagena.' },
+          { titulo: 'Gente y oficios', texto: 'Comunidad reconocida por su cocina tradicional, dulcería isleña y memoria afrocaribeña frente a la ciudad.' },
+        ],
+      },
+      {
+        nodo: 'canoDeLoro',
+        corto: 'Caño de Loro',
+        nombre: 'Corregimiento de Caño de Loro',
+        zona: 'Costado oriental · Bahía y manglar',
+        color: '#35d08a',
+        Icon: Sprout,
+        dx: 70,
+        dy: 20,
+        fichas: [
+          { titulo: 'Llegada en lancha', texto: 'Acceso por la bahía interior en unos 15 minutos desde Cartagena, bordeando los esteros tranquilos de manglar.' },
+          { titulo: 'Qué hacer', texto: 'Visitar el vivero comunitario, observar aves costeras y recorrer en canoa los canales de mangle rojo.' },
+          { titulo: 'Gente y oficios', texto: 'Guardianes del manglar, viveristas comunitarios y pescadores de atarraya en aguas calmas.' },
+        ],
+      },
+      {
+        nodo: 'puntaArena',
+        corto: 'Punta Arena',
+        nombre: 'Corregimiento de Punta Arena',
+        zona: 'Costa noreste · Mirador a Bocagrande',
+        color: '#6ec6e6',
+        Icon: MapPin,
+        dx: 55,
+        dy: -24,
+        fichas: [
+          { titulo: 'Llegada en lancha', texto: 'Trayecto rápido de 10 minutos desde las playas de Castillogrande o Bocagrande hacia su franja de arena blanca.' },
+          { titulo: 'Qué hacer', texto: 'Disfrutar de playas tranquilas frente al perfil de Cartagena, música de patio y gastronomía costera.' },
+          { titulo: 'Gente y oficios', texto: 'Anfitriones comunitarios, pescadores y bailadores de bullerengue y cumbia junto al mar.' },
+        ],
+      },
+    ],
+    []
+  );
   const [memCategoria, setMemCategoria] = useState('comida');
   const [memItemSel, setMemItemSel] = useState(null);
   const [memPasoIdx, setMemPasoIdx] = useState(0);
@@ -2694,13 +2762,22 @@ export default function AulaAmbientalBocachica({
     escena?.irANodo?.(pat.nodo, 340);
   };
 
+  const seleccionarCorregimiento = (cor) => {
+    if (!cor) return;
+    setCorregSel(cor);
+    setCorregSecIdx(0);
+    escena?.irANodo?.(cor.nodo, 340);
+  };
+
   useEffect(() => {
     const listaMapa =
       catActiva?.id === 'talleres'
         ? actividadesIsla
         : catActiva?.id === 'patrimonio'
           ? patrimoniosIsla
-          : null;
+          : catActiva?.id === 'corregimientos'
+            ? corregimientosIsla
+            : null;
     if (!escena?.proyectarNodos || !listaMapa || panelJuego || modalDiagrama) {
       setPinesActividad({});
       return undefined;
@@ -2755,7 +2832,7 @@ export default function AulaAmbientalBocachica({
     };
     rafId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafId);
-  }, [escena, catActiva, panelJuego, modalDiagrama, actividadesIsla, patrimoniosIsla]);
+  }, [escena, catActiva, panelJuego, modalDiagrama, actividadesIsla, patrimoniosIsla, corregimientosIsla]);
 
   // Programación de clases virtuales de los viernes
   const [clasesViernes, setClasesViernes] = useState(() => {
@@ -2795,6 +2872,7 @@ export default function AulaAmbientalBocachica({
     setLugarActivo(null);
     setActividadViernesSel(null);
     setPatrimonioSel(null);
+    setCorregSel(null);
     if (cat.id === 'memorias') {
       setPanelJuego(true);
       setCatActiva(null);
@@ -3407,11 +3485,12 @@ export default function AulaAmbientalBocachica({
         </>
       )}
 
-      {/* ICONOS ANIMADOS SOBRE EL MAPA (2. PATRIMONIO Y 3. TALLERES Y VIERNES) */}
-      {enVistaAula && (catActiva?.id === 'talleres' || catActiva?.id === 'patrimonio') && !panelJuego && !modalDiagrama && (() => {
+      {/* ICONOS ANIMADOS SOBRE EL MAPA (1. CORREGIMIENTOS, 2. PATRIMONIO Y 3. TALLERES Y VIERNES) */}
+      {enVistaAula && (catActiva?.id === 'talleres' || catActiva?.id === 'patrimonio' || catActiva?.id === 'corregimientos') && !panelJuego && !modalDiagrama && (() => {
         const esPatrimonio = catActiva.id === 'patrimonio';
-        const listaPines = esPatrimonio ? patrimoniosIsla : actividadesIsla;
-        const nodoSel = esPatrimonio ? patrimonioSel?.nodo : actividadViernesSel?.nodo;
+        const esCorreg = catActiva.id === 'corregimientos';
+        const listaPines = esPatrimonio ? patrimoniosIsla : esCorreg ? corregimientosIsla : actividadesIsla;
+        const nodoSel = esPatrimonio ? patrimonioSel?.nodo : esCorreg ? corregSel?.nodo : actividadViernesSel?.nodo;
         return (
           <div className="fixed inset-0 z-15 pointer-events-none overflow-hidden">
             <svg className="absolute inset-0 w-full h-full pointer-events-none">
@@ -3446,7 +3525,7 @@ export default function AulaAmbientalBocachica({
                 <button
                   key={item.nodo}
                   type="button"
-                  onClick={() => (esPatrimonio ? seleccionarPatrimonio(item) : seleccionarActividad(item))}
+                  onClick={() => (esPatrimonio ? seleccionarPatrimonio(item) : esCorreg ? seleccionarCorregimiento(item) : seleccionarActividad(item))}
                   style={{ left: `${p.x}px`, top: `${p.y}px` }}
                   className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto group cursor-pointer focus:outline-none"
                 >
@@ -3469,9 +3548,11 @@ export default function AulaAmbientalBocachica({
                     </span>
                     <span className="mt-1.5 px-2.5 py-0.5 rounded-full bg-[#0b1016]/90 border border-white/20 text-[11px] font-bold text-white whitespace-nowrap shadow-lg flex items-center gap-1.5 group-hover:bg-white group-hover:text-[#0b1016] transition">
                       <span>{item.corto}</span>
-                      <span className="text-[10px] font-mono opacity-80">
-                        {esPatrimonio ? item.anio : `${item.dia} ${item.mes}`}
-                      </span>
+                      {!esCorreg && (
+                        <span className="text-[10px] font-mono opacity-80">
+                          {esPatrimonio ? item.anio : `${item.dia} ${item.mes}`}
+                        </span>
+                      )}
                     </span>
                   </span>
                 </button>
@@ -3487,6 +3568,140 @@ export default function AulaAmbientalBocachica({
         const idxCat = EXPLORA_CATEGORIAS.findIndex((c) => c.id === catActiva.id);
         const catAnt = idxCat > 0 ? EXPLORA_CATEGORIAS[idxCat - 1] : null;
         const catSig = idxCat < EXPLORA_CATEGORIAS.length - 1 ? EXPLORA_CATEGORIAS[idxCat + 1] : null;
+
+        if (catActiva.id === 'corregimientos' && !corregSel) {
+          return (
+            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-md tc-vidrio px-4 py-3 tc-paso-anim shadow-2xl flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-10 h-10 rounded-xl bg-[#e0917a]/20 text-[#e0917a] flex items-center justify-center shrink-0 animate-pulse">
+                  <MapPin className="w-5 h-5" />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-white">Los 4 Corregimientos de Tierra Bomba</div>
+                  <div className="text-[11px] text-white/75 leading-snug">
+                    Toca cualquier icono animado en la isla para conocer cómo llegar, qué hacer y su gente.
+                  </div>
+                </div>
+              </div>
+              <button type="button" onClick={() => setCatActiva(null)} className="text-white/60 hover:text-white p-1 shrink-0">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          );
+        }
+
+        if (catActiva.id === 'corregimientos' && corregSel) {
+          const cor = corregSel;
+          const IconoCor = cor.Icon || MapPin;
+          const idxCor = Math.max(0, corregimientosIsla.findIndex((c) => c.nodo === cor.nodo));
+          const corAnt = corregimientosIsla[(idxCor - 1 + corregimientosIsla.length) % corregimientosIsla.length];
+          const corSig = corregimientosIsla[(idxCor + 1) % corregimientosIsla.length];
+          const fichaActual = cor.fichas[corregSecIdx] || cor.fichas[0];
+          const sigFichaIdx = (corregSecIdx + 1) % cor.fichas.length;
+          return (
+            <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(94vw,30rem)] tc-paso-anim">
+              <CardIluminada
+                color={cor.color}
+                className="tc-vidrio p-5 rounded-2xl border shadow-2xl space-y-3.5"
+              >
+                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-white/15">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCorregSel(null);
+                      escena?.set({ cam: 'isla_completa', nodosActivos: [] });
+                    }}
+                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-semibold text-white flex items-center gap-1 cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Ver toda la isla</span>
+                  </button>
+                  <span className="px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/90 text-[10px] font-bold uppercase tracking-wider">
+                    Corregimiento {idxCor + 1} / {corregimientosIsla.length}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3.5">
+                  <span
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border-2 shadow-xl"
+                    style={{
+                      backgroundColor: `${cor.color}22`,
+                      borderColor: cor.color,
+                      color: cor.color,
+                    }}
+                  >
+                    <IconoCor className="w-8 h-8" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-bold uppercase tracking-widest" style={{ color: cor.color }}>
+                      {cor.zona}
+                    </div>
+                    <h3 className="text-lg font-extrabold text-white leading-tight mt-0.5">{cor.nombre}</h3>
+                  </div>
+                </div>
+
+                <div className="space-y-2.5 pt-2 border-t border-white/15">
+                  <div className="flex flex-wrap gap-1.5">
+                    {cor.fichas.map((f, i) => {
+                      const activa = i === corregSecIdx;
+                      return (
+                        <button
+                          key={f.titulo}
+                          type="button"
+                          onClick={() => setCorregSecIdx(i)}
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer transition ${
+                            activa
+                              ? 'text-[#0b1016] shadow-md'
+                              : 'bg-white/10 text-white/75 hover:bg-white/20 hover:text-white'
+                          }`}
+                          style={activa ? { backgroundColor: cor.color } : undefined}
+                        >
+                          {f.titulo}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setCorregSecIdx(sigFichaIdx)}
+                    className="w-full text-left rounded-xl bg-white/[0.06] hover:bg-white/[0.11] border border-white/15 p-3.5 cursor-pointer transition group"
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <span className="text-[11px] font-extrabold uppercase tracking-wider" style={{ color: cor.color }}>
+                        {fichaActual.titulo}
+                      </span>
+                      <span className="text-[10px] font-bold text-white/60 group-hover:text-white flex items-center gap-1">
+                        <span>Siguiente dato</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </span>
+                    </div>
+                    <p className="text-xs md:text-[13px] text-white/90 leading-relaxed">{fichaActual.texto}</p>
+                  </button>
+                </div>
+
+                <div className="pt-2.5 border-t border-white/15 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => seleccionarCorregimiento(corAnt)}
+                    className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Anterior</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => seleccionarCorregimiento(corSig)}
+                    className="px-3.5 py-1.5 rounded-xl bg-white text-[#0b1016] hover:bg-white/90 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-lg transition"
+                  >
+                    <span>Siguiente pueblo</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </CardIluminada>
+            </aside>
+          );
+        }
 
         if (catActiva.id === 'patrimonio' && !patrimonioSel) {
           return (
