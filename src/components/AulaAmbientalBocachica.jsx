@@ -19,6 +19,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { crearEscenaAula } from '../utils/escenaAulaBocachica';
+import TierraBombaHairline from './TierraBombaHairline';
 import {
   ANTECEDENTES_CORPUS,
   DIMENSIONES_MEMORIA,
@@ -2840,6 +2841,18 @@ export default function AulaAmbientalBocachica({
               </button>
             </div>
 
+            <TierraBombaHairline
+              variant={catActiva.id}
+              onSelect={(nodo) => {
+                const lug = catActiva.lugares.find((l) => l.nodo === nodo);
+                if (lug) {
+                  setLugarActivo({ titulo: lug.nombre, sub: lug.desc, nodo: lug.nodo });
+                  escena?.irANodo?.(lug.nodo, lug.nodo === 'sanFernando' ? 235 : 320);
+                }
+              }}
+              className="mt-2.5"
+            />
+
             <p className="text-xs text-white/85 mt-2.5 leading-snug">{catActiva.resumen}</p>
 
             <div className="mt-3 grid grid-cols-1 gap-2">
@@ -3030,6 +3043,7 @@ export default function AulaAmbientalBocachica({
 
           {tabJuego === 'isla' && (
             <div className="space-y-3 text-xs">
+              <TierraBombaHairline variant="juego" />
               <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
                 <div className="flex items-center justify-between text-white mb-1.5">
                   <span className="flex items-center gap-1.5 font-medium">
