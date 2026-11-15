@@ -199,7 +199,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   let disposed = false;
   const tick0 = () => new Promise((r) => setTimeout(r, 0));
 
-  const TOTAL = 9;
+  const TOTAL = 10;
   let hechas = 0;
   const track = (p) => p.then((r) => { hechas++; onProgreso(0.65 * (hechas / TOTAL), 'Cargando mapa rápido 3D'); return r; });
   const jsonOf = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(u); return r.json(); });
@@ -213,13 +213,14 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     return JSON.parse(new TextDecoder().decode(u8));
   };
 
-  const [satImg, maskImg, geoRef, veg, construcciones, normalsImg, ...demImgs] = await Promise.all([
+  const [satImg, maskImg, geoRef, veg, construcciones, normalsImg, especies, ...demImgs] = await Promise.all([
     track(loadImg(`${BASE}textures/sat_base.jpg`)),
     track(loadImg(`${BASE}textures/isla_mascara.png`)),
     track(jsonOf(`${DATA_URL}georef.json`)),
     track(jsonOf(`${DATA_URL}vegetacion.json`)),
     track(gunzipJSON(`${BASE}data/construcciones_tierra_bomba.json.gz`)),
     track(loadImg(`${BASE}textures/water_normals_fine.jpg`)),
+    track(prepareTreeSpecies()),
     track(loadImg(`${BASE}data/elevation/1187_1929.png`)),
     track(loadImg(`${BASE}data/elevation/1188_1929.png`)),
     track(loadImg(`${BASE}data/elevation/1187_1930.png`)),
@@ -643,11 +644,10 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     const py = (y - geoRef.ty) / geoRef.sc;
     return [geoRef.lon0 + (px * cr + py * sr) / geoRef.kx, geoRef.lat0 + (-px * sr + py * cr) / geoRef.ky];
   };
-  const especies = await prepareTreeSpecies();
   if (disposed) return null;
 
-  // Grid de ocupación de árboles (celda de 7m) para evitar que dos árboles queden superpuestos
-  const TCELL = 7;
+  // Grid de ocupación de árboles (celda de 11m) para evitar superposición y optimizar GPU
+  const TCELL = 11;
   const treeOcc = new Set();
   const marcarArbol = (X, Z) => {
     const k = `${Math.floor(X / TCELL)}:${Math.floor(Z / TCELL)}`;
@@ -693,7 +693,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     sctx2.drawImage(satImg, sx0, sy0, sw0, sh0, 0, 0, W4, H4);
     const srgb = sctx2.getImageData(0, 0, W4, H4).data;
 
-    const pasoBase = small ? 2 : 1;
+    const pasoBase = small ? 3 : 2;
     let seed = 17;
     for (let py = 1; py < H4 - 1; py += pasoBase) {
       for (let px = 1; px < W4 - 1; px += pasoBase) {
@@ -776,7 +776,9 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       });
     }
   }
-  const treesGroup = instanceTrees(especies, treeBase, 95, false);
+  const treesGroup = instanceTrees(especies, treeBase, 420, false);
+  treesGroup.matrixAutoUpdate = false;
+  treesGroup.updateMatrix();
 
   // Geometría 1: Muros con textura de fachada
   const wallGeo = new THREE.BoxGeometry(1, 1, 1);
@@ -1551,7 +1553,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   crearRuta3D('patrimonio', RUTAS_BOCACHICA.patrimonio, '#e0917a', 4.6);
 
   // Etiquetas 3D flotantes (Sprites con tipografía Inter)
-  try { await document.fonts.load('600 40px "Inter"'); } catch { /* fallback */ }
+  try { document.fonts?.load?.('600 40px "Inter"').catch(() => {}); } catch { /* fallback */ }
   const crearEtiqueta = (texto, sub, X, Z, alto = 38, hexBar = '#e0917a') => {
     const c = document.createElement('canvas');
     c.width = 720;

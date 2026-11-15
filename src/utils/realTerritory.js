@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 // =============================================================================
 // Territorio real de Tierrabomba: imagen satelital georreferenciada y vegetación
@@ -186,6 +187,30 @@ export async function loadTreeTemplates() {
   return out;
 }
 
+function mergePartsByKind(parts) {
+  const byMat = new Map();
+  for (const p of parts) {
+    const k = `${p.kind}:${p.material.uuid}`;
+    if (!byMat.has(k)) byMat.set(k, { kind: p.kind, material: p.material, geos: [] });
+    byMat.get(k).geos.push(p.geometry);
+  }
+  const out = [];
+  for (const entry of byMat.values()) {
+    if (entry.geos.length === 1) {
+      out.push({ geometry: entry.geos[0], material: entry.material, kind: entry.kind });
+    } else {
+      const merged = mergeGeometries(entry.geos, false);
+      if (merged) {
+        entry.geos.forEach((g) => g.dispose());
+        out.push({ geometry: merged, material: entry.material, kind: entry.kind });
+      } else {
+        entry.geos.forEach((g) => out.push({ geometry: g, material: entry.material, kind: entry.kind }));
+      }
+    }
+  }
+  return out;
+}
+
 function clonarCopaConTransform(parts, { dx = 0, dy = 0, dz = 0, rotY = 0, sx = 1, sy = 1, sz = 1, soloHojas = false }) {
   const mat4 = new THREE.Matrix4()
     .makeTranslation(dx, dy, dz)
@@ -239,23 +264,23 @@ export async function prepareTreeSpecies() {
     species.push(parts);
   }
 
-  // Variantes reales (100% GLB texturizado, cero low-poly) con distinta densidad y ancho de copa:
+  // Variantes reales (100% GLB texturizado, cero low-poly) con distinta densidad y ancho de copa (geometrías fusionadas para menos draw calls):
   const base0 = species[0];
   const base1 = species[1];
 
   // Especie 2: Árbol Grande Frondoso (doble copa rotada y ancha para mayor densidad)
-  species.push([
+  species.push(mergePartsByKind([
     ...clonarCopaConTransform(base0, { sx: 1.15, sy: 1.05, sz: 1.15 }),
-    ...clonarCopaConTransform(base1, { dx: 0.14, dy: 0.12, dz: -0.1, rotY: 2.1, sx: 1.05, sy: 0.92, sz: 1.05, soloHojas: true }),
+    ...clonarCopaConTransform(base0, { dx: 0.14, dy: 0.12, dz: -0.1, rotY: 2.1, sx: 1.05, sy: 0.92, sz: 1.05, soloHojas: true }),
     ...clonarCopaConTransform(base0, { dx: -0.12, dy: 0.06, dz: 0.12, rotY: 4.1, sx: 0.95, sy: 0.88, sz: 0.95, soloHojas: true }),
-  ]);
+  ]));
 
   // Especie 3: Manglar / Arboleda Súper Densa (3 copas agrupadas bajas y anchas)
-  species.push([
+  species.push(mergePartsByKind([
     ...clonarCopaConTransform(base1, { dx: -0.16, dy: 0, dz: 0.1, rotY: 0.7, sx: 1.18, sy: 0.82, sz: 1.18 }),
-    ...clonarCopaConTransform(base0, { dx: 0.18, dy: 0.02, dz: -0.08, rotY: 2.8, sx: 1.12, sy: 0.78, sz: 1.12, soloHojas: true }),
+    ...clonarCopaConTransform(base1, { dx: 0.18, dy: 0.02, dz: -0.08, rotY: 2.8, sx: 1.12, sy: 0.78, sz: 1.12, soloHojas: true }),
     ...clonarCopaConTransform(base1, { dx: 0.0, dy: 0.16, dz: 0.14, rotY: 4.9, sx: 0.96, sy: 0.85, sz: 0.96, soloHojas: true }),
-  ]);
+  ]));
 
   // Especie 4: Árbol Alto y Esbelto
   species.push(clonarCopaConTransform(base1, { sx: 0.74, sy: 1.38, sz: 0.74 }));
@@ -336,6 +361,8 @@ export function instanceTrees(species, list, cell = 6, castShadow = true) {
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
       mesh.castShadow = castShadow;
       mesh.receiveShadow = true;
+      mesh.matrixAutoUpdate = false;
+      mesh.updateMatrix();
       mesh.computeBoundingSphere();
       group.add(mesh);
     });
