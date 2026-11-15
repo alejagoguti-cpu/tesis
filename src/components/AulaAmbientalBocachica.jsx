@@ -2384,6 +2384,7 @@ export default function AulaAmbientalBocachica({
 
   const [actividadViernesSel, setActividadViernesSel] = useState(null);
   const [patrimonioSel, setPatrimonioSel] = useState(null);
+  const [patrimonioSecIdx, setPatrimonioSecIdx] = useState(0);
   const [pinesActividad, setPinesActividad] = useState({});
 
   const patrimoniosIsla = useMemo(
@@ -2568,6 +2569,7 @@ export default function AulaAmbientalBocachica({
   const seleccionarPatrimonio = (pat) => {
     if (!pat) return;
     setPatrimonioSel(pat);
+    setPatrimonioSecIdx(0);
     escena?.irANodo?.(pat.nodo, 340);
   };
 
@@ -3444,17 +3446,52 @@ export default function AulaAmbientalBocachica({
                   </div>
                 </div>
 
-                {/* FICHAS HISTÓRICAS Y ARQUITECTÓNICAS */}
-                <div className="space-y-2.5 pt-2 border-t border-white/15">
-                  {pat.secciones.map((sec) => (
-                    <div key={sec.titulo} className="rounded-xl bg-white/[0.04] border border-white/10 p-3">
-                      <div className="text-[11px] font-extrabold uppercase tracking-wider mb-1" style={{ color: pat.color }}>
-                        {sec.titulo}
+                {/* FICHAS INTERACTIVAS: UNO A LA VEZ AL HACER CLIC */}
+                {(() => {
+                  const secActual = pat.secciones[patrimonioSecIdx] || pat.secciones[0];
+                  const sigSecIdx = (patrimonioSecIdx + 1) % pat.secciones.length;
+                  return (
+                    <div className="space-y-2.5 pt-2 border-t border-white/15">
+                      <div className="flex flex-wrap gap-1.5">
+                        {pat.secciones.map((sec, i) => {
+                          const activa = i === patrimonioSecIdx;
+                          return (
+                            <button
+                              key={sec.titulo}
+                              type="button"
+                              onClick={() => setPatrimonioSecIdx(i)}
+                              className={`px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer transition ${
+                                activa
+                                  ? 'text-[#0b1016] shadow-md'
+                                  : 'bg-white/10 text-white/75 hover:bg-white/20 hover:text-white'
+                              }`}
+                              style={activa ? { backgroundColor: pat.color } : undefined}
+                            >
+                              {sec.titulo}
+                            </button>
+                          );
+                        })}
                       </div>
-                      <p className="text-xs text-white/85 leading-relaxed">{sec.texto}</p>
+
+                      <button
+                        type="button"
+                        onClick={() => setPatrimonioSecIdx(sigSecIdx)}
+                        className="w-full text-left rounded-xl bg-white/[0.06] hover:bg-white/[0.11] border border-white/15 p-3.5 cursor-pointer transition group"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <span className="text-[11px] font-extrabold uppercase tracking-wider" style={{ color: pat.color }}>
+                            {secActual.titulo}
+                          </span>
+                          <span className="text-[10px] font-bold text-white/60 group-hover:text-white flex items-center gap-1">
+                            <span>Siguiente dato</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </span>
+                        </div>
+                        <p className="text-xs md:text-[13px] text-white/90 leading-relaxed">{secActual.texto}</p>
+                      </button>
                     </div>
-                  ))}
-                </div>
+                  );
+                })()}
 
                 {pat.fuentes?.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 pt-1">
