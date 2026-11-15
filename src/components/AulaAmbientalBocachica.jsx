@@ -1975,8 +1975,11 @@ function IndiceLateral({ total, activo, onIr }) {
 // ÍNDICE DE BÚSQUEDA Y MINI-JUEGO COMUNITARIO
 // =============================================================================
 const INDICE_BUSQUEDA = [
+  { id: 'casco', tipo: 'lugar', nodo: 'casco', titulo: 'Bocachica (Corregimiento)', sub: '2.600 casas reales del pueblo, calles e historias comunitarias', tags: 'casas pueblo bocachica corregimiento calles vecinos barrio' },
+  { id: 'tierraBomba', tipo: 'lugar', nodo: 'tierraBomba', titulo: 'Tierra Bomba Centro (Corregimiento)', sub: 'Corregimiento en el norte de la isla conectado por mar y senderos', tags: 'tierra bomba centro norte corregimiento pueblo' },
+  { id: 'canoDeLoro', tipo: 'lugar', nodo: 'canoDeLoro', titulo: 'Caño de Loro (Corregimiento)', sub: 'Corregimiento frente a la bahía con manglar y pesca artesanal', tags: 'cano de loro corregimiento bahia pesca manglar' },
+  { id: 'puntaArena', tipo: 'lugar', nodo: 'puntaArena', titulo: 'Punta Arena (Corregimiento)', sub: 'Corregimiento en la punta noreste frente a Cartagena', tags: 'punta arena corregimiento playa cartagena' },
   { id: 'escuelaR9', tipo: 'lugar', nodo: 'escuelaR9', titulo: 'Colegio Gimnasio Cristiano (R9)', sub: 'Tanque de 45.000 L de agua lluvia, patio con sombra y aula viva', tags: 'colegio escuela r9 agua lluvia patio sombra estudiantes' },
-  { id: 'casco', tipo: 'lugar', nodo: 'casco', titulo: 'Casco de Bocachica (Casas y Calles)', sub: '2.600 casas reales del pueblo y sus historias', tags: 'casas pueblo bocachica calles vecinos barrio' },
   { id: 'vivero', tipo: 'lugar', nodo: 'vivero', titulo: 'Vivero y Manglar', sub: 'Siembra de manglar, almendros y bosque seco para bajar el calor (-4,5 °C)', tags: 'arboles vivero manglar sombra calor naturaleza bosque' },
   { id: 'agua', tipo: 'lugar', nodo: 'agua', titulo: 'Ruta del Agua Lluvia', sub: 'Cómo recoger, filtrar y guardar agua limpia en techos y tanques', tags: 'agua lluvia aljibe tanque beber filtro' },
   { id: 'ribera', tipo: 'lugar', nodo: 'ribera', titulo: 'Taller de Madera y Oficios', sub: 'Carpintería de ribera, construcción tradicional y empleo local', tags: 'madera carpinteria oficios trabajo taller construccion' },
@@ -2018,6 +2021,89 @@ const PREGUNTAS_RETO = [
     correcta: 1,
     nodo: 'casco',
     dato: '¡Así es! Son 24 meses divididos en 4 etapas claras junto a vecinos, colegio y aliados.',
+  },
+];
+
+const EXPLORA_CATEGORIAS = [
+  {
+    id: 'corregimientos',
+    label: '1. Corregimientos',
+    icono: '🏘',
+    color: '#e0917a',
+    cam: 'isla_completa',
+    nodos: ['casco', 'tierraBomba', 'canoDeLoro', 'puntaArena'],
+    rutas: { agua: 0, verde: 0.2, residuos: 0, oficios: 0.2, patrimonio: 0.2 },
+    zonas: [0.45, 0.2, 0.2],
+    resumen: 'Los 4 pueblos de la isla: Bocachica, Tierra Bomba, Caño de Loro y Punta Arena. Toca cualquiera para volar hasta allá.',
+    lugares: [
+      { nodo: 'casco', nombre: 'Bocachica', desc: 'Corregimiento al sur donde nace el Aula Ambiental, con sus 2.600 casas y fuertes.' },
+      { nodo: 'tierraBomba', nombre: 'Tierra Bomba', desc: 'Corregimiento del norte conectado por trochas, lanchas y bosque seco.' },
+      { nodo: 'canoDeLoro', nombre: 'Caño de Loro', desc: 'Corregimiento sobre la bahía rodeado de manglares y pesca artesanal.' },
+      { nodo: 'puntaArena', nombre: 'Punta Arena', desc: 'Corregimiento frente a Cartagena con playas y turismo comunitario.' },
+    ],
+  },
+  {
+    id: 'patrimonio',
+    label: '2. Patrimonio',
+    icono: '🏰',
+    color: '#f4f1ec',
+    cam: 'linea_patrimonio',
+    nodos: ['sanFernando', 'sanRafael', 'sanJose', 'casco'],
+    rutas: { agua: 0, verde: 0, residuos: 0, oficios: 0, patrimonio: 1 },
+    zonas: [0.95, 0.1, 0.1],
+    resumen: 'Fuertes de piedra coralina, miradores y la memoria viva contada por la gente de Bocachica.',
+    lugares: [
+      { nodo: 'sanFernando', nombre: 'Fuerte San Fernando', desc: 'Baluarte histórico frente al canal, cuidado junto a guías y jóvenes locales.' },
+      { nodo: 'sanRafael', nombre: 'Batería Ángel San Rafael', desc: 'Mirador en lo alto de la loma con vista a toda la bahía y sendero educativo.' },
+      { nodo: 'sanJose', nombre: 'Batería de San José', desc: 'Fuerte sobre el arrecife en la entrada de la bahía de Cartagena.' },
+      { nodo: 'casco', nombre: 'Casco Histórico', desc: 'Calles tradicionales y casas de herencia caribeña en Bocachica.' },
+    ],
+  },
+  {
+    id: 'talleres',
+    label: '3. Talleres y Oficios',
+    icono: '🪵',
+    color: '#e8a86b',
+    cam: 'linea_oficios',
+    nodos: ['ribera', 'residuos', 'vivero'],
+    rutas: { agua: 0, verde: 0.3, residuos: 0.9, oficios: 1, patrimonio: 0 },
+    zonas: [0.1, 0.3, 0.95],
+    resumen: 'Espacios donde la comunidad trabaja, aprende y transforma madera, plástico reciclado y plantas.',
+    lugares: [
+      { nodo: 'ribera', nombre: 'Carpintería de Ribera', desc: 'Taller de maestros carpinteros que hacen botes, muebles y techos frescos.' },
+      { nodo: 'residuos', nombre: 'Taller de Plástico', desc: 'Punto limpio donde el plástico recogido se convierte en bancas y madera plástica.' },
+      { nodo: 'vivero', nombre: 'Vivero Comunitario', desc: 'Lugar donde vecinos y estudiantes siembran manglar, almendros y frutales.' },
+    ],
+  },
+  {
+    id: 'colegio',
+    label: '4. Colegio y Agua',
+    icono: '🏫',
+    color: '#6ec6e6',
+    cam: 'escuela_r9',
+    nodos: ['escuelaR9', 'agua'],
+    rutas: { agua: 1, verde: 0.6, residuos: 0, oficios: 0, patrimonio: 0 },
+    zonas: [0.1, 0.85, 0.95],
+    resumen: 'El Gimnasio Cristiano R9 se transforma en refugio fresco con techo para recoger 45.000 L de agua lluvia.',
+    lugares: [
+      { nodo: 'escuelaR9', nombre: 'Colegio Gimnasio Cristiano', desc: 'Patio con sombra (-4,5 °C), aula abierta y tanque de agua limpia para el pueblo.' },
+      { nodo: 'agua', nombre: 'Aljibes y Pozos', desc: 'Red de pozos históricos y recolección de agua lluvia en casas y techos.' },
+    ],
+  },
+  {
+    id: 'naturaleza',
+    label: '5. Manglar y Sombra',
+    icono: '🌿',
+    color: '#35d08a',
+    cam: 'linea_verde',
+    nodos: ['vivero', 'escuelaR9', 'canoDeLoro'],
+    rutas: { agua: 0.2, verde: 1, residuos: 0, oficios: 0, patrimonio: 0 },
+    zonas: [0.1, 0.95, 0.2],
+    resumen: 'Árboles reales de manglar y bosque seco que protegen la orilla del mar y bajan el calor.',
+    lugares: [
+      { nodo: 'vivero', nombre: 'Manglar y Vivero', desc: 'Barrera natural contra el oleaje y hogar de peces, cangrejos y aves.' },
+      { nodo: 'escuelaR9', nombre: 'Corredor de Sombra', desc: 'Árboles sembrados en calles y patios para caminar sin sol fuerte.' },
+    ],
   },
 ];
 
@@ -2063,6 +2149,24 @@ export default function AulaAmbientalBocachica({
   const [retoResp, setRetoResp] = useState(null);
   const [retoPuntos, setRetoPuntos] = useState(0);
   const [lugarActivo, setLugarActivo] = useState(null);
+  const [catActiva, setCatActiva] = useState(null); // null o objeto de EXPLORA_CATEGORIAS
+
+  const activarCategoria = (cat) => {
+    if (catActiva?.id === cat.id) {
+      setCatActiva(null);
+      return;
+    }
+    setCatActiva(cat);
+    setLugarActivo(null);
+    escena?.set({
+      cam: cat.cam,
+      dim: 0,
+      zonas: cat.zonas,
+      rutas: cat.rutas,
+      nodosActivos: cat.nodos,
+      gemelo: 0,
+    });
+  };
 
   const resultadosBusqueda = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
@@ -2664,6 +2768,72 @@ export default function AulaAmbientalBocachica({
             </aside>
           )}
         </>
+      )}
+
+      {/* BARRA GUIADA POR TEMAS (1. Corregimientos -> 2. Patrimonio -> 3. Talleres -> 4. Colegio -> 5. Manglar) */}
+      {enVistaAula && !modalDiagrama && (
+        <div className="fixed top-16 inset-x-0 z-20 px-4 md:px-8 flex flex-col items-center pointer-events-none">
+          <div className="tc-vidrio px-2 py-1.5 flex items-center gap-1.5 overflow-x-auto max-w-full pointer-events-auto !rounded-full">
+            {EXPLORA_CATEGORIAS.map((cat) => {
+              const on = catActiva?.id === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => activarCategoria(cat)}
+                  className={`whitespace-nowrap px-3 py-1 rounded-full text-[11px] font-medium border transition flex items-center gap-1.5 ${
+                    on
+                      ? 'bg-white/20 border-white text-white shadow'
+                      : 'border-white/15 text-white/80 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <span>{cat.icono}</span>
+                  <span>{cat.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {catActiva && (
+            <div className="mt-2 w-[min(94vw,44rem)] tc-vidrio p-3.5 pointer-events-auto tc-paso-anim">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-xs text-white/90 leading-snug">
+                  <strong className="text-white">{catActiva.icono} {catActiva.label}:</strong> {catActiva.resumen}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setCatActiva(null)}
+                  className="text-xs text-white/60 hover:text-white px-1"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="mt-2.5 grid sm:grid-cols-2 gap-1.5">
+                {catActiva.lugares.map((lug) => (
+                  <button
+                    key={lug.nodo}
+                    type="button"
+                    onClick={() => {
+                      setLugarActivo({ titulo: lug.nombre, sub: lug.desc, nodo: lug.nodo });
+                      escena?.irANodo?.(lug.nodo, 300);
+                    }}
+                    className={`text-left p-2 rounded-lg border transition ${
+                      lugarActivo?.nodo === lug.nodo
+                        ? 'bg-[#e0917a]/20 border-[#e0917a] text-white'
+                        : 'border-white/15 bg-white/5 hover:bg-white/10 text-white/85'
+                    }`}
+                  >
+                    <div className="text-xs font-semibold flex items-center justify-between">
+                      <span>📍 {lug.nombre}</span>
+                      <span className="text-[10px] text-[#e0917a]">Ir al mapa →</span>
+                    </div>
+                    <div className="text-[11px] text-white/65 leading-tight mt-0.5">{lug.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* TARJETA FLOTANTE DEL LUGAR BUSCADO EN EL MAPA 3D */}

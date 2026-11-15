@@ -32,6 +32,9 @@ export const NODOS_BOCACHICA = {
   sanFernando: { lon: -75.5890, lat: 10.3252, nombre: 'Fuerte de San Fernando · Línea 9.6', color: '#f4f1ec' },
   sanJose: { lon: -75.5912, lat: 10.3218, nombre: 'Batería de San José · Canal', color: '#c490ff' },
   sanRafael: { lon: -75.5824, lat: 10.3292, nombre: 'Batería del Ángel San Rafael', color: '#e0917a' },
+  tierraBomba: { lon: -75.5740, lat: 10.3555, nombre: 'Corregimiento Tierra Bomba', color: '#f5b45a' },
+  canoDeLoro: { lon: -75.5655, lat: 10.3442, nombre: 'Corregimiento Caño de Loro', color: '#6ec6e6' },
+  puntaArena: { lon: -75.5540, lat: 10.3620, nombre: 'Corregimiento Punta Arena', color: '#35d08a' },
 };
 
 // Rutas 3D sobre el relieve de Bocachica
@@ -1265,6 +1268,9 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     ribera: crearEtiqueta('Carpintería de Ribera', 'Maestros de botes y pesca artesanal', nodosXZ.ribera.x, nodosXZ.ribera.z, 38, '#e8a86b'),
     sanFernando: crearEtiqueta('Fuerte San Fernando', 'Historia viva contada por nuestra gente', nodosXZ.sanFernando.x, nodosXZ.sanFernando.z, 42, '#f4f1ec'),
     sanRafael: crearEtiqueta('Batería Ángel San Rafael', 'Mirador y sendero educativo del cerro', nodosXZ.sanRafael.x, nodosXZ.sanRafael.z, 52, '#e0917a'),
+    tierraBomba: crearEtiqueta('Tierra Bomba (Centro)', 'Corregimiento en el norte de la isla', nodosXZ.tierraBomba.x, nodosXZ.tierraBomba.z, 55, '#f5b45a'),
+    canoDeLoro: crearEtiqueta('Caño de Loro', 'Corregimiento frente a la bahía', nodosXZ.canoDeLoro.x, nodosXZ.canoDeLoro.z, 55, '#6ec6e6'),
+    puntaArena: crearEtiqueta('Punta Arena', 'Corregimiento frente a Cartagena', nodosXZ.puntaArena.x, nodosXZ.puntaArena.z, 55, '#35d08a'),
   };
   Object.values(etqMap).forEach((s) => etiquetasGroup.add(s));
 
@@ -1321,6 +1327,10 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const dx = () => (window.innerWidth >= 1024 ? -220 : 0);
   const dxIsla = () => (window.innerWidth >= 1024 ? -1350 : 0);
   const POSES = {
+    isla_completa: (t) => ({
+      pos: new THREE.Vector3(Math.sin(t * 0.05) * 420, 3200, 4600),
+      look: new THREE.Vector3(0, 12, 180),
+    }),
     hero: (t) => {
       const a = THREE.MathUtils.degToRad(202) + Math.sin(t * 0.06) * 0.38;
       return {
@@ -1579,7 +1589,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       m.beam.scale.set(hBeam * 0.015, hBeam, hBeam * 0.015);
       m.ring.scale.setScalar((activo ? 26 : 14) * pulsoRing);
       if (etqMap[k]) {
-        const wantEtq = activo && dist < 3200 && cur.dim < 0.5 ? 0.96 : 0;
+        const maxDist = T.nodosActivos && T.nodosActivos.length <= 5 ? 9500 : 3200;
+        const wantEtq = activo && dist < maxDist && cur.dim < 0.5 ? 0.96 : 0;
         etqMap[k].material.opacity += (wantEtq - etqMap[k].material.opacity) * expo(dt, 5);
       }
     }
