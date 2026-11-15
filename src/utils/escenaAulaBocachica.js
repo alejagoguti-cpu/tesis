@@ -530,22 +530,22 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     return tex;
   };
 
-  // Textura procedural de cubierta (nervaduras finas de teja/zinc acanalado y cumbrera)
+  // Textura procedural de cubierta metálica (lámina de zinc acanalada con traslapos)
   const crearTexturaTecho = () => {
     const c = document.createElement('canvas');
     c.width = 256;
     c.height = 256;
     const g = c.getContext('2d');
-    g.fillStyle = '#ddd7d0';
+    g.fillStyle = '#d4dce2';
     g.fillRect(0, 0, 256, 256);
-    for (let x = 0; x < 256; x += 8) {
-      g.fillStyle = 'rgba(0,0,0,0.16)';
-      g.fillRect(x, 0, 3, 256);
-      g.fillStyle = 'rgba(255,255,255,0.14)';
-      g.fillRect(x + 3, 0, 2, 256);
+    for (let x = 0; x < 256; x += 6) {
+      g.fillStyle = 'rgba(0,0,0,0.20)';
+      g.fillRect(x, 0, 2, 256);
+      g.fillStyle = 'rgba(255,255,255,0.22)';
+      g.fillRect(x + 2, 0, 2, 256);
     }
-    for (let y = 0; y < 256; y += 24) {
-      g.fillStyle = 'rgba(0,0,0,0.12)';
+    for (let y = 0; y < 256; y += 64) {
+      g.fillStyle = 'rgba(0,0,0,0.16)';
       g.fillRect(0, y, 256, 2);
     }
     const tex = new THREE.CanvasTexture(c);
@@ -817,9 +817,9 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const roofMat = new THREE.MeshStandardMaterial({
     map: techoTex,
     bumpMap: techoTex,
-    bumpScale: 0.14,
-    roughness: 0.72,
-    metalness: 0.12,
+    bumpScale: 0.18,
+    roughness: 0.36,
+    metalness: 0.62,
   });
   const houseRoofsMesh = new THREE.InstancedMesh(roofGeo, roofMat, houses.length);
   houseRoofsMesh.frustumCulled = false;
@@ -856,17 +856,17 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     new THREE.Color(0xdfeaf2), // Azul brisa claro
   ];
   const PALETA_TECHOS_BOCA = [
-    new THREE.Color(0xb85d44), // Teja de barro cocido
-    new THREE.Color(0xc96e4b), // Terracota caribeña
-    new THREE.Color(0x919ca6), // Zinc galvanizado
-    new THREE.Color(0x826658), // Lámina oxidada cálida
-    new THREE.Color(0xb87b4f), // Ocre arcilla
+    new THREE.Color(0xb4bec6), // Zinc galvanizado brillante
+    new THREE.Color(0x98a5b0), // Zinc clásico
+    new THREE.Color(0x7c8a96), // Lámina metálica gris acero
+    new THREE.Color(0x5d829c), // Teja metálica azul Caribe
+    new THREE.Color(0x618a7d), // Teja metálica verde mar
   ];
   const PALETA_TECHOS_ISLA = [
-    new THREE.Color(0xa66a56),
-    new THREE.Color(0x8e969d),
-    new THREE.Color(0x997b66),
-    new THREE.Color(0xb3785c),
+    new THREE.Color(0xaab5be), // Zinc galvanizado
+    new THREE.Color(0x8a97a2), // Zinc envejecido por salitre
+    new THREE.Color(0x6e7d8a), // Lámina acero oscuro
+    new THREE.Color(0x608198), // Lámina pintada azul costero
   ];
 
   let ultimaEscalaCasas = -1;
