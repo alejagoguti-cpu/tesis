@@ -186,6 +186,20 @@ export async function loadTreeTemplates() {
   return out;
 }
 
+function clonarCopaConTransform(parts, { dx = 0, dy = 0, dz = 0, rotY = 0, sx = 1, sy = 1, sz = 1, soloHojas = false }) {
+  const mat4 = new THREE.Matrix4()
+    .makeTranslation(dx, dy, dz)
+    .multiply(new THREE.Matrix4().makeRotationY(rotY))
+    .multiply(new THREE.Matrix4().makeScale(sx, sy, sz));
+  return parts
+    .filter((p) => !soloHojas || p.kind === 'leaf')
+    .map((p) => {
+      const geo = p.geometry.clone();
+      geo.applyMatrix4(mat4);
+      return { geometry: geo, material: p.material, kind: p.kind };
+    });
+}
+
 // ---- Reutilizables (módulo 02 y Aula Ambiental): especies GLB reales normalizadas a 1 unidad de alto + instanciado por bloques ----
 export async function prepareTreeSpecies() {
   const species = [];
@@ -224,11 +238,50 @@ export async function prepareTreeSpecies() {
     });
     species.push(parts);
   }
+
+  // Variantes reales (100% GLB texturizado, cero low-poly) con distinta densidad y ancho de copa:
+  const base0 = species[0];
+  const base1 = species[1];
+
+  // Especie 2: Árbol Grande Frondoso (doble copa rotada y ancha para mayor densidad)
+  species.push([
+    ...clonarCopaConTransform(base0, { sx: 1.15, sy: 1.05, sz: 1.15 }),
+    ...clonarCopaConTransform(base1, { dx: 0.14, dy: 0.12, dz: -0.1, rotY: 2.1, sx: 1.05, sy: 0.92, sz: 1.05, soloHojas: true }),
+    ...clonarCopaConTransform(base0, { dx: -0.12, dy: 0.06, dz: 0.12, rotY: 4.1, sx: 0.95, sy: 0.88, sz: 0.95, soloHojas: true }),
+  ]);
+
+  // Especie 3: Manglar / Arboleda Súper Densa (3 copas agrupadas bajas y anchas)
+  species.push([
+    ...clonarCopaConTransform(base1, { dx: -0.16, dy: 0, dz: 0.1, rotY: 0.7, sx: 1.18, sy: 0.82, sz: 1.18 }),
+    ...clonarCopaConTransform(base0, { dx: 0.18, dy: 0.02, dz: -0.08, rotY: 2.8, sx: 1.12, sy: 0.78, sz: 1.12, soloHojas: true }),
+    ...clonarCopaConTransform(base1, { dx: 0.0, dy: 0.16, dz: 0.14, rotY: 4.9, sx: 0.96, sy: 0.85, sz: 0.96, soloHojas: true }),
+  ]);
+
+  // Especie 4: Árbol Alto y Esbelto
+  species.push(clonarCopaConTransform(base1, { sx: 0.74, sy: 1.38, sz: 0.74 }));
+
   return species;
 }
 
 function pickSpeciesIndex(t, i, total) {
-  return (Math.imul(i + 1, 2654435761) >>> 0) % total;
+  if (total <= 2) return (Math.imul(i + 1, 2654435761) >>> 0) % total;
+  const r = (Math.imul(i + 11, 2654435761) >>> 0) % 100;
+  if (t.ecotipo === 'manglar') {
+    if (r < 48) return 3; // Manglar súper denso
+    if (r < 76) return 2; // Árbol grande frondoso
+    return r % 2;
+  }
+  if (t.ecotipo === 'sombra') {
+    if (r < 34) return 2; // Árbol grande frondoso
+    if (r < 58) return 4; // Alto esbelto
+    if (r < 80) return 0;
+    return 1;
+  }
+  // bosque_seco
+  if (r < 28) return 2; // Árboles grandes de bosque
+  if (r < 50) return 3; // Grupos densos
+  if (r < 70) return 4; // Altos esbeltos
+  return r % 2;
 }
 
 /** list: [{x, y, z, rot, height, tone, ecotipo?}] en coordenadas de mundo; cell = tamaño del bloque para el recorte por cámara */
@@ -259,9 +312,10 @@ export function instanceTrees(species, list, cell = 6, castShadow = true) {
         const tiltZ = (s1 - 0.5) * 0.16;
         euler.set(tiltX, t.rot, tiltZ, 'YXZ');
         q.setFromEuler(euler);
-        const wx = t.height * (0.58 + s0 * 0.88);
-        const wy = t.height * (0.54 + s1 * 1.08);
-        const wz = t.height * (0.58 + s2 * 0.88);
+        const multTam = sp === 2 ? (1.28 + s1 * 0.92) : sp === 3 ? (0.88 + s0 * 0.68) : sp === 4 ? (1.1 + s1 * 0.78) : (0.52 + s1 * 0.96);
+        const wx = t.height * multTam * (0.82 + s0 * 0.36);
+        const wy = t.height * multTam * (0.84 + s1 * 0.36);
+        const wz = t.height * multTam * (0.82 + s2 * 0.36);
         sc.set(wx, wy, wz);
         pos.set(t.x, t.y, t.z);
         m4.compose(pos, q, sc);
