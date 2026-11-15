@@ -477,6 +477,237 @@ function JuegoCocinarMojarra({ color = '#e8a86b' }) {
     </div>
   );
 }
+
+function JuegoBailarCartagenero({ item, color = '#35d08a', sonando, onToggleMusica }) {
+  const esMapale = item?.id === 'mapale_cumbia';
+  const pasos = esMapale
+    ? [
+        { id: 0, titulo: '1. Paso deslizado', clave: 'Desliza el pie derecho al compás', frase: '¡Eche, suelta la cadera y desliza suave con el tambor!' },
+        { id: 1, titulo: '2. Cortejo con sombrero', clave: 'Levanta el sombrero vueltiao y gira', frase: '¡Con elegancia, alza el sombrero y rodea la rueda!' },
+        { id: 2, titulo: '3. Repique de hombros', clave: 'Sacude hombros y pecho rápido', frase: '¡Acelera el tambor alegre! ¡Hombros arriba y abajo!' },
+        { id: 3, titulo: '4. Remate de Mapalé', clave: 'Salto corto y brazos en alto', frase: '¡Esooo! ¡Así se remata en Bocachica, pura sabrosura!' },
+      ]
+    : [
+        { id: 0, titulo: '1. Entrar a la rueda', clave: 'Marca el pulso con palmas', frase: '¡Bienvenido a la rueda! Escucha el llamado de la cantadora.' },
+        { id: 1, titulo: '2. Paso sereno', clave: 'Cadera firme al tambor llamador', frase: '¡Espalda derechita, paso corto y con mucha calma!' },
+        { id: 2, titulo: '3. Diálogo con tambor', clave: 'Abre brazos y responde al repique', frase: '¡Respóndele al tambor alegre con el cuerpo, mi llave!' },
+        { id: 3, titulo: '4. Venia y saludo', clave: 'Saludo al tamborero y cierre', frase: '¡Maestría total! Ya tienes el alma del Bullerengue sentao.' },
+      ];
+
+  const [pasoIdx, setPasoIdx] = useState(0);
+  const [beatPos, setBeatPos] = useState(50);
+  const [puntos, setPuntos] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [feedback, setFeedback] = useState(pasos[0].frase);
+  const [animPose, setAnimPose] = useState(0);
+  const [terminado, setTerminado] = useState(false);
+
+  useEffect(() => {
+    setPasoIdx(0);
+    setPuntos(0);
+    setCombo(0);
+    setAnimPose(0);
+    setTerminado(false);
+    setFeedback(pasos[0].frase);
+  }, [item?.id]);
+
+  useEffect(() => {
+    if (terminado) return undefined;
+    let t = 0;
+    const speed = esMapale ? 0.095 : 0.068;
+    const id = setInterval(() => {
+      t += speed;
+      setBeatPos(50 + 44 * Math.sin(t));
+    }, 30);
+    return () => clearInterval(id);
+  }, [terminado, esMapale]);
+
+  const ejecutarPaso = (idx) => {
+    if (idx !== pasoIdx || terminado) return;
+    const enZonaVerde = beatPos >= 32 && beatPos <= 68;
+    const ganoPts = enZonaVerde ? 30 : 15;
+    setPuntos((p) => p + ganoPts);
+    setCombo((c) => (enZonaVerde ? c + 1 : 0));
+    setAnimPose(idx);
+    if (pasoIdx >= pasos.length - 1) {
+      setTerminado(true);
+      setFeedback(
+        enZonaVerde
+          ? '¡Qué nivel, compadre! Bailaste todo el set al ritmo exacto de Cartagena.'
+          : '¡Completado! Sigue practicando en la franja verde para clavar el repique.'
+      );
+    } else {
+      const sig = pasoIdx + 1;
+      setPasoIdx(sig);
+      setFeedback(
+        enZonaVerde
+          ? `¡En el punto! ${pasos[sig].frase}`
+          : `¡Bien! ${pasos[sig].frase}`
+      );
+    }
+  };
+
+  const reiniciar = () => {
+    setPasoIdx(0);
+    setPuntos(0);
+    setCombo(0);
+    setAnimPose(0);
+    setTerminado(false);
+    setFeedback(pasos[0].frase);
+  };
+
+  const cuerpoShiftX = animPose === 0 ? -6 : animPose === 1 ? 6 : animPose === 2 ? -4 : 0;
+  const cuerpoShiftY = animPose === 3 ? -12 : animPose === 2 ? -4 : 0;
+  const brazoIzqRot = animPose === 1 ? -48 : animPose === 2 ? -25 : animPose === 3 ? -65 : -10;
+  const brazoDerRot = animPose === 1 ? 45 : animPose === 2 ? 25 : animPose === 3 ? 65 : 12;
+
+  return (
+    <div className="rounded-3xl border border-white/15 bg-white/[0.04] p-4 md:p-6 space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
+        <div className="flex items-center gap-2.5">
+          <span className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}25`, color }}>
+            <Music className="w-4 h-4" />
+          </span>
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-widest" style={{ color }}>
+              Juego virtual · Maestro Cartagenero en vivo
+            </div>
+            <h3 className="text-sm md:text-base font-extrabold text-white">
+              Aprende a bailar {esMapale ? 'Mapalé y Cumbia' : 'Bullerengue'} paso a paso
+            </h3>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onToggleMusica}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer transition ${
+              sonando ? 'bg-[#35d08a] text-[#07140d]' : 'bg-white/10 hover:bg-white/20 text-white'
+            }`}
+          >
+            {sonando ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+            <span>{sonando ? 'Pausar tambor' : 'Poner música'}</span>
+          </button>
+          <span className="px-2.5 py-1 rounded-full bg-white/10 text-xs font-extrabold text-white">
+            {puntos} pts {combo > 1 ? `· x${combo}` : ''}
+          </span>
+          <button
+            type="button"
+            onClick={reiniciar}
+            className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/80 cursor-pointer"
+            title="Reiniciar baile"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+        <div className="md:col-span-7 rounded-2xl bg-gradient-to-b from-[#132230] to-[#0c141c] border border-white/10 p-4 flex flex-col items-center relative overflow-hidden">
+          <div className="w-full rounded-xl bg-white/10 border border-white/15 px-3 py-2 text-xs text-white font-semibold text-center mb-2">
+            &ldquo;{feedback}&rdquo;
+          </div>
+
+          <svg viewBox="0 0 360 205" className="w-full max-w-sm">
+            <rect x="0" y="135" width="360" height="70" fill="#134e6f" opacity="0.55" />
+            <ellipse cx="180" cy="175" rx="135" ry="18" fill="#473322" stroke="#7c5b3e" strokeWidth="2" />
+
+            <g transform="translate(275, 118)">
+              <polygon points="-16,0 16,0 11,48 -11,48" fill="#8b5a2b" stroke="#5c3a1b" strokeWidth="2" />
+              <ellipse cx="0" cy="0" rx="17" ry="6" fill="#f3e5ab" stroke="#5c3a1b" strokeWidth="2" />
+              <circle cx="0" cy="-12" r="3" fill={color} className="animate-ping" opacity="0.65" />
+            </g>
+
+            <g transform={`translate(${170 + cuerpoShiftX}, ${105 + cuerpoShiftY})`} className="transition-transform duration-300">
+              <line x1="-10" y1="32" x2={animPose === 0 ? -22 : -12} y2="66" stroke="#e5e7eb" strokeWidth="9" strokeLinecap="round" />
+              <line x1="10" y1="32" x2={animPose === 1 ? 22 : 12} y2="66" stroke="#e5e7eb" strokeWidth="9" strokeLinecap="round" />
+              <rect x="-18" y="-12" width="36" height="46" rx="12" fill="#f8fafc" />
+              <polygon points="-11,-10 11,-10 0,8" fill="#dc2626" />
+              <g transform={`translate(-18, -4) rotate(${brazoIzqRot})`}>
+                <line x1="0" y1="0" x2="-24" y2="14" stroke="#7c4a2d" strokeWidth="7.5" strokeLinecap="round" />
+                {animPose === 1 && <circle cx="-26" cy="14" r="5" fill="#fef08a" />}
+              </g>
+              <g transform={`translate(18, -4) rotate(${brazoDerRot})`}>
+                <line x1="0" y1="0" x2="24" y2="14" stroke="#7c4a2d" strokeWidth="7.5" strokeLinecap="round" />
+              </g>
+              <circle cx="0" cy="-28" r="15" fill="#7c4a2d" />
+              <circle cx="-5" cy="-30" r="2" fill="#111827" />
+              <circle cx="5" cy="-30" r="2" fill="#111827" />
+              <path d="M-6 -23 Q0 -18 6 -23" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" />
+              <g transform={animPose === 1 ? 'translate(-24, -46) rotate(-18)' : 'translate(0, -40)'}>
+                <ellipse cx="0" cy="4" rx="28" ry="6" fill="#f3ebd3" stroke="#1f2937" strokeWidth="2.5" />
+                <path d="M-13 3 L-9 -10 L9 -10 L13 3 Z" fill="#f3ebd3" stroke="#1f2937" strokeWidth="2.2" />
+                <line x1="-10" y1="-3" x2="10" y2="-3" stroke="#1f2937" strokeWidth="2.5" />
+              </g>
+            </g>
+          </svg>
+
+          {!terminado && (
+            <div className="w-full max-w-sm space-y-1 mt-2">
+              <div className="flex justify-between text-[10px] font-mono text-white/70">
+                <span>Pulso del tambor</span>
+                <span style={{ color }}>Toca el paso cuando entre al centro verde</span>
+              </div>
+              <div className="relative h-3.5 rounded-full bg-white/10 border border-white/15 overflow-hidden">
+                <div className="absolute inset-y-0 bg-[#35d08a]/35 border-x border-[#35d08a]" style={{ left: '32%', width: '36%' }} />
+                <div
+                  className="absolute top-0.5 bottom-0.5 w-3 -ml-1.5 rounded-full bg-white shadow-[0_0_10px_#fff]"
+                  style={{ left: `${beatPos}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="md:col-span-5 space-y-2.5">
+          <div className="text-xs font-bold text-white">Sigue al maestro en orden (1 → 4)</div>
+          {pasos.map((p) => {
+            const completado = terminado || p.id < pasoIdx;
+            const actual = !terminado && p.id === pasoIdx;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                disabled={!actual}
+                onClick={() => ejecutarPaso(p.id)}
+                className={`w-full text-left p-3 rounded-xl border transition flex items-center justify-between gap-2 ${
+                  completado
+                    ? 'bg-[#35d08a]/15 border-[#35d08a]/60 text-[#9ff3c9]'
+                    : actual
+                      ? 'bg-white text-[#0b1016] border-white shadow-xl scale-[1.02] cursor-pointer'
+                      : 'bg-white/5 border-white/10 text-white/45 cursor-not-allowed'
+                }`}
+              >
+                <div>
+                  <div className="text-xs font-extrabold">{p.titulo}</div>
+                  <div className={`text-[11px] ${actual ? 'text-[#0b1016]/75 font-semibold' : 'text-white/60'}`}>
+                    {p.clave}
+                  </div>
+                </div>
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                  completado ? 'bg-[#35d08a] text-[#0b1016]' : actual ? 'bg-[#0b1016] text-white' : 'bg-white/10 text-white/30'
+                }`}>
+                  <Check className="w-3.5 h-3.5" />
+                </span>
+              </button>
+            );
+          })}
+
+          {terminado && (
+            <button
+              type="button"
+              onClick={reiniciar}
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-black text-[#0b1016] cursor-pointer shadow-lg transition hover:scale-[1.01]"
+              style={{ backgroundColor: color }}
+            >
+              Bailar otra ronda con el profe
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 import {
   ANTECEDENTES_CORPUS,
   DIMENSIONES_MEMORIA,
@@ -2924,7 +3155,7 @@ export default function AulaAmbientalBocachica({
             resumen: 'Canto de patio, palmas y tambor alegre en rueda comunitaria.',
             foto: `${MEMORIAS_BASE}images/memorias/bullerengue.jpg`,
             pistaId: 'bullerengue',
-            etiquetaPaso: 'Cómo se baila',
+            etiquetaPaso: 'Jugar: Baila con el profe cartagenero',
             ingredientes: ['Tambor alegre', 'Tambor llamador', 'Palmas y coro', 'Pollera amplia'],
             pasos: [
               { titulo: '1. Formar la rueda', texto: 'La comunidad se ubica en círculo alrededor de los tambores mientras la cantadora entona el llamado inicial.' },
@@ -2939,7 +3170,7 @@ export default function AulaAmbientalBocachica({
             resumen: 'Fuerza rítmica afrocaribeña y cadencia de velas frente al mar.',
             foto: `${MEMORIAS_BASE}images/memorias/mapale_cumbia.jpg`,
             pistaId: 'mapale',
-            etiquetaPaso: 'Cómo se baila',
+            etiquetaPaso: 'Jugar: Baila con el profe cartagenero',
             ingredientes: ['Tambora', 'Alegre y guache', 'Caña de millo', 'Velas en mano'],
             pasos: [
               { titulo: '1. Entrada con cadencia', texto: 'En cumbia, el paso deslizado arrastra suavemente el pie derecho mientras el izquierdo marca el pulso en el suelo.' },
@@ -4909,6 +5140,14 @@ export default function AulaAmbientalBocachica({
 
                   {memItemSel.id === 'arroz_coco_pescado' && (
                     <JuegoCocinarMojarra color={catMem.color} />
+                  )}
+                  {(memItemSel.id === 'bullerengue' || memItemSel.id === 'mapale_cumbia') && (
+                    <JuegoBailarCartagenero
+                      item={memItemSel}
+                      color={catMem.color}
+                      sonando={sonandoMem}
+                      onToggleMusica={() => pistaMem && toggleMusicaPista(pistaMem)}
+                    />
                   )}
 
                   {/* INFOGRAFÍA DE 2 COLUMNAS */}
