@@ -2385,6 +2385,127 @@ export default function AulaAmbientalBocachica({
   const [actividadViernesSel, setActividadViernesSel] = useState(null);
   const [patrimonioSel, setPatrimonioSel] = useState(null);
   const [patrimonioSecIdx, setPatrimonioSecIdx] = useState(0);
+  const [memCategoria, setMemCategoria] = useState('comida');
+  const [memItemSel, setMemItemSel] = useState(null);
+  const [memPasoIdx, setMemPasoIdx] = useState(0);
+  const [memIngMarcados, setMemIngMarcados] = useState({});
+
+  const MEMORIAS_BASE = import.meta.env.BASE_URL || '/';
+  const MEMORIAS_SABERES = useMemo(
+    () => ({
+      comida: {
+        label: 'Comida',
+        color: '#e0917a',
+        Icon: Utensils,
+        subtitulo: 'Sabores de la isla · Toca un plato para ver su foto y receta paso a paso',
+        items: [
+          {
+            id: 'arroz_coco_pescado',
+            titulo: 'Pescado frito con arroz con coco',
+            resumen: 'Plato emblemático de Bocachica con mojarra fresca, titoté y patacones.',
+            foto: `${MEMORIAS_BASE}images/memorias/arroz_coco_pescado.jpg`,
+            etiquetaPaso: 'Receta paso a paso',
+            ingredientes: ['1 mojarra o pargo fresco', '1 coco seco rallado', '2 tazas de arroz', 'Plátano verde', 'Limón y sal marina'],
+            pasos: [
+              { titulo: '1. Sacar el titoté', texto: 'Licúa el coco con agua tibia, cuela la primera leche y cocínala a fuego lento hasta que se reduzca y dore en aceite natural (titoté).' },
+              { titulo: '2. Cocinar el arroz', texto: 'Agrega el arroz, la segunda leche de coco, una pizca de sal y panela rallada. Cocina tapado hasta que el grano abra suelto y fragante.' },
+              { titulo: '3. Adobar y freír el pescado', texto: 'Haz cortes diagonales en la mojarra limpia, báñala en limón, ajo y sal, y fríela en aceite bien caliente hasta quedar dorada y crocante.' },
+              { titulo: '4. Patacones y mesa', texto: 'Fríe ruedas de plátano verde, aplástalas y dales una segunda fritura. Sirve caliente junto al mar con rodajas de limón.' },
+            ],
+          },
+          {
+            id: 'dulces_isnelia',
+            titulo: 'Cocadas y alegrías de Doña Isnelia',
+            resumen: 'Dulces tradicionales de coco, panela y millo hechos en paila de patio.',
+            foto: `${MEMORIAS_BASE}images/memorias/dulces_isnelia.jpg`,
+            etiquetaPaso: 'Receta paso a paso',
+            ingredientes: ['2 cocos frescos picados o rallados', '1 panela oscura', 'Millo tostado', 'Canela y clavo', 'Hojas de bijao o palma'],
+            pasos: [
+              { titulo: '1. Melao de panela', texto: 'Derrite la panela en poca agua con astillas de canela y clavo hasta lograr un melao espeso y brillante.' },
+              { titulo: '2. Mezclar el coco', texto: 'Incorpora el coco rallado o en lascas al melao caliente y remueve con cuchara de palo sin parar hasta que despegue de la paila.' },
+              { titulo: '3. Armar las cocadas', texto: 'Con cuchara húmeda, forma porciones sobre hojas de palma o bandeja engrasada y deja enfriar para que endurezcan.' },
+              { titulo: '4. Alegrías de millo', texto: 'Para las alegrías, mezcla el millo reventado con melao tibio y coco, y moldea esferas suaves con las manos.' },
+            ],
+          },
+        ],
+      },
+      bailes: {
+        label: 'Bailes',
+        color: '#35d08a',
+        Icon: Music,
+        subtitulo: 'Toca un baile para ver la foto, aprender los pasos y escuchar su ritmo',
+        items: [
+          {
+            id: 'bullerengue',
+            titulo: 'Bullerengue Sentao',
+            resumen: 'Canto de patio, palmas y tambor alegre en rueda comunitaria.',
+            foto: `${MEMORIAS_BASE}images/memorias/bullerengue.jpg`,
+            pistaId: 'bullerengue',
+            etiquetaPaso: 'Cómo se baila',
+            ingredientes: ['Tambor alegre', 'Tambor llamador', 'Palmas y coro', 'Pollera amplia'],
+            pasos: [
+              { titulo: '1. Formar la rueda', texto: 'La comunidad se ubica en círculo alrededor de los tambores mientras la cantadora entona el llamado inicial.' },
+              { titulo: '2. Paso sereno de cadera', texto: 'Con la espalda erguida, la bailadora marca un paso corto y firme de cadera al compás del tambor llamador.' },
+              { titulo: '3. Diálogo con la pollera', texto: 'Las manos toman los bordes de la falda abriéndola al ritmo del tambor alegre, respondiendo a los repiques sin perder la calma.' },
+              { titulo: '4. Saludo y relevo', texto: 'Al cerrar la estrofa, hace una venia suave al tamborero y da paso a la siguiente pareja de la rueda.' },
+            ],
+          },
+          {
+            id: 'mapale_cumbia',
+            titulo: 'Mapalé y Cumbia de la Bahía',
+            resumen: 'Fuerza rítmica afrocaribeña y cadencia de velas frente al mar.',
+            foto: `${MEMORIAS_BASE}images/memorias/mapale_cumbia.jpg`,
+            pistaId: 'mapale',
+            etiquetaPaso: 'Cómo se baila',
+            ingredientes: ['Tambora', 'Alegre y guache', 'Caña de millo', 'Velas en mano'],
+            pasos: [
+              { titulo: '1. Entrada con cadencia', texto: 'En cumbia, el paso deslizado arrastra suavemente el pie derecho mientras el izquierdo marca el pulso en el suelo.' },
+              { titulo: '2. Cortejo y abanico', texto: 'El hombre rodea a la mujer con sombrero en mano; ella sostiene la pollera y gira protegiendo la llama.' },
+              { titulo: '3. Cambio al Mapalé', texto: 'Cuando el tambor acelera, el cuerpo se inclina hacia adelante con movimientos rápidos de hombros, pecho y piernas.' },
+              { titulo: '4. Remate en energía', texto: 'Saltos cortos y giros explosivos marcan el cierre colectivo al unísono del último golpe de tambora.' },
+            ],
+          },
+        ],
+      },
+      tradiciones: {
+        label: 'Tradiciones',
+        color: '#e8a86b',
+        Icon: Hammer,
+        subtitulo: 'Oficios y saberes de Tierra Bomba · Elige una tradición para explorarla',
+        items: [
+          {
+            id: 'carpinteria_ribera',
+            titulo: 'Carpintería de Ribera',
+            resumen: 'Construcción artesanal de botes de madera en las playas de Bocachica.',
+            foto: `${MEMORIAS_BASE}images/memorias/carpinteria_ribera.jpg`,
+            etiquetaPaso: 'Cómo se hace',
+            ingredientes: ['Madera de mangle o roble', 'Azuela y garlopa', 'Estopa de coco', 'Brea natural'],
+            pasos: [
+              { titulo: '1. Trazar la quilla', texto: 'El maestro carpintero elige la madera curva natural y marca la quilla que dará estabilidad al bote sobre las olas.' },
+              { titulo: '2. Armar las cuadernas', texto: 'Se fijan las costillas de madera en forma de U a lo largo de la quilla definiendo la manga y el calado.' },
+              { titulo: '3. Forrar el casco', texto: 'Las tablas se curvan con calor y humedad para ajustarlas borde con borde sobre las cuadernas.' },
+              { titulo: '4. Calafateo impermeable', texto: 'Se sella cada junta con estopa y brea para que la embarcación resista décadas de pesca en la bahía.' },
+            ],
+          },
+          {
+            id: 'pesca_chinchorro',
+            titulo: 'Pesca Artesanal con Atarraya',
+            resumen: 'Lectura de mareas y lance circular de red al amanecer en la bahía.',
+            foto: `${MEMORIAS_BASE}images/memorias/pesca_chinchorro.jpg`,
+            etiquetaPaso: 'Cómo se hace',
+            ingredientes: ['Atarraya tejida a mano', 'Canoa de madera', 'Remo', 'Lectura de marea'],
+            pasos: [
+              { titulo: '1. Leer la marea y el cardumen', texto: 'Al rayar el alba, el pescador observa las ondas suaves del agua donde se mueven lisas, mojarras y sábalos.' },
+              { titulo: '2. Recoger la atarraya', texto: 'La red se pliega en rollos ordenados sobre el brazo izquierdo y los plomos se sostienen con la mano derecha.' },
+              { titulo: '3. Lance en abanico', texto: 'Con un giro de cintura, la atarraya se abre en círculo perfecto en el aire antes de caer sobre el agua.' },
+              { titulo: '4. Recoger y compartir', texto: 'Al halar la cuerda central, los plomos cierran la bolsa bajo el agua y la faena se comparte en la orilla.' },
+            ],
+          },
+        ],
+      },
+    }),
+    [MEMORIAS_BASE]
+  );
   const [pinesActividad, setPinesActividad] = useState({});
 
   const patrimoniosIsla = useMemo(
@@ -3917,140 +4038,250 @@ export default function AulaAmbientalBocachica({
         </aside>
       )}
 
-      {enVistaAula && panelJuego && !modalDiagrama && (
-        <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,27rem)] max-h-[82svh] overflow-y-auto tc-vidrio p-4 md:p-5 tc-paso-anim shadow-2xl">
-          <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-white/15">
-            <div className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-lg bg-[#35d08a]/20 text-[#35d08a] flex items-center justify-center">
-                <Music className="w-4 h-4" />
-              </span>
-              <span className="text-sm font-semibold text-white">4. Memorias, Bailes y Música</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setPanelJuego(false)}
-              className="text-white/60 hover:text-white p-1"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+      {/* PANEL DE MEMORIAS Y SABERES: COMIDA, BAILES Y TRADICIONES INTERACTIVOS */}
+      {enVistaAula && panelJuego && !modalDiagrama && (() => {
+        const catMem = MEMORIAS_SABERES[memCategoria] || MEMORIAS_SABERES.comida;
+        const IconoCatMem = catMem.Icon;
+        const pistaMem = memItemSel?.pistaId
+          ? PISTAS_MEMORIA.find((p) => p.id === memItemSel.pistaId) || PISTAS_MEMORIA[0]
+          : null;
+        const sonandoMem = pistaMem && pistaActiva.id === pistaMem.id && musicaSonando;
 
-          {/* REPRODUCTOR DE MÚSICA TRADICIONAL EN VIVO */}
-          <div
-            className="rounded-2xl border p-3.5 mb-3.5 transition-all"
-            style={{
-              borderColor: `${pistaActiva.color}66`,
-              backgroundColor: 'rgba(11,16,22,0.75)',
-            }}
-          >
-            <div className="flex items-center gap-3">
-              {/* Fecha grande / badge de ritmo */}
-              <div
-                className="w-16 h-16 rounded-xl flex flex-col items-center justify-center shrink-0 text-[#0b1016] font-extrabold text-center p-1"
-                style={{ backgroundColor: pistaActiva.color }}
-              >
-                <span className="text-lg leading-none">{pistaActiva.diaNum}</span>
-                <span className="text-[10px] tracking-wider uppercase mt-0.5">{pistaActiva.mesCorto}</span>
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-white/60">
-                    {pistaActiva.bpm} BPM · Ritmo tradicional
-                  </span>
-                  {musicaSonando && (
-                    <span className="flex items-end gap-0.5 h-3" aria-hidden="true">
-                      <span className="w-0.5 bg-[#35d08a] h-2 animate-pulse" />
-                      <span className="w-0.5 bg-[#35d08a] h-3 animate-pulse" />
-                      <span className="w-0.5 bg-[#35d08a] h-1.5 animate-pulse" />
-                    </span>
-                  )}
-                </div>
-                <div className="text-sm font-bold text-white truncate mt-0.5">{pistaActiva.titulo}</div>
-                <div className="text-[11px] text-white/70 truncate">{pistaActiva.subtitulo}</div>
-              </div>
-            </div>
-
-            <div className="mt-3 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => alternarMusica(pistaActiva)}
-                className="flex-1 py-2.5 px-3 rounded-xl font-extrabold text-xs text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer transition hover:brightness-110"
-                style={{ backgroundColor: pistaActiva.color }}
-              >
-                {musicaSonando ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                <span>{musicaSonando ? 'Pausar música' : 'Reproducir música ahora'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const next = !musicaMute;
-                  setMusicaMute(next);
-                  repRef.current?.setMuted(next);
-                }}
-                aria-label={musicaMute ? 'Activar sonido' : 'Silenciar'}
-                className="p-2.5 rounded-xl border border-white/20 text-white/85 hover:bg-white/10 cursor-pointer"
-              >
-                {musicaMute ? <VolumeX className="w-4 h-4 text-[#e0917a]" /> : <Volume2 className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          {/* TARJETAS GRANDES DE BAILES Y MEMORIAS DE LA COMUNIDAD */}
-          <div className="space-y-2.5">
-            {PISTAS_MEMORIA.map((pista) => {
-              const IconoP = ICONOS_MEMORIA[pista.icono] || Music;
-              const activa = pistaActiva.id === pista.id;
-              const sonandoEsta = activa && musicaSonando;
-              return (
-                <CardIluminada
-                  key={pista.id}
-                  color={pista.color}
-                  onClick={() => alternarMusica(pista)}
-                  className={`rounded-2xl border p-3 cursor-pointer ${
-                    activa
-                      ? 'bg-white/15 border-white/40 shadow-lg'
-                      : 'bg-white/5 border-white/10'
-                  }`}
+        return (
+          <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(94vw,31rem)] max-h-[84svh] overflow-y-auto tc-vidrio p-4 md:p-5 tc-paso-anim shadow-2xl">
+            <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-white/15">
+              <div className="flex items-center gap-2">
+                <span
+                  className="w-7 h-7 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: `${catMem.color}25`, color: catMem.color }}
                 >
-                  <div className="flex items-start gap-3">
-                    <span
-                      className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border border-white/15"
-                      style={{ backgroundColor: `${pista.color}22`, color: pista.color }}
-                    >
-                      <IconoP className="w-6 h-6" />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: pista.color }}>
-                        {pista.fechaGrande}
-                      </div>
-                      <div className="text-sm font-bold text-white leading-snug">{pista.titulo}</div>
-                      <p className="text-[11px] text-white/75 mt-1 leading-snug">{pista.historia}</p>
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {pista.pasos.map((paso) => (
-                          <span key={paso} className="px-2 py-0.5 rounded-full bg-white/10 text-[10px] text-white/85">
-                            {paso}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <span
-                      className="px-2.5 py-1.5 rounded-xl text-[11px] font-bold shrink-0 flex items-center gap-1"
-                      style={{
-                        backgroundColor: sonandoEsta ? pista.color : 'rgba(255,255,255,0.12)',
-                        color: sonandoEsta ? '#0b1016' : '#ffffff',
+                  <IconoCatMem className="w-4 h-4" />
+                </span>
+                <span className="text-sm font-semibold text-white">4. Memorias y Saberes</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPanelJuego(false)}
+                className="text-white/60 hover:text-white p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* 3 CATEGORÍAS: COMIDA · BAILES · TRADICIONES */}
+            <div className="grid grid-cols-3 gap-2 mb-3.5">
+              {Object.entries(MEMORIAS_SABERES).map(([key, cat]) => {
+                const IconoTab = cat.Icon;
+                const activa = memCategoria === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => {
+                      setMemCategoria(key);
+                      setMemItemSel(null);
+                      setMemPasoIdx(0);
+                    }}
+                    className={`py-2 px-2.5 rounded-xl border text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition ${
+                      activa
+                        ? 'text-[#0b1016] shadow-lg'
+                        : 'bg-white/5 border-white/15 text-white/80 hover:bg-white/15 hover:text-white'
+                    }`}
+                    style={activa ? { backgroundColor: cat.color, borderColor: cat.color } : undefined}
+                  >
+                    <IconoTab className="w-4 h-4" />
+                    <span>{cat.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {!memItemSel ? (
+              <div className="space-y-3">
+                <p className="text-xs text-white/80">{catMem.subtitulo}</p>
+                <div className="grid grid-cols-1 gap-3">
+                  {catMem.items.map((item) => (
+                    <CardIluminada
+                      key={item.id}
+                      color={catMem.color}
+                      onClick={() => {
+                        setMemItemSel(item);
+                        setMemPasoIdx(0);
+                        setMemIngMarcados({});
                       }}
+                      className="rounded-2xl border border-white/15 bg-white/5 overflow-hidden cursor-pointer flex items-center gap-3 p-2.5"
                     >
-                      {sonandoEsta ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                      <span>{sonandoEsta ? 'Pausar' : 'Bailar'}</span>
-                    </span>
+                      <img
+                        src={item.foto}
+                        alt={item.titulo}
+                        className="w-24 h-20 rounded-xl object-cover shrink-0 border border-white/15"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-extrabold text-white leading-snug">{item.titulo}</div>
+                        <p className="text-[11px] text-white/75 mt-1 leading-snug line-clamp-2">{item.resumen}</p>
+                        <div
+                          className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold"
+                          style={{ color: catMem.color }}
+                        >
+                          <span>{item.etiquetaPaso}</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </div>
+                      </div>
+                    </CardIluminada>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMemItemSel(null);
+                      setMemPasoIdx(0);
+                    }}
+                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-semibold text-white flex items-center gap-1 cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Volver a {catMem.label}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const otro = catMem.items.find((it) => it.id !== memItemSel.id) || catMem.items[0];
+                      setMemItemSel(otro);
+                      setMemPasoIdx(0);
+                    }}
+                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-semibold text-white flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Ver otro</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* FOTO GRANDE DEL PLATO, BAILE O TRADICIÓN */}
+                <div className="relative rounded-2xl overflow-hidden border border-white/20">
+                  <img
+                    src={memItemSel.foto}
+                    alt={memItemSel.titulo}
+                    className="w-full h-44 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0b1016] via-[#0b1016]/30 to-transparent" />
+                  <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between gap-2">
+                    <div>
+                      <div className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: catMem.color }}>
+                        {catMem.label} · Tierra Bomba
+                      </div>
+                      <h3 className="text-base font-extrabold text-white leading-tight">{memItemSel.titulo}</h3>
+                    </div>
                   </div>
-                </CardIluminada>
-              );
-            })}
-          </div>
-        </aside>
-      )}
+                </div>
+
+                {/* REPRODUCTOR EN VIVO SI ES BAILE */}
+                {pistaMem && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => alternarMusica(pistaMem)}
+                      className="flex-1 py-2.5 px-3 rounded-xl font-extrabold text-xs text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer transition hover:brightness-110"
+                      style={{ backgroundColor: catMem.color }}
+                    >
+                      {sonandoMem ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      <span>{sonandoMem ? 'Pausar música del baile' : `Reproducir música (${pistaMem.bpm} BPM)`}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = !musicaMute;
+                        setMusicaMute(next);
+                        repRef.current?.setMuted(next);
+                      }}
+                      aria-label={musicaMute ? 'Activar sonido' : 'Silenciar'}
+                      className="p-2.5 rounded-xl border border-white/20 text-white/85 hover:bg-white/10 cursor-pointer"
+                    >
+                      {musicaMute ? <VolumeX className="w-4 h-4 text-[#e0917a]" /> : <Volume2 className="w-4 h-4" />}
+                    </button>
+                  </div>
+                )}
+
+                {/* INGREDIENTES / ELEMENTOS CLICABLES */}
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1.5">
+                    {memCategoria === 'comida' ? 'Ingredientes (toca para marcar)' : 'Elementos'}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {memItemSel.ingredientes.map((ing) => {
+                      const marcado = !!memIngMarcados[ing];
+                      return (
+                        <button
+                          key={ing}
+                          type="button"
+                          onClick={() => setMemIngMarcados((prev) => ({ ...prev, [ing]: !prev[ing] }))}
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition border ${
+                            marcado
+                              ? 'bg-[#35d08a]/25 border-[#35d08a]/60 text-[#9ff3c9]'
+                              : 'bg-white/10 border-white/15 text-white/85 hover:bg-white/20'
+                          }`}
+                        >
+                          {marcado && <Check className="w-3 h-3" />}
+                          <span>{ing}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* PASO A PASO INTERACTIVO (UNO A LA VEZ) */}
+                {(() => {
+                  const pasoActualMem = memItemSel.pasos[memPasoIdx] || memItemSel.pasos[0];
+                  const sigIdx = (memPasoIdx + 1) % memItemSel.pasos.length;
+                  return (
+                    <div className="space-y-2 pt-2 border-t border-white/15">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider" style={{ color: catMem.color }}>
+                          {memItemSel.etiquetaPaso}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          {memItemSel.pasos.map((p, idx) => (
+                            <button
+                              key={p.titulo}
+                              type="button"
+                              onClick={() => setMemPasoIdx(idx)}
+                              className={`w-6 h-6 rounded-full text-[11px] font-extrabold cursor-pointer transition ${
+                                idx === memPasoIdx
+                                  ? 'text-[#0b1016]'
+                                  : 'bg-white/10 text-white/75 hover:bg-white/20'
+                              }`}
+                              style={idx === memPasoIdx ? { backgroundColor: catMem.color } : undefined}
+                            >
+                              {idx + 1}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setMemPasoIdx(sigIdx)}
+                        className="w-full text-left rounded-xl bg-white/[0.06] hover:bg-white/[0.11] border border-white/15 p-3.5 cursor-pointer transition group"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-xs font-extrabold text-white">{pasoActualMem.titulo}</span>
+                          <span className="text-[10px] font-bold text-white/60 group-hover:text-white flex items-center gap-1 shrink-0">
+                            <span>Siguiente paso</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </span>
+                        </div>
+                        <p className="text-xs text-white/85 leading-relaxed">{pasoActualMem.texto}</p>
+                      </button>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </aside>
+        );
+      })()}
 
       {/* MODAL DE VIDRIO TRANSLÚCIDO SOBRE EL MAPA 3D (Cuando el usuario quiere ver un diagrama 2D en detalle) */}
       {modalDiagrama && (
