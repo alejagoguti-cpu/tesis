@@ -32,6 +32,8 @@ import {
   Shield,
   Anchor,
   ExternalLink,
+  Flame,
+  Fish,
 } from 'lucide-react';
 import { crearEscenaAula } from '../utils/escenaAulaBocachica';
 import { crearReproductorComunidad, PISTAS_MEMORIA } from '../utils/musicaComunidad';
@@ -65,6 +67,413 @@ function CardIluminada({ children, color = '#e8a86b', className = '', onClick })
       className={`transition-all duration-200 hover:-translate-y-1 ${className}`}
     >
       {children}
+    </div>
+  );
+}
+
+function JuegoCocinarMojarra({ color = '#e8a86b' }) {
+  const [etapa, setEtapa] = useState('adobar'); // 'adobar' | 'freir' | 'emplatar' | 'listo'
+  const [adobos, setAdobos] = useState({ limon: false, ajo: false, sal: false });
+  const [friendo, setFriendo] = useState(false);
+  const [coccion, setCoccion] = useState(0);
+  const [calidadFritura, setCalidadFritura] = useState('');
+  const [plato, setPlato] = useState({ mojarra: false, arroz: false, patacones: false, ensalada: false });
+
+  useEffect(() => {
+    if (!friendo) return undefined;
+    const id = setInterval(() => {
+      setCoccion((c) => {
+        if (c >= 100) {
+          setFriendo(false);
+          setCalidadFritura('¡Se pasó un poco! Intenta sacarla en la zona dorada.');
+          return 100;
+        }
+        return c + 2.2;
+      });
+    }, 55);
+    return () => clearInterval(id);
+  }, [friendo]);
+
+  const todoAdobado = adobos.limon && adobos.ajo && adobos.sal;
+  const todoEmplatado = plato.mojarra && plato.arroz && plato.patacones && plato.ensalada;
+
+  const sacarDelCaldero = () => {
+    setFriendo(false);
+    if (coccion >= 64 && coccion <= 88) {
+      setCalidadFritura('¡Punto dorado y crocante perfecto!');
+      setTimeout(() => setEtapa('emplatar'), 650);
+    } else if (coccion < 64) {
+      setCalidadFritura('Todavía le falta color dorado. Déjala unos segundos más.');
+    } else {
+      setCalidadFritura('Muy tostada, ¡pero lista para emplatar! O intenta de nuevo.');
+    }
+  };
+
+  const reiniciarJuego = () => {
+    setEtapa('adobar');
+    setAdobos({ limon: false, ajo: false, sal: false });
+    setFriendo(false);
+    setCoccion(0);
+    setCalidadFritura('');
+    setPlato({ mojarra: false, arroz: false, patacones: false, ensalada: false });
+  };
+
+  const colorPez =
+    etapa === 'adobar'
+      ? (todoAdobado ? '#d9a45b' : '#9eb3c2')
+      : coccion < 40
+        ? '#c7ab7c'
+        : coccion <= 88
+          ? '#d6822b'
+          : '#6b3618';
+
+  return (
+    <div className="rounded-3xl border border-white/15 bg-white/[0.04] p-4 md:p-6 space-y-5">
+      {/* Barra de progreso del juego */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
+        <div className="flex items-center gap-2">
+          <span className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}25`, color }}>
+            <Fish className="w-4 h-4" />
+          </span>
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-widest" style={{ color }}>
+              Juego virtual · Cocina isleña
+            </div>
+            <h3 className="text-sm md:text-base font-extrabold text-white">Prepara y emplata la Mojarra de Bocachica</h3>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] font-bold">
+          {[
+            { id: 'adobar', label: '1. Adobar' },
+            { id: 'freir', label: '2. Freír' },
+            { id: 'emplatar', label: '3. Emplatar' },
+          ].map((p) => {
+            const activo = etapa === p.id || (etapa === 'listo' && p.id === 'emplatar');
+            return (
+              <span
+                key={p.id}
+                className={`px-2.5 py-1 rounded-full border transition ${
+                  activo ? 'text-[#0b1016] border-transparent' : 'bg-white/5 border-white/15 text-white/60'
+                }`}
+                style={activo ? { backgroundColor: color } : undefined}
+              >
+                {p.label}
+              </span>
+            );
+          })}
+          <button
+            type="button"
+            onClick={reiniciarJuego}
+            className="ml-1 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/80 cursor-pointer"
+            title="Reiniciar juego"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* ETAPA 1: ADOBAR LA MOJARRA */}
+      {etapa === 'adobar' && (
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+          <div className="md:col-span-7 rounded-2xl bg-[#101822] border border-white/10 p-4 flex flex-col items-center justify-center relative overflow-hidden">
+            <svg viewBox="0 0 360 190" className="w-full max-w-sm">
+              {/* Tabla de madera */}
+              <rect x="20" y="25" width="320" height="145" rx="22" fill="#6f4a2d" stroke="#8c623e" strokeWidth="4" />
+              <rect x="34" y="37" width="292" height="121" rx="14" fill="#7d5535" />
+              {/* Mojarra */}
+              <ellipse cx="175" cy="98" rx="84" ry="42" fill={colorPez} className="transition-colors duration-500" />
+              <polygon points="252,98 298,66 288,98 298,130" fill={colorPez} className="transition-colors duration-500" />
+              <polygon points="155,58 195,40 205,60" fill="#7c93a3" />
+              <circle cx="116" cy="90" r="6" fill="#0b1016" />
+              <circle cx="114" cy="88" r="2" fill="#ffffff" />
+              {/* Cortes diagonales */}
+              <path d="M148 76 L166 116 M172 74 L190 118 M196 76 L212 114" stroke="#4f2918" strokeWidth="3.5" strokeLinecap="round" />
+              {/* Efectos visuales de cada adobo */}
+              {adobos.limon && (
+                <g>
+                  <circle cx="72" cy="128" r="14" fill="#9de055" stroke="#eef7b2" strokeWidth="3" />
+                  <circle cx="165" cy="85" r="4" fill="#c9f27c" opacity="0.85" />
+                  <circle cx="205" cy="105" r="3.5" fill="#c9f27c" opacity="0.85" />
+                </g>
+              )}
+              {adobos.ajo && (
+                <g fill="#f5e9c6">
+                  <circle cx="152" cy="96" r="3.5" />
+                  <circle cx="179" cy="88" r="3.5" />
+                  <circle cx="188" cy="108" r="3.5" />
+                  <circle cx="215" cy="94" r="3" />
+                </g>
+              )}
+              {adobos.sal && (
+                <g fill="#ffffff" opacity="0.9">
+                  <circle cx="142" cy="86" r="2" />
+                  <circle cx="160" cy="106" r="2" />
+                  <circle cx="176" cy="96" r="2" />
+                  <circle cx="198" cy="88" r="2" />
+                  <circle cx="220" cy="102" r="2" />
+                </g>
+              )}
+            </svg>
+            <div className="text-[11px] text-white/70 mt-1">
+              {todoAdobado ? '¡Mojarra adobada con sabor isleño!' : 'Haz clic en los 3 ingredientes para sazonarla'}
+            </div>
+          </div>
+
+          <div className="md:col-span-5 space-y-2.5">
+            <div className="text-xs font-bold text-white">Paso 1: Toca para agregar cada sazón</div>
+            {[
+              { id: 'limon', label: 'Limón criollo fresco', desc: 'Corta la grasa y realza el sabor del mar' },
+              { id: 'ajo', label: 'Ajo machacado en mortero', desc: 'Aroma tradicional en las incisiones' },
+              { id: 'sal', label: 'Sal marina y comino', desc: 'Para piel bien crocante al freír' },
+            ].map((ing) => {
+              const listo = adobos[ing.id];
+              return (
+                <button
+                  key={ing.id}
+                  type="button"
+                  onClick={() => setAdobos((prev) => ({ ...prev, [ing.id]: true }))}
+                  className={`w-full text-left p-3 rounded-xl border transition flex items-center justify-between gap-2 cursor-pointer ${
+                    listo
+                      ? 'bg-[#35d08a]/15 border-[#35d08a]/60 text-white'
+                      : 'bg-white/5 border-white/15 text-white/85 hover:bg-white/10'
+                  }`}
+                >
+                  <div>
+                    <div className="text-xs font-bold">{ing.label}</div>
+                    <div className="text-[11px] text-white/60">{ing.desc}</div>
+                  </div>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${listo ? 'bg-[#35d08a] text-[#0b1016]' : 'bg-white/10 text-white/50'}`}>
+                    <Check className="w-3.5 h-3.5" />
+                  </span>
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              disabled={!todoAdobado}
+              onClick={() => setEtapa('freir')}
+              className={`w-full py-3 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition ${
+                todoAdobado
+                  ? 'text-[#0b1016] cursor-pointer shadow-lg hover:scale-[1.01]'
+                  : 'bg-white/10 text-white/40 cursor-not-allowed'
+              }`}
+              style={todoAdobado ? { backgroundColor: color } : undefined}
+            >
+              <Flame className="w-4 h-4" />
+              <span>Llevar al caldero caliente</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ETAPA 2: FREÍR EN CALDERO CALIENTE */}
+      {etapa === 'freir' && (
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+          <div className="md:col-span-7 rounded-2xl bg-[#101822] border border-white/10 p-4 flex flex-col items-center">
+            <svg viewBox="0 0 360 190" className="w-full max-w-sm">
+              {/* Llamas del fogón */}
+              <g className={friendo ? 'animate-pulse' : 'opacity-50'}>
+                <path d="M120 170 Q135 135 150 170 Q165 130 180 170 Q195 135 210 170 Q225 135 240 170 Z" fill="#f97316" />
+                <path d="M140 170 Q155 148 170 170 Q185 142 200 170 Q215 148 228 170 Z" fill="#fde047" />
+              </g>
+              {/* Caldero isleño */}
+              <ellipse cx="180" cy="108" rx="112" ry="48" fill="#1e242b" stroke="#4b5563" strokeWidth="5" />
+              <ellipse cx="180" cy="106" rx="96" ry="38" fill="#d99b26" opacity="0.88" />
+              {/* Burbujas de aceite */}
+              {friendo && (
+                <g fill="#fef08a" opacity="0.8">
+                  <circle cx="115" cy="95" r="4" className="animate-ping" />
+                  <circle cx="242" cy="112" r="3.5" className="animate-ping" />
+                  <circle cx="190" cy="80" r="3" className="animate-ping" />
+                  <circle cx="145" cy="126" r="3.5" className="animate-ping" />
+                </g>
+              )}
+              {/* Mojarra friéndose */}
+              <ellipse cx="175" cy="106" rx="68" ry="30" fill={colorPez} className="transition-colors duration-200" />
+              <polygon points="238,106 274,84 266,106 274,128" fill={colorPez} />
+              <path d="M150 90 L164 122 M172 88 L186 122 M194 90 L206 118" stroke="#451a03" strokeWidth="3" strokeLinecap="round" />
+            </svg>
+
+            {/* Barra de punto dorado */}
+            <div className="w-full max-w-sm space-y-1.5 mt-2">
+              <div className="flex justify-between text-[11px] font-bold">
+                <span className="text-white/70">Nivel de dorado</span>
+                <span style={{ color }}>{Math.round(coccion)} %</span>
+              </div>
+              <div className="relative h-3.5 rounded-full bg-white/10 overflow-hidden border border-white/15">
+                {/* Zona dorada ideal 64-88% */}
+                <div className="absolute inset-y-0 bg-[#35d08a]/35 border-x border-[#35d08a]" style={{ left: '64%', width: '24%' }} />
+                <div
+                  className="h-full transition-all duration-75 rounded-full"
+                  style={{
+                    width: `${coccion}%`,
+                    backgroundColor: coccion >= 64 && coccion <= 88 ? '#35d08a' : coccion > 88 ? '#ef4444' : '#f5b45a',
+                  }}
+                />
+              </div>
+              <div className="text-[10px] text-white/60 text-center">
+                Saca la mojarra dentro de la franja verde (64% – 88%) para lograr piel crocante.
+              </div>
+            </div>
+          </div>
+
+          <div className="md:col-span-5 space-y-3">
+            <div className="text-xs font-bold text-white">Paso 2: Controla la fritura</div>
+            {calidadFritura && (
+              <div className="p-3 rounded-xl bg-white/10 border border-white/20 text-xs font-semibold text-white">
+                {calidadFritura}
+              </div>
+            )}
+            {!friendo && coccion < 100 && (
+              <button
+                type="button"
+                onClick={() => { setCalidadFritura(''); setFriendo(true); }}
+                className="w-full py-3 px-4 rounded-xl text-xs font-black text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+                style={{ backgroundColor: color }}
+              >
+                <Flame className="w-4 h-4" />
+                <span>{coccion === 0 ? 'Echar mojarra al aceite caliente' : 'Seguir friendo'}</span>
+              </button>
+            )}
+            {friendo && (
+              <button
+                type="button"
+                onClick={sacarDelCaldero}
+                className="w-full py-3 px-4 rounded-xl text-xs font-black bg-[#35d08a] text-[#07140d] flex items-center justify-center gap-2 cursor-pointer shadow-lg animate-pulse"
+              >
+                <Check className="w-4 h-4" />
+                <span>¡Sacar del caldero ahora!</span>
+              </button>
+            )}
+            {coccion >= 64 && !friendo && (
+              <button
+                type="button"
+                onClick={() => setEtapa('emplatar')}
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-white text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Pasar a emplatar</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
+            {coccion > 88 && !friendo && (
+              <button
+                type="button"
+                onClick={() => { setCoccion(0); setCalidadFritura(''); }}
+                className="w-full py-2 px-4 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              >
+                Intentar fritura de nuevo
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ETAPA 3: EMPLATAR EL PLATO ISLEÑO */}
+      {(etapa === 'emplatar' || etapa === 'listo') && (
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+          <div className="md:col-span-7 rounded-2xl bg-[#101822] border border-white/10 p-4 flex flex-col items-center">
+            <svg viewBox="0 0 360 220" className="w-full max-w-sm">
+              {/* Individual tejido de palma */}
+              <rect x="28" y="18" width="304" height="184" rx="20" fill="#8b6943" stroke="#b0895a" strokeWidth="3" />
+              {/* Plato blanco costero */}
+              <circle cx="180" cy="110" r="82" fill="#f5f1ea" stroke="#d6cfc4" strokeWidth="4" />
+              <circle cx="180" cy="110" r="64" fill="#fbf9f5" stroke="#e8e1d5" strokeWidth="2" />
+
+              {/* Arroz con coco y titoté */}
+              {plato.arroz && (
+                <g>
+                  <circle cx="145" cy="78" r="24" fill="#b6895b" />
+                  <circle cx="139" cy="72" r="2.5" fill="#4a2c14" />
+                  <circle cx="152" cy="80" r="2.5" fill="#4a2c14" />
+                  <circle cx="147" cy="68" r="2" fill="#4a2c14" />
+                </g>
+              )}
+
+              {/* Patacones crocantes */}
+              {plato.patacones && (
+                <g>
+                  <circle cx="222" cy="78" r="14" fill="#eab308" stroke="#ca8a04" strokeWidth="2" />
+                  <circle cx="236" cy="96" r="14" fill="#facc15" stroke="#ca8a04" strokeWidth="2" />
+                  <circle cx="216" cy="100" r="13" fill="#eab308" stroke="#ca8a04" strokeWidth="2" />
+                </g>
+              )}
+
+              {/* Ensalada fresca + limón */}
+              {plato.ensalada && (
+                <g>
+                  <circle cx="138" cy="146" r="16" fill="#4ade80" opacity="0.85" />
+                  <circle cx="132" cy="144" r="5" fill="#ef4444" />
+                  <circle cx="145" cy="150" r="5" fill="#ef4444" />
+                  <path d="M214 148 A14 14 0 0 0 236 138 Z" fill="#a3e635" stroke="#ecfccb" strokeWidth="2" />
+                </g>
+              )}
+
+              {/* Mojarra dorada en el centro */}
+              {plato.mojarra && (
+                <g>
+                  <ellipse cx="180" cy="116" rx="56" ry="24" fill="#d6822b" />
+                  <polygon points="232,116 260,96 253,116 260,136" fill="#c26d1f" />
+                  <path d="M160 102 L172 128 M178 100 L190 128 M196 102 L206 126" stroke="#5c2b0e" strokeWidth="2.8" strokeLinecap="round" />
+                  <circle cx="140" cy="112" r="3.5" fill="#1c1917" />
+                </g>
+              )}
+            </svg>
+            <div className="text-xs font-bold text-white/85 mt-1">
+              {todoEmplatado ? '¡Plato típico de Tierra Bomba listo para servir!' : 'Toca cada acompañamiento para armar tu plato'}
+            </div>
+          </div>
+
+          <div className="md:col-span-5 space-y-2.5">
+            <div className="text-xs font-bold text-white">Paso 3: Sirve cada elemento en el plato</div>
+            {[
+              { id: 'mojarra', label: 'Mojarra frita dorada' },
+              { id: 'arroz', label: 'Arroz con coco y titoté' },
+              { id: 'patacones', label: 'Patacones crocantes' },
+              { id: 'ensalada', label: 'Ensalada fresca y limón' },
+            ].map((el) => {
+              const puesto = plato[el.id];
+              return (
+                <button
+                  key={el.id}
+                  type="button"
+                  onClick={() => {
+                    const next = { ...plato, [el.id]: true };
+                    setPlato(next);
+                    if (next.mojarra && next.arroz && next.patacones && next.ensalada) {
+                      setEtapa('listo');
+                    }
+                  }}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl border text-xs font-bold flex items-center justify-between transition cursor-pointer ${
+                    puesto
+                      ? 'bg-[#35d08a]/15 border-[#35d08a]/60 text-[#9ff3c9]'
+                      : 'bg-white/5 border-white/15 text-white hover:bg-white/10'
+                  }`}
+                >
+                  <span>{el.label}</span>
+                  <Check className={`w-4 h-4 ${puesto ? 'opacity-100' : 'opacity-25'}`} />
+                </button>
+              );
+            })}
+
+            {todoEmplatado && (
+              <div className="p-3 rounded-xl bg-[#35d08a]/20 border border-[#35d08a]/50 space-y-2">
+                <div className="flex items-center gap-2 text-xs font-extrabold text-[#9ff3c9]">
+                  <Award className="w-4 h-4 shrink-0" />
+                  <span>¡Excelente! Plato servido con sabor a Bocachica.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={reiniciarJuego}
+                  className="w-full py-2 rounded-lg bg-white text-[#0b1016] text-xs font-extrabold cursor-pointer hover:bg-white/90 transition"
+                >
+                  Volver a cocinar otra mojarra
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2478,7 +2887,7 @@ export default function AulaAmbientalBocachica({
             titulo: 'Pescado frito con arroz con coco',
             resumen: 'Plato emblemático de Bocachica con mojarra fresca, titoté y patacones.',
             foto: `${MEMORIAS_BASE}images/memorias/arroz_coco_pescado.jpg`,
-            etiquetaPaso: 'Receta paso a paso',
+            etiquetaPaso: 'Jugar: Cocina y emplata la mojarra',
             ingredientes: ['1 mojarra o pargo fresco', '1 coco seco rallado', '2 tazas de arroz', 'Plátano verde', 'Limón y sal marina'],
             pasos: [
               { titulo: '1. Sacar el titoté', texto: 'Licúa el coco con agua tibia, cuela la primera leche y cocínala a fuego lento hasta que se reduzca y dore en aceite natural (titoté).' },
@@ -4497,6 +4906,10 @@ export default function AulaAmbientalBocachica({
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
+
+                  {memItemSel.id === 'arroz_coco_pescado' && (
+                    <JuegoCocinarMojarra color={catMem.color} />
+                  )}
 
                   {/* INFOGRAFÍA DE 2 COLUMNAS */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
