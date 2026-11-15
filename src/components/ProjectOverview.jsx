@@ -39,6 +39,7 @@ const RECORRIDO = [
   { id: 'module11', n: '02', t: 'La historia de la isla', d: 'Mapas antiguos y fotos de cómo ha cambiado.' },
   { id: 'framework', n: '03', t: 'El mapa de los riesgos', d: 'Dónde se pierde la costa y dónde es seguro.' },
   { id: '3dviewer', n: '04', t: 'Así será el nuevo barrio', d: 'Recorrido 3D de casas, colegio y aljibe.' },
+  { id: 'aula-ambiental', n: '05', t: 'Aula Ambiental · Bocachica', d: 'Memorias territoriales, planificación y diseño sostenible (Programa marco v0.1).' },
 ];
 
 export default function ProjectOverview({ onNavigateModule }) {

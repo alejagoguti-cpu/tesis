@@ -12,6 +12,7 @@ import RedRizoma from './components/RedRizoma';
 import RedTerritorio from './components/RedTerritorio';
 import IntroLandingIndex from './components/IntroLandingIndex';
 import ProjectOverview from './components/ProjectOverview';
+import AulaAmbientalBocachica from './components/AulaAmbientalBocachica';
 import ThesisHome from './components/ThesisHome';
 import Hero from './components/Hero';
 import Footer from './components/Footer';
@@ -229,6 +230,19 @@ export default function App() {
               {activeModule === 'revit' && (
                 <SafeSection name="Módulo 03: Modelo Revit">
                   <RevitModule />
+                </SafeSection>
+              )}
+
+              {/* Módulo 05: Aula Ambiental · Bocachica (Programa marco v0.1) */}
+              {activeModule === 'aula-ambiental' && (
+                <SafeSection name="Aula Ambiental · Bocachica">
+                  <div data-aula-scroller className="h-full w-full overflow-y-auto bg-black">
+                    <AulaAmbientalBocachica
+                      embedded
+                      onBackToPortada={() => setViewMode('index')}
+                      onNavigateModule={(modId) => setActiveModule(modId)}
+                    />
+                  </div>
                 </SafeSection>
               )}
             </div>

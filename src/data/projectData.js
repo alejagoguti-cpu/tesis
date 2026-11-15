@@ -325,6 +325,15 @@ export const projectInfo = {
       community: true
     },
     {
+      id: "aula-ambiental",
+      number: "5",
+      title: "Aula Ambiental · Bocachica",
+      icon: "BookOpen",
+      badge: "Programa marco",
+      desc: "Memorias territoriales, planificación y diseño sostenible en Bocachica (Programa marco v0.1)",
+      community: true
+    },
+    {
       id: "gis",
       number: "T1",
       title: "Teledetección & GIS Espectral",
