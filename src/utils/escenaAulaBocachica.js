@@ -1879,6 +1879,23 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       activa: () => Math.abs(vt.zoom - 1) + Math.abs(vt.az) + Math.abs(vt.el) + Math.abs(vt.px) + Math.abs(vt.pz) > 0.001,
     },
     estado: T,
+    proyectarNodos(claves) {
+      const w = renderer.domElement.clientWidth || window.innerWidth;
+      const h = renderer.domElement.clientHeight || window.innerHeight;
+      const out = {};
+      const tmp = new THREE.Vector3();
+      for (const k of claves) {
+        const n = nodosXZ[k];
+        if (!n) continue;
+        tmp.set(n.x, n.y + 16, n.z).project(camera);
+        if (tmp.z > 1) continue;
+        out[k] = {
+          x: (tmp.x * 0.5 + 0.5) * w,
+          y: (-tmp.y * 0.5 + 0.5) * h,
+        };
+      }
+      return out;
+    },
     dispose() {
       disposed = true;
       cleanups.forEach((fn) => fn());

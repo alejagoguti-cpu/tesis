@@ -2202,18 +2202,19 @@ const EXPLORA_CATEGORIAS = [
     id: 'talleres',
     ancla: 'sec-talleres',
     label: '3. Talleres y Viernes',
-    cta: 'Agendar clase del viernes',
+    cta: 'Ver clases en la isla',
     color: '#e8a86b',
-    cam: 'linea_oficios',
-    nodos: ['ribera', 'residuos', 'vivero', 'escuelaR9'],
+    cam: 'isla_completa',
+    nodos: ['escuelaR9', 'ribera', 'vivero', 'tierraBomba', 'puntaArena'],
     rutas: { agua: 0.3, verde: 0.4, residuos: 0.9, oficios: 1, patrimonio: 0 },
     zonas: [0.1, 0.4, 0.95],
-    resumen: 'Talleres de oficios y clases virtuales cada viernes para aprender juntos.',
+    resumen: 'Toca un icono animado en la isla para descubrir la clase del viernes e inscribirte.',
     lugares: [
+      { nodo: 'escuelaR9', nombre: 'Gimnasio Cristiano', desc: 'Cómo usar esta plataforma 3D.' },
       { nodo: 'ribera', nombre: 'Carpintería de Ribera', desc: 'Construcción de botes y madera.' },
-      { nodo: 'residuos', nombre: 'Taller de Plástico', desc: 'Plástico reciclado hecho mobiliario.' },
       { nodo: 'vivero', nombre: 'Vivero Comunitario', desc: 'Siembra de manglar y frutales.' },
-      { nodo: 'escuelaR9', nombre: 'Gimnasio Cristiano', desc: 'Aula viva y tanque de agua lluvia.' },
+      { nodo: 'tierraBomba', nombre: 'Cocina de Doña Isnelia', desc: 'Dulces caseros y arroz con coco.' },
+      { nodo: 'puntaArena', nombre: 'Rueda de Bullerengue', desc: 'Tambor alegre y bailes de patio.' },
     ],
   },
   {
@@ -2306,6 +2307,87 @@ export default function AulaAmbientalBocachica({
 
   const proximoViernes = useMemo(() => obtenerProximoViernes(), []);
 
+  // Actividades animadas sobre toda la isla (al tocar un icono se abre la card grande)
+  const actividadesIsla = useMemo(
+    () => [
+      {
+        nodo: 'escuelaR9',
+        corto: 'Plataforma 3D',
+        titulo: TEMAS_VIERNES_LISTA[0].titulo,
+        sub: TEMAS_VIERNES_LISTA[0].sub,
+        lugar: 'Bocachica · Colegio R9',
+        dia: proximoViernes.dia,
+        mes: proximoViernes.mes,
+        color: '#6ec6e6',
+        Icon: BookOpen,
+      },
+      {
+        nodo: 'ribera',
+        corto: 'Carpintería',
+        titulo: TEMAS_VIERNES_LISTA[3].titulo,
+        sub: TEMAS_VIERNES_LISTA[3].sub,
+        lugar: 'Bocachica · Taller de Ribera',
+        dia: '15',
+        mes: 'ENE',
+        color: '#e8a86b',
+        Icon: Hammer,
+      },
+      {
+        nodo: 'vivero',
+        corto: 'Vivero y Manglar',
+        titulo: TEMAS_VIERNES_LISTA[4].titulo,
+        sub: TEMAS_VIERNES_LISTA[4].sub,
+        lugar: 'Caño de Loro · Manglar',
+        dia: '10',
+        mes: 'FEB',
+        color: '#35d08a',
+        Icon: Sprout,
+      },
+      {
+        nodo: 'tierraBomba',
+        corto: 'Cocina Isnelia',
+        titulo: TEMAS_VIERNES_LISTA[2].titulo,
+        sub: TEMAS_VIERNES_LISTA[2].sub,
+        lugar: 'Tierra Bomba · Muelle flotante',
+        dia: '22',
+        mes: 'NOV',
+        color: '#e0917a',
+        Icon: Utensils,
+      },
+      {
+        nodo: 'puntaArena',
+        corto: 'Bullerengue',
+        titulo: TEMAS_VIERNES_LISTA[1].titulo,
+        sub: TEMAS_VIERNES_LISTA[1].sub,
+        lugar: 'Punta Arena · Rueda de patio',
+        dia: '29',
+        mes: 'NOV',
+        color: '#f4f1ec',
+        Icon: Music,
+      },
+    ],
+    [proximoViernes]
+  );
+
+  const [actividadViernesSel, setActividadViernesSel] = useState(null);
+  const [pinesActividad, setPinesActividad] = useState({});
+
+  useEffect(() => {
+    if (!escena?.proyectarNodos || catActiva?.id !== 'talleres' || panelJuego || modalDiagrama) {
+      setPinesActividad({});
+      return undefined;
+    }
+    let rafId = 0;
+    const claves = actividadesIsla.map((a) => a.nodo);
+    const loop = () => {
+      const next = escena.proyectarNodos(claves);
+      setPinesActividad(next);
+      rafId = requestAnimationFrame(loop);
+    };
+    rafId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafId);
+  }, [escena, catActiva, panelJuego, modalDiagrama, actividadesIsla]);
+
   // Programación de clases virtuales de los viernes
   const [clasesViernes, setClasesViernes] = useState(() => {
     try {
@@ -2342,6 +2424,7 @@ export default function AulaAmbientalBocachica({
   const activarCategoria = (cat, conScroll = true) => {
     setBusqAbierta(false);
     setLugarActivo(null);
+    setActividadViernesSel(null);
     if (cat.id === 'memorias') {
       setPanelJuego(true);
       setCatActiva(null);
@@ -2954,16 +3037,186 @@ export default function AulaAmbientalBocachica({
         </>
       )}
 
-      {/* TARJETA ÚNICA IZQUIERDA: Visual, clara, sin emojis, con botones grandes de acción */}
+      {/* ICONOS ANIMADOS DE ACTIVIDAD SOBRE TODA LA ISLA (3. TALLERES Y VIERNES) */}
+      {enVistaAula && catActiva?.id === 'talleres' && !panelJuego && !modalDiagrama && (
+        <div className="fixed inset-0 z-15 pointer-events-none overflow-hidden">
+          {actividadesIsla.map((act) => {
+            const p = pinesActividad[act.nodo];
+            if (!p) return null;
+            const IconoPin = act.Icon || Hammer;
+            const sel = actividadViernesSel?.nodo === act.nodo;
+            return (
+              <button
+                key={act.nodo}
+                type="button"
+                onClick={() => {
+                  setActividadViernesSel(act);
+                  setTemaViernes(act.titulo);
+                  setConfirmViernes(false);
+                  escena?.irANodo?.(act.nodo, 340);
+                }}
+                style={{ left: `${p.x}px`, top: `${p.y}px` }}
+                className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto group cursor-pointer focus:outline-none"
+              >
+                <span className="relative flex flex-col items-center">
+                  {/* Halo animado pulsante */}
+                  <span
+                    className="absolute -inset-2 rounded-full animate-ping opacity-45"
+                    style={{ backgroundColor: act.color }}
+                  />
+                  {/* Icono grande de la actividad */}
+                  <span
+                    className={`relative w-12 h-12 rounded-2xl border-2 flex items-center justify-center shadow-2xl transition-transform duration-200 group-hover:scale-115 ${
+                      sel ? 'scale-125 ring-4 ring-white/40' : ''
+                    }`}
+                    style={{
+                      backgroundColor: '#0b1016',
+                      borderColor: act.color,
+                      color: act.color,
+                    }}
+                  >
+                    <IconoPin className="w-6 h-6" />
+                  </span>
+                  {/* Etiqueta compacta con fecha */}
+                  <span className="mt-1.5 px-2.5 py-0.5 rounded-full bg-[#0b1016]/90 border border-white/20 text-[11px] font-bold text-white whitespace-nowrap shadow-lg flex items-center gap-1.5 group-hover:bg-white group-hover:text-[#0b1016] transition">
+                    <span>{act.corto}</span>
+                    <span className="text-[10px] font-mono opacity-80">{act.dia} {act.mes}</span>
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* TARJETA ÚNICA IZQUIERDA (O CARD GRANDE AL TOCAR UN ICONO EN TALLERES) */}
       {enVistaAula && catActiva && !panelJuego && !modalDiagrama && (() => {
         const IconoCat = ICONOS_CAT[catActiva.id] || MapPin;
         const idxCat = EXPLORA_CATEGORIAS.findIndex((c) => c.id === catActiva.id);
         const catAnt = idxCat > 0 ? EXPLORA_CATEGORIAS[idxCat - 1] : null;
         const catSig = idxCat < EXPLORA_CATEGORIAS.length - 1 ? EXPLORA_CATEGORIAS[idxCat + 1] : null;
+
+        if (catActiva.id === 'talleres' && !actividadViernesSel) {
+          return (
+            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-md tc-vidrio px-4 py-3 tc-paso-anim shadow-2xl flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-10 h-10 rounded-xl bg-[#e8a86b]/20 text-[#e8a86b] flex items-center justify-center shrink-0 animate-pulse">
+                  <Calendar className="w-5 h-5" />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-white">Clases cada viernes · Toda la isla</div>
+                  <div className="text-[11px] text-white/75 leading-snug">
+                    Toca cualquier icono animado en el mapa para abrir la clase e inscribirte.
+                  </div>
+                </div>
+              </div>
+              <button type="button" onClick={() => setCatActiva(null)} className="text-white/60 hover:text-white p-1 shrink-0">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          );
+        }
+
+        if (catActiva.id === 'talleres' && actividadViernesSel) {
+          const act = actividadViernesSel;
+          const IconoAct = act.Icon || Hammer;
+          return (
+            <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(94vw,29rem)] tc-paso-anim">
+              <CardIluminada
+                color={act.color}
+                className="tc-vidrio p-5 rounded-2xl border shadow-2xl space-y-4"
+              >
+                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-white/15">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActividadViernesSel(null);
+                      escena?.set({ cam: 'isla_completa', nodosActivos: catActiva.nodos });
+                    }}
+                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-semibold text-white flex items-center gap-1 cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Ver toda la isla</span>
+                  </button>
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#35d08a]/20 border border-[#35d08a]/50 text-[#9ff3c9] text-[10px] font-bold uppercase tracking-wider">
+                    Cupos abiertos · Gratis
+                  </span>
+                </div>
+
+                {/* ICONO GRANDE + FECHA GRANDE */}
+                <div className="flex items-center justify-between gap-4">
+                  <span
+                    className="w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 border-2 shadow-xl animate-bounce"
+                    style={{
+                      backgroundColor: `${act.color}22`,
+                      borderColor: act.color,
+                      color: act.color,
+                      animationDuration: '2.4s',
+                    }}
+                  >
+                    <IconoAct className="w-10 h-10" />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-bold uppercase tracking-widest" style={{ color: act.color }}>
+                      {act.lugar}
+                    </div>
+                    <h3 className="text-lg font-extrabold text-white leading-tight mt-0.5">{act.titulo}</h3>
+                    <p className="text-xs text-white/75 mt-1 leading-snug">{act.sub}</p>
+                  </div>
+                  <div
+                    className="w-20 shrink-0 rounded-2xl text-[#0b1016] flex flex-col items-center justify-center p-2 text-center shadow-lg"
+                    style={{ backgroundColor: act.color }}
+                  >
+                    <span className="text-[9px] font-black uppercase tracking-widest">VIERNES</span>
+                    <span className="text-3xl font-black leading-none mt-0.5">{act.dia}</span>
+                    <span className="text-[11px] font-extrabold uppercase tracking-wider">{act.mes}</span>
+                    <span className="text-[9px] font-bold mt-1 px-1.5 py-0.5 rounded bg-[#0b1016]/15">4:00 PM</span>
+                  </div>
+                </div>
+
+                {/* FORMULARIO ANIMADO DE INSCRIPCIÓN */}
+                <form onSubmit={agendarClaseViernes} className="space-y-2.5 pt-2 border-t border-white/15">
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      value={nombreViernes}
+                      onChange={(e) => setNombreViernes(e.target.value)}
+                      placeholder="Escribe tu nombre"
+                      className="bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-xs text-white placeholder-white/55 focus:outline-none focus:border-white"
+                    />
+                    <select
+                      value={corregViernes}
+                      onChange={(e) => setCorregViernes(e.target.value)}
+                      className="bg-white/10 border border-white/20 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-white"
+                    >
+                      {['Bocachica', 'Tierra Bomba', 'Caño de Loro', 'Punta Arena'].map((c) => (
+                        <option key={c} value={c} className="bg-[#0b1016] text-white">{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full py-3 px-4 rounded-xl text-sm font-black text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer shadow-xl transition hover:scale-[1.02] active:scale-[0.99]"
+                    style={{ backgroundColor: act.color }}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>¡Quiero inscribirme este viernes!</span>
+                  </button>
+                </form>
+
+                {confirmViernes && (
+                  <div className="p-2.5 rounded-xl bg-[#35d08a]/20 border border-[#35d08a]/50 flex items-center gap-2 text-xs text-[#9ff3c9] font-bold">
+                    <Check className="w-4 h-4 shrink-0" />
+                    <span>¡Inscripción lista! Te esperamos el viernes {act.dia} {act.mes} a las 4:00 PM.</span>
+                  </div>
+                )}
+              </CardIluminada>
+            </aside>
+          );
+        }
+
         return (
-          <aside className={`fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-h-[82svh] overflow-y-auto tc-vidrio p-4 md:p-5 tc-paso-anim shadow-2xl ${
-            catActiva.id === 'talleres' ? 'w-[min(94vw,58rem)]' : 'w-[min(92vw,26rem)]'
-          }`}>
+          <aside className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,26rem)] max-h-[82svh] overflow-y-auto tc-vidrio p-4 md:p-5 tc-paso-anim shadow-2xl">
             <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-white/15">
               <div className="flex items-center gap-2">
                 <span className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center text-[#e0917a]">
@@ -3436,53 +3689,13 @@ export default function AulaAmbientalBocachica({
       />
 
       {/* =====================================================================
-          07 · CIERRE COMPACTO CON EL MAPA 3D VISIBLE DE FONDO
+          CIERRE COMPACTO PARA LA COMUNIDAD
       ===================================================================== */}
-      <footer id="cap-07" className="relative z-10 bg-black/55 backdrop-blur-md px-6 md:px-16 py-20 md:py-24 border-t border-white/10">
+      <footer id="cap-07" className="relative z-10 bg-black/55 backdrop-blur-md px-6 md:px-16 py-12 border-t border-white/10">
         <div className="max-w-5xl mx-auto">
-          <div className="tc-etiqueta">07 · Síntesis ejecutiva</div>
-          <h2 className="text-3xl md:text-5xl font-semibold mt-2 leading-tight max-w-3xl text-white">
-            Diez decisiones que convierten la investigación en infraestructura viva para Bocachica.
-          </h2>
-
-          <ol className="mt-10 grid md:grid-cols-2 gap-6 text-sm">
-            {SINTESIS_EJECUTIVA_10.map((s) => (
-              <li key={s.n} className="pt-4 tc-regla">
-                <div className="tc-num text-[#e0917a] text-xs font-semibold">0{s.n}</div>
-                <div className="text-white font-medium mt-1">{s.titulo}</div>
-                <p className="text-white/70 mt-1 leading-relaxed">{s.texto}</p>
-              </li>
-            ))}
-          </ol>
-
-          <div className="mt-14 pt-6 tc-regla text-xs text-white/70 leading-relaxed space-y-2 border-l border-white/25 pl-4">
-            <div className="text-white/90 font-semibold uppercase tracking-wider text-[11px]">
-              Alcance del programa marco (versión 0.1 · Octubre de 2026)
-            </div>
-            <p>
-              Este programa articula docencia, investigación y proyección social entre la Pontificia Universidad Javeriana, el Gimnasio Cristiano de Bocachica (<span className="tc-num text-white">R9</span>), organizaciones comunitarias de Bocachica y aliados técnicos (<span className="tc-num text-white">ACOPI, Verde que te Quiero Verde, Jardín Botánico de Cartagena, Universidad de Lleida</span>). Todas las intervenciones físicas requieren validación previa de la Mesa Comunitaria Local.
-            </p>
-          </div>
-
-          <details className="mt-8 pt-6 tc-regla text-xs text-white/65 leading-relaxed group">
-            <summary className="cursor-pointer select-none text-white/85 font-semibold uppercase tracking-wider text-[11px] flex items-center justify-between py-1 hover:text-white">
-              <span>Corpus documental de referencia (R1–R9)</span>
-              <span className="text-white/50 group-open:rotate-180 transition-transform">▾</span>
-            </summary>
-            <div className="mt-4 grid md:grid-cols-2 gap-4">
-              {ANTECEDENTES_CORPUS.map((r) => (
-                <div key={r.id}>
-                  <span className="tc-num text-[#e0917a] font-semibold mr-1.5">{r.id}</span>
-                  <span className="text-white font-medium">{r.titulo}</span>
-                  <span className="block text-white/50">{r.autores} ({r.anio}) · {r.institucion}</span>
-                </div>
-              ))}
-            </div>
-          </details>
-
           {/* Navegación de retorno a los otros módulos de #/comunidad sin borrar nada */}
           {(volverFn || navegarFn) && (
-            <div className="mt-12 pt-8 tc-regla flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="text-xs text-white/60">
                 Continúa explorando los demás capítulos de <span className="text-white font-medium">Tierra Bomba · Comunidad</span>
               </div>
