@@ -1638,7 +1638,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
 
   // ---------- estado objetivo y bucle de animación ----------
   const T = {
-    cam: 'hero',
+    cam: 'isla_completa',
     dim: 0,
     cartografia: 0,
     gemelo: 0,
@@ -1652,7 +1652,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     customFocus: null,
     zonas: [0.35, 0.35, 0.35], // [memoria/patrimonio, verde/escuela, agua/oficios]
     rutas: { agua: 0, verde: 0, residuos: 0, oficios: 0, patrimonio: 0 },
-    nodosActivos: null, // null = todos, o array de claves
+    nodosActivos: [], // null = todos, o array de claves
   };
 
   const vt = { zoom: 1, az: 0, el: 0, px: 0, pz: 0 };

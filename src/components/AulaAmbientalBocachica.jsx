@@ -2960,6 +2960,11 @@ export default function AulaAmbientalBocachica({
     };
   }, []);
 
+  useEffect(() => {
+    if (!escena) return;
+    activarCategoria(EXPLORA_CATEGORIAS[0], false);
+  }, [escena]);
+
   // Control de cámara y pasos por scroll (El mapa 3D es protagonista en todos los capítulos 00..06)
   useEffect(() => {
     let raf = 0;
