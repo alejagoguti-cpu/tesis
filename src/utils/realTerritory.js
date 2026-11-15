@@ -264,26 +264,27 @@ export async function prepareTreeSpecies() {
     species.push(parts);
   }
 
-  // Variantes reales (100% GLB texturizado, cero low-poly) con distinta densidad y ancho de copa (geometrías fusionadas para menos draw calls):
+  // Variantes reales (100% GLB texturizado, cero low-poly) con contrastes claros de tamaño, silueta y densidad:
   const base0 = species[0];
   const base1 = species[1];
 
-  // Especie 2: Árbol Grande Frondoso (doble copa rotada y ancha para mayor densidad)
+  // Especie 2: Árbol Gigante de Copa Ancha (3 copas amplias desplazadas para formar gran copa frondosa)
   species.push(mergePartsByKind([
-    ...clonarCopaConTransform(base0, { sx: 1.15, sy: 1.05, sz: 1.15 }),
-    ...clonarCopaConTransform(base0, { dx: 0.14, dy: 0.12, dz: -0.1, rotY: 2.1, sx: 1.05, sy: 0.92, sz: 1.05, soloHojas: true }),
-    ...clonarCopaConTransform(base0, { dx: -0.12, dy: 0.06, dz: 0.12, rotY: 4.1, sx: 0.95, sy: 0.88, sz: 0.95, soloHojas: true }),
+    ...clonarCopaConTransform(base0, { sx: 1.38, sy: 1.08, sz: 1.38 }),
+    ...clonarCopaConTransform(base0, { dx: 0.34, dy: 0.08, dz: -0.22, rotY: 2.1, sx: 1.22, sy: 0.92, sz: 1.22, soloHojas: true }),
+    ...clonarCopaConTransform(base0, { dx: -0.32, dy: 0.04, dz: 0.24, rotY: 4.1, sx: 1.18, sy: 0.88, sz: 1.18, soloHojas: true }),
   ]));
 
-  // Especie 3: Manglar / Arboleda Súper Densa (3 copas agrupadas bajas y anchas)
+  // Especie 3: Matorral / Manglar Súper Denso (4 copas bajas agrupadas en mancha densa)
   species.push(mergePartsByKind([
-    ...clonarCopaConTransform(base1, { dx: -0.16, dy: 0, dz: 0.1, rotY: 0.7, sx: 1.18, sy: 0.82, sz: 1.18 }),
-    ...clonarCopaConTransform(base1, { dx: 0.18, dy: 0.02, dz: -0.08, rotY: 2.8, sx: 1.12, sy: 0.78, sz: 1.12, soloHojas: true }),
-    ...clonarCopaConTransform(base1, { dx: 0.0, dy: 0.16, dz: 0.14, rotY: 4.9, sx: 0.96, sy: 0.85, sz: 0.96, soloHojas: true }),
+    ...clonarCopaConTransform(base1, { dx: -0.34, dy: 0, dz: 0.22, rotY: 0.7, sx: 1.35, sy: 0.72, sz: 1.35 }),
+    ...clonarCopaConTransform(base1, { dx: 0.36, dy: 0.02, dz: -0.20, rotY: 2.8, sx: 1.30, sy: 0.68, sz: 1.30, soloHojas: true }),
+    ...clonarCopaConTransform(base1, { dx: 0.04, dy: 0.14, dz: 0.32, rotY: 4.9, sx: 1.15, sy: 0.78, sz: 1.15, soloHojas: true }),
+    ...clonarCopaConTransform(base1, { dx: -0.10, dy: -0.02, dz: -0.32, rotY: 1.4, sx: 1.20, sy: 0.66, sz: 1.20, soloHojas: true }),
   ]));
 
   // Especie 4: Árbol Alto y Esbelto
-  species.push(clonarCopaConTransform(base1, { sx: 0.74, sy: 1.38, sz: 0.74 }));
+  species.push(clonarCopaConTransform(base1, { sx: 0.64, sy: 1.62, sz: 0.64 }));
 
   return species;
 }
@@ -337,22 +338,28 @@ export function instanceTrees(species, list, cell = 6, castShadow = true) {
         const tiltZ = (s1 - 0.5) * 0.16;
         euler.set(tiltX, t.rot, tiltZ, 'YXZ');
         q.setFromEuler(euler);
-        const multTam = sp === 2 ? (1.28 + s1 * 0.92) : sp === 3 ? (0.88 + s0 * 0.68) : sp === 4 ? (1.1 + s1 * 0.78) : (0.52 + s1 * 0.96);
-        const wx = t.height * multTam * (0.82 + s0 * 0.36);
-        const wy = t.height * multTam * (0.84 + s1 * 0.36);
-        const wz = t.height * multTam * (0.82 + s2 * 0.36);
+        const multTam =
+          sp === 2 ? (1.65 + s1 * 1.15)
+          : sp === 3 ? (1.05 + s0 * 0.75)
+          : sp === 4 ? (1.25 + s1 * 0.85)
+          : sp === 0 ? (0.42 + s1 * 0.34)
+          : (0.76 + s1 * 0.48);
+        const wx = t.height * multTam * (0.78 + s0 * 0.44);
+        const wy = t.height * multTam * (0.82 + s1 * 0.42);
+        const wz = t.height * multTam * (0.78 + s2 * 0.44);
         sc.set(wx, wy, wz);
-        pos.set(t.x, t.y, t.z);
+        // Desplazamiento orgánico para romper la retícula uniforme y crear claros/bosquetes naturales
+        pos.set(t.x + (s0 - 0.5) * 6.5, t.y, t.z + (s2 - 0.5) * 6.5);
         m4.compose(pos, q, sc);
         mesh.setMatrixAt(k, m4);
         if (part.kind === 'leaf') {
           const tn = t.tone ?? 0.5;
           if (t.ecotipo === 'manglar') {
-            col.setRGB(0.24 + tn * 0.22, 0.52 + s0 * 0.28, 0.34 + s1 * 0.18);
+            col.setRGB(0.18 + tn * 0.24, 0.44 + s0 * 0.38, 0.28 + s1 * 0.22);
           } else if (t.ecotipo === 'bosque_seco') {
-            col.setRGB(0.36 + tn * 0.34, 0.56 + s0 * 0.28, 0.22 + s1 * 0.18);
+            col.setRGB(0.28 + tn * 0.42, 0.48 + s0 * 0.36, 0.16 + s1 * 0.20);
           } else {
-            col.setRGB(0.3 + tn * 0.28, 0.6 + s0 * 0.28, 0.26 + s1 * 0.2);
+            col.setRGB(0.24 + tn * 0.34, 0.54 + s0 * 0.34, 0.22 + s1 * 0.22);
           }
           mesh.setColorAt(k, col);
         }
