@@ -3,6 +3,7 @@ import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { BASE, DATA_URL, prepareTreeSpecies, instanceTrees, createSkyEnvironment } from './realTerritory.js';
 
 // =============================================================================
@@ -529,21 +530,23 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     return tex;
   };
 
-  // Textura procedural de cubierta (nervaduras de teja/zinc acanalado y cumbrera)
+  // Textura procedural de cubierta (nervaduras finas de teja/zinc acanalado y cumbrera)
   const crearTexturaTecho = () => {
     const c = document.createElement('canvas');
-    c.width = 128;
-    c.height = 128;
+    c.width = 256;
+    c.height = 256;
     const g = c.getContext('2d');
-    g.fillStyle = '#d8d2cb';
-    g.fillRect(0, 0, 128, 128);
-    for (let x = 0; x < 128; x += 6) {
-      g.fillStyle = x % 12 === 0 ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.08)';
-      g.fillRect(x, 0, 3, 128);
+    g.fillStyle = '#ddd7d0';
+    g.fillRect(0, 0, 256, 256);
+    for (let x = 0; x < 256; x += 8) {
+      g.fillStyle = 'rgba(0,0,0,0.16)';
+      g.fillRect(x, 0, 3, 256);
+      g.fillStyle = 'rgba(255,255,255,0.14)';
+      g.fillRect(x + 3, 0, 2, 256);
     }
-    for (let y = 0; y < 128; y += 16) {
-      g.fillStyle = 'rgba(0,0,0,0.09)';
-      g.fillRect(0, y, 128, 2);
+    for (let y = 0; y < 256; y += 24) {
+      g.fillStyle = 'rgba(0,0,0,0.12)';
+      g.fillRect(0, y, 256, 2);
     }
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
@@ -609,8 +612,6 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       minA = Math.min(minA, a); maxA = Math.max(maxA, a); minB = Math.min(minB, b); maxB = Math.max(maxB, b);
     }
     if (distAt(cx, cy) < 0) continue;
-    // Dejamos libre el predio del Gimnasio Cristiano R9 para que su modelo 3D detallado luzca limpio
-    if (Math.hypot(cx - nodosXZ.escuelaR9.x, cy - nodosXZ.escuelaR9.z) < 42) continue;
     const distBoca = Math.hypot(cx - bx, cy - bz);
     const wReal = THREE.MathUtils.clamp(maxA - minA, 4.2, 22);
     const dReal = THREE.MathUtils.clamp(maxB - minB, 4.2, 22);
@@ -780,28 +781,61 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   treesGroup.matrixAutoUpdate = false;
   treesGroup.updateMatrix();
 
-  // Geometría 1: Muros con textura de fachada
-  const wallGeo = new THREE.BoxGeometry(1, 1, 1);
-  wallGeo.translate(0, 0.5, 0);
+  // Geometría 1: Cuerpo arquitectónico real (muros + tímpano triangular superior para techo a dos aguas)
+  const boxWall = new THREE.BoxGeometry(1, 1, 1);
+  boxWall.translate(0, 0.5, 0);
+  const gableShape = new THREE.Shape();
+  gableShape.moveTo(-0.5, 1.0);
+  gableShape.lineTo(0.5, 1.0);
+  gableShape.lineTo(0, 1.32);
+  gableShape.closePath();
+  const gableGeo = new THREE.ExtrudeGeometry(gableShape, { depth: 1.0, bevelEnabled: false });
+  gableGeo.translate(0, 0, -0.5);
+  const wallGeo = mergeGeometries([boxWall.toNonIndexed(), gableGeo.toNonIndexed()], false) || boxWall;
   const wallMat = new THREE.MeshStandardMaterial({
     map: fachadaTex,
+    bumpMap: fachadaTex,
+    bumpScale: 0.05,
     roughness: 0.86,
-    metalness: 0.04,
+    metalness: 0.03,
   });
   const houseWallsMesh = new THREE.InstancedMesh(wallGeo, wallMat, houses.length);
   houseWallsMesh.frustumCulled = false;
+  houseWallsMesh.matrixAutoUpdate = false;
 
-  // Geometría 2: Cubiertas piramidales / a 4 aguas con alero caribeño
-  const roofGeo = new THREE.ConeGeometry(0.78, 1, 4);
-  roofGeo.rotateY(Math.PI / 4);
-  roofGeo.translate(0, 0.5, 0);
+  // Geometría 2: Cubierta real a dos aguas con aleros y espesor arquitectónico (cero pirámides low-poly)
+  const roofShape = new THREE.Shape();
+  roofShape.moveTo(-0.56, 0.0);
+  roofShape.lineTo(0.0, 0.36);
+  roofShape.lineTo(0.56, 0.0);
+  roofShape.lineTo(0.56, 0.07);
+  roofShape.lineTo(0.0, 0.43);
+  roofShape.lineTo(-0.56, 0.07);
+  roofShape.closePath();
+  const roofGeo = new THREE.ExtrudeGeometry(roofShape, { depth: 1.10, bevelEnabled: false });
+  roofGeo.translate(0, 0, -0.55);
   const roofMat = new THREE.MeshStandardMaterial({
     map: techoTex,
-    roughness: 0.74,
-    metalness: 0.14,
+    bumpMap: techoTex,
+    bumpScale: 0.14,
+    roughness: 0.72,
+    metalness: 0.12,
   });
   const houseRoofsMesh = new THREE.InstancedMesh(roofGeo, roofMat, houses.length);
   houseRoofsMesh.frustumCulled = false;
+  houseRoofsMesh.matrixAutoUpdate = false;
+
+  // Geometría 3: Basamento / zócalo de mampostería y terraza frontal
+  const baseGeo = new THREE.BoxGeometry(1.06, 1, 1.12);
+  baseGeo.translate(0, 0.5, 0.03);
+  const baseMat = new THREE.MeshStandardMaterial({
+    color: 0xcfc4b4,
+    roughness: 0.92,
+    metalness: 0.02,
+  });
+  const houseBasesMesh = new THREE.InstancedMesh(baseGeo, baseMat, houses.length);
+  houseBasesMesh.frustumCulled = false;
+  houseBasesMesh.matrixAutoUpdate = false;
 
   const m4 = new THREE.Matrix4();
   const qn = new THREE.Quaternion();
@@ -845,17 +879,23 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       const hWall = hh.h * 0.74 * Math.min(1.25, escala);
       const hRoof = Math.max(1.35, hh.h * 0.42) * Math.min(1.25, escala);
 
-      // Matriz de muros (hundimos 0.35m la base para asentar en pendientes)
-      pv.set(hh.x, hh.y - 0.35, hh.z);
-      sv.set(wScaled, hWall + 0.35, dScaled);
+      // Matriz de muros + tímpano (asentados sobre el basamento)
+      pv.set(hh.x, hh.y - 0.15, hh.z);
+      sv.set(wScaled, hWall + 0.15, dScaled);
       m4.compose(pv, qn, sv);
       houseWallsMesh.setMatrixAt(k, m4);
 
-      // Matriz de cubierta con alero de 1.12x sobre el muro
-      pv.set(hh.x, hh.y + hWall - 0.05, hh.z);
-      sv.set(wScaled * 1.12, hRoof, dScaled * 1.12);
+      // Matriz de cubierta a dos aguas (asentada exactamente sobre el muro hWall)
+      pv.set(hh.x, hh.y + hWall - 0.02, hh.z);
+      sv.set(wScaled, hWall * 0.92, dScaled);
       m4.compose(pv, qn, sv);
       houseRoofsMesh.setMatrixAt(k, m4);
+
+      // Matriz de zócalo / terraza de mampostería
+      pv.set(hh.x, hh.y - 0.45, hh.z);
+      sv.set(wScaled, 0.65, dScaled);
+      m4.compose(pv, qn, sv);
+      houseBasesMesh.setMatrixAt(k, m4);
 
       // Color de muros y cubiertas
       wallCol.copy(PALETA_MUROS[k % PALETA_MUROS.length]).offsetHSL(0, 0, ((k * 13) % 7 - 3) * 0.01);
@@ -870,6 +910,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     });
     houseWallsMesh.instanceMatrix.needsUpdate = true;
     houseRoofsMesh.instanceMatrix.needsUpdate = true;
+    houseBasesMesh.instanceMatrix.needsUpdate = true;
     if (houseWallsMesh.instanceColor) houseWallsMesh.instanceColor.needsUpdate = true;
     if (houseRoofsMesh.instanceColor) houseRoofsMesh.instanceColor.needsUpdate = true;
   };
@@ -878,7 +919,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   // ---------- escena, cielo, mar, luces ----------
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x9fc6d4, 0.000012);
-  scene.add(terrain, houseWallsMesh, houseRoofsMesh, treesGroup);
+  scene.add(terrain, houseBasesMesh, houseWallsMesh, houseRoofsMesh, treesGroup);
 
   const sky = new Sky();
   sky.scale.setScalar(450000);
@@ -1007,6 +1048,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const sNode = nodosXZ.escuelaR9;
   const escuelaG = new THREE.Group();
   escuelaG.position.set(sNode.x, sNode.y, sNode.z);
+  escuelaG.visible = false;
   aulaGroup.add(escuelaG);
   {
     const matMuroEsc = new THREE.MeshStandardMaterial({ map: fachadaTex, color: 0xf4efe4, roughness: 0.85 });
@@ -1879,12 +1921,12 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     }
 
     // LOD por distancia: en vista de isla completa (>4.8 km) ocultamos hojas 3D sub-píxel para mantener 60 FPS
-    houseWallsMesh.visible = houseRoofsMesh.visible = !!T.mostrarCasas;
+    houseBasesMesh.visible = houseWallsMesh.visible = houseRoofsMesh.visible = !!T.mostrarCasas;
     treesGroup.visible = !enNubePura && !!T.mostrarArboles && dist < 4800;
     const escalaArbol = 1 + cur.sombraExtra * 0.38;
     treesGroup.scale.set(escalaArbol, escalaArbol, escalaArbol);
     aulaGroup.visible = !!T.mostrarPilotos;
-    escuelaG.visible = cur.escuela > 0.02;
+    escuelaG.visible = false;
     escuelaG.scale.set(1, Math.max(0.001, cur.escuela), 1);
 
     // Lluvia y llenado del aljibe en Gimnasio Cristiano R9
