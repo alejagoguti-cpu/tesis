@@ -2879,6 +2879,7 @@ export default function AulaAmbientalBocachica({
   const [pasoRecorridoIdx, setPasoRecorridoIdx] = useState(0);
   const [patPreviewIdx, setPatPreviewIdx] = useState(0);
   const [tallerPreviewIdx, setTallerPreviewIdx] = useState(0);
+  const [autoTourActivo, setAutoTourActivo] = useState(false);
   const [recorridoCompletado, setRecorridoCompletado] = useState(false);
   const [saltoDirectoPatrimonio, setSaltoDirectoPatrimonio] = useState(false);
   const [avisoBloqueoRecorrido, setAvisoBloqueoRecorrido] = useState(false);
@@ -3599,6 +3600,29 @@ export default function AulaAmbientalBocachica({
     escena?.setPausado?.(Boolean(panelJuego || modalDiagrama));
   }, [escena, panelJuego, modalDiagrama]);
 
+  useEffect(() => {
+    if (!autoTourActivo || !escena || panelJuego || modalDiagrama || patrimonioSel || actividadViernesSel) return undefined;
+    if (catActiva?.id !== 'patrimonio' && catActiva?.id !== 'talleres') return undefined;
+    const id = setInterval(() => {
+      if (catActiva.id === 'patrimonio') {
+        setPatPreviewIdx((prev) => {
+          const next = (prev + 1) % patrimoniosIsla.length;
+          const p = patrimoniosIsla[next];
+          if (p) escena.irANodo?.(p.nodo, 280);
+          return next;
+        });
+      } else if (catActiva.id === 'talleres') {
+        setTallerPreviewIdx((prev) => {
+          const next = (prev + 1) % actividadesIsla.length;
+          const a = actividadesIsla[next];
+          if (a) escena.irANodo?.(a.nodo, 300);
+          return next;
+        });
+      }
+    }, 3600);
+    return () => clearInterval(id);
+  }, [autoTourActivo, escena, catActiva, panelJuego, modalDiagrama, patrimonioSel, actividadViernesSel, patrimoniosIsla, actividadesIsla]);
+
   // Control de cámara y pasos por scroll (El mapa 3D es protagonista en todos los capítulos 00..06)
   useEffect(() => {
     let raf = 0;
@@ -4180,7 +4204,7 @@ export default function AulaAmbientalBocachica({
                 );
               })}
             </svg>
-            {listaPines.map((item) => {
+            {listaPines.map((item, idx) => {
               const p = pinesActividad[item.nodo];
               if (!p) return null;
               const IconoPin = item.Icon || Landmark;
@@ -4189,7 +4213,21 @@ export default function AulaAmbientalBocachica({
                 <button
                   key={item.nodo}
                   type="button"
-                  onClick={() => (esPatrimonio ? seleccionarPatrimonio(item) : esCorreg ? seleccionarCorregimiento(item) : seleccionarActividad(item))}
+                  onMouseEnter={() => {
+                    if (esPatrimonio) setPatPreviewIdx(idx);
+                    else if (!esCorreg) setTallerPreviewIdx(idx);
+                    else {
+                      const ord = ['tierraBomba', 'puntaArena', 'canoDeLoro', 'casco'];
+                      const oi = ord.indexOf(item.nodo);
+                      if (oi >= 0) setPasoRecorridoIdx(oi);
+                    }
+                  }}
+                  onClick={() => {
+                    setAutoTourActivo(false);
+                    if (esPatrimonio) seleccionarPatrimonio(item);
+                    else if (esCorreg) seleccionarCorregimiento(item);
+                    else seleccionarActividad(item);
+                  }}
                   onDoubleClick={() => {
                     if (esCorreg && item.nodo === 'tierraBomba') {
                       setCorregSel(null);
@@ -4551,18 +4589,31 @@ export default function AulaAmbientalBocachica({
                 ))}
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setPatrimonioSecIdx(0);
-                  setPatrimonioSel(patAct);
-                  escena?.irANodo?.(patAct.nodo, 260);
-                }}
-                className="w-full py-2 px-3 rounded-xl bg-white text-[#0b1016] hover:bg-white/90 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition"
-              >
-                <span>Abrir ficha de {patAct.corto}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAutoTourActivo(false);
+                    setPatrimonioSecIdx(0);
+                    setPatrimonioSel(patAct);
+                    escena?.irANodo?.(patAct.nodo, 260);
+                  }}
+                  className="flex-1 py-2 px-3 rounded-xl bg-white text-[#0b1016] hover:bg-white/90 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition"
+                >
+                  <span>Abrir ficha de {patAct.corto}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAutoTourActivo((v) => !v)}
+                  className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition ${
+                    autoTourActivo ? 'bg-[#e8a86b] text-[#0b1016]' : 'bg-white/10 hover:bg-white/20 text-white'
+                  }`}
+                >
+                  {autoTourActivo ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                  <span>{autoTourActivo ? 'Pausar' : 'Tour'}</span>
+                </button>
+              </div>
             </div>
           );
         }
@@ -4763,18 +4814,31 @@ export default function AulaAmbientalBocachica({
                 ))}
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setActividadViernesSel(actPreview);
-                  escena?.irANodo?.(actPreview.nodo, 300);
-                }}
-                className="w-full py-2 px-3 rounded-xl text-xs font-bold text-[#0b1016] flex items-center justify-center gap-1.5 cursor-pointer transition hover:brightness-110"
-                style={{ backgroundColor: actPreview.color }}
-              >
-                <span>Inscribirme + Elegir beneficio</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAutoTourActivo(false);
+                    setActividadViernesSel(actPreview);
+                    escena?.irANodo?.(actPreview.nodo, 300);
+                  }}
+                  className="flex-1 py-2 px-3 rounded-xl text-xs font-bold text-[#0b1016] flex items-center justify-center gap-1.5 cursor-pointer transition hover:brightness-110"
+                  style={{ backgroundColor: actPreview.color }}
+                >
+                  <span>Inscribirme + Beneficio</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAutoTourActivo((v) => !v)}
+                  className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition ${
+                    autoTourActivo ? 'bg-white text-[#0b1016]' : 'bg-white/10 hover:bg-white/20 text-white'
+                  }`}
+                >
+                  {autoTourActivo ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                  <span>{autoTourActivo ? 'Pausar' : 'Tour'}</span>
+                </button>
+              </div>
             </div>
           );
         }
