@@ -1700,7 +1700,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const dxIsla = () => (window.innerWidth >= 1024 ? -1350 : 0);
   const POSES = {
     isla_completa: () => ({
-      pos: new THREE.Vector3(dxIsla() * 0.28, 12200, 1950),
+      pos: new THREE.Vector3(dxIsla() * 0.28, 12600, 1200),
       look: new THREE.Vector3(dxIsla() * 0.28, 0, -180),
     }),
     hero: (t) => {
@@ -1747,7 +1747,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       look: new THREE.Vector3(nodosXZ.ribera.x + dx() * 0.15, 6, nodosXZ.ribera.z),
     }),
     linea_patrimonio: () => ({
-      pos: new THREE.Vector3(nodosXZ.sanFernando.x + 155, 140, nodosXZ.sanFernando.z + 245),
+      pos: new THREE.Vector3(nodosXZ.sanFernando.x + 25, 440, nodosXZ.sanFernando.z + 90),
       look: new THREE.Vector3(nodosXZ.sanFernando.x + 10, 8, nodosXZ.sanFernando.z),
     }),
     escuela_r9: () => ({
@@ -1770,7 +1770,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       const f = T.customFocus || { x: bx, y: 10, z: bz, dist: 340 };
       const d = f.dist || 340;
       return {
-        pos: new THREE.Vector3(f.x + Math.sin(t * 0.14) * d * 0.45 + d * 0.35, f.y + d * 0.48, f.z + d * 0.85),
+        pos: new THREE.Vector3(f.x + Math.sin(t * 0.1) * d * 0.06, f.y + d * 1.45, f.z + d * 0.22),
         look: new THREE.Vector3(f.x, f.y + 4, f.z),
       };
     },

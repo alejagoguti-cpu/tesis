@@ -75,7 +75,7 @@ export function Escena3DMojarra({ etapa, adobos, friendo, coccion, plato, fullHe
     scene.background = new THREE.Color(0x0d1721);
 
     const camera = new THREE.PerspectiveCamera(42, mount.clientWidth / Math.max(1, mount.clientHeight), 0.1, 50);
-    camera.position.set(0, 4.2, 4.8);
+    camera.position.set(0, 5.6, 0.85);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', stencil: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
