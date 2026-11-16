@@ -376,14 +376,63 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   };
   const heightAtXZ = (X, Z) => heightAtUV(clamp01((X / mpt + txc - tx0) / (tx1 - tx0)), clamp01((Z / mpt + tyc - ty0) / (ty1 - ty0)));
 
+  const lineMats = [];
   const maxTex = renderer.capabilities.maxTextureSize;
   const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+
+  // Trazo tenue de senderos y caminos de tierra sobre la textura base del terreno (estilo tesis_tercer_corte)
+  const pintarViasEnTextura = (ctx, sc) => {
+    if (!sintaxis?.peatonal?.coords?.length) return;
+    const G = sintaxis.peatonal;
+    const Lc = { residential: 9, unclassified: 8, service: 6, track: 5.5, path: 3.2, footway: 3, steps: 2.6, pedestrian: 4 };
+    let seed = 7;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    const layers = [
+      { k: 1.5, col: 'rgba(110, 92, 64, 0.40)' },
+      { k: 1.0, col: 'rgba(214, 192, 148, 0.85)' },
+      { k: 0.55, col: 'rgba(240, 230, 205, 0.65)' },
+    ];
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    const toPx = (lon, lat) => {
+      const [X, Z] = llToXZ(lon, lat);
+      return [
+        ((X / mpt + txc - tx0) / (tx1 - tx0)) * ctx.canvas.width,
+        ((Z / mpt + tyc - ty0) / (ty1 - ty0)) * ctx.canvas.height,
+      ];
+    };
+    for (const de of layers) {
+      ctx.strokeStyle = de.col;
+      G.coords.forEach(([lo0, la0, lo1, la1], idx) => {
+        const ot = Math.max(1.6, ((Lc[G.tipo?.[idx]] || 4) / mpp) * sc * de.k * 0.42);
+        const [px0, py0] = toPx(lo0, la0);
+        const [px1, py1] = toPx(lo1, la1);
+        const dist = Math.hypot(px1 - px0, py1 - py0);
+        const steps = Math.max(1, Math.ceil(dist / Math.max(2, ot * 1.5)));
+        ctx.beginPath();
+        ctx.moveTo(px0, py0);
+        for (let s = 1; s <= steps; s++) {
+          const kn = s / steps;
+          const an = s < steps ? (rnd() - 0.5) * ot * 0.35 : 0;
+          ctx.lineTo(
+            px0 + (px1 - px0) * kn + an * (-(py1 - py0) / (dist || 1)),
+            py0 + (py1 - py0) * kn + an * ((px1 - px0) / (dist || 1))
+          );
+        }
+        ctx.lineWidth = ot * (0.85 + rnd() * 0.3);
+        ctx.stroke();
+      });
+    }
+  };
+
   const textureFrom = (img, maxSide) => {
     const sc = Math.min(1, maxSide / Math.max(img.width, img.height));
     const c = document.createElement('canvas');
     c.width = Math.round(img.width * sc);
     c.height = Math.round(img.height * sc);
-    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    pintarViasEnTextura(ctx, sc);
     const t = new THREE.CanvasTexture(c);
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = aniso;
@@ -449,42 +498,80 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   terrain.receiveShadow = true;
 
   // Red completa de vías, calles y senderos peatonales (1.642 tramos · 73,0 km de Tierra Bomba)
+  // Idéntica a la cartografía 3D de tesis_tercer_corte con LineSegments2 + Halo oscuro + colores semánticos
+  let viasHalo = null;
+  let viasMain = null;
+  let viasHaloMat = null;
+  let viasMainMat = null;
+
   if (sintaxis?.peatonal?.coords?.length) {
     const COLOR_TIPO = {
-      residential: new THREE.Color('#e8eef0'),
-      unclassified: new THREE.Color('#e8eef0'),
-      service: new THREE.Color('#9fd3e0'),
-      track: new THREE.Color('#9fd3e0'),
-      path: new THREE.Color('#ff8a6a'),
-      footway: new THREE.Color('#ff8a6a'),
-      steps: new THREE.Color('#ff8a6a'),
-      pedestrian: new THREE.Color('#ff8a6a'),
+      residential: new THREE.Color('#f0f4f8'),
+      unclassified: new THREE.Color('#f0f4f8'),
+      service: new THREE.Color('#8ee6f5'),
+      track: new THREE.Color('#8ee6f5'),
+      path: new THREE.Color('#ff7a50'),
+      footway: new THREE.Color('#ff7a50'),
+      steps: new THREE.Color('#ff7a50'),
+      pedestrian: new THREE.Color('#ff7a50'),
     };
-    const defCol = new THREE.Color('#e8eef0');
+    const defCol = new THREE.Color('#f0f4f8');
     const P = sintaxis.peatonal;
-    const posArr = [];
-    const colArr = [];
-    P.coords.forEach(([lo0, la0, lo1, la1], idx) => {
+    const posList = [];
+    const colList = [];
+
+    for (let s = 0; s < P.coords.length; s++) {
+      const [lo0, la0, lo1, la1] = P.coords[s];
       const [x0, z0] = llToXZ(lo0, la0);
       const [x1, z1] = llToXZ(lo1, la1);
-      const y0 = heightAtXZ(x0, z0) + 1.4;
-      const y1 = heightAtXZ(x1, z1) + 1.4;
-      const c = COLOR_TIPO[P.tipo?.[idx]] || defCol;
-      posArr.push(x0, y0, z0, x1, y1, z1);
-      colArr.push(c.r, c.g, c.b, c.r, c.g, c.b);
-    });
-    const viasGeo = new THREE.BufferGeometry();
-    viasGeo.setAttribute('position', new THREE.Float32BufferAttribute(posArr, 3));
-    viasGeo.setAttribute('color', new THREE.Float32BufferAttribute(colArr, 3));
-    const viasMat = new THREE.LineBasicMaterial({
-      vertexColors: true,
+      const len = Math.hypot(x1 - x0, z1 - z0);
+      const steps = Math.max(1, Math.ceil(len / 14));
+      const c = COLOR_TIPO[P.tipo?.[s]] || defCol;
+
+      for (let b = 0; b < steps; b++) {
+        const sx0 = x0 + ((x1 - x0) * b) / steps;
+        const sz0 = z0 + ((z1 - z0) * b) / steps;
+        const sx1 = x0 + ((x1 - x0) * (b + 1)) / steps;
+        const sz1 = z0 + ((z1 - z0) * (b + 1)) / steps;
+        const sy0 = heightAtXZ(sx0, sz0) + 3.2;
+        const sy1 = heightAtXZ(sx1, sz1) + 3.2;
+
+        posList.push(sx0, sy0, sz0, sx1, sy1, sz1);
+        colList.push(c.r, c.g, c.b, c.r, c.g, c.b);
+      }
+    }
+
+    const viasGeo = new LineSegmentsGeometry();
+    viasGeo.setPositions(posList);
+    viasGeo.setColors(colList);
+
+    // Halo oscuro para contraste sobre el terreno y bosque
+    viasHaloMat = new LineMaterial({
+      color: 0x05080c,
+      linewidth: 5.6,
       transparent: true,
-      opacity: 0.92,
+      opacity: 0.88,
       depthWrite: false,
     });
-    const viasLines = new THREE.LineSegments(viasGeo, viasMat);
-    viasLines.renderOrder = 3;
-    scene.add(viasLines);
+    viasHalo = new LineSegments2(viasGeo, viasHaloMat);
+    viasHalo.renderOrder = 14;
+    viasHalo.frustumCulled = false;
+    scene.add(viasHalo);
+
+    // Cinta central brillante (blanco calles, celeste trochas, naranja senderos)
+    viasMainMat = new LineMaterial({
+      linewidth: 3.2,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.98,
+      depthWrite: false,
+    });
+    viasMain = new LineSegments2(viasGeo, viasMainMat);
+    viasMain.renderOrder = 15;
+    viasMain.frustumCulled = false;
+    scene.add(viasMain);
+
+    lineMats.push(viasHaloMat, viasMainMat);
   }
 
   // Coordenadas XZ de los nodos de Bocachica
@@ -1613,7 +1700,6 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   }
 
   // Rutas 3D con LineSegments2
-  const lineMats = [];
   const rutas3D = {};
   const crearRuta3D = (clave, ptsLL, hexColor, ancho = 4.2) => {
     const pts = ptsLL.map(([lo, la]) => llToXZ(lo, la));
@@ -1865,6 +1951,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     mostrarCasas: true,
     mostrarArboles: true,
     mostrarPilotos: true,
+    mostrarVias: true,
+    viasOpacidad: 1,
     customFocus: null,
     zonas: [0.35, 0.35, 0.35], // [memoria/patrimonio, verde/escuela, agua/oficios]
     rutas: { agua: 0, verde: 0, residuos: 0, oficios: 0, patrimonio: 0 },
@@ -2011,6 +2099,18 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     aulaGroup.visible = !!T.mostrarPilotos;
     escuelaG.visible = false;
     escuelaG.scale.set(1, Math.max(0.001, cur.escuela), 1);
+
+    // Control dinámico de la red de vías (73,0 km en 1.642 tramos de OpenStreetMap)
+    const mostrarVias = T.mostrarVias !== false;
+    const wantViasOp = mostrarVias ? (T.viasOpacidad ?? 1.0) : 0;
+    if (viasHalo && viasMain) {
+      const vis = wantViasOp > 0.02;
+      viasHalo.visible = viasMain.visible = vis;
+      if (vis) {
+        viasHaloMat.opacity = wantViasOp * 0.88;
+        viasMainMat.opacity = wantViasOp * 0.98;
+      }
+    }
 
     // Lluvia y llenado del aljibe en Gimnasio Cristiano R9
     lluviaLineas.visible = cur.lluvia > 0.02;

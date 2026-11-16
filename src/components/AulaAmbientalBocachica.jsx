@@ -35,6 +35,7 @@ import {
   ExternalLink,
   Flame,
   Fish,
+  Navigation,
 } from 'lucide-react';
 import { crearEscenaAula } from '../utils/escenaAulaBocachica';
 import { crearReproductorComunidad, PISTAS_MEMORIA } from '../utils/musicaComunidad';
@@ -78,7 +79,7 @@ function JuegoCocinarMojarra({ onCerrar }) {
     <div className="fixed inset-0 z-[120] bg-[#1a110b] flex flex-col">
       <iframe
         src={`${import.meta.env.BASE_URL}la-mojarra-dorada/index.html`}
-        title="La Mojarra Dorada â€” Mojarra frita de Bocachica"
+        title="La Mojarra Dorada — Mojarra frita de Bocachica"
         className="w-full h-full border-0 flex-1"
         allow="autoplay"
       />
@@ -103,7 +104,7 @@ function JuegoPailaDulce({ onCerrar }) {
     <div className="fixed inset-0 z-[120] bg-[#1a110b] flex flex-col">
       <iframe
         src={`${import.meta.env.BASE_URL}la-paila-dulce/index.html`}
-        title="La Paila Dulce â€” Haz tu cocada"
+        title="La Paila Dulce — Haz tu cocada"
         className="w-full h-full border-0 flex-1"
         allow="autoplay"
       />
@@ -127,16 +128,16 @@ function JuegoBailarCartagenero({ item, color = '#35d08a', sonando, onToggleMusi
   const esMapale = item?.id === 'mapale_cumbia';
   const pasos = esMapale
     ? [
-        { id: 0, titulo: '1. Paso deslizado', clave: 'Desliza el pie derecho al compÃ¡s', frase: 'Â¡Eche, suelta la cadera y desliza suave con el tambor!' },
-        { id: 1, titulo: '2. Cortejo con sombrero', clave: 'Levanta el sombrero vueltiao y gira', frase: 'Â¡Con elegancia, alza el sombrero y rodea la rueda!' },
-        { id: 2, titulo: '3. Repique de hombros', clave: 'Sacude hombros y pecho rÃ¡pido', frase: 'Â¡Acelera el tambor alegre! Â¡Hombros arriba y abajo!' },
-        { id: 3, titulo: '4. Remate de MapalÃ©', clave: 'Salto corto y brazos en alto', frase: 'Â¡Esooo! Â¡AsÃ­ se remata en Bocachica, pura sabrosura!' },
+        { id: 0, titulo: '1. Paso deslizado', clave: 'Desliza el pie derecho al compás', frase: '¡Eche, suelta la cadera y desliza suave con el tambor!' },
+        { id: 1, titulo: '2. Cortejo con sombrero', clave: 'Levanta el sombrero vueltiao y gira', frase: '¡Con elegancia, alza el sombrero y rodea la rueda!' },
+        { id: 2, titulo: '3. Repique de hombros', clave: 'Sacude hombros y pecho rápido', frase: '¡Acelera el tambor alegre! ¡Hombros arriba y abajo!' },
+        { id: 3, titulo: '4. Remate de Mapalé', clave: 'Salto corto y brazos en alto', frase: '¡Esooo! ¡Así se remata en Bocachica, pura sabrosura!' },
       ]
     : [
-        { id: 0, titulo: '1. Entrar a la rueda', clave: 'Marca el pulso con palmas', frase: 'Â¡Bienvenido a la rueda! Escucha el llamado de la cantadora.' },
-        { id: 1, titulo: '2. Paso sereno', clave: 'Cadera firme al tambor llamador', frase: 'Â¡Espalda derechita, paso corto y con mucha calma!' },
-        { id: 2, titulo: '3. DiÃ¡logo con tambor', clave: 'Abre brazos y responde al repique', frase: 'Â¡RespÃ³ndele al tambor alegre con el cuerpo, mi llave!' },
-        { id: 3, titulo: '4. Venia y saludo', clave: 'Saludo al tamborero y cierre', frase: 'Â¡MaestrÃ­a total! Ya tienes el alma del Bullerengue sentao.' },
+        { id: 0, titulo: '1. Entrar a la rueda', clave: 'Marca el pulso con palmas', frase: '¡Bienvenido a la rueda! Escucha el llamado de la cantadora.' },
+        { id: 1, titulo: '2. Paso sereno', clave: 'Cadera firme al tambor llamador', frase: '¡Espalda derechita, paso corto y con mucha calma!' },
+        { id: 2, titulo: '3. Diálogo con tambor', clave: 'Abre brazos y responde al repique', frase: '¡Respóndele al tambor alegre con el cuerpo, mi llave!' },
+        { id: 3, titulo: '4. Venia y saludo', clave: 'Saludo al tamborero y cierre', frase: '¡Maestría total! Ya tienes el alma del Bullerengue sentao.' },
       ];
 
   const [pasoIdx, setPasoIdx] = useState(0);
@@ -178,16 +179,16 @@ function JuegoBailarCartagenero({ item, color = '#35d08a', sonando, onToggleMusi
       setTerminado(true);
       setFeedback(
         enZonaVerde
-          ? 'Â¡QuÃ© nivel, compadre! Bailaste todo el set al ritmo exacto de Cartagena.'
-          : 'Â¡Completado! Sigue practicando en la franja verde para clavar el repique.'
+          ? '¡Qué nivel, compadre! Bailaste todo el set al ritmo exacto de Cartagena.'
+          : '¡Completado! Sigue practicando en la franja verde para clavar el repique.'
       );
     } else {
       const sig = pasoIdx + 1;
       setPasoIdx(sig);
       setFeedback(
         enZonaVerde
-          ? `Â¡En el punto! ${pasos[sig].frase}`
-          : `Â¡Bien! ${pasos[sig].frase}`
+          ? `¡En el punto! ${pasos[sig].frase}`
+          : `¡Bien! ${pasos[sig].frase}`
       );
     }
   };
@@ -215,10 +216,10 @@ function JuegoBailarCartagenero({ item, color = '#35d08a', sonando, onToggleMusi
           </span>
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest" style={{ color }}>
-              Juego virtual Â· Maestro Cartagenero en vivo
+              Juego virtual · Maestro Cartagenero en vivo
             </div>
             <h3 className="text-sm md:text-base font-extrabold text-white">
-              Aprende a bailar {esMapale ? 'MapalÃ© y Cumbia' : 'Bullerengue'} paso a paso
+              Aprende a bailar {esMapale ? 'Mapalé y Cumbia' : 'Bullerengue'} paso a paso
             </h3>
           </div>
         </div>
@@ -231,10 +232,10 @@ function JuegoBailarCartagenero({ item, color = '#35d08a', sonando, onToggleMusi
             }`}
           >
             {sonando ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            <span>{sonando ? 'Pausar tambor' : 'Poner mÃºsica'}</span>
+            <span>{sonando ? 'Pausar tambor' : 'Poner música'}</span>
           </button>
           <span className="px-2.5 py-1 rounded-full bg-white/10 text-xs font-extrabold text-white">
-            {puntos} pts {combo > 1 ? `Â· x${combo}` : ''}
+            {puntos} pts {combo > 1 ? `· x${combo}` : ''}
           </span>
           <button
             type="button"
@@ -279,7 +280,7 @@ function JuegoBailarCartagenero({ item, color = '#35d08a', sonando, onToggleMusi
         </div>
 
         <div className="md:col-span-5 space-y-2.5">
-          <div className="text-xs font-bold text-white">Sigue al maestro en orden (1 â†’ 4)</div>
+          <div className="text-xs font-bold text-white">Sigue al maestro en orden (1 → 4)</div>
           {pasos.map((p) => {
             const completado = terminado || p.id < pasoIdx;
             const actual = !terminado && p.id === pasoIdx;
@@ -341,37 +342,37 @@ import {
 } from '../data/aulaAmbientalData';
 
 // =============================================================================
-// TIERRA BOMBA Â· AULA AMBIENTAL (BOCACHICA)
+// TIERRA BOMBA · AULA AMBIENTAL (BOCACHICA)
 // Construido con la arquitectura exacta de https://alejagoguti-cpu.github.io/tesis_tercer_corte/
 //  - Escena 3D fija a pantalla completa (Three.js) controlada por el scroll
-//  - Paneles flotantes de vidrio esmerilado (.tc-vidrio), Ã­ndice lateral y controles de mapa
-//  - Red conceptual progresiva con curvas BÃ©zier, partÃ­culas y mÃ¡quina de escribir
-//  - Diagramas visuales (barras apiladas, flujos SVG, esquema en planta, lÃ­nea de tiempo)
+//  - Paneles flotantes de vidrio esmerilado (.tc-vidrio), índice lateral y controles de mapa
+//  - Red conceptual progresiva con curvas Bézier, partículas y máquina de escribir
+//  - Diagramas visuales (barras apiladas, flujos SVG, esquema en planta, línea de tiempo)
 //  - Cero tablas tipo Word
 // =============================================================================
 
-const ALTO_PASO = 95; // svh por paso de scrollytelling 3D (idÃ©ntico a tesis_tercer_corte)
+const ALTO_PASO = 95; // svh por paso de scrollytelling 3D (idéntico a tesis_tercer_corte)
 
 const CAPITULOS = [
   { id: '00', nombre: 'Inicio', ancla: 'cap-00' },
-  { id: '01', nombre: 'Â¿QuÃ© pasa hoy?', ancla: 'cap-01' },
+  { id: '01', nombre: '¿Qué pasa hoy?', ancla: 'cap-01' },
   { id: '02', nombre: 'Nuestras memorias', ancla: 'cap-02' },
   { id: '03', nombre: '6 Soluciones 3D', ancla: 'cap-03' },
   { id: '04', nombre: 'Mapa vivo 3D', ancla: 'cap-04' },
   { id: '05', nombre: 'El Colegio', ancla: 'cap-05' },
-  { id: '06', nombre: 'Plan 2 aÃ±os', ancla: 'cap-06' },
+  { id: '06', nombre: 'Plan 2 años', ancla: 'cap-06' },
   { id: '07', nombre: 'Resumen', ancla: 'cap-07' },
 ];
 
-// Pasos 3D continuos sobre la isla (CapÃ­tulos 01 al 06 â€” explicados en lenguaje claro para la comunidad)
+// Pasos 3D continuos sobre la isla (Capítulos 01 al 06 — explicados en lenguaje claro para la comunidad)
 const PASOS_3D = [
-  // --- CAP 01: Â¿QUÃ‰ PASA HOY EN BOCACHICA? (Ã­ndices 0..1) ---
+  // --- CAP 01: ¿QUÉ PASA HOY EN BOCACHICA? (índices 0..1) ---
   {
     id: 'p01',
     capId: '01',
-    grupo: '01 Â· Los 4 Corregimientos de Tierra Bomba',
+    grupo: '01 · Los 4 Corregimientos de Tierra Bomba',
     pasoGrupo: '01 / 02',
-    titulo: 'Toda la isla en planta: Bocachica, Tierra Bomba, CaÃ±o de Loro y Punta Arena',
+    titulo: 'Toda la isla en planta: Bocachica, Tierra Bomba, Caño de Loro y Punta Arena',
     cam: 'isla_completa',
     zonas: [0.55, 0.2, 0.2],
     rutas: { agua: 0, verde: 0.2, residuos: 0, oficios: 0.2, patrimonio: 0.2 },
@@ -380,8 +381,8 @@ const PASOS_3D = [
     cartografia: 0.32,
     gemelo: 0,
     cifra: '4 corregimientos',
-    subCifra: 'Bocachica Â· Tierra Bomba Â· CaÃ±o de Loro Â· Punta Arena',
-    resumen: 'Al desplazarte ves toda la isla de Tierra Bomba con sus cuatro corregimientos iluminados. Desde aquÃ­ puedes explorar el patrimonio, los talleres, el colegio y el manglar.',
+    subCifra: 'Bocachica · Tierra Bomba · Caño de Loro · Punta Arena',
+    resumen: 'Al desplazarte ves toda la isla de Tierra Bomba con sus cuatro corregimientos iluminados. Desde aquí puedes explorar el patrimonio, los talleres, el colegio y el manglar.',
     piloto: 'Conectar los cuatro corregimientos alrededor del Gimnasio Cristiano de Bocachica como aula abierta para toda la isla.',
     producto: 'Un mapa vivo donde la comunidad ubica sus corregimientos, caminos y proyectos.',
     interactivo: 'simulador4pasos',
@@ -389,9 +390,9 @@ const PASOS_3D = [
   {
     id: 'p02',
     capId: '01',
-    grupo: '01 Â· Nuestro compromiso con la comunidad',
+    grupo: '01 · Nuestro compromiso con la comunidad',
     pasoGrupo: '02 / 02',
-    titulo: 'Todo lo que se investigue debe volver convertido en algo Ãºtil para el barrio',
+    titulo: 'Todo lo que se investigue debe volver convertido en algo útil para el barrio',
     cam: 'bocachica_general',
     zonas: [0.75, 0.75, 0.75],
     rutas: { agua: 0.8, verde: 0.8, residuos: 0.8, oficios: 0.8, patrimonio: 0.8 },
@@ -400,18 +401,18 @@ const PASOS_3D = [
     cartografia: 0,
     gemelo: 0,
     cifra: '100 % para el barrio',
-    subCifra: 'Nada se hace sin el visto bueno y la participaciÃ³n de la gente de Bocachica',
-    resumen: 'Antes venÃ­an universidades, tomaban fotos o datos y se iban. AquÃ­ la regla es clara: cada estudio regresa como mapas fÃ¡ciles de leer, materiales para el colegio y obras reales.',
+    subCifra: 'Nada se hace sin el visto bueno y la participación de la gente de Bocachica',
+    resumen: 'Antes venían universidades, tomaban fotos o datos y se iban. Aquí la regla es clara: cada estudio regresa como mapas fáciles de leer, materiales para el colegio y obras reales.',
     piloto: 'Una mesa comunitaria local que aprueba y vigila cada paso del proyecto desde el colegio.',
     producto: 'Acuerdo comunitario y red de trabajo entre barrio, escuela y universidad.',
     interactivo: 'redProblema',
   },
 
-  // --- CAP 02: ESTUDIOS ANTERIORES Y MEMORIAS DEL PUEBLO (Ã­ndices 2..3) ---
+  // --- CAP 02: ESTUDIOS ANTERIORES Y MEMORIAS DEL PUEBLO (índices 2..3) ---
   {
     id: 'm01',
     capId: '02',
-    grupo: '02 Â· Trabajos anteriores reunidos',
+    grupo: '02 · Trabajos anteriores reunidos',
     pasoGrupo: '01 / 02',
     titulo: 'Reunimos 9 estudios ya hechos sobre Bocachica para no empezar de cero',
     cam: 'memorias_r9',
@@ -421,19 +422,19 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0.2,
     gemelo: 0,
-    cifra: '9 estudios (R1â€“R9)',
-    subCifra: 'Toca los botones R1 a R9 abajo para ver quÃ© aportÃ³ cada trabajo al barrio',
-    resumen: 'Ya existÃ­an 9 investigaciones valiosas sobre Bocachica (sobre sus fuertes, el agua, las playas y el colegio), pero estaban regadas. Ahora todas quedan juntas y al servicio del pueblo.',
-    piloto: 'Un archivo abierto en el colegio donde cualquier vecino o estudiante puede consultar esta informaciÃ³n sin gastar datos de internet.',
-    producto: 'Biblioteca digital y fÃ­sica de Bocachica en el Gimnasio Cristiano.',
+    cifra: '9 estudios (R1–R9)',
+    subCifra: 'Toca los botones R1 a R9 abajo para ver qué aportó cada trabajo al barrio',
+    resumen: 'Ya existían 9 investigaciones valiosas sobre Bocachica (sobre sus fuertes, el agua, las playas y el colegio), pero estaban regadas. Ahora todas quedan juntas y al servicio del pueblo.',
+    piloto: 'Un archivo abierto en el colegio donde cualquier vecino o estudiante puede consultar esta información sin gastar datos de internet.',
+    producto: 'Biblioteca digital y física de Bocachica en el Gimnasio Cristiano.',
     interactivo: 'corpusR9',
   },
   {
     id: 'm02',
     capId: '02',
-    grupo: '02 Â· Los saberes de nuestros mayores',
+    grupo: '02 · Los saberes de nuestros mayores',
     pasoGrupo: '02 / 02',
-    titulo: 'La memoria del agua, las casas frescas, la pesca y los Ã¡rboles',
+    titulo: 'La memoria del agua, las casas frescas, la pesca y los árboles',
     cam: 'linea_memoria',
     zonas: [0.95, 0.4, 0.6],
     rutas: { agua: 0.7, verde: 0.5, residuos: 0.3, oficios: 0.8, patrimonio: 0.9 },
@@ -442,18 +443,18 @@ const PASOS_3D = [
     cartografia: 0,
     gemelo: 0,
     cifra: '6 saberes vivos',
-    subCifra: 'Historia del barrio Â· casas Â· agua Â· oficios del mar Â· monte Â· comunidad',
-    resumen: 'Nuestros abuelos sabÃ­an cÃ³mo mantener frescas las casas con techos altos y patios con Ã¡rboles, y dÃ³nde recoger agua lluvia en aljibes. Ese conocimiento es la base de todo lo nuevo.',
-    piloto: 'Caminatas y charlas con mayores, pescadores y jÃ³venes para dibujar juntos el mapa de recuerdos del pueblo.',
+    subCifra: 'Historia del barrio · casas · agua · oficios del mar · monte · comunidad',
+    resumen: 'Nuestros abuelos sabían cómo mantener frescas las casas con techos altos y patios con árboles, y dónde recoger agua lluvia en aljibes. Ese conocimiento es la base de todo lo nuevo.',
+    piloto: 'Caminatas y charlas con mayores, pescadores y jóvenes para dibujar juntos el mapa de recuerdos del pueblo.',
     producto: 'Libro y mapa ilustrado con las historias y lugares importantes de Bocachica.',
     interactivo: 'memorias6',
   },
 
-  // --- CAP 03: LAS 6 SOLUCIONES EN EL MAPA DE BOCACHICA (Ã­ndices 4..9) ---
+  // --- CAP 03: LAS 6 SOLUCIONES EN EL MAPA DE BOCACHICA (índices 4..9) ---
   {
     id: 'l91',
     capId: '03',
-    grupo: '03 Â· SoluciÃ³n 1 â€” Casas e historia del barrio',
+    grupo: '03 · Solución 1 — Casas e historia del barrio',
     pasoGrupo: '01 / 06',
     titulo: 'Cuidar nuestras casas tradicionales y contar la historia del pueblo',
     cam: 'linea_memoria',
@@ -465,14 +466,14 @@ const PASOS_3D = [
     gemelo: 0,
     cifra: '2.600 casas reales',
     subCifra: 'Cada casa del pueblo con sus techos frescos, ventanas y patios',
-    resumen: 'Reconocemos cÃ³mo estÃ¡n construidas las casas reales de Bocachica (techos inclinados, ventanas para que entre la brisa, aleros para el sol) para no perder esa forma fresca y nuestra de vivir.',
-    piloto: 'GuÃ­a sencilla para mejorar viviendas manteniendo la brisa y la sombra, mÃ¡s carteles con la historia de cada sector.',
+    resumen: 'Reconocemos cómo están construidas las casas reales de Bocachica (techos inclinados, ventanas para que entre la brisa, aleros para el sol) para no perder esa forma fresca y nuestra de vivir.',
+    piloto: 'Guía sencilla para mejorar viviendas manteniendo la brisa y la sombra, más carteles con la historia de cada sector.',
     producto: 'Mapa de memorias del barrio y muestra cultural hecha con los estudiantes.',
   },
   {
     id: 'l92',
     capId: '03',
-    grupo: '03 Â· SoluciÃ³n 2 â€” Agua limpia y lluvia',
+    grupo: '03 · Solución 2 — Agua limpia y lluvia',
     pasoGrupo: '02 / 06',
     titulo: 'Recoger el agua de lluvia y recuperar los aljibes y pozos',
     cam: 'linea_agua',
@@ -483,17 +484,17 @@ const PASOS_3D = [
     cartografia: 0,
     gemelo: 0,
     cifra: '5 pasos del agua',
-    subCifra: 'Recoger lluvia Â· guardar en aljibe Â· filtrar Â· usar Â· cuidar el agua',
+    subCifra: 'Recoger lluvia · guardar en aljibe · filtrar · usar · cuidar el agua',
     resumen: 'En lugar de perder el agua cuando llueve o pagar caro por pimpinas, aprendemos a recoger la lluvia en los techos, limpiarla con filtros naturales y cuidar los pozos del pueblo.',
-    piloto: 'InstalaciÃ³n de un sistema real de recolecciÃ³n y filtrado de agua lluvia en el Gimnasio Cristiano.',
-    producto: 'Agua mÃ¡s segura en el colegio y mapa comunitario de pozos y aljibes.',
+    piloto: 'Instalación de un sistema real de recolección y filtrado de agua lluvia en el Gimnasio Cristiano.',
+    producto: 'Agua más segura en el colegio y mapa comunitario de pozos y aljibes.',
   },
   {
     id: 'l93',
     capId: '03',
-    grupo: '03 Â· SoluciÃ³n 3 â€” Ãrboles y sombra fresca',
+    grupo: '03 · Solución 3 — Árboles y sombra fresca',
     pasoGrupo: '03 / 06',
-    titulo: 'Sembrar Ã¡rboles nativos y manglar para bajar el calor del colegio',
+    titulo: 'Sembrar árboles nativos y manglar para bajar el calor del colegio',
     cam: 'linea_verde',
     zonas: [0.1, 0.98, 0.2],
     rutas: { agua: 0.3, verde: 1, residuos: 0, oficios: 0, patrimonio: 0 },
@@ -501,18 +502,18 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: 'âˆ’4,5 Â°C menos',
-    subCifra: 'Patios y caminos mucho mÃ¡s frescos gracias a la sombra de los Ã¡rboles',
-    resumen: 'Sembrar Ã¡rboles del lugar y cuidar el manglar en la orilla protege el suelo de las olas y baja el calor en el patio del colegio para que los niÃ±os puedan jugar y estudiar cÃ³modos.',
-    piloto: 'Crear un vivero escolar donde niÃ±os y familias siembren Ã¡rboles para el colegio y las calles del barrio.',
+    cifra: '−4,5 °C menos',
+    subCifra: 'Patios y caminos mucho más frescos gracias a la sombra de los árboles',
+    resumen: 'Sembrar árboles del lugar y cuidar el manglar en la orilla protege el suelo de las olas y baja el calor en el patio del colegio para que los niños puedan jugar y estudiar cómodos.',
+    piloto: 'Crear un vivero escolar donde niños y familias siembren árboles para el colegio y las calles del barrio.',
     producto: 'Vivero funcionando en el colegio y corredores con sombra hasta la orilla.',
   },
   {
     id: 'l94',
     capId: '03',
-    grupo: '03 Â· SoluciÃ³n 4 â€” PlÃ¡stico convertido en muebles',
+    grupo: '03 · Solución 4 — Plástico convertido en muebles',
     pasoGrupo: '04 / 06',
-    titulo: 'Recoger el plÃ¡stico de las playas y volverlo bancas para el barrio',
+    titulo: 'Recoger el plástico de las playas y volverlo bancas para el barrio',
     cam: 'linea_residuos',
     zonas: [0.2, 0.25, 0.92],
     rutas: { agua: 0, verde: 0, residuos: 1, oficios: 0.4, patrimonio: 0 },
@@ -520,18 +521,18 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: 'Basura â†’ Muebles',
-    subCifra: 'Recoger Â· separar Â· moler Â· moldear bancas y letreros Ãºtiles',
-    resumen: 'El plÃ¡stico que llega por el mar o se acumula en el pueblo deja de ser un problema de suciedad: se separa, se transforma y sirve para hacer bancas, mesas y letreros para el colegio.',
-    piloto: 'Puntos limpios de recolecciÃ³n en el barrio y taller prÃ¡ctico de reciclaje de plÃ¡stico.',
-    producto: 'Bancas, mesas y seÃ±alizaciÃ³n hechas con plÃ¡stico reciclado de Bocachica.',
+    cifra: 'Basura → Muebles',
+    subCifra: 'Recoger · separar · moler · moldear bancas y letreros útiles',
+    resumen: 'El plástico que llega por el mar o se acumula en el pueblo deja de ser un problema de suciedad: se separa, se transforma y sirve para hacer bancas, mesas y letreros para el colegio.',
+    piloto: 'Puntos limpios de recolección en el barrio y taller práctico de reciclaje de plástico.',
+    producto: 'Bancas, mesas y señalización hechas con plástico reciclado de Bocachica.',
   },
   {
     id: 'l95',
     capId: '03',
-    grupo: '03 Â· SoluciÃ³n 5 â€” Oficios del mar y botes',
+    grupo: '03 · Solución 5 — Oficios del mar y botes',
     pasoGrupo: '05 / 06',
-    titulo: 'EnseÃ±ar a los jÃ³venes la carpinterÃ­a de botes y la pesca tradicional',
+    titulo: 'Enseñar a los jóvenes la carpintería de botes y la pesca tradicional',
     cam: 'linea_oficios',
     zonas: [0.35, 0.15, 0.95],
     rutas: { agua: 0, verde: 0, residuos: 0.3, oficios: 1, patrimonio: 0 },
@@ -540,15 +541,15 @@ const PASOS_3D = [
     cartografia: 0,
     gemelo: 0,
     cifra: 'Oficio vivo',
-    subCifra: 'Maestros carpinteros Â· reparaciÃ³n de lanchas Â· pesca artesanal',
-    resumen: 'Si los mayores no enseÃ±an cÃ³mo construir y reparar botes de madera, el oficio se pierde. Queremos apoyar a los maestros de ribera para que transmitan su arte a los jÃ³venes.',
-    piloto: 'Escuela-taller en la bahÃ­a con los maestros carpinteros de ribera y pescadores del pueblo.',
-    producto: 'Manual ilustrado de construcciÃ³n de botes y fortalecimiento del taller local.',
+    subCifra: 'Maestros carpinteros · reparación de lanchas · pesca artesanal',
+    resumen: 'Si los mayores no enseñan cómo construir y reparar botes de madera, el oficio se pierde. Queremos apoyar a los maestros de ribera para que transmitan su arte a los jóvenes.',
+    piloto: 'Escuela-taller en la bahía con los maestros carpinteros de ribera y pescadores del pueblo.',
+    producto: 'Manual ilustrado de construcción de botes y fortalecimiento del taller local.',
   },
   {
     id: 'l96',
     capId: '03',
-    grupo: '03 Â· SoluciÃ³n 6 â€” Fuertes y turismo justo',
+    grupo: '03 · Solución 6 — Fuertes y turismo justo',
     pasoGrupo: '06 / 06',
     titulo: 'Que el turismo conozca nuestra historia y beneficie al pueblo',
     cam: 'linea_patrimonio',
@@ -558,18 +559,18 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: '3 fuertes histÃ³ricos',
-    subCifra: 'San Fernando Â· San JosÃ© Â· Ãngel San Rafael unidos al pueblo',
+    cifra: '3 fuertes históricos',
+    subCifra: 'San Fernando · San José · Ángel San Rafael unidos al pueblo',
     resumen: 'Hoy muchos turistas visitan los fuertes sin entrar al pueblo ni conocer su cultura afrodescendiente. Proponemos una ruta guiada por la gente local que conecte los fuertes con el barrio.',
-    piloto: 'Dos recorridos: uno educativo para los niÃ±os del pueblo y otro turÃ­stico con guÃ­as locales y puntos con sombra.',
-    producto: 'Ruta cultural seÃ±alizada y guion contado por habitantes de Bocachica.',
+    piloto: 'Dos recorridos: uno educativo para los niños del pueblo y otro turístico con guías locales y puntos con sombra.',
+    producto: 'Ruta cultural señalizada y guion contado por habitantes de Bocachica.',
   },
 
-  // --- CAP 04: MAPA VIVO 3D DEL PUEBLO (Ã­ndices 10..14) ---
+  // --- CAP 04: MAPA VIVO 3D DEL PUEBLO (índices 10..14) ---
   {
     id: 'g01',
     capId: '04',
-    grupo: '04 Â· Mapa vivo 3D â€” Paso 1',
+    grupo: '04 · Mapa vivo 3D — Paso 1',
     pasoGrupo: 'Paso 01 / 05',
     titulo: 'Guardar en un solo lugar las fotos, relatos y mapas del pueblo',
     cam: 'bocachica_general',
@@ -580,17 +581,17 @@ const PASOS_3D = [
     cartografia: 0,
     gemelo: 0,
     cifra: 'Archivo del pueblo',
-    subCifra: 'Historias de mayores Â· fotos antiguas Â· planos y estudios',
-    resumen: 'Este mapa en 3D sirve como un baÃºl comunitario abierto donde cualquiera puede ver la historia de cada calle, cada pozo y cada lugar importante de Bocachica.',
-    piloto: 'Consulta fÃ¡cil desde celulares o en el computador del colegio sin necesidad de internet rÃ¡pido.',
-    producto: 'Archivo comunitario abierto y fÃ¡cil de entender para todos.',
+    subCifra: 'Historias de mayores · fotos antiguas · planos y estudios',
+    resumen: 'Este mapa en 3D sirve como un baúl comunitario abierto donde cualquiera puede ver la historia de cada calle, cada pozo y cada lugar importante de Bocachica.',
+    piloto: 'Consulta fácil desde celulares o en el computador del colegio sin necesidad de internet rápido.',
+    producto: 'Archivo comunitario abierto y fácil de entender para todos.',
   },
   {
     id: 'g02',
     capId: '04',
-    grupo: '04 Â· Mapa vivo 3D â€” Paso 2',
+    grupo: '04 · Mapa vivo 3D — Paso 2',
     pasoGrupo: 'Paso 02 / 05',
-    titulo: 'Ver en el mapa dÃ³nde falta agua, dÃ³nde hay calor y dÃ³nde llega la basura',
+    titulo: 'Ver en el mapa dónde falta agua, dónde hay calor y dónde llega la basura',
     cam: 'bocachica_general',
     zonas: [0.65, 0.65, 0.65],
     rutas: { agua: 0.85, verde: 0.85, residuos: 0.6, oficios: 0.6, patrimonio: 0.85 },
@@ -599,17 +600,17 @@ const PASOS_3D = [
     cartografia: 1,
     gemelo: 0,
     cifra: '6 capas claras',
-    subCifra: 'Relieve Â· agua Â· Ã¡rboles Â· basuras Â· oficios Â· fuertes',
-    resumen: 'Al prender estas capas de colores sobre la isla real, la comunidad puede seÃ±alar exactamente por dÃ³nde corre el agua cuando llueve, quÃ© zonas necesitan mÃ¡s Ã¡rboles y dÃ³nde limpiar.',
+    subCifra: 'Relieve · agua · árboles · basuras · oficios · fuertes',
+    resumen: 'Al prender estas capas de colores sobre la isla real, la comunidad puede señalar exactamente por dónde corre el agua cuando llueve, qué zonas necesitan más árboles y dónde limpiar.',
     piloto: 'Talleres con vecinos marcando sobre el mapa los puntos urgentes del barrio.',
-    producto: 'Mapas sencillos para tomar decisiones y pedir apoyos ante la alcaldÃ­a.',
+    producto: 'Mapas sencillos para tomar decisiones y pedir apoyos ante la alcaldía.',
   },
   {
     id: 'g03',
     capId: '04',
-    grupo: '04 Â· Mapa vivo 3D â€” Paso 3',
+    grupo: '04 · Mapa vivo 3D — Paso 3',
     pasoGrupo: 'Paso 03 / 05',
-    titulo: 'Todas las casas y los Ã¡rboles reales de Tierra Bomba en 3D',
+    titulo: 'Todas las casas y los árboles reales de Tierra Bomba en 3D',
     cam: 'linea_memoria',
     zonas: [0.45, 0.85, 0.45],
     rutas: { agua: 0.6, verde: 0.8, residuos: 0, oficios: 0, patrimonio: 0.6 },
@@ -617,16 +618,16 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0.25,
     gemelo: 0,
-    cifra: 'TamaÃ±o real',
-    subCifra: '2.600 viviendas reales + vegetaciÃ³n real de toda la isla + el colegio',
-    resumen: 'AquÃ­ puedes reconocer tu cuadra, los Ã¡rboles del manglar y el colegio a escala real. AsÃ­ todos pueden opinar viendo el espacio tal como es antes de construir nada.',
-    piloto: 'Usar esta maqueta 3D en las reuniones del colegio para que estudiantes y padres diseÃ±en juntos.',
+    cifra: 'Tamaño real',
+    subCifra: '2.600 viviendas reales + vegetación real de toda la isla + el colegio',
+    resumen: 'Aquí puedes reconocer tu cuadra, los árboles del manglar y el colegio a escala real. Así todos pueden opinar viendo el espacio tal como es antes de construir nada.',
+    piloto: 'Usar esta maqueta 3D en las reuniones del colegio para que estudiantes y padres diseñen juntos.',
     producto: 'Maqueta 3D fiel de Bocachica y del Gimnasio Cristiano.',
   },
   {
     id: 'g04',
     capId: '04',
-    grupo: '04 Â· Mapa vivo 3D â€” Paso 4',
+    grupo: '04 · Mapa vivo 3D — Paso 4',
     pasoGrupo: 'Paso 04 / 05',
     titulo: 'Probar las mejoras en el mapa antes de gastar recursos',
     cam: 'escuela_r9',
@@ -636,19 +637,19 @@ const PASOS_3D = [
     lluvia: 1,
     cartografia: 0,
     gemelo: 0,
-    cifra: 'Antes y DespuÃ©s',
-    subCifra: 'Compara el patio hoy bajo el sol vs. con techo de lluvia y Ã¡rboles',
-    resumen: 'Con el botÃ³n de abajo puedes comparar cÃ³mo estÃ¡ el colegio hoy y cÃ³mo mejora cuando se instala el techo recolector de lluvia, el tanque de agua y la sombra de los Ã¡rboles.',
-    piloto: 'SimulaciÃ³n para mostrar cuÃ¡nta agua se ahorra y cuÃ¡nto baja la temperatura en el patio.',
-    producto: 'Comparador visual para decidir quÃ© obra hacer primero.',
+    cifra: 'Antes y Después',
+    subCifra: 'Compara el patio hoy bajo el sol vs. con techo de lluvia y árboles',
+    resumen: 'Con el botón de abajo puedes comparar cómo está el colegio hoy y cómo mejora cuando se instala el techo recolector de lluvia, el tanque de agua y la sombra de los árboles.',
+    piloto: 'Simulación para mostrar cuánta agua se ahorra y cuánto baja la temperatura en el patio.',
+    producto: 'Comparador visual para decidir qué obra hacer primero.',
     interactivo: 'antesDespuesR9',
   },
   {
     id: 'g05',
     capId: '04',
-    grupo: '04 Â· Mapa vivo 3D â€” Paso 5',
+    grupo: '04 · Mapa vivo 3D — Paso 5',
     pasoGrupo: 'Paso 05 / 05',
-    titulo: 'Los jÃ³venes del colegio miden y actualizan el mapa cada 6 meses',
+    titulo: 'Los jóvenes del colegio miden y actualizan el mapa cada 6 meses',
     cam: 'gemelo',
     zonas: [0.8, 0.8, 0.8],
     rutas: { agua: 0.9, verde: 0.9, residuos: 0.9, oficios: 0.9, patrimonio: 0.9 },
@@ -657,19 +658,19 @@ const PASOS_3D = [
     cartografia: 0.3,
     gemelo: 1,
     cifra: 'Cada 6 meses',
-    subCifra: 'Estudiantes y comitÃ© local miden lluvia, calor y Ã¡rboles vivos',
-    resumen: 'Este mapa no se queda quieto: cada semestre los estudiantes revisan cuÃ¡nta agua lluvia se recogiÃ³, cuÃ¡ntos Ã¡rboles crecieron y cuÃ¡nto plÃ¡stico se aprovechÃ³.',
+    subCifra: 'Estudiantes y comité local miden lluvia, calor y árboles vivos',
+    resumen: 'Este mapa no se queda quieto: cada semestre los estudiantes revisan cuánta agua lluvia se recogió, cuántos árboles crecieron y cuánto plástico se aprovechó.',
     piloto: 'Brigada ambiental escolar cuidando y midiendo los avances del barrio.',
     producto: 'Seguimiento continuo hecho por la misma comunidad.',
   },
 
-  // --- CAP 05: EL COLEGIO COMO CORAZÃ“N DEL PROYECTO (Ã­ndices 15..17) ---
+  // --- CAP 05: EL COLEGIO COMO CORAZÓN DEL PROYECTO (índices 15..17) ---
   {
     id: 'r9_1',
     capId: '05',
-    grupo: '05 Â· El Colegio â€” Gimnasio Cristiano de Bocachica',
+    grupo: '05 · El Colegio — Gimnasio Cristiano de Bocachica',
     pasoGrupo: '01 / 03',
-    titulo: 'El colegio se convierte en un lugar fresco, abierto y Ãºtil para todo el barrio',
+    titulo: 'El colegio se convierte en un lugar fresco, abierto y útil para todo el barrio',
     cam: 'escuela_cerca',
     zonas: [0.3, 0.98, 0.4],
     rutas: { agua: 0.5, verde: 1, residuos: 0.5, oficios: 0, patrimonio: 0.5 },
@@ -677,17 +678,17 @@ const PASOS_3D = [
     lluvia: 0,
     cartografia: 0,
     gemelo: 0,
-    cifra: 'CorazÃ³n del plan',
-    subCifra: 'Salones ventilados Â· cancha con sombra Â· vivero y espacio de reuniÃ³n',
-    resumen: 'El Gimnasio Cristiano serÃ¡ el punto de encuentro del proyecto: tendrÃ¡ salones mÃ¡s frescos, una cancha de preescolar protegida del sol, un vivero y un espacio redondo para reuniones del barrio.',
-    piloto: 'ConstrucciÃ³n por etapas junto con padres de familia, maestros y estudiantes de arquitectura.',
-    producto: 'Un colegio mejorado que tambiÃ©n sirve como centro ambiental de Bocachica.',
+    cifra: 'Corazón del plan',
+    subCifra: 'Salones ventilados · cancha con sombra · vivero y espacio de reunión',
+    resumen: 'El Gimnasio Cristiano será el punto de encuentro del proyecto: tendrá salones más frescos, una cancha de preescolar protegida del sol, un vivero y un espacio redondo para reuniones del barrio.',
+    piloto: 'Construcción por etapas junto con padres de familia, maestros y estudiantes de arquitectura.',
+    producto: 'Un colegio mejorado que también sirve como centro ambiental de Bocachica.',
     interactivo: 'antesDespuesR9',
   },
   {
     id: 'r9_2',
     capId: '05',
-    grupo: '05 Â· El Colegio â€” Agua de lluvia y frescura',
+    grupo: '05 · El Colegio — Agua de lluvia y frescura',
     pasoGrupo: '02 / 03',
     titulo: 'Techo en forma de V para recoger la lluvia y guardarla limpia en el aljibe',
     cam: 'escuela_r9',
@@ -697,19 +698,19 @@ const PASOS_3D = [
     lluvia: 1,
     cartografia: 0,
     gemelo: 0,
-    cifra: '85 % lluvia Ãºtil',
+    cifra: '85 % lluvia útil',
     subCifra: 'El techo recoge el agua cuando llueve y la lleva al tanque filtrado',
-    resumen: 'Cuando cae aguacero, el techo en V guÃ­a el agua directo al aljibe con filtros naturales para lavarse las manos y regar el vivero. En dÃ­as secos, el doble techo deja pasar la brisa y quita el calor.',
-    piloto: 'Sistema demostrativo de agua lluvia que tambiÃ©n enseÃ±a a los niÃ±os cÃ³mo cuidar el agua.',
-    producto: 'Agua almacenada en el colegio y patio mÃ¡s fresco todo el aÃ±o.',
+    resumen: 'Cuando cae aguacero, el techo en V guía el agua directo al aljibe con filtros naturales para lavarse las manos y regar el vivero. En días secos, el doble techo deja pasar la brisa y quita el calor.',
+    piloto: 'Sistema demostrativo de agua lluvia que también enseña a los niños cómo cuidar el agua.',
+    producto: 'Agua almacenada en el colegio y patio más fresco todo el año.',
     interactivo: 'antesDespuesR9',
   },
   {
     id: 'r9_3',
     capId: '05',
-    grupo: '05 Â· Del colegio hacia todo Bocachica',
+    grupo: '05 · Del colegio hacia todo Bocachica',
     pasoGrupo: '03 / 03',
-    titulo: 'Los 6 proyectos pequeÃ±os conectados por todo el pueblo',
+    titulo: 'Los 6 proyectos pequeños conectados por todo el pueblo',
     cam: 'bocachica_general',
     zonas: [0.9, 0.9, 0.9],
     rutas: { agua: 1, verde: 1, residuos: 1, oficios: 1, patrimonio: 1 },
@@ -718,18 +719,18 @@ const PASOS_3D = [
     cartografia: 0.2,
     gemelo: 0,
     cifra: '6 obras unidas',
-    subCifra: 'Historias Â· Agua Â· Colegio Â· PlÃ¡stico Â· Botes Â· Fuertes',
-    resumen: 'Lo que empieza en el Gimnasio Cristiano se conecta por calles con sombra hasta los pozos, el manglar, el taller de plÃ¡stico, los astilleros de botes y los fuertes.',
-    piloto: 'SeÃ±alizaciÃ³n clara y caminos sombreados para recorrer todo el circuito a pie.',
+    subCifra: 'Historias · Agua · Colegio · Plástico · Botes · Fuertes',
+    resumen: 'Lo que empieza en el Gimnasio Cristiano se conecta por calles con sombra hasta los pozos, el manglar, el taller de plástico, los astilleros de botes y los fuertes.',
+    piloto: 'Señalización clara y caminos sombreados para recorrer todo el circuito a pie.',
     producto: 'Una red completa de mejoras visibles en toda Bocachica.',
     interactivo: 'plano2D',
   },
 
-  // --- CAP 06: PLAN A 2 AÃ‘OS Y QUIÃ‰NES PARTICIPAN (Ã­ndices 18..19) ---
+  // --- CAP 06: PLAN A 2 AÑOS Y QUIÉNES PARTICIPAN (índices 18..19) ---
   {
     id: 'hr_1',
     capId: '06',
-    grupo: '06 Â· Plan paso a paso en 2 aÃ±os (24 meses)',
+    grupo: '06 · Plan paso a paso en 2 años (24 meses)',
     pasoGrupo: '01 / 02',
     titulo: 'Cuatro semestres seguidos para que las obras no queden a medias',
     cam: 'hoja_ruta',
@@ -740,16 +741,16 @@ const PASOS_3D = [
     cartografia: 0.15,
     gemelo: 0,
     cifra: '24 meses',
-    subCifra: 'Mueve la barra de meses abajo para ver quÃ© se hace en cada etapa',
-    resumen: 'Para evitar que cada grupo que llega empiece desde cero, el trabajo se organiza en 2 aÃ±os continuos: primero escuchar y acordar, luego hacer mapas, despuÃ©s construir prototipos y finalmente dejarlos en manos del pueblo.',
-    piloto: 'Reuniones de revisiÃ³n con la comunidad al cierre de cada semestre antes de pasar al siguiente paso.',
+    subCifra: 'Mueve la barra de meses abajo para ver qué se hace en cada etapa',
+    resumen: 'Para evitar que cada grupo que llega empiece desde cero, el trabajo se organiza en 2 años continuos: primero escuchar y acordar, luego hacer mapas, después construir prototipos y finalmente dejarlos en manos del pueblo.',
+    piloto: 'Reuniones de revisión con la comunidad al cierre de cada semestre antes de pasar al siguiente paso.',
     producto: '9 resultados concretos entregados y funcionando en Bocachica.',
     interactivo: 'cronograma24m',
   },
   {
     id: 'hr_2',
     capId: '06',
-    grupo: '06 Â· QuiÃ©nes deciden y trabajan juntos',
+    grupo: '06 · Quiénes deciden y trabajan juntos',
     pasoGrupo: '02 / 02',
     titulo: 'La comunidad manda, el colegio coordina y la universidad apoya',
     cam: 'isla',
@@ -760,16 +761,16 @@ const PASOS_3D = [
     cartografia: 0.35,
     gemelo: 0,
     cifra: '15 aliados unidos',
-    subCifra: 'LÃ­deres del barrio Â· Colegio Â· Pescadores Â· Javeriana Â· JardÃ­n BotÃ¡nico',
-    resumen: 'Las decisiones se toman en una Mesa Comunitaria de Bocachica. El Gimnasio Cristiano es el punto de coordinaciÃ³n y varias facultades y fundaciones aportan su trabajo tÃ©cnico y materiales.',
-    piloto: 'Reglas claras de respeto: permiso previo de la comunidad, crÃ©dito a los sabedores locales y cuidado compartido.',
+    subCifra: 'Líderes del barrio · Colegio · Pescadores · Javeriana · Jardín Botánico',
+    resumen: 'Las decisiones se toman en una Mesa Comunitaria de Bocachica. El Gimnasio Cristiano es el punto de coordinación y varias facultades y fundaciones aportan su trabajo técnico y materiales.',
+    piloto: 'Reglas claras de respeto: permiso previo de la comunidad, crédito a los sabedores locales y cuidado compartido.',
     producto: 'Un modelo de trabajo conjunto que puede servir de ejemplo para toda Tierra Bomba.',
     interactivo: 'actores15',
   },
 ];
 
 // =============================================================================
-// UTILIDADES VISUALES (IdÃ©nticas a tesis_tercer_corte)
+// UTILIDADES VISUALES (Idénticas a tesis_tercer_corte)
 // =============================================================================
 
 function ScrollWords({ text, className = '' }) {
@@ -885,40 +886,40 @@ function BarraSimple({ valor, max = 100, color = '#e0917a', etiqueta, sufijo = '
 }
 
 // =============================================================================
-// EXPLICACIÃ“N ANIMADA EN 4 PASOS SIMPLES ("FÃCIL DE ENTENDER" + WCAG 2.2.2 PAUSE)
+// EXPLICACIÓN ANIMADA EN 4 PASOS SIMPLES ("FÁCIL DE ENTENDER" + WCAG 2.2.2 PAUSE)
 // =============================================================================
 const PASOS_HISTORIA_SIMPLE = [
   {
     n: '01',
     titulo: '1. Devolver lo investigado a la comunidad',
     fraseSimple: 'Antes los estudios se quedaban en bibliotecas; ahora regresan a Bocachica como mapas, talleres y cuentos en la escuela.',
-    datoClave: '9 estudios (R1â€“R9) integrados',
+    datoClave: '9 estudios (R1–R9) integrados',
     color: '#e0917a',
-    quePasa: 'Estudiantes, profesores y sabedores locales revisan juntos los mapas de la isla, corrigen errores y deciden quÃ© es lo mÃ¡s urgente.',
+    quePasa: 'Estudiantes, profesores y sabedores locales revisan juntos los mapas de la isla, corrigen errores y deciden qué es lo más urgente.',
   },
   {
     n: '02',
     titulo: '2. Agua de lluvia y sombra en el colegio (R9)',
-    fraseSimple: 'El techo del Gimnasio Cristiano recoge el agua de lluvia en un aljibe filtrado y los nuevos Ã¡rboles bajan el calor del patio.',
-    datoClave: 'âˆ’4,5 Â°C de calor Â· +85 % lluvia captada',
+    fraseSimple: 'El techo del Gimnasio Cristiano recoge el agua de lluvia en un aljibe filtrado y los nuevos árboles bajan el calor del patio.',
+    datoClave: '−4,5 °C de calor · +85 % lluvia captada',
     color: '#6ec6e6',
-    quePasa: 'En vez de perderse, la lluvia se guarda para el colegio y el vivero; las pÃ©rgolas y Ã¡rboles crean un refugio fresco para estudiar.',
+    quePasa: 'En vez de perderse, la lluvia se guarda para el colegio y el vivero; las pérgolas y árboles crean un refugio fresco para estudiar.',
   },
   {
     n: '03',
-    titulo: '3. PlÃ¡stico reciclado y oficios del mar vivos',
-    fraseSimple: 'El plÃ¡stico que llega a la costa se transforma en bancas para la escuela, y los carpinteros de ribera enseÃ±an su oficio a los jÃ³venes.',
-    datoClave: 'EconomÃ­a circular + Escuela de ribera',
+    titulo: '3. Plástico reciclado y oficios del mar vivos',
+    fraseSimple: 'El plástico que llega a la costa se transforma en bancas para la escuela, y los carpinteros de ribera enseñan su oficio a los jóvenes.',
+    datoClave: 'Economía circular + Escuela de ribera',
     color: '#f5b45a',
-    quePasa: 'Se limpia el borde costero convirtiendo residuos en mobiliario Ãºtil y se protege el saber tradicional de construir y reparar lanchas.',
+    quePasa: 'Se limpia el borde costero convirtiendo residuos en mobiliario útil y se protege el saber tradicional de construir y reparar lanchas.',
   },
   {
     n: '04',
     titulo: '4. Cuidar y medir cada semestre en el mapa 3D',
-    fraseSimple: 'Un Gemelo Digital 3D fÃ¡cil de usar permite que el colegio y la comunidad vigilen el agua, los Ã¡rboles y los proyectos durante 24 meses.',
-    datoClave: '4 semestres Â· 15 actores en red',
+    fraseSimple: 'Un Gemelo Digital 3D fácil de usar permite que el colegio y la comunidad vigilen el agua, los árboles y los proyectos durante 24 meses.',
+    datoClave: '4 semestres · 15 actores en red',
     color: '#35d08a',
-    quePasa: 'Ninguna obra se abandona: cada semestre el comitÃ© local mide quÃ© funcionÃ³ y actualiza el modelo 3D de Bocachica.',
+    quePasa: 'Ninguna obra se abandona: cada semestre el comité local mide qué funcionó y actualiza el modelo 3D de Bocachica.',
   },
 ];
 
@@ -942,19 +943,19 @@ function SimuladorAulaEn4Pasos({ animPausada }) {
     <div className="tc-vidrio p-5 md:p-7 tc-scroll-card">
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-white/10">
         <div>
-          <div className="tc-etiqueta !text-[#e0917a]">GuÃ­a visual animada Â· En palabras sencillas</div>
+          <div className="tc-etiqueta !text-[#e0917a]">Guía visual animada · En palabras sencillas</div>
           <h3 className="text-xl md:text-2xl font-semibold text-white mt-0.5">
-            Â¿CÃ³mo funciona el Aula Ambiental en 4 pasos?
+            ¿Cómo funciona el Aula Ambiental en 4 pasos?
           </h3>
         </div>
-        {/* Control accesible de Pausa / ReproducciÃ³n (WCAG 2.2.2 Pause, Stop, Hide) */}
+        {/* Control accesible de Pausa / Reproducción (WCAG 2.2.2 Pause, Stop, Hide) */}
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setAutoPlay((v) => !v)}
             className="tc-ficha tc-ficha-activa !text-white !border-[#e0917a]"
           >
-            {autoPlay && !animPausada ? 'â¸ Pausar animaciÃ³n' : 'â–¶ Reproducir animaciÃ³n'}
+            {autoPlay && !animPausada ? 'â¸ Pausar animación' : 'â–¶ Reproducir animación'}
           </button>
         </div>
       </div>
@@ -986,7 +987,7 @@ function SimuladorAulaEn4Pasos({ animPausada }) {
         })}
       </div>
 
-      {/* Escena SVG animada segÃºn el paso activo */}
+      {/* Escena SVG animada según el paso activo */}
       <div className="grid md:grid-cols-12 gap-6 items-center">
         <div className="md:col-span-7 bg-[#060a0f] rounded-xl border border-white/10 p-3 overflow-hidden">
           <svg viewBox="0 0 600 280" className="w-full h-auto block select-none">
@@ -1006,11 +1007,11 @@ function SimuladorAulaEn4Pasos({ animPausada }) {
               <g>
                 {/* Nodo Universidad / Archivo */}
                 <rect x="55" y="95" width="120" height="90" rx="8" fill="#131c26" stroke="#e0917a" strokeWidth="2" />
-                <text x="115" y="128" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="600">Estudios R1â€“R8</text>
+                <text x="115" y="128" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="600">Estudios R1–R8</text>
                 <text x="115" y="146" textAnchor="middle" fill="#e0917a" fontSize="9.5" fontFamily="IBM Plex Mono">Mapas + Memorias</text>
                 <text x="115" y="166" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="8.5">Universidad + Archivos</text>
 
-                {/* Puente animado de devoluciÃ³n */}
+                {/* Puente animado de devolución */}
                 <path id="arco-devolucion" d="M 180 135 Q 300 55 415 135" fill="none" stroke="#e0917a" strokeWidth="2.5" strokeDasharray="6 4" />
                 <circle r="6" fill="#e0917a">
                   <animateMotion dur="2.2s" repeatCount="indefinite">
@@ -1023,7 +1024,7 @@ function SimuladorAulaEn4Pasos({ animPausada }) {
                   </animateMotion>
                 </circle>
                 <text x="300" y="75" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="600">
-                  Devolver Â· Validar Â· Transformar â†’
+                  Devolver · Validar · Transformar →
                 </text>
 
                 {/* Nodo Comunidad y Escuela en Bocachica */}
@@ -1034,7 +1035,7 @@ function SimuladorAulaEn4Pasos({ animPausada }) {
               </g>
             )}
 
-            {/* ESCENA PASO 2: Lluvia en cubierta en V + sombra bioclimÃ¡tica en Colegio R9 */}
+            {/* ESCENA PASO 2: Lluvia en cubierta en V + sombra bioclimática en Colegio R9 */}
             {paso === 1 && (
               <g>
                 {/* Gotas de lluvia animadas */}
@@ -1052,13 +1053,13 @@ function SimuladorAulaEn4Pasos({ animPausada }) {
                   Gimnasio Cristiano (R9)
                 </text>
                 <text x="250" y="200" textAnchor="middle" fill="#a8f0c6" fontSize="9.5" fontFamily="IBM Plex Mono">
-                  Patio fresco: âˆ’4,5 Â°C con sombra
+                  Patio fresco: −4,5 °C con sombra
                 </text>
 
-                {/* TuberÃ­a hacia el aljibe */}
+                {/* Tubería hacia el aljibe */}
                 <path d="M 250 152 L 250 165 L 435 165 L 435 180" fill="none" stroke="#6ec6e6" strokeWidth="3" />
 
-                {/* Aljibe llenÃ¡ndose */}
+                {/* Aljibe llenándose */}
                 <rect x="405" y="150" width="85" height="72" rx="6" fill="rgba(110,198,230,0.12)" stroke="#6ec6e6" strokeWidth="2" />
                 <rect x="409" y="172" width="77" height="46" rx="4" fill="#2f9fd0" opacity="0.85">
                   <animate attributeName="y" values="205;162;205" dur="4s" repeatCount="indefinite" />
@@ -1066,7 +1067,7 @@ function SimuladorAulaEn4Pasos({ animPausada }) {
                 </rect>
                 <text x="447" y="140" textAnchor="middle" fill="#6ec6e6" fontSize="10" fontWeight="600">Aljibe Escolar</text>
 
-                {/* Ãrboles de refugio climÃ¡tico creciendo */}
+                {/* Árboles de refugio climático creciendo */}
                 <g transform="translate(95, 175)">
                   <rect x="-4" y="15" width="8" height="42" fill="#8a6a4a" />
                   <circle cx="0" cy="5" r="28" fill="#35d08a" opacity="0.85">
@@ -1076,12 +1077,12 @@ function SimuladorAulaEn4Pasos({ animPausada }) {
               </g>
             )}
 
-            {/* ESCENA PASO 3: PlÃ¡stico reciclado y CarpinterÃ­a de Ribera */}
+            {/* ESCENA PASO 3: Plástico reciclado y Carpintería de Ribera */}
             {paso === 2 && (
               <g>
-                {/* RecolecciÃ³n de plÃ¡stico -> Taller -> Banca escolar */}
+                {/* Recolección de plástico -> Taller -> Banca escolar */}
                 <rect x="45" y="110" width="135" height="82" rx="8" fill="#231c12" stroke="#f5b45a" strokeWidth="2" />
-                <text x="112" y="142" textAnchor="middle" fill="#ffe1a8" fontSize="11.5" fontWeight="600">PlÃ¡stico Costero</text>
+                <text x="112" y="142" textAnchor="middle" fill="#ffe1a8" fontSize="11.5" fontWeight="600">Plástico Costero</text>
                 <text x="112" y="160" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontSize="9" fontFamily="IBM Plex Mono">Acopio y limpieza</text>
 
                 <path id="ruta-plastico" d="M 185 150 L 295 150" stroke="#f5b45a" strokeWidth="2.5" strokeDasharray="5 4" />
@@ -1095,12 +1096,12 @@ function SimuladorAulaEn4Pasos({ animPausada }) {
                 <text x="362" y="142" textAnchor="middle" fill="#fff" fontSize="11.5" fontWeight="600">Bancas y Tablas</text>
                 <text x="362" y="160" textAnchor="middle" fill="#35d08a" fontSize="9" fontFamily="IBM Plex Mono">Mobiliario escolar</text>
 
-                {/* EmbarcaciÃ³n tradicional (CarpinterÃ­a de ribera 9.5) */}
+                {/* Embarcación tradicional (Carpintería de ribera 9.5) */}
                 <g>
                   <animateTransform attributeName="transform" type="translate" values="0,0; 18,0; 0,0" dur="3.5s" repeatCount="indefinite" />
                   <polygon points="455,215 555,215 538,238 472,238" fill="#e0917a" stroke="#fff" strokeWidth="1.2" />
                   <polygon points="505,150 505,210 542,202" fill="#f4f1ec" opacity="0.9" />
-                  <text x="505" y="136" textAnchor="middle" fill="#f7d49e" fontSize="10" fontWeight="600">CarpinterÃ­a de Ribera</text>
+                  <text x="505" y="136" textAnchor="middle" fill="#f7d49e" fontSize="10" fontWeight="600">Carpintería de Ribera</text>
                 </g>
               </g>
             )}
@@ -1130,17 +1131,17 @@ function SimuladorAulaEn4Pasos({ animPausada }) {
                   </g>
                 ))}
                 <text x="310" y="62" textAnchor="middle" fill="#fff" fontSize="12.5" fontWeight="600">
-                  Gemelo Digital 3D Â· Monitoreo cada 6 meses
+                  Gemelo Digital 3D · Monitoreo cada 6 meses
                 </text>
                 <text x="310" y="82" textAnchor="middle" fill="#6ec6e6" fontSize="10" fontFamily="IBM Plex Mono">
-                  Archivo vivo â†’ CartografÃ­a â†’ Modelo 3D â†’ Escenarios â†’ Cuidado
+                  Archivo vivo → Cartografía → Modelo 3D → Escenarios → Cuidado
                 </text>
               </g>
             )}
           </svg>
         </div>
 
-        {/* ExplicaciÃ³n clara y directa del paso actual */}
+        {/* Explicación clara y directa del paso actual */}
         <div key={actual.n} className="md:col-span-5 space-y-4 tc-paso-anim">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.06] border border-white/15 text-xs font-mono" style={{ color: actual.color }}>
             <span>â—</span>
@@ -1151,7 +1152,7 @@ function SimuladorAulaEn4Pasos({ animPausada }) {
             {actual.fraseSimple}
           </p>
           <p className="text-xs text-white/70 leading-relaxed pt-3 tc-regla">
-            <strong className="text-white">Â¿CÃ³mo ocurre en la prÃ¡ctica?</strong> {actual.quePasa}
+            <strong className="text-white">¿Cómo ocurre en la práctica?</strong> {actual.quePasa}
           </p>
           <div className="flex items-center gap-2 pt-2">
             <button
@@ -1159,14 +1160,14 @@ function SimuladorAulaEn4Pasos({ animPausada }) {
               onClick={() => { setAutoPlay(false); setPaso((paso + PASOS_HISTORIA_SIMPLE.length - 1) % PASOS_HISTORIA_SIMPLE.length); }}
               className="tc-ficha"
             >
-              â† Paso anterior
+              ← Paso anterior
             </button>
             <button
               type="button"
               onClick={() => { setAutoPlay(false); setPaso((paso + 1) % PASOS_HISTORIA_SIMPLE.length); }}
               className="tc-ficha tc-ficha-activa !text-white !border-[#e0917a]"
             >
-              Siguiente paso ({((paso + 1) % PASOS_HISTORIA_SIMPLE.length) + 1}/4) â†’
+              Siguiente paso ({((paso + 1) % PASOS_HISTORIA_SIMPLE.length) + 1}/4) →
             </button>
           </div>
         </div>
@@ -1176,7 +1177,7 @@ function SimuladorAulaEn4Pasos({ animPausada }) {
 }
 
 // =============================================================================
-// SIMULADOR INTERACTIVO ANTES / DESPUÃ‰S EN EL COLEGIO R9 (FÃ¡cil de entender)
+// SIMULADOR INTERACTIVO ANTES / DESPUÉS EN EL COLEGIO R9 (Fácil de entender)
 // =============================================================================
 function SimuladorAntesDespuesR9() {
   const [conProyecto, setConProyecto] = useState(true);
@@ -1185,7 +1186,7 @@ function SimuladorAntesDespuesR9() {
     <div className="mt-12 tc-vidrio p-5 md:p-7 tc-scroll-card">
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-white/10">
         <div>
-          <div className="tc-etiqueta !text-[#35d08a]">Simulador interactivo Â· Gimnasio Cristiano de Bocachica (R9)</div>
+          <div className="tc-etiqueta !text-[#35d08a]">Simulador interactivo · Gimnasio Cristiano de Bocachica (R9)</div>
           <h3 className="text-xl md:text-2xl font-semibold text-white mt-0.5">
             Compara el patio escolar: Hoy vs. Con el Aula Ambiental
           </h3>
@@ -1196,7 +1197,7 @@ function SimuladorAntesDespuesR9() {
             onClick={() => setConProyecto(false)}
             className={`tc-ficha ${!conProyecto ? 'tc-ficha-activa !border-[#e0917a] !text-white' : ''}`}
           >
-            â˜€ Hoy (Sin intervenciÃ³n)
+            â˜€ Hoy (Sin intervención)
           </button>
           <button
             type="button"
@@ -1211,38 +1212,38 @@ function SimuladorAntesDespuesR9() {
       <div className="grid md:grid-cols-12 gap-6 items-center">
         <div className="md:col-span-6 space-y-4">
           <BarraSimple
-            etiqueta={conProyecto ? 'Sombra Ãºtil en patio escolar (Con refugio bioclimÃ¡tico)' : 'Sombra Ãºtil en patio escolar (Hoy: radiaciÃ³n directa)'}
+            etiqueta={conProyecto ? 'Sombra útil en patio escolar (Con refugio bioclimático)' : 'Sombra útil en patio escolar (Hoy: radiación directa)'}
             valor={conProyecto ? 78 : 18}
             color={conProyecto ? '#35d08a' : '#e0917a'}
             sufijo=" % del patio sombreado"
           />
           <BarraSimple
-            etiqueta={conProyecto ? 'Agua de lluvia cosechada en cubierta y filtrada' : 'Agua de lluvia aprovechada (Hoy: se pierde por escorrentÃ­a)'}
+            etiqueta={conProyecto ? 'Agua de lluvia cosechada en cubierta y filtrada' : 'Agua de lluvia aprovechada (Hoy: se pierde por escorrentía)'}
             valor={conProyecto ? 85 : 5}
             color={conProyecto ? '#6ec6e6' : '#e0917a'}
             sufijo=" % aprovechado"
           />
           <BarraSimple
-            etiqueta={conProyecto ? 'Confort tÃ©rmico para clases al aire libre (âˆ’4,5 Â°C)' : 'Confort tÃ©rmico a mediodÃ­a (EstrÃ©s por calor)'}
+            etiqueta={conProyecto ? 'Confort térmico para clases al aire libre (−4,5 °C)' : 'Confort térmico a mediodía (Estrés por calor)'}
             valor={conProyecto ? 88 : 28}
             color={conProyecto ? '#35d08a' : '#f5b45a'}
-            sufijo=" / 100 Ã­ndice de confort"
+            sufijo=" / 100 índice de confort"
           />
         </div>
 
         <div key={conProyecto ? 'despues' : 'antes'} className="md:col-span-6 tc-vidrio p-5 tc-paso-anim">
           <div className="flex items-center justify-between">
             <span className="tc-etiqueta" style={{ color: conProyecto ? '#35d08a' : '#e0917a' }}>
-              {conProyecto ? 'Escenario con el Piloto R9 activo' : 'SituaciÃ³n base diagnosticada (R1, R8, R9)'}
+              {conProyecto ? 'Escenario con el Piloto R9 activo' : 'Situación base diagnosticada (R1, R8, R9)'}
             </span>
             <span className="tc-num text-2xl font-semibold text-white">
-              {conProyecto ? '31,5 Â°C' : '36,0 Â°C'}
+              {conProyecto ? '31,5 °C' : '36,0 °C'}
             </span>
           </div>
           <p className="text-sm text-white/85 mt-3 leading-relaxed">
             {conProyecto
-              ? 'La cubierta captadora en V recoge la lluvia hacia el aljibe escolar, el vivero de especies nativas sombrea el patio y la cancha de preescolar funciona como aula abierta para niÃ±os, docentes y comunidad.'
-              : 'El sol caribeÃ±o incide directamente sobre el patio y las aulas sin suficiente sombra arbÃ³rea, limitando el juego y las actividades pedagÃ³gicas en las horas centrales del dÃ­a y desperdiciando el agua de lluvia.'}
+              ? 'La cubierta captadora en V recoge la lluvia hacia el aljibe escolar, el vivero de especies nativas sombrea el patio y la cancha de preescolar funciona como aula abierta para niños, docentes y comunidad.'
+              : 'El sol caribeño incide directamente sobre el patio y las aulas sin suficiente sombra arbórea, limitando el juego y las actividades pedagógicas en las horas centrales del día y desperdiciando el agua de lluvia.'}
           </p>
         </div>
       </div>
@@ -1251,116 +1252,116 @@ function SimuladorAntesDespuesR9() {
 }
 
 // =============================================================================
-// 01 Â· RED PROGRESIVA DEL PROBLEMA (IdÃ©ntica a Red.jsx en tesis_tercer_corte)
+// 01 · RED PROGRESIVA DEL PROBLEMA (Idéntica a Red.jsx en tesis_tercer_corte)
 // =============================================================================
 const NODOS_PROBLEMA = [
   {
     id: 'aula',
     titulo: 'Aula Ambiental Bocachica',
-    sub: 'NÃºcleo articulador',
+    sub: 'Núcleo articulador',
     x: 500,
     y: 265,
     central: true,
     color: '#e0917a',
-    cifra: 'Programa marco v0.1 Â· 24 meses',
-    detalle: 'Plataforma viva de investigaciÃ³n aplicada, docencia, creaciÃ³n y acciÃ³n participativa en Tierra Bomba (PUJ + Comunidad + Gimnasio Cristiano R9).',
+    cifra: 'Programa marco v0.1 · 24 meses',
+    detalle: 'Plataforma viva de investigación aplicada, docencia, creación y acción participativa en Tierra Bomba (PUJ + Comunidad + Gimnasio Cristiano R9).',
     relaciones: [
-      'Integra 9 estudios previos (R1â€“R9) en un solo sistema territorial',
-      'Articula 6 lÃ­neas de acciÃ³n, 6 pilotos y un gemelo digital progresivo',
+      'Integra 9 estudios previos (R1–R9) en un solo sistema territorial',
+      'Articula 6 líneas de acción, 6 pilotos y un gemelo digital progresivo',
       'Opera bajo el principio rector: devolver, validar y transformar',
     ],
   },
   {
     id: 'fragmentacion',
     titulo: 'Estudios sin retorno',
-    sub: 'FragmentaciÃ³n R1â€“R8',
+    sub: 'Fragmentación R1–R8',
     x: 195,
     y: 110,
     color: '#f4f1ec',
-    cifra: '8 diagnÃ³sticos previos dispersos',
-    detalle: 'Sobre Bocachica existen tesis y estudios valiosos (R1â€“R8), pero permanecÃ­an desarticulados entre sÃ­ y sin devoluciÃ³n pedagÃ³gica ni apropiaciÃ³n local.',
+    cifra: '8 diagnósticos previos dispersos',
+    detalle: 'Sobre Bocachica existen tesis y estudios valiosos (R1–R8), pero permanecían desarticulados entre sí y sin devolución pedagógica ni apropiación local.',
     relaciones: [
-      'Falta de un repositorio comÃºn accesible para la escuela y la comunidad',
-      'Ausencia de continuidad entre semestres acadÃ©micos',
+      'Falta de un repositorio común accesible para la escuela y la comunidad',
+      'Ausencia de continuidad entre semestres académicos',
     ],
   },
   {
     id: 'agua',
-    titulo: 'Crisis hÃ­drica y salinidad',
-    sub: 'LÃ­nea 9.2 Â· Agua',
+    titulo: 'Crisis hídrica y salinidad',
+    sub: 'Línea 9.2 · Agua',
     x: 805,
     y: 110,
     color: '#6ec6e6',
-    cifra: 'Aljibes histÃ³ricos + dÃ©ficit pluvial',
-    detalle: 'Vulnerabilidad en el acceso a agua segura, deterioro de aljibes patrimoniales, escorrentÃ­a sin aprovechamiento y riesgos microbiolÃ³gicos.',
+    cifra: 'Aljibes históricos + déficit pluvial',
+    detalle: 'Vulnerabilidad en el acceso a agua segura, deterioro de aljibes patrimoniales, escorrentía sin aprovechamiento y riesgos microbiológicos.',
     relaciones: [
-      'PÃ©rdida de saberes hÃ­dricos locales de captaciÃ³n y cuidado de pozos',
-      'Urgencia de cosecha de lluvia y biofiltraciÃ³n en el nodo escolar R9',
+      'Pérdida de saberes hídricos locales de captación y cuidado de pozos',
+      'Urgencia de cosecha de lluvia y biofiltración en el nodo escolar R9',
     ],
   },
   {
     id: 'clima',
-    titulo: 'EstrÃ©s tÃ©rmico escolar',
-    sub: 'LÃ­nea 9.3 Â· Nodo R9',
+    titulo: 'Estrés térmico escolar',
+    sub: 'Línea 9.3 · Nodo R9',
     x: 845,
     y: 265,
     color: '#35d08a',
-    cifra: 'Alta radiaciÃ³n + dÃ©ficit de sombra',
-    detalle: 'En el Gimnasio Cristiano de Bocachica (R9) y su entorno inmediato, la radiaciÃ³n solar intensa y la falta de arbolado reducen el confort pedagÃ³gico.',
+    cifra: 'Alta radiación + déficit de sombra',
+    detalle: 'En el Gimnasio Cristiano de Bocachica (R9) y su entorno inmediato, la radiación solar intensa y la falta de arbolado reducen el confort pedagógico.',
     relaciones: [
-      'PÃ©rdida de cobertura vegetal y presiÃ³n sobre el manglar costero',
-      'Potencial de vivero escolar y refugio climÃ¡tico bioclimÃ¡tico',
+      'Pérdida de cobertura vegetal y presión sobre el manglar costero',
+      'Potencial de vivero escolar y refugio climático bioclimático',
     ],
   },
   {
     id: 'residuos',
-    titulo: 'PresiÃ³n de residuos y plÃ¡stico',
-    sub: 'LÃ­nea 9.4 Â· Circularidad',
+    titulo: 'Presión de residuos y plástico',
+    sub: 'Línea 9.4 · Circularidad',
     x: 785,
     y: 425,
     color: '#f5b45a',
-    cifra: 'AcumulaciÃ³n costera y recalada',
-    detalle: 'Puntos crÃ­ticos de residuos sÃ³lidos y plÃ¡sticos de recalada marina afectan el paisaje, los caÃ±os y la salud ambiental de Bocachica.',
+    cifra: 'Acumulación costera y recalada',
+    detalle: 'Puntos críticos de residuos sólidos y plásticos de recalada marina afectan el paisaje, los caños y la salud ambiental de Bocachica.',
     relaciones: [
-      'Oportunidad de transformar plÃ¡stico recuperado en mobiliario escolar',
+      'Oportunidad de transformar plástico recuperado en mobiliario escolar',
       'Alianza con iniciativas locales de reciclaje y manufactura',
     ],
   },
   {
     id: 'oficios',
     titulo: 'Fragilidad de oficios del mar',
-    sub: 'LÃ­nea 9.5 Â· Ribera',
+    sub: 'Línea 9.5 · Ribera',
     x: 215,
     y: 425,
     color: '#e8a86b',
-    cifra: 'CarpinterÃ­a de ribera y pesca',
-    detalle: 'Los astilleros artesanales, maestros carpinteros de ribera y pescadores enfrentan relevo generacional incierto y pÃ©rdida de espacios de varada.',
+    cifra: 'Carpintería de ribera y pesca',
+    detalle: 'Los astilleros artesanales, maestros carpinteros de ribera y pescadores enfrentan relevo generacional incierto y pérdida de espacios de varada.',
     relaciones: [
-      'TransmisiÃ³n intergeneracional en riesgo sin escuela-taller',
-      'VÃ­nculo directo con la madera, el bosque seco y la soberanÃ­a alimentaria',
+      'Transmisión intergeneracional en riesgo sin escuela-taller',
+      'Vínculo directo con la madera, el bosque seco y la soberanía alimentaria',
     ],
   },
   {
     id: 'patrimonio',
     titulo: 'Patrimonio desconectado',
-    sub: 'LÃ­nea 9.6 Â· Fuertes y memoria',
+    sub: 'Línea 9.6 · Fuertes y memoria',
     x: 155,
     y: 265,
     color: '#c490ff',
-    cifra: 'San Fernando Â· San JosÃ© Â· San Rafael',
-    detalle: 'El circuito turÃ­stico tradicional visita las fortificaciones coloniales sin reconocer la memoria viva, vernÃ¡cula y ambiental de los habitantes de Bocachica.',
+    cifra: 'San Fernando · San José · San Rafael',
+    detalle: 'El circuito turístico tradicional visita las fortificaciones coloniales sin reconocer la memoria viva, vernácula y ambiental de los habitantes de Bocachica.',
     relaciones: [
       'Brecha entre la mirada del visitante y la memoria del habitante',
-      'Necesidad de un recorrido pedagÃ³gico biocultural e integrado',
+      'Necesidad de un recorrido pedagógico biocultural e integrado',
     ],
   },
 ];
 
 const ENLACES_PROBLEMA = [
-  ['aula', 'fragmentacion', 'Devolver R1â€“R9'],
+  ['aula', 'fragmentacion', 'Devolver R1–R9'],
   ['aula', 'agua', 'Cosecha pluvial'],
   ['aula', 'clima', 'Refugio R9'],
-  ['aula', 'residuos', 'PlÃ¡stico circular'],
+  ['aula', 'residuos', 'Plástico circular'],
   ['aula', 'oficios', 'Escuela de ribera'],
   ['aula', 'patrimonio', 'Doble recorrido'],
   ['fragmentacion', 'patrimonio', 'Archivo vivo'],
@@ -1424,7 +1425,7 @@ function RedProblemaAula() {
                 onClick={avanzar}
                 className="tc-ficha tc-ficha-activa !text-white !border-[#e0917a]"
               >
-                {vistos === 1 ? 'Descubrir primera relaciÃ³n â†’' : `Revelar siguiente relaciÃ³n (${vistos}/${NODOS_PROBLEMA.length}) â†’`}
+                {vistos === 1 ? 'Descubrir primera relación →' : `Revelar siguiente relación (${vistos}/${NODOS_PROBLEMA.length}) →`}
               </button>
             ) : (
               <button type="button" onClick={reiniciar} className="tc-ficha">
@@ -1559,7 +1560,7 @@ function RedProblemaAula() {
           <ul className="space-y-1.5 text-xs text-white/80">
             {actual.relaciones.map((r, i) => (
               <li key={i} className="flex gap-2">
-                <span style={{ color: actual.color }}>â†’</span>
+                <span style={{ color: actual.color }}>→</span>
                 <span>{r}</span>
               </li>
             ))}
@@ -1571,7 +1572,7 @@ function RedProblemaAula() {
             onClick={avanzar}
             className="mt-4 w-full py-2 rounded-lg text-xs font-medium bg-[#e0917a]/20 border border-[#e0917a] text-white hover:bg-[#e0917a]/30 transition"
           >
-            Siguiente nodo ({vistos + 1}/{NODOS_PROBLEMA.length}): {NODOS_PROBLEMA[vistos].titulo} â†’
+            Siguiente nodo ({vistos + 1}/{NODOS_PROBLEMA.length}): {NODOS_PROBLEMA[vistos].titulo} →
           </button>
         )}
       </div>
@@ -1580,7 +1581,7 @@ function RedProblemaAula() {
 }
 
 // =============================================================================
-// 02 Â· LO QUE DICEN LOS ANTECEDENTES Y LAS MEMORIAS (Estilo Social.jsx, cero tablas)
+// 02 · LO QUE DICEN LOS ANTECEDENTES Y LAS MEMORIAS (Estilo Social.jsx, cero tablas)
 // =============================================================================
 function BloqueVisual({ num, titulo, subtitulo, children }) {
   return (
@@ -1609,30 +1610,30 @@ function SeccionMemoriasYBase() {
     <div className="relative z-10 py-2">
       <div className="max-w-6xl mx-auto">
         <div className="max-w-3xl">
-          <div className="tc-etiqueta">02 Â· Antecedentes, memorias y ciclo metodolÃ³gico</div>
+          <div className="tc-etiqueta">02 · Antecedentes, memorias y ciclo metodológico</div>
           <h2 className="text-3xl md:text-5xl font-semibold mt-2 leading-[1.05] text-white">
             Nueve estudios previos, seis dimensiones de la memoria y un ciclo de retorno comunitario.
           </h2>
           <p className="text-white/75 mt-4 text-base leading-relaxed">
-            El Aula Ambiental no parte de cero: articula el corpus documental existente sobre Bocachica (<span className="tc-num text-white font-medium">R1â€“R9</span>), activa las seis dimensiones de su memoria biocultural y reemplaza el extractivismo acadÃ©mico por un ciclo de seis momentos.
+            El Aula Ambiental no parte de cero: articula el corpus documental existente sobre Bocachica (<span className="tc-num text-white font-medium">R1–R9</span>), activa las seis dimensiones de su memoria biocultural y reemplaza el extractivismo académico por un ciclo de seis momentos.
           </p>
         </div>
 
-        {/* 01 Â· Corpus documental R1-R9 visual */}
+        {/* 01 · Corpus documental R1-R9 visual */}
         <BloqueVisual
-          num="01 Â· Corpus de referencia R1â€“R9"
+          num="01 · Corpus de referencia R1–R9"
           titulo="De 8 estudios dispersos al antecedente proyectual en el Gimnasio Cristiano (R9)."
-          subtitulo="Selecciona cada documento base para explorar su aporte tÃ©cnico, su lectura crÃ­tica y el vacÃ­o territorial que el Aula Ambiental resuelve."
+          subtitulo="Selecciona cada documento base para explorar su aporte técnico, su lectura crítica y el vacío territorial que el Aula Ambiental resuelve."
         >
           <div className="space-y-6">
             <div>
               <div className="text-xs text-white/65 mb-2">
-                ComposiciÃ³n temÃ¡tica del corpus base (<span className="tc-num text-white">R1â€“R9</span>)
+                Composición temática del corpus base (<span className="tc-num text-white">R1–R9</span>)
               </div>
               <Apilada
                 partes={[
-                  { etiqueta: 'Arquitectura, hÃ¡bitat y escuela R9', pct: 34, color: '#35d08a' },
-                  { etiqueta: 'Agua, ecologÃ­a y metabolismo insular', pct: 33, color: '#6ec6e6' },
+                  { etiqueta: 'Arquitectura, hábitat y escuela R9', pct: 34, color: '#35d08a' },
+                  { etiqueta: 'Agua, ecología y metabolismo insular', pct: 33, color: '#6ec6e6' },
                   { etiqueta: 'Memoria, patrimonio y oficios del mar', pct: 33, color: '#e0917a' },
                 ]}
               />
@@ -1658,7 +1659,7 @@ function SeccionMemoriasYBase() {
             <div className="tc-vidrio p-5 md:p-6">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="tc-etiqueta !text-[#e0917a]">
-                  Documento {docSel.id} Â· {docSel.anio}
+                  Documento {docSel.id} · {docSel.anio}
                 </span>
                 <span className="text-xs font-mono text-white/60">{docSel.institucion}</span>
               </div>
@@ -1671,7 +1672,7 @@ function SeccionMemoriasYBase() {
                   <p className="text-sm text-white/85 leading-relaxed">{docSel.aporte}</p>
                 </div>
                 <div className="border-l border-white/15 pl-4">
-                  <div className="tc-etiqueta !text-[#6ec6e6] mb-1">VacÃ­o que el programa resuelve</div>
+                  <div className="tc-etiqueta !text-[#6ec6e6] mb-1">Vacío que el programa resuelve</div>
                   <p className="text-sm text-white/80 leading-relaxed">{docSel.vacio}</p>
                 </div>
               </div>
@@ -1679,11 +1680,11 @@ function SeccionMemoriasYBase() {
           </div>
         </BloqueVisual>
 
-        {/* 02 Â· Las 6 dimensiones de la memoria biocultural */}
+        {/* 02 · Las 6 dimensiones de la memoria biocultural */}
         <BloqueVisual
-          num="02 Â· Seis dimensiones de la memoria"
+          num="02 · Seis dimensiones de la memoria"
           titulo="La memoria como infraestructura para planificar el futuro de Bocachica."
-          subtitulo="En el programa marco, la memoria no es nostalgia pasiva: es un sistema de conocimientos empÃ­ricos sobre clima, agua, materiales, pesca y territorio."
+          subtitulo="En el programa marco, la memoria no es nostalgia pasiva: es un sistema de conocimientos empíricos sobre clima, agua, materiales, pesca y territorio."
         >
           <div className="grid md:grid-cols-12 gap-6 items-center">
             <div className="md:col-span-6">
@@ -1740,7 +1741,7 @@ function SeccionMemoriasYBase() {
                     }`}
                   >
                     <BarraSimple
-                      etiqueta={`0${i + 1} Â· Memoria ${d.dimension.toLowerCase()}`}
+                      etiqueta={`0${i + 1} · Memoria ${d.dimension.toLowerCase()}`}
                       valor={PESOS_DIM[i]}
                       color={COLORES_DIM[i]}
                       sufijo="% prioridad territorial"
@@ -1751,7 +1752,7 @@ function SeccionMemoriasYBase() {
 
               <div className="tc-vidrio p-4">
                 <div className="tc-etiqueta" style={{ color: COLORES_DIM[dimSel] }}>
-                  DimensiÃ³n 0{dimSel + 1} Â· {DIMENSIONES_MEMORIA[dimSel].dimension}
+                  Dimensión 0{dimSel + 1} · {DIMENSIONES_MEMORIA[dimSel].dimension}
                 </div>
                 <p className="text-sm text-white/90 mt-1 leading-relaxed">
                   {DIMENSIONES_MEMORIA[dimSel].enfoque}
@@ -1771,11 +1772,11 @@ function SeccionMemoriasYBase() {
           </div>
         </BloqueVisual>
 
-        {/* 03 Â· El ciclo metodolÃ³gico de 6 momentos */}
+        {/* 03 · El ciclo metodológico de 6 momentos */}
         <BloqueVisual
-          num="03 Â· Ciclo metodolÃ³gico (Devolver Â· validar Â· transformar)"
+          num="03 · Ciclo metodológico (Devolver · validar · transformar)"
           titulo="Seis momentos iterativos que cierran la brecha entre investigar y habitar."
-          subtitulo="Cada semestre universitario atraviesa este flujo con puntos de control Ã©tico obligatorios y entregables que quedan instalados en Bocachica."
+          subtitulo="Cada semestre universitario atraviesa este flujo con puntos de control ético obligatorios y entregables que quedan instalados en Bocachica."
         >
           <div className="space-y-5">
             <svg viewBox="0 0 760 135" className="w-full h-auto">
@@ -1826,7 +1827,7 @@ function SeccionMemoriasYBase() {
                 strokeDasharray="4 4"
               />
               <text x="380" y="128" textAnchor="middle" fill="#6ec6e6" fontSize="9.5" fontFamily="IBM Plex Mono">
-                â†º RetroalimentaciÃ³n continua semestral (Devolver Â· validar Â· transformar)
+                â†º Retroalimentación continua semestral (Devolver · validar · transformar)
               </text>
             </svg>
 
@@ -1836,7 +1837,7 @@ function SeccionMemoriasYBase() {
                 <div className="text-xl font-semibold text-white mt-1">{CICLO_METODOLOGICO[cicloSel].nombre}</div>
               </div>
               <div>
-                <div className="tc-etiqueta mb-1">AcciÃ³n en campo</div>
+                <div className="tc-etiqueta mb-1">Acción en campo</div>
                 <p className="text-xs text-white/80 leading-relaxed">{CICLO_METODOLOGICO[cicloSel].descripcion}</p>
               </div>
               <div className="border-l border-white/15 pl-4">
@@ -1852,7 +1853,7 @@ function SeccionMemoriasYBase() {
 }
 
 // =============================================================================
-// 05B Â· ESQUEMA EN PLANTA DE BOCACHICA Y LOS 6 PILOTOS (IdÃ©ntico a Plan.jsx)
+// 05B · ESQUEMA EN PLANTA DE BOCACHICA Y LOS 6 PILOTOS (Idéntico a Plan.jsx)
 // =============================================================================
 function EsquemaAulaSVG({ filtro, setFiltro }) {
   const mostrar = (k) => filtro === 'todos' || filtro === k;
@@ -1868,22 +1869,22 @@ function EsquemaAulaSVG({ filtro, setFiltro }) {
         </pattern>
       </defs>
 
-      {/* Fondo de mar (Canal de Bocachica y BahÃ­a de Cartagena) */}
+      {/* Fondo de mar (Canal de Bocachica y Bahía de Cartagena) */}
       <rect x="0" y="0" width="820" height="520" fill="#071018" />
       <rect x="0" y="0" width="820" height="520" fill="url(#agua-patron-aula)" />
 
-      {/* Silueta esquemÃ¡tica del extremo sur de Tierra Bomba (Bocachica) */}
+      {/* Silueta esquemática del extremo sur de Tierra Bomba (Bocachica) */}
       <path
         d="M 180 20 L 680 20 L 720 140 L 660 280 L 580 390 L 420 430 L 290 465 L 185 435 L 155 340 L 210 230 L 160 120 Z"
         fill="#0f1822"
         stroke="rgba(244,241,236,0.22)"
         strokeWidth="1.5"
       />
-      {/* Curvas topogrÃ¡ficas suaves (Cerro del Ãngel San Rafael y meseta de Bocachica) */}
+      {/* Curvas topográficas suaves (Cerro del Ángel San Rafael y meseta de Bocachica) */}
       <ellipse cx="470" cy="210" rx="165" ry="110" fill="none" stroke="rgba(255,255,255,0.06)" strokeDasharray="4 6" />
       <ellipse cx="485" cy="195" rx="95" ry="62" fill="none" stroke="rgba(255,255,255,0.09)" strokeDasharray="3 5" />
 
-      {/* Manglar y corredor bioclimÃ¡tico (9.3) */}
+      {/* Manglar y corredor bioclimático (9.3) */}
       {mostrar('verde') && (
         <g>
           <ellipse cx="615" cy="215" rx="78" ry="110" fill="url(#trama-verde-aula)" stroke="#35d08a" strokeWidth="1.6" strokeDasharray="5 4" />
@@ -1903,7 +1904,7 @@ function EsquemaAulaSVG({ filtro, setFiltro }) {
         </g>
       )}
 
-      {/* Ruta circular de residuos (9.4) y CarpinterÃ­a de ribera (9.5) */}
+      {/* Ruta circular de residuos (9.4) y Carpintería de ribera (9.5) */}
       {mostrar('oficios') && (
         <g>
           <path d="M 220 155 Q 310 175 415 215" fill="none" stroke="#f5b45a" strokeWidth="2.4" strokeDasharray="4 4" />
@@ -1912,8 +1913,8 @@ function EsquemaAulaSVG({ filtro, setFiltro }) {
           <text x="220" y="166" textAnchor="middle" fill="rgba(244,241,236,0.75)" fontSize="8.8" fontFamily="IBM Plex Mono">Astilleros y pesca</text>
 
           <rect x="345" y="135" width="110" height="44" rx="6" fill="rgba(245,180,90,0.15)" stroke="#f5b45a" strokeWidth="1.6" />
-          <text x="400" y="155" textAnchor="middle" fill="#ffe1a8" fontSize="10.5" fontWeight="600">Taller PlÃ¡stico (9.4)</text>
-          <text x="400" y="169" textAnchor="middle" fill="rgba(244,241,236,0.75)" fontSize="8.8" fontFamily="IBM Plex Mono">Acopio y extrusiÃ³n</text>
+          <text x="400" y="155" textAnchor="middle" fill="#ffe1a8" fontSize="10.5" fontWeight="600">Taller Plástico (9.4)</text>
+          <text x="400" y="169" textAnchor="middle" fill="rgba(244,241,236,0.75)" fontSize="8.8" fontFamily="IBM Plex Mono">Acopio y extrusión</text>
         </g>
       )}
 
@@ -1925,10 +1926,10 @@ function EsquemaAulaSVG({ filtro, setFiltro }) {
           <text x="235" y="400" textAnchor="middle" fill="#fff" fontSize="10.5" fontWeight="600">Fuerte San Fernando</text>
 
           <circle cx="145" cy="455" r="20" fill="rgba(196,144,255,0.2)" stroke="#c490ff" strokeWidth="1.8" />
-          <text x="145" y="486" textAnchor="middle" fill="#e5d0ff" fontSize="10" fontWeight="600">BaterÃ­a San JosÃ© (Canal)</text>
+          <text x="145" y="486" textAnchor="middle" fill="#e5d0ff" fontSize="10" fontWeight="600">Batería San José (Canal)</text>
 
           <circle cx="495" cy="185" r="22" fill="rgba(224,145,122,0.2)" stroke="#e0917a" strokeWidth="1.8" />
-          <text x="495" y="156" textAnchor="middle" fill="#ffd2c4" fontSize="10" fontWeight="600">BaterÃ­a Ãngel San Rafael</text>
+          <text x="495" y="156" textAnchor="middle" fill="#ffd2c4" fontSize="10" fontWeight="600">Batería Ángel San Rafael</text>
         </g>
       )}
 
@@ -1946,13 +1947,13 @@ function EsquemaAulaSVG({ filtro, setFiltro }) {
               Gimnasio Cristiano (R9)
             </text>
             <text x="0" y="12" textAnchor="middle" fill="#a8f0c6" fontSize="9.2" fontFamily="IBM Plex Mono">
-              Refugio climÃ¡tico + Aljibe + Aula
+              Refugio climático + Aljibe + Aula
             </text>
           </g>
         </g>
       )}
 
-      {/* Norte y escala grÃ¡fica (idÃ©ntico a Plan.jsx) */}
+      {/* Norte y escala gráfica (idéntico a Plan.jsx) */}
       <g transform="translate(765, 52)">
         <circle r="20" fill="rgba(5,8,12,0.75)" stroke="rgba(255,255,255,0.22)" />
         <polygon points="0,-13 -5,7 0,3 5,7" fill="#f4f1ec" />
@@ -1975,7 +1976,7 @@ function SeccionEsquemaAula() {
     { id: 'escuela', nombre: 'Nodo Escolar R9 + Casco (9.1)' },
     { id: 'agua', nombre: 'Agua y Aljibes (9.2)' },
     { id: 'verde', nombre: 'Silvicultura y Manglar (9.3)' },
-    { id: 'oficios', nombre: 'PlÃ¡stico y Ribera (9.4â€“9.5)' },
+    { id: 'oficios', nombre: 'Plástico y Ribera (9.4–9.5)' },
     { id: 'patrimonio', nombre: 'Circuito Patrimonial (9.6)' },
   ];
 
@@ -1983,18 +1984,18 @@ function SeccionEsquemaAula() {
     <div className="relative z-10 py-2">
       <div className="max-w-6xl mx-auto">
         <div className="max-w-3xl">
-          <div className="tc-etiqueta">05 Â· Esquema en planta y proyectos piloto</div>
+          <div className="tc-etiqueta">05 · Esquema en planta y proyectos piloto</div>
           <h2 className="text-3xl md:text-5xl font-semibold mt-2 leading-[1.05] text-white">
-            CÃ³mo se articulan las seis lÃ­neas alrededor del Gimnasio Cristiano de Bocachica (R9).
+            Cómo se articulan las seis líneas alrededor del Gimnasio Cristiano de Bocachica (R9).
           </h2>
           <p className="text-white/75 mt-4 text-base leading-relaxed">
-            En lugar de intervenciones aisladas, el programa conecta el nodo escolar (<span className="tc-num text-white">R9</span>) con el casco histÃ³rico, los aljibes comunitarios, el vivero de manglar, los talleres de plÃ¡stico y carpinterÃ­a de ribera y las tres fortificaciones del canal.
+            En lugar de intervenciones aisladas, el programa conecta el nodo escolar (<span className="tc-num text-white">R9</span>) con el casco histórico, los aljibes comunitarios, el vivero de manglar, los talleres de plástico y carpintería de ribera y las tres fortificaciones del canal.
           </p>
         </div>
 
         <div className="mt-8 tc-vidrio p-4 md:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-white/10">
-            <div className="tc-etiqueta">Esquema territorial de Bocachica Â· Filtra por piloto</div>
+            <div className="tc-etiqueta">Esquema territorial de Bocachica · Filtra por piloto</div>
             <div className="flex flex-wrap gap-1.5">
               {FILTROS.map((f) => (
                 <button
@@ -2014,20 +2015,20 @@ function SeccionEsquemaAula() {
         {/* Simulador Before/After del Colegio R9 */}
         <SimuladorAntesDespuesR9 />
 
-        {/* 6 Tarjetas de los Pilotos con formato .tc-regla (idÃ©ntico a CRITERIOS en Plan.jsx) */}
+        {/* 6 Tarjetas de los Pilotos con formato .tc-regla (idéntico a CRITERIOS en Plan.jsx) */}
         <div className="mt-16 pt-12 tc-regla">
-          <div className="tc-etiqueta">Seis proyectos piloto articulados (SecciÃ³n 9 del documento)</div>
+          <div className="tc-etiqueta">Seis proyectos piloto articulados (Sección 9 del documento)</div>
           <div className="grid md:grid-cols-3 gap-6 mt-5">
             {LINEAS_INVESTIGACION.map((l) => (
               <div key={l.id} className="pt-4 tc-regla">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="tc-num text-[#e0917a] font-semibold">LÃ­nea {l.id}</span>
+                  <span className="tc-num text-[#e0917a] font-semibold">Línea {l.id}</span>
                   <span className="text-white/45 font-mono">{l.piloto.titulo.split(' ')[0]}</span>
                 </div>
                 <div className="text-lg font-semibold mt-1 text-white">{l.titulo}</div>
                 <p className="text-xs text-white/75 mt-1.5 leading-relaxed">{l.piloto.alcance}</p>
                 <div className="mt-2.5 text-[11px] font-mono text-[#6ec6e6]">
-                  â†’ {l.productos[0]}
+                  → {l.productos[0]}
                 </div>
               </div>
             ))}
@@ -2039,7 +2040,7 @@ function SeccionEsquemaAula() {
 }
 
 // =============================================================================
-// 06 Â· HOJA DE RUTA 24 MESES Y RED DE 15 ACTORES (Estilo Social.jsx, cero tablas)
+// 06 · HOJA DE RUTA 24 MESES Y RED DE 15 ACTORES (Estilo Social.jsx, cero tablas)
 // =============================================================================
 function SeccionHojaDeRutaYGobernanza() {
   const [mesActivo, setMesActivo] = useState(6);
@@ -2058,20 +2059,20 @@ function SeccionHojaDeRutaYGobernanza() {
     <div className="relative z-10 py-2">
       <div className="max-w-6xl mx-auto">
         <div className="max-w-3xl">
-          <div className="tc-etiqueta">06 Â· Hoja de ruta a 24 meses, productos y gobernanza</div>
+          <div className="tc-etiqueta">06 · Hoja de ruta a 24 meses, productos y gobernanza</div>
           <h2 className="text-3xl md:text-5xl font-semibold mt-2 leading-[1.05] text-white">
-            Cuatro semestres acadÃ©micos, nueve productos verificables y quince actores en red.
+            Cuatro semestres académicos, nueve productos verificables y quince actores en red.
           </h2>
           <p className="text-white/75 mt-4 text-base leading-relaxed">
-            Desliza el horizonte temporal de <span className="tc-num text-white">0 a 24 meses</span> para inspeccionar quÃ© ocurre en cada fase (<span className="tc-num text-white">F0â€“F6</span>), cuÃ¡les productos (<span className="tc-num text-white">P1â€“P9</span>) se entregan y cÃ³mo se gobierna el programa.
+            Desliza el horizonte temporal de <span className="tc-num text-white">0 a 24 meses</span> para inspeccionar qué ocurre en cada fase (<span className="tc-num text-white">F0–F6</span>), cuáles productos (<span className="tc-num text-white">P1–P9</span>) se entregan y cómo se gobierna el programa.
           </p>
         </div>
 
-        {/* 01 Â· LÃ­nea de tiempo interactiva de 24 meses (estilo Calendario de Social.jsx) */}
+        {/* 01 · Línea de tiempo interactiva de 24 meses (estilo Calendario de Social.jsx) */}
         <BloqueVisual
-          num="01 Â· Cronograma de 24 meses (F0â€“F6)"
+          num="01 · Cronograma de 24 meses (F0–F6)"
           titulo="Continuidad intersemestral sin empezar de cero cada semestre."
-          subtitulo="Mueve el control de meses o haz clic en una fase para ver sus actividades, el producto que deja instalado y su punto de control Ã©tico."
+          subtitulo="Mueve el control de meses o haz clic en una fase para ver sus actividades, el producto que deja instalado y su punto de control ético."
         >
           <div className="space-y-6">
             <div className="tc-vidrio p-5">
@@ -2120,7 +2121,7 @@ function SeccionHojaDeRutaYGobernanza() {
 
               <div className="mt-5 pt-4 tc-regla grid md:grid-cols-3 gap-4">
                 <div>
-                  <div className="tc-etiqueta !text-[#e0917a]">{faseActual.id} Â· {faseActual.meses}</div>
+                  <div className="tc-etiqueta !text-[#e0917a]">{faseActual.id} · {faseActual.meses}</div>
                   <div className="text-lg font-semibold text-white mt-1">{faseActual.nombre}</div>
                 </div>
                 <div>
@@ -2128,7 +2129,7 @@ function SeccionHojaDeRutaYGobernanza() {
                   <p className="text-xs text-white/80 leading-relaxed">{faseActual.actividades}</p>
                 </div>
                 <div className="border-l border-white/15 pl-4">
-                  <div className="tc-etiqueta !text-[#35d08a] mb-1">Hito y control Ã©tico</div>
+                  <div className="tc-etiqueta !text-[#35d08a] mb-1">Hito y control ético</div>
                   <p className="text-xs text-white/90 font-medium">{faseActual.hito}</p>
                   <p className="text-[11px] text-white/65 mt-1">{faseActual.controlEtico}</p>
                 </div>
@@ -2137,7 +2138,7 @@ function SeccionHojaDeRutaYGobernanza() {
 
             {/* Productos P1-P9 como matriz visual de tarjetas compactas */}
             <div>
-              <div className="tc-etiqueta mb-3">Nueve productos verificables del programa (P1â€“P9)</div>
+              <div className="tc-etiqueta mb-3">Nueve productos verificables del programa (P1–P9)</div>
               <div className="grid sm:grid-cols-3 gap-3">
                 {PRODUCTOS_ESPERADOS.map((p) => (
                   <div key={p.codigo} className="p-3.5 rounded-lg bg-white/[0.03] border border-white/10 hover:border-white/25 transition">
@@ -2154,11 +2155,11 @@ function SeccionHojaDeRutaYGobernanza() {
           </div>
         </BloqueVisual>
 
-        {/* 02 Â· ConstelaciÃ³n interactiva de los 15 Actores y Gobernanza */}
+        {/* 02 · Constelación interactiva de los 15 Actores y Gobernanza */}
         <BloqueVisual
-          num="02 Â· Red de 15 actores y gobernanza compartida"
-          titulo="Comunidad, escuela, universidad, gremios y aliados cientÃ­ficos."
-          subtitulo="Haz clic en cualquier actor de la constelaciÃ³n para inspeccionar su rol, su contribuciÃ³n y cÃ³mo participa en el ComitÃ© Coordinador y la Mesa Comunitaria."
+          num="02 · Red de 15 actores y gobernanza compartida"
+          titulo="Comunidad, escuela, universidad, gremios y aliados científicos."
+          subtitulo="Haz clic en cualquier actor de la constelación para inspeccionar su rol, su contribución y cómo participa en el Comité Coordinador y la Mesa Comunitaria."
         >
           <div className="grid md:grid-cols-12 gap-6 items-center">
             <div className="md:col-span-7 tc-vidrio p-4">
@@ -2213,7 +2214,7 @@ function SeccionHojaDeRutaYGobernanza() {
             <div className="md:col-span-5 space-y-4">
               <div className="tc-vidrio p-5">
                 <div className="tc-etiqueta !text-[#35d08a]">
-                  Actor {actorSel + 1} de {ACTORES_GOBERNANZA.length} Â· {ACTORES_GOBERNANZA[actorSel].tipo}
+                  Actor {actorSel + 1} de {ACTORES_GOBERNANZA.length} · {ACTORES_GOBERNANZA[actorSel].tipo}
                 </div>
                 <h4 className="text-xl font-semibold text-white mt-1">{ACTORES_GOBERNANZA[actorSel].actor}</h4>
                 <div className="mt-3 pt-3 tc-regla text-xs space-y-2">
@@ -2222,18 +2223,18 @@ function SeccionHojaDeRutaYGobernanza() {
                     <span className="text-white/90">{ACTORES_GOBERNANZA[actorSel].rol}</span>
                   </div>
                   <div>
-                    <span className="text-white/50 block">LÃ­neas vinculadas</span>
+                    <span className="text-white/50 block">Líneas vinculadas</span>
                     <span className="text-[#6ec6e6] font-mono">{ACTORES_GOBERNANZA[actorSel].lineas}</span>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <div className="tc-etiqueta">Principios Ã©ticos innegociables</div>
+                <div className="tc-etiqueta">Principios éticos innegociables</div>
                 {PRINCIPIOS_ETICOS.slice(0, 4).map((p) => (
                   <BarraSimple
                     key={p.principio}
-                    etiqueta={`${p.principio} â€” ${p.mecanismo}`}
+                    etiqueta={`${p.principio} — ${p.mecanismo}`}
                     valor={100}
                     color="#e0917a"
                     sufijo="% exigible"
@@ -2249,7 +2250,7 @@ function SeccionHojaDeRutaYGobernanza() {
 }
 
 // =============================================================================
-// CONTROLES DE VISTA 3D, ÃNDICE LATERAL Y CABECERA (IdÃ©nticos a Relato.jsx)
+// CONTROLES DE VISTA 3D, ÍNDICE LATERAL Y CABECERA (Idénticos a Relato.jsx)
 // =============================================================================
 function ControlesVista({ libre, onToggleLibre, oculto, onToggleOculto, onZoom, onReset }) {
   return (
@@ -2261,19 +2262,19 @@ function ControlesVista({ libre, onToggleLibre, oculto, onToggleOculto, onZoom, 
           libre ? '!bg-[#e0917a]/25 !border-[#e0917a] text-white' : 'text-white/80 hover:text-white'
         }`}
       >
-        {libre ? 'âœ“ Dejar de mover el mapa' : 'Mover el mapa 3D'}
+        {libre ? '✓ Dejar de mover el mapa' : 'Mover el mapa 3D'}
       </button>
       <button
         type="button"
         onClick={onToggleOculto}
         className="tc-vidrio px-2.5 py-1.5 text-xs text-white/75 hover:text-white"
-        title={oculto ? 'Mostrar informaciÃ³n' : 'Esconder texto para ver solo la isla'}
+        title={oculto ? 'Mostrar información' : 'Esconder texto para ver solo la isla'}
       >
         {oculto ? 'Ver texto' : 'Ver solo el mapa'}
       </button>
       <div className="hidden sm:flex items-center tc-vidrio px-1 py-0.5 text-xs">
         <button type="button" onClick={() => onZoom(0.78)} className="px-2 py-1 text-white/80 hover:text-white" title="Acercar">+</button>
-        <button type="button" onClick={() => onZoom(1.28)} className="px-2 py-1 text-white/80 hover:text-white" title="Alejar">âˆ’</button>
+        <button type="button" onClick={() => onZoom(1.28)} className="px-2 py-1 text-white/80 hover:text-white" title="Alejar">−</button>
         <button type="button" onClick={onReset} className="px-2 py-1 text-white/70 hover:text-white" title="Restablecer vista">âŸ²</button>
       </div>
     </div>
@@ -2299,66 +2300,66 @@ function IndiceLateral({ total, activo, onIr }) {
 }
 
 // =============================================================================
-// ÃNDICE DE BÃšSQUEDA Y MINI-JUEGO COMUNITARIO
+// ÍNDICE DE BÚSQUEDA Y MINI-JUEGO COMUNITARIO
 // =============================================================================
 const INDICE_BUSQUEDA = [
   { id: 'casco', tipo: 'lugar', nodo: 'casco', titulo: 'Bocachica (Corregimiento)', sub: '2.600 casas reales del corregimiento, calles e historias comunitarias', tags: 'casas corregimiento bocachica calles vecinos barrio' },
   { id: 'tierraBomba', tipo: 'lugar', nodo: 'tierraBomba', titulo: 'Tierra Bomba Centro (Corregimiento)', sub: 'Corregimiento en el norte de la isla conectado por mar y senderos', tags: 'tierra bomba centro norte corregimiento' },
-  { id: 'canoDeLoro', tipo: 'lugar', nodo: 'canoDeLoro', titulo: 'CaÃ±o de Loro (Corregimiento)', sub: 'Corregimiento frente a la bahÃ­a con manglar y pesca artesanal', tags: 'cano de loro corregimiento bahia pesca manglar' },
+  { id: 'canoDeLoro', tipo: 'lugar', nodo: 'canoDeLoro', titulo: 'Caño de Loro (Corregimiento)', sub: 'Corregimiento frente a la bahía con manglar y pesca artesanal', tags: 'cano de loro corregimiento bahia pesca manglar' },
   { id: 'puntaArena', tipo: 'lugar', nodo: 'puntaArena', titulo: 'Punta Arena (Corregimiento)', sub: 'Corregimiento en la punta noreste frente a Cartagena', tags: 'punta arena corregimiento playa cartagena' },
   { id: 'escuelaR9', tipo: 'lugar', nodo: 'escuelaR9', titulo: 'Colegio Gimnasio Cristiano (R9)', sub: 'Tanque de 45.000 L de agua lluvia, patio con sombra y aula viva', tags: 'colegio escuela r9 agua lluvia patio sombra estudiantes' },
-  { id: 'vivero', tipo: 'lugar', nodo: 'vivero', titulo: 'Vivero y Manglar', sub: 'Siembra de manglar, almendros y bosque seco para bajar el calor (-4,5 Â°C)', tags: 'arboles vivero manglar sombra calor naturaleza bosque' },
-  { id: 'agua', tipo: 'lugar', nodo: 'agua', titulo: 'Ruta del Agua Lluvia', sub: 'CÃ³mo recoger, filtrar y guardar agua limpia en techos y tanques', tags: 'agua lluvia aljibe tanque beber filtro' },
-  { id: 'ribera', tipo: 'lugar', nodo: 'ribera', titulo: 'Taller de Madera y Oficios', sub: 'CarpinterÃ­a de ribera, construcciÃ³n tradicional y empleo local', tags: 'madera carpinteria oficios trabajo taller construccion' },
-  { id: 'residuos', tipo: 'lugar', nodo: 'residuos', titulo: 'Punto Limpio y Reciclaje', sub: 'SeparaciÃ³n de plÃ¡sticos, abono con residuos orgÃ¡nicos y limpieza', tags: 'basura reciclaje plastico limpio abono compost' },
-  { id: 'sanFernando', tipo: 'lugar', nodo: 'sanFernando', titulo: 'Fuerte de San Fernando', sub: 'Patrimonio de piedra coralina y memoria histÃ³rica frente al canal', tags: 'fuerte san fernando historia patrimonio turismo' },
-  { id: 'sanRafael', tipo: 'lugar', nodo: 'sanRafael', titulo: 'BaterÃ­a del Ãngel San Rafael', sub: 'Mirador histÃ³rico en la loma y sendero ecolÃ³gico', tags: 'fuerte san rafael loma mirador sendero' },
-  { id: 'sanJose', tipo: 'lugar', nodo: 'sanJose', titulo: 'BaterÃ­a de San JosÃ©', sub: 'Fuerte sobre el arrecife en la entrada de la bahÃ­a', tags: 'fuerte san jose bahia mar arrecife' },
-  { id: 'tool-4pasos', tipo: 'modal', modal: 'simulador4pasos', titulo: 'Ver dibujos explicativos en 4 pasos', sub: 'CÃ³mo funciona el Aula Ambiental paso a paso', tags: 'dibujos explicacion pasos simulador entender' },
-  { id: 'tool-r9', tipo: 'modal', modal: 'plano2D', titulo: 'Comparar el colegio: Hoy vs. Nuevo', sub: 'Mueve el control para ver el antes y despuÃ©s del Gimnasio Cristiano', tags: 'comparar antes despues plano colegio' },
-  { id: 'tool-red', tipo: 'modal', modal: 'redProblema', titulo: 'CÃ³mo se conectan los problemas y soluciones', sub: 'Mapa interactivo de temas de la isla', tags: 'problemas soluciones red mapa' },
-  { id: 'tool-plan', tipo: 'modal', modal: 'hojaRuta', titulo: 'Plan a 2 aÃ±os y quiÃ©nes participan', sub: 'Calendario de obra y actores de la comunidad', tags: 'plan calendario aÃ±os actores comunidad' },
+  { id: 'vivero', tipo: 'lugar', nodo: 'vivero', titulo: 'Vivero y Manglar', sub: 'Siembra de manglar, almendros y bosque seco para bajar el calor (-4,5 °C)', tags: 'arboles vivero manglar sombra calor naturaleza bosque' },
+  { id: 'agua', tipo: 'lugar', nodo: 'agua', titulo: 'Ruta del Agua Lluvia', sub: 'Cómo recoger, filtrar y guardar agua limpia en techos y tanques', tags: 'agua lluvia aljibe tanque beber filtro' },
+  { id: 'ribera', tipo: 'lugar', nodo: 'ribera', titulo: 'Taller de Madera y Oficios', sub: 'Carpintería de ribera, construcción tradicional y empleo local', tags: 'madera carpinteria oficios trabajo taller construccion' },
+  { id: 'residuos', tipo: 'lugar', nodo: 'residuos', titulo: 'Punto Limpio y Reciclaje', sub: 'Separación de plásticos, abono con residuos orgánicos y limpieza', tags: 'basura reciclaje plastico limpio abono compost' },
+  { id: 'sanFernando', tipo: 'lugar', nodo: 'sanFernando', titulo: 'Fuerte de San Fernando', sub: 'Patrimonio de piedra coralina y memoria histórica frente al canal', tags: 'fuerte san fernando historia patrimonio turismo' },
+  { id: 'sanRafael', tipo: 'lugar', nodo: 'sanRafael', titulo: 'Batería del Ángel San Rafael', sub: 'Mirador histórico en la loma y sendero ecológico', tags: 'fuerte san rafael loma mirador sendero' },
+  { id: 'sanJose', tipo: 'lugar', nodo: 'sanJose', titulo: 'Batería de San José', sub: 'Fuerte sobre el arrecife en la entrada de la bahía', tags: 'fuerte san jose bahia mar arrecife' },
+  { id: 'tool-4pasos', tipo: 'modal', modal: 'simulador4pasos', titulo: 'Ver dibujos explicativos en 4 pasos', sub: 'Cómo funciona el Aula Ambiental paso a paso', tags: 'dibujos explicacion pasos simulador entender' },
+  { id: 'tool-r9', tipo: 'modal', modal: 'plano2D', titulo: 'Comparar el colegio: Hoy vs. Nuevo', sub: 'Mueve el control para ver el antes y después del Gimnasio Cristiano', tags: 'comparar antes despues plano colegio' },
+  { id: 'tool-red', tipo: 'modal', modal: 'redProblema', titulo: 'Cómo se conectan los problemas y soluciones', sub: 'Mapa interactivo de temas de la isla', tags: 'problemas soluciones red mapa' },
+  { id: 'tool-plan', tipo: 'modal', modal: 'hojaRuta', titulo: 'Plan a 2 años y quiénes participan', sub: 'Calendario de obra y actores de la comunidad', tags: 'plan calendario años actores comunidad' },
 ];
 
 const PREGUNTAS_RETO = [
   {
-    q: 'Â¿CuÃ¡nta agua lluvia guardarÃ¡ el tanque nuevo del colegio Gimnasio Cristiano?',
+    q: '¿Cuánta agua lluvia guardará el tanque nuevo del colegio Gimnasio Cristiano?',
     opciones: ['5.000 litros', '45.000 litros', '100 litros'],
     correcta: 1,
     nodo: 'escuelaR9',
-    dato: 'Â¡Exacto! 45.000 litros alcanzan para tener agua limpia en el colegio durante los meses secos.',
+    dato: '¡Exacto! 45.000 litros alcanzan para tener agua limpia en el colegio durante los meses secos.',
   },
   {
-    q: 'Â¿CuÃ¡nto puede bajar el calor en el patio escolar gracias a los Ã¡rboles de sombra y el manglar?',
-    opciones: ['Hasta -4,5 Â°C menos', 'Solo -0,2 Â°C', 'No cambia la temperatura'],
+    q: '¿Cuánto puede bajar el calor en el patio escolar gracias a los árboles de sombra y el manglar?',
+    opciones: ['Hasta -4,5 °C menos', 'Solo -0,2 °C', 'No cambia la temperatura'],
     correcta: 0,
     nodo: 'vivero',
-    dato: 'Â¡Muy bien! La sombra de los Ã¡rboles y el viento fresco bajan hasta 4,5 Â°C el calor del suelo.',
+    dato: '¡Muy bien! La sombra de los árboles y el viento fresco bajan hasta 4,5 °C el calor del suelo.',
   },
   {
-    q: 'Â¿QuÃ© materiales locales usaremos para construir el Aula Ambiental?',
-    opciones: ['Solo vidrio y acero importado', 'Madera, caÃ±a, palma y piedra coralina', 'PlÃ¡stico reciclado Ãºnicamente'],
+    q: '¿Qué materiales locales usaremos para construir el Aula Ambiental?',
+    opciones: ['Solo vidrio y acero importado', 'Madera, caña, palma y piedra coralina', 'Plástico reciclado únicamente'],
     correcta: 1,
     nodo: 'ribera',
-    dato: 'Â¡Correcto! Usamos los oficios de carpinterÃ­a y materiales frescos de la regiÃ³n.',
+    dato: '¡Correcto! Usamos los oficios de carpintería y materiales frescos de la región.',
   },
   {
-    q: 'Â¿CuÃ¡ntos meses dura el plan completo junto a la comunidad?',
-    opciones: ['3 meses', '24 meses (2 aÃ±os)', '10 aÃ±os'],
+    q: '¿Cuántos meses dura el plan completo junto a la comunidad?',
+    opciones: ['3 meses', '24 meses (2 años)', '10 años'],
     correcta: 1,
     nodo: 'casco',
-    dato: 'Â¡AsÃ­ es! Son 24 meses divididos en 4 etapas claras junto a vecinos, colegio y aliados.',
+    dato: '¡Así es! Son 24 meses divididos en 4 etapas claras junto a vecinos, colegio y aliados.',
   },
 ];
 
 const TEMAS_VIERNES_LISTA = [
   {
     id: 'plataforma',
-    titulo: 'CÃ³mo usar esta plataforma 3D de Tierra Bomba',
+    titulo: 'Cómo usar esta plataforma 3D de Tierra Bomba',
     sub: 'Aprende a moverte por los 4 corregimientos, fuertes y talleres',
     Icon: BookOpen,
     color: '#6ec6e6',
-    lugar: 'Virtual en vivo Â· Todo el pueblo',
+    lugar: 'Virtual en vivo · Todo el pueblo',
   },
   {
     id: 'bullerengue',
@@ -2374,20 +2375,20 @@ const TEMAS_VIERNES_LISTA = [
     sub: 'Arroz con coco rallado en lata, caballito de papaya y corozo',
     Icon: Utensils,
     color: '#e8a86b',
-    lugar: 'Junto al muelle flotante Â· Tierra Bomba',
+    lugar: 'Junto al muelle flotante · Tierra Bomba',
   },
   {
     id: 'ribera',
-    titulo: 'CarpinterÃ­a de ribera y madera naval',
+    titulo: 'Carpintería de ribera y madera naval',
     sub: 'Oficio tradicional de embarcaciones y sombra de patio',
     Icon: Hammer,
     color: '#e8a86b',
-    lugar: 'Taller de Ribera Â· Bocachica',
+    lugar: 'Taller de Ribera · Bocachica',
   },
   {
     id: 'vivero',
     titulo: 'Siembra de manglar y vivero comunitario',
-    sub: 'PlÃ¡stico reciclado, sombra y cuidado del agua lluvia',
+    sub: 'Plástico reciclado, sombra y cuidado del agua lluvia',
     Icon: Sprout,
     color: '#35d08a',
     lugar: 'Vivero y Colegio R9',
@@ -2405,7 +2406,7 @@ function obtenerProximoViernes() {
   return {
     dia: String(prox.getDate()).padStart(2, '0'),
     mes: meses[prox.getMonth()],
-    completo: `Viernes ${prox.getDate()} de ${meses[prox.getMonth()]} Â· 4:00 p.m.`,
+    completo: `Viernes ${prox.getDate()} de ${meses[prox.getMonth()]} · 4:00 p.m.`,
   };
 }
 
@@ -2436,9 +2437,9 @@ const EXPLORA_CATEGORIAS = [
     zonas: [0.55, 0.2, 0.2],
     resumen: 'Los 4 corregimientos de Tierra Bomba. Toca cualquiera para verlo de cerca.',
     lugares: [
-      { nodo: 'casco', nombre: 'Bocachica', desc: 'Casco histÃ³rico, colegio y fuertes al sur.' },
+      { nodo: 'casco', nombre: 'Bocachica', desc: 'Casco histórico, colegio y fuertes al sur.' },
       { nodo: 'tierraBomba', nombre: 'Tierra Bomba', desc: 'Corregimiento del norte y bosque seco.' },
-      { nodo: 'canoDeLoro', nombre: 'CaÃ±o de Loro', desc: 'Corregimiento sobre la bahÃ­a y manglares.' },
+      { nodo: 'canoDeLoro', nombre: 'Caño de Loro', desc: 'Corregimiento sobre la bahía y manglares.' },
       { nodo: 'puntaArena', nombre: 'Punta Arena', desc: 'Playas y turismo frente a Cartagena.' },
     ],
   },
@@ -2454,10 +2455,10 @@ const EXPLORA_CATEGORIAS = [
     zonas: [0.95, 0.1, 0.1],
     resumen: 'Fuertes de piedra coralina e historia viva de nuestra isla.',
     lugares: [
-      { nodo: 'sanFernando', nombre: 'Fuerte San Fernando', desc: 'Castillo histÃ³rico frente al canal.' },
-      { nodo: 'sanRafael', nombre: 'BaterÃ­a Ãngel San Rafael', desc: 'Mirador en lo alto de la loma.' },
-      { nodo: 'sanJose', nombre: 'BaterÃ­a de San JosÃ©', desc: 'Fuerte sobre el arrecife en la bahÃ­a.' },
-      { nodo: 'casco', nombre: 'Casco HistÃ³rico', desc: 'Calles tradicionales de Bocachica.' },
+      { nodo: 'sanFernando', nombre: 'Fuerte San Fernando', desc: 'Castillo histórico frente al canal.' },
+      { nodo: 'sanRafael', nombre: 'Batería Ángel San Rafael', desc: 'Mirador en lo alto de la loma.' },
+      { nodo: 'sanJose', nombre: 'Batería de San José', desc: 'Fuerte sobre el arrecife en la bahía.' },
+      { nodo: 'casco', nombre: 'Casco Histórico', desc: 'Calles tradicionales de Bocachica.' },
     ],
   },
   {
@@ -2472,10 +2473,10 @@ const EXPLORA_CATEGORIAS = [
     zonas: [0.1, 0.4, 0.95],
     resumen: 'Toca un icono animado en la isla para descubrir la clase del viernes e inscribirte.',
     lugares: [
-      { nodo: 'escuelaR9', nombre: 'Gimnasio Cristiano', desc: 'CÃ³mo usar esta plataforma 3D.' },
-      { nodo: 'ribera', nombre: 'CarpinterÃ­a de Ribera', desc: 'ConstrucciÃ³n de botes y madera.' },
+      { nodo: 'escuelaR9', nombre: 'Gimnasio Cristiano', desc: 'Cómo usar esta plataforma 3D.' },
+      { nodo: 'ribera', nombre: 'Carpintería de Ribera', desc: 'Construcción de botes y madera.' },
       { nodo: 'vivero', nombre: 'Vivero Comunitario', desc: 'Siembra de manglar y frutales.' },
-      { nodo: 'tierraBomba', nombre: 'Cocina de DoÃ±a Isnelia', desc: 'Dulces caseros y arroz con coco.' },
+      { nodo: 'tierraBomba', nombre: 'Cocina de Doña Isnelia', desc: 'Dulces caseros y arroz con coco.' },
       { nodo: 'puntaArena', nombre: 'Rueda de Bullerengue', desc: 'Tambor alegre y bailes de patio.' },
     ],
   },
@@ -2489,7 +2490,7 @@ const EXPLORA_CATEGORIAS = [
     nodos: ['escuelaR9', 'vivero', 'casco'],
     rutas: { agua: 0.4, verde: 0.6, residuos: 0, oficios: 0.5, patrimonio: 0.8 },
     zonas: [0.35, 0.85, 0.75],
-    resumen: 'Bailes tradicionales, mÃºsica de tambor y memoria viva de Tierra Bomba.',
+    resumen: 'Bailes tradicionales, música de tambor y memoria viva de Tierra Bomba.',
     lugares: [],
   },
 ];
@@ -2531,7 +2532,9 @@ export default function AulaAmbientalBocachica({
   const [tabJuego, setTabJuego] = useState('isla'); // 'isla' | 'reto' | 'herramientas'
   const [sombraJuego, setSombraJuego] = useState(0); // 0..100
   const [lluviaJuego, setLluviaJuego] = useState(0); // 0..100
-  const [capasJuego, setCapasJuego] = useState({ casas: true, arboles: true, pilotos: true });
+  const [capasJuego, setCapasJuego] = useState({ casas: true, arboles: true, pilotos: true, vias: true });
+  const [mostrarViasCard, setMostrarViasCard] = useState(false);
+  const [viasVisible, setViasVisible] = useState(true);
   const [retoIdx, setRetoIdx] = useState(0);
   const [retoResp, setRetoResp] = useState(null);
   const [retoPuntos, setRetoPuntos] = useState(0);
@@ -2549,7 +2552,7 @@ export default function AulaAmbientalBocachica({
   const saltoDirectoRef = useRef(false);
   const ultimoPasoRecorridoRef = useRef(-1);
 
-  // Reproductor de mÃºsica tradicional y bailes de la comunidad
+  // Reproductor de música tradicional y bailes de la comunidad
   const repRef = useRef(null);
   const [pistaActiva, setPistaActiva] = useState(PISTAS_MEMORIA[0]);
   const [musicaSonando, setMusicaSonando] = useState(false);
@@ -2580,7 +2583,7 @@ export default function AulaAmbientalBocachica({
 
   const proximoViernes = useMemo(() => obtenerProximoViernes(), []);
 
-  // Actividades animadas sobre toda la isla (con separaciÃ³n para que nunca se superpongan)
+  // Actividades animadas sobre toda la isla (con separación para que nunca se superpongan)
   const actividadesIsla = useMemo(
     () => [
       {
@@ -2588,7 +2591,7 @@ export default function AulaAmbientalBocachica({
         corto: 'Plataforma 3D',
         titulo: TEMAS_VIERNES_LISTA[0].titulo,
         sub: TEMAS_VIERNES_LISTA[0].sub,
-        lugar: 'Bocachica Â· Colegio R9',
+        lugar: 'Bocachica · Colegio R9',
         dia: proximoViernes.dia,
         mes: proximoViernes.mes,
         color: '#6ec6e6',
@@ -2598,10 +2601,10 @@ export default function AulaAmbientalBocachica({
       },
       {
         nodo: 'ribera',
-        corto: 'CarpinterÃ­a',
+        corto: 'Carpintería',
         titulo: TEMAS_VIERNES_LISTA[3].titulo,
         sub: TEMAS_VIERNES_LISTA[3].sub,
-        lugar: 'Bocachica Â· Taller de Ribera',
+        lugar: 'Bocachica · Taller de Ribera',
         dia: '15',
         mes: 'ENE',
         color: '#e8a86b',
@@ -2614,7 +2617,7 @@ export default function AulaAmbientalBocachica({
         corto: 'Vivero y Manglar',
         titulo: TEMAS_VIERNES_LISTA[4].titulo,
         sub: TEMAS_VIERNES_LISTA[4].sub,
-        lugar: 'CaÃ±o de Loro Â· Manglar',
+        lugar: 'Caño de Loro · Manglar',
         dia: '10',
         mes: 'FEB',
         color: '#35d08a',
@@ -2627,7 +2630,7 @@ export default function AulaAmbientalBocachica({
         corto: 'Cocina Isnelia',
         titulo: TEMAS_VIERNES_LISTA[2].titulo,
         sub: TEMAS_VIERNES_LISTA[2].sub,
-        lugar: 'Tierra Bomba Â· Muelle flotante',
+        lugar: 'Tierra Bomba · Muelle flotante',
         dia: '22',
         mes: 'NOV',
         color: '#e0917a',
@@ -2640,7 +2643,7 @@ export default function AulaAmbientalBocachica({
         corto: 'Bullerengue',
         titulo: TEMAS_VIERNES_LISTA[1].titulo,
         sub: TEMAS_VIERNES_LISTA[1].sub,
-        lugar: 'Punta Arena Â· Rueda de patio',
+        lugar: 'Punta Arena · Rueda de patio',
         dia: '29',
         mes: 'NOV',
         color: '#f4f1ec',
@@ -2670,15 +2673,15 @@ export default function AulaAmbientalBocachica({
         nodo: 'casco',
         corto: 'Bocachica',
         nombre: 'Corregimiento de Bocachica',
-        zona: 'Extremo sur Â· Canal de acceso',
+        zona: 'Extremo sur · Canal de acceso',
         color: '#e0917a',
         Icon: Home,
         dx: -40,
         dy: 48,
         fichas: [
-          { titulo: 'Historia', texto: 'Corregimiento ribereÃ±o nacido junto al canal de Bocachica y sus fortificaciones del siglo XVIII. Desde 1753 ha sido guardiÃ¡n del acceso marÃ­timo a Cartagena y hogar de una comunidad afrocaribeÃ±a orgullosa de sus raÃ­ces.' },
+          { titulo: 'Historia', texto: 'Corregimiento ribereño nacido junto al canal de Bocachica y sus fortificaciones del siglo XVIII. Desde 1753 ha sido guardián del acceso marítimo a Cartagena y hogar de una comunidad afrocaribeña orgullosa de sus raíces.' },
           { titulo: 'Llegada en lancha', texto: 'Zarpando desde el Muelle de la Bodeguita o Bazurto en Cartagena, llegas en unos 25 a 35 minutos directo al muelle comunitario.' },
-          { titulo: 'QuÃ© hacer', texto: 'Recorrer sus fuertes coloniales, visitar sus calles histÃ³ricas y disfrutar del pescado frito frente al mar.' },
+          { titulo: 'Qué hacer', texto: 'Recorrer sus fuertes coloniales, visitar sus calles históricas y disfrutar del pescado frito frente al mar.' },
           { titulo: 'Gente y oficios', texto: 'Hogar de carpinteros de ribera, pescadores artesanales, cocineras tradicionales y ruedas de bullerengue.' },
         ],
       },
@@ -2686,31 +2689,31 @@ export default function AulaAmbientalBocachica({
         nodo: 'tierraBomba',
         corto: 'Tierra Bomba',
         nombre: 'Corregimiento de Tierra Bomba',
-        zona: 'Norte y centro Â· Bosque seco',
+        zona: 'Norte y centro · Bosque seco',
         color: '#e8a86b',
         Icon: Trees,
         dx: -55,
         dy: -28,
         fichas: [
-          { titulo: 'Historia', texto: 'Asentamiento histÃ³rico en la zona norte de la isla, marcado por la vida frente a la bahÃ­a de Cartagena, los caminos de bosque seco y la memoria viva de sus mayores.' },
+          { titulo: 'Historia', texto: 'Asentamiento histórico en la zona norte de la isla, marcado por la vida frente a la bahía de Cartagena, los caminos de bosque seco y la memoria viva de sus mayores.' },
           { titulo: 'Llegada en lancha', texto: 'A solo 10 minutos en lancha desde Castillogrande o El Laguito hasta las playas y muelles del sector norte.' },
-          { titulo: 'QuÃ© hacer', texto: 'Caminar por senderos de bosque seco tropical, probar los dulces de DoÃ±a Isnelia y contemplar la bahÃ­a de Cartagena.' },
-          { titulo: 'Gente y oficios', texto: 'Comunidad reconocida por su cocina tradicional, dulcerÃ­a isleÃ±a y memoria afrocaribeÃ±a frente a la ciudad.' },
+          { titulo: 'Qué hacer', texto: 'Caminar por senderos de bosque seco tropical, probar los dulces de Doña Isnelia y contemplar la bahía de Cartagena.' },
+          { titulo: 'Gente y oficios', texto: 'Comunidad reconocida por su cocina tradicional, dulcería isleña y memoria afrocaribeña frente a la ciudad.' },
         ],
       },
       {
         nodo: 'canoDeLoro',
-        corto: 'CaÃ±o de Loro',
-        nombre: 'Corregimiento de CaÃ±o de Loro',
-        zona: 'Costado oriental Â· BahÃ­a y manglar',
+        corto: 'Caño de Loro',
+        nombre: 'Corregimiento de Caño de Loro',
+        zona: 'Costado oriental · Bahía y manglar',
         color: '#35d08a',
         Icon: Sprout,
         dx: 70,
         dy: 20,
         fichas: [
-          { titulo: 'Historia', texto: 'Comunidad resiliente asentada entre esteros de manglar y aguas calmas de la bahÃ­a. Su historia estÃ¡ ligada al cuidado del mangle, la pesca tradicional y la reconstrucciÃ³n comunitaria.' },
-          { titulo: 'Llegada en lancha', texto: 'Acceso por la bahÃ­a interior en unos 15 minutos desde Cartagena, bordeando los esteros tranquilos de manglar.' },
-          { titulo: 'QuÃ© hacer', texto: 'Visitar el vivero comunitario, observar aves costeras y recorrer en canoa los canales de mangle rojo.' },
+          { titulo: 'Historia', texto: 'Comunidad resiliente asentada entre esteros de manglar y aguas calmas de la bahía. Su historia está ligada al cuidado del mangle, la pesca tradicional y la reconstrucción comunitaria.' },
+          { titulo: 'Llegada en lancha', texto: 'Acceso por la bahía interior en unos 15 minutos desde Cartagena, bordeando los esteros tranquilos de manglar.' },
+          { titulo: 'Qué hacer', texto: 'Visitar el vivero comunitario, observar aves costeras y recorrer en canoa los canales de mangle rojo.' },
           { titulo: 'Gente y oficios', texto: 'Guardianes del manglar, viveristas comunitarios y pescadores de atarraya en aguas calmas.' },
         ],
       },
@@ -2718,15 +2721,15 @@ export default function AulaAmbientalBocachica({
         nodo: 'puntaArena',
         corto: 'Punta Arena',
         nombre: 'Corregimiento de Punta Arena',
-        zona: 'Costa noreste Â· Mirador a Bocagrande',
+        zona: 'Costa noreste · Mirador a Bocagrande',
         color: '#6ec6e6',
         Icon: MapPin,
         dx: 55,
         dy: -24,
         fichas: [
-          { titulo: 'Historia', texto: 'Punta costera frente a Bocagrande que pasÃ³ de rancherÃ­a de pescadores a referente cultural y turÃ­stico de la isla, conservando sus cantos de patio y tradiciones del mar.' },
-          { titulo: 'Llegada en lancha', texto: 'Trayecto rÃ¡pido de 10 minutos desde las playas de Castillogrande o Bocagrande hacia su franja de arena blanca.' },
-          { titulo: 'QuÃ© hacer', texto: 'Disfrutar de playas tranquilas frente al perfil de Cartagena, mÃºsica de patio y gastronomÃ­a costera.' },
+          { titulo: 'Historia', texto: 'Punta costera frente a Bocagrande que pasó de ranchería de pescadores a referente cultural y turístico de la isla, conservando sus cantos de patio y tradiciones del mar.' },
+          { titulo: 'Llegada en lancha', texto: 'Trayecto rápido de 10 minutos desde las playas de Castillogrande o Bocagrande hacia su franja de arena blanca.' },
+          { titulo: 'Qué hacer', texto: 'Disfrutar de playas tranquilas frente al perfil de Cartagena, música de patio y gastronomía costera.' },
           { titulo: 'Gente y oficios', texto: 'Anfitriones comunitarios, pescadores y bailadores de bullerengue y cumbia junto al mar.' },
         ],
       },
@@ -2745,25 +2748,25 @@ export default function AulaAmbientalBocachica({
         label: 'Comida',
         color: '#e0917a',
         Icon: Utensils,
-        subtitulo: 'Sabores de la isla Â· Toca un plato para ver su foto y receta paso a paso',
+        subtitulo: 'Sabores de la isla · Toca un plato para ver su foto y receta paso a paso',
         items: [
           {
             id: 'arroz_coco_pescado',
             titulo: 'Pescado frito con arroz con coco',
-            resumen: 'Plato emblemÃ¡tico de Bocachica con mojarra fresca, titotÃ© y patacones.',
+            resumen: 'Plato emblemático de Bocachica con mojarra fresca, titoté y patacones.',
             foto: `${MEMORIAS_BASE}images/memorias/arroz_coco_pescado.jpg`,
             etiquetaPaso: 'Jugar: Cocina y emplata la mojarra',
-            ingredientes: ['1 mojarra o pargo fresco', '1 coco seco rallado', '2 tazas de arroz', 'PlÃ¡tano verde', 'LimÃ³n y sal marina'],
+            ingredientes: ['1 mojarra o pargo fresco', '1 coco seco rallado', '2 tazas de arroz', 'Plátano verde', 'Limón y sal marina'],
             pasos: [
-              { titulo: '1. Sacar el titotÃ©', texto: 'LicÃºa el coco con agua tibia, cuela la primera leche y cocÃ­nala a fuego lento hasta que se reduzca y dore en aceite natural (titotÃ©).' },
+              { titulo: '1. Sacar el titoté', texto: 'Licúa el coco con agua tibia, cuela la primera leche y cocínala a fuego lento hasta que se reduzca y dore en aceite natural (titoté).' },
               { titulo: '2. Cocinar el arroz', texto: 'Agrega el arroz, la segunda leche de coco, una pizca de sal y panela rallada. Cocina tapado hasta que el grano abra suelto y fragante.' },
-              { titulo: '3. Adobar y freÃ­r el pescado', texto: 'Haz cortes diagonales en la mojarra limpia, bÃ¡Ã±ala en limÃ³n, ajo y sal, y frÃ­ela en aceite bien caliente hasta quedar dorada y crocante.' },
-              { titulo: '4. Patacones y mesa', texto: 'FrÃ­e ruedas de plÃ¡tano verde, aplÃ¡stalas y dales una segunda fritura. Sirve caliente junto al mar con rodajas de limÃ³n.' },
+              { titulo: '3. Adobar y freír el pescado', texto: 'Haz cortes diagonales en la mojarra limpia, báñala en limón, ajo y sal, y fríela en aceite bien caliente hasta quedar dorada y crocante.' },
+              { titulo: '4. Patacones y mesa', texto: 'Fríe ruedas de plátano verde, aplástalas y dales una segunda fritura. Sirve caliente junto al mar con rodajas de limón.' },
             ],
           },
           {
             id: 'dulces_isnelia',
-            titulo: 'Cocadas y alegrÃ­as de DoÃ±a Isnelia',
+            titulo: 'Cocadas y alegrías de Doña Isnelia',
             resumen: 'Dulces tradicionales de coco, panela y millo hechos en paila de patio.',
             foto: `${MEMORIAS_BASE}images/memorias/dulces_isnelia.jpg`,
             etiquetaPaso: 'Receta paso a paso',
@@ -2771,8 +2774,8 @@ export default function AulaAmbientalBocachica({
             pasos: [
               { titulo: '1. Melao de panela', texto: 'Derrite la panela en poca agua con astillas de canela y clavo hasta lograr un melao espeso y brillante.' },
               { titulo: '2. Mezclar el coco', texto: 'Incorpora el coco rallado o en lascas al melao caliente y remueve con cuchara de palo sin parar hasta que despegue de la paila.' },
-              { titulo: '3. Armar las cocadas', texto: 'Con cuchara hÃºmeda, forma porciones sobre hojas de palma o bandeja engrasada y deja enfriar para que endurezcan.' },
-              { titulo: '4. AlegrÃ­as de millo', texto: 'Para las alegrÃ­as, mezcla el millo reventado con melao tibio y coco, y moldea esferas suaves con las manos.' },
+              { titulo: '3. Armar las cocadas', texto: 'Con cuchara húmeda, forma porciones sobre hojas de palma o bandeja engrasada y deja enfriar para que endurezcan.' },
+              { titulo: '4. Alegrías de millo', texto: 'Para las alegrías, mezcla el millo reventado con melao tibio y coco, y moldea esferas suaves con las manos.' },
             ],
           },
         ],
@@ -2792,25 +2795,25 @@ export default function AulaAmbientalBocachica({
             etiquetaPaso: 'Jugar: Baila con el profe cartagenero',
             ingredientes: ['Tambor alegre', 'Tambor llamador', 'Palmas y coro', 'Pollera amplia'],
             pasos: [
-              { titulo: '1. Formar la rueda', texto: 'La comunidad se ubica en cÃ­rculo alrededor de los tambores mientras la cantadora entona el llamado inicial.' },
-              { titulo: '2. Paso sereno de cadera', texto: 'Con la espalda erguida, la bailadora marca un paso corto y firme de cadera al compÃ¡s del tambor llamador.' },
-              { titulo: '3. DiÃ¡logo con la pollera', texto: 'Las manos toman los bordes de la falda abriÃ©ndola al ritmo del tambor alegre, respondiendo a los repiques sin perder la calma.' },
+              { titulo: '1. Formar la rueda', texto: 'La comunidad se ubica en círculo alrededor de los tambores mientras la cantadora entona el llamado inicial.' },
+              { titulo: '2. Paso sereno de cadera', texto: 'Con la espalda erguida, la bailadora marca un paso corto y firme de cadera al compás del tambor llamador.' },
+              { titulo: '3. Diálogo con la pollera', texto: 'Las manos toman los bordes de la falda abriéndola al ritmo del tambor alegre, respondiendo a los repiques sin perder la calma.' },
               { titulo: '4. Saludo y relevo', texto: 'Al cerrar la estrofa, hace una venia suave al tamborero y da paso a la siguiente pareja de la rueda.' },
             ],
           },
           {
             id: 'mapale_cumbia',
-            titulo: 'MapalÃ© y Cumbia de la BahÃ­a',
-            resumen: 'Fuerza rÃ­tmica afrocaribeÃ±a y cadencia de velas frente al mar.',
+            titulo: 'Mapalé y Cumbia de la Bahía',
+            resumen: 'Fuerza rítmica afrocaribeña y cadencia de velas frente al mar.',
             foto: `${MEMORIAS_BASE}images/memorias/mapale_cumbia.jpg`,
             pistaId: 'mapale',
             etiquetaPaso: 'Jugar: Baila con el profe cartagenero',
-            ingredientes: ['Tambora', 'Alegre y guache', 'CaÃ±a de millo', 'Velas en mano'],
+            ingredientes: ['Tambora', 'Alegre y guache', 'Caña de millo', 'Velas en mano'],
             pasos: [
               { titulo: '1. Entrada con cadencia', texto: 'En cumbia, el paso deslizado arrastra suavemente el pie derecho mientras el izquierdo marca el pulso en el suelo.' },
               { titulo: '2. Cortejo y abanico', texto: 'El hombre rodea a la mujer con sombrero en mano; ella sostiene la pollera y gira protegiendo la llama.' },
-              { titulo: '3. Cambio al MapalÃ©', texto: 'Cuando el tambor acelera, el cuerpo se inclina hacia adelante con movimientos rÃ¡pidos de hombros, pecho y piernas.' },
-              { titulo: '4. Remate en energÃ­a', texto: 'Saltos cortos y giros explosivos marcan el cierre colectivo al unÃ­sono del Ãºltimo golpe de tambora.' },
+              { titulo: '3. Cambio al Mapalé', texto: 'Cuando el tambor acelera, el cuerpo se inclina hacia adelante con movimientos rápidos de hombros, pecho y piernas.' },
+              { titulo: '4. Remate en energía', texto: 'Saltos cortos y giros explosivos marcan el cierre colectivo al unísono del último golpe de tambora.' },
             ],
           },
         ],
@@ -2819,33 +2822,33 @@ export default function AulaAmbientalBocachica({
         label: 'Tradiciones',
         color: '#e8a86b',
         Icon: Hammer,
-        subtitulo: 'Oficios y saberes de Tierra Bomba Â· Elige una tradiciÃ³n para explorarla',
+        subtitulo: 'Oficios y saberes de Tierra Bomba · Elige una tradición para explorarla',
         items: [
           {
             id: 'carpinteria_ribera',
-            titulo: 'CarpinterÃ­a de Ribera',
-            resumen: 'ConstrucciÃ³n artesanal de botes de madera en las playas de Bocachica.',
+            titulo: 'Carpintería de Ribera',
+            resumen: 'Construcción artesanal de botes de madera en las playas de Bocachica.',
             foto: `${MEMORIAS_BASE}images/memorias/carpinteria_ribera.jpg`,
-            etiquetaPaso: 'CÃ³mo se hace',
+            etiquetaPaso: 'Cómo se hace',
             ingredientes: ['Madera de mangle o roble', 'Azuela y garlopa', 'Estopa de coco', 'Brea natural'],
             pasos: [
-              { titulo: '1. Trazar la quilla', texto: 'El maestro carpintero elige la madera curva natural y marca la quilla que darÃ¡ estabilidad al bote sobre las olas.' },
+              { titulo: '1. Trazar la quilla', texto: 'El maestro carpintero elige la madera curva natural y marca la quilla que dará estabilidad al bote sobre las olas.' },
               { titulo: '2. Armar las cuadernas', texto: 'Se fijan las costillas de madera en forma de U a lo largo de la quilla definiendo la manga y el calado.' },
               { titulo: '3. Forrar el casco', texto: 'Las tablas se curvan con calor y humedad para ajustarlas borde con borde sobre las cuadernas.' },
-              { titulo: '4. Calafateo impermeable', texto: 'Se sella cada junta con estopa y brea para que la embarcaciÃ³n resista dÃ©cadas de pesca en la bahÃ­a.' },
+              { titulo: '4. Calafateo impermeable', texto: 'Se sella cada junta con estopa y brea para que la embarcación resista décadas de pesca en la bahía.' },
             ],
           },
           {
             id: 'pesca_chinchorro',
             titulo: 'Pesca Artesanal con Atarraya',
-            resumen: 'Lectura de mareas y lance circular de red al amanecer en la bahÃ­a.',
+            resumen: 'Lectura de mareas y lance circular de red al amanecer en la bahía.',
             foto: `${MEMORIAS_BASE}images/memorias/pesca_chinchorro.jpg`,
-            etiquetaPaso: 'CÃ³mo se hace',
+            etiquetaPaso: 'Cómo se hace',
             ingredientes: ['Atarraya tejida a mano', 'Canoa de madera', 'Remo', 'Lectura de marea'],
             pasos: [
-              { titulo: '1. Leer la marea y el cardumen', texto: 'Al rayar el alba, el pescador observa las ondas suaves del agua donde se mueven lisas, mojarras y sÃ¡balos.' },
+              { titulo: '1. Leer la marea y el cardumen', texto: 'Al rayar el alba, el pescador observa las ondas suaves del agua donde se mueven lisas, mojarras y sábalos.' },
               { titulo: '2. Recoger la atarraya', texto: 'La red se pliega en rollos ordenados sobre el brazo izquierdo y los plomos se sostienen con la mano derecha.' },
-              { titulo: '3. Lance en abanico', texto: 'Con un giro de cintura, la atarraya se abre en cÃ­rculo perfecto en el aire antes de caer sobre el agua.' },
+              { titulo: '3. Lance en abanico', texto: 'Con un giro de cintura, la atarraya se abre en círculo perfecto en el aire antes de caer sobre el agua.' },
               { titulo: '4. Recoger y compartir', texto: 'Al halar la cuerda central, los plomos cierran la bolsa bajo el agua y la faena se comparte en la orilla.' },
             ],
           },
@@ -2861,44 +2864,44 @@ export default function AulaAmbientalBocachica({
       {
         nodo: 'sanRafael',
         corto: 'San Rafael',
-        nombre: 'BaterÃ­a del Ãngel San Rafael',
+        nombre: 'Batería del Ángel San Rafael',
         anio: '1762',
-        ubicacion: 'Cerro del Horno Â· Bocachica',
+        ubicacion: 'Cerro del Horno · Bocachica',
         color: '#e8a86b',
         Icon: Shield,
         dx: 0,
         dy: -55,
         secciones: [
           {
-            titulo: 'ConstrucciÃ³n',
+            titulo: 'Construcción',
             texto:
-              'Fue erigida en 1762 por el ingeniero militar Antonio de ArÃ©valo, durante los conflictos con los ingleses, y luego reconstruida con materiales duraderos entre 1769 y 1778.',
+              'Fue erigida en 1762 por el ingeniero militar Antonio de Arévalo, durante los conflictos con los ingleses, y luego reconstruida con materiales duraderos entre 1769 y 1778.',
           },
           {
-            titulo: 'DiseÃ±o e ingenierÃ­a',
+            titulo: 'Diseño e ingeniería',
             texto:
-              'Tiene forma de "media luna" irregular, estÃ¡ tallada prÃ¡cticamente de forma directa sobre la roca coralina del cerro y se encuentra rodeada por un foso seco y un puente durmiente.',
+              'Tiene forma de "media luna" irregular, está tallada prácticamente de forma directa sobre la roca coralina del cerro y se encuentra rodeada por un foso seco y un puente durmiente.',
           },
           {
             titulo: 'Componentes',
             texto:
-              'Su estructura incluye una casa fuerte, una garita, un aljibe, una antigua cocina y una galerÃ­a subterrÃ¡nea que originalmente conectaba con el sector y las fortificaciones cercanas como San Fernando y Santa BÃ¡rbara.',
+              'Su estructura incluye una casa fuerte, una garita, un aljibe, una antigua cocina y una galería subterránea que originalmente conectaba con el sector y las fortificaciones cercanas como San Fernando y Santa Bárbara.',
           },
           {
             titulo: 'Historia',
             texto:
-              'No participÃ³ en enfrentamientos contra enemigos externos durante su apogeo colonial, pero sÃ­ fue escenario de resistencia durante el sitio de Cartagena en 1815 por parte de las fuerzas realistas de Pablo Morillo.',
+              'No participó en enfrentamientos contra enemigos externos durante su apogeo colonial, pero sí fue escenario de resistencia durante el sitio de Cartagena en 1815 por parte de las fuerzas realistas de Pablo Morillo.',
           },
           {
-            titulo: 'RestauraciÃ³n y gestiÃ³n',
+            titulo: 'Restauración y gestión',
             texto:
-              'Fue intervenida en 1995 por INVIAS. Actualmente forma parte del patrimonio histÃ³rico administrado y divulgado a travÃ©s de las entidades de fortificaciones de la ciudad.',
+              'Fue intervenida en 1995 por INVIAS. Actualmente forma parte del patrimonio histórico administrado y divulgado a través de las entidades de fortificaciones de la ciudad.',
           },
         ],
         fuentes: [
           { label: 'Fortificaciones Cartagena de Indias', url: 'https://fortificacionescartagena.com.co/es/destination/bateria-del-angel-san-rafael/' },
           { label: 'Museo Naval del Caribe', url: 'https://museonavaldelcaribe.org/modulos/bateria-angel-san-rafael-cartagena/' },
-          { label: 'Sociedad de Mejoras PÃºblicas (SMPC)', url: 'https://www.smpcartagena.org/bateria-del-angel-san-rafael' },
+          { label: 'Sociedad de Mejoras Públicas (SMPC)', url: 'https://www.smpcartagena.org/bateria-del-angel-san-rafael' },
         ],
       },
       {
@@ -2906,36 +2909,36 @@ export default function AulaAmbientalBocachica({
         corto: 'San Fernando',
         nombre: 'Fuerte de San Fernando de Bocachica',
         anio: '1753',
-        ubicacion: 'Canal de Bocachica Â· Tierra Bomba',
+        ubicacion: 'Canal de Bocachica · Tierra Bomba',
         color: '#6ec6e6',
         Icon: Landmark,
         dx: -118,
         dy: 10,
         secciones: [
           {
-            titulo: 'ConstrucciÃ³n',
+            titulo: 'Construcción',
             texto:
-              'Las obras iniciaron el 12 de marzo de 1753 bajo la direcciÃ³n del ingeniero Antonio de ArÃ©valo sobre planos de Juan Bautista Mac Evan (con modificaciones de Lorenzo de SolÃ­s), concluyendo su primera fase hacia 1759.',
+              'Las obras iniciaron el 12 de marzo de 1753 bajo la dirección del ingeniero Antonio de Arévalo sobre planos de Juan Bautista Mac Evan (con modificaciones de Lorenzo de Solís), concluyendo su primera fase hacia 1759.',
           },
           {
-            titulo: 'DiseÃ±o e ingenierÃ­a',
+            titulo: 'Diseño e ingeniería',
             texto:
-              'Presenta una planta semicircular en forma de herradura orientada al canal marÃ­timo para fuego a flor de agua, combinada con un frente terrestre de dos grandes baluartes: el Baluarte del Rey y el Baluarte de la Reina.',
+              'Presenta una planta semicircular en forma de herradura orientada al canal marítimo para fuego a flor de agua, combinada con un frente terrestre de dos grandes baluartes: el Baluarte del Rey y el Baluarte de la Reina.',
           },
           {
             titulo: 'Componentes',
             texto:
-              'Cuenta con foso hÃºmedo, glacis, hornabeque defensivo y nueve bÃ³vedas robustas a prueba de bombas usadas como polvorines, aljibes y prisiones.',
+              'Cuenta con foso húmedo, glacis, hornabeque defensivo y nueve bóvedas robustas a prueba de bombas usadas como polvorines, aljibes y prisiones.',
           },
           {
             titulo: 'Historia',
             texto:
-              'Se levantÃ³ tras la destrucciÃ³n del antiguo Castillo de San Luis en 1741 durante el ataque del almirante britÃ¡nico Edward Vernon, consolidando la defensa de la entrada sur a la bahÃ­a.',
+              'Se levantó tras la destrucción del antiguo Castillo de San Luis en 1741 durante el ataque del almirante británico Edward Vernon, consolidando la defensa de la entrada sur a la bahía.',
           },
           {
-            titulo: 'RestauraciÃ³n y gestiÃ³n',
+            titulo: 'Restauración y gestión',
             texto:
-              'Forma parte del conjunto fortificado declarado Patrimonio HistÃ³rico de la Humanidad por la UNESCO y es divulgado por Fortificaciones Cartagena de Indias.',
+              'Forma parte del conjunto fortificado declarado Patrimonio Histórico de la Humanidad por la UNESCO y es divulgado por Fortificaciones Cartagena de Indias.',
           },
         ],
         fuentes: [
@@ -2945,39 +2948,39 @@ export default function AulaAmbientalBocachica({
       },
       {
         nodo: 'sanJose',
-        corto: 'San JosÃ©',
-        nombre: 'BaterÃ­a de San JosÃ©',
+        corto: 'San José',
+        nombre: 'Batería de San José',
         anio: '1714',
-        ubicacion: 'Islote frente al canal Â· BahÃ­a',
+        ubicacion: 'Islote frente al canal · Bahía',
         color: '#35d08a',
         Icon: Anchor,
         dx: 120,
         dy: 28,
         secciones: [
           {
-            titulo: 'ConstrucciÃ³n',
+            titulo: 'Construcción',
             texto:
-              'Su primera fase fue construida entre 1714 y 1725 por Juan de Herrera y Sotomayor; tras ser arrasada en 1741, fue reedificada desde 1752 por Ignacio Sala y Antonio de ArÃ©valo.',
+              'Su primera fase fue construida entre 1714 y 1725 por Juan de Herrera y Sotomayor; tras ser arrasada en 1741, fue reedificada desde 1752 por Ignacio Sala y Antonio de Arévalo.',
           },
           {
-            titulo: 'DiseÃ±o e ingenierÃ­a',
+            titulo: 'Diseño e ingeniería',
             texto:
-              'DiseÃ±ada para generar fuego cruzado junto al Fuerte de San Fernando, con un cuerpo central abovedado y una baterÃ­a baja en Ã¡ngulo con capacidad para mÃ¡s de 20 caÃ±ones.',
+              'Diseñada para generar fuego cruzado junto al Fuerte de San Fernando, con un cuerpo central abovedado y una batería baja en ángulo con capacidad para más de 20 cañones.',
           },
           {
             titulo: 'Componentes',
             texto:
-              'Integra polvorÃ­n, aljibe y una escollera sumergida ideada por ArÃ©valo alrededor de la baterÃ­a para impedir el acercamiento sorpresa de lanchas y botes enemigos.',
+              'Integra polvorín, aljibe y una escollera sumergida ideada por Arévalo alrededor de la batería para impedir el acercamiento sorpresa de lanchas y botes enemigos.',
           },
           {
             titulo: 'Historia',
             texto:
-              'Fue clave para cerrar por completo el estrecho de Bocachica, Ãºnica vÃ­a navegable hacia Cartagena despuÃ©s del cierre de Bocagrande.',
+              'Fue clave para cerrar por completo el estrecho de Bocachica, única vía navegable hacia Cartagena después del cierre de Bocagrande.',
           },
           {
-            titulo: 'RestauraciÃ³n y gestiÃ³n',
+            titulo: 'Restauración y gestión',
             texto:
-              'Integra el sistema defensivo colonial declarado Patrimonio de la Humanidad por la UNESCO en la bahÃ­a de Cartagena.',
+              'Integra el sistema defensivo colonial declarado Patrimonio de la Humanidad por la UNESCO en la bahía de Cartagena.',
           },
         ],
         fuentes: [
@@ -2986,39 +2989,39 @@ export default function AulaAmbientalBocachica({
       },
       {
         nodo: 'casco',
-        corto: 'Casco HistÃ³rico',
-        nombre: 'Casco HistÃ³rico de Bocachica',
+        corto: 'Casco Histórico',
+        nombre: 'Casco Histórico de Bocachica',
         anio: 'S. XVIII',
-        ubicacion: 'Corregimiento de Bocachica Â· Tierra Bomba',
+        ubicacion: 'Corregimiento de Bocachica · Tierra Bomba',
         color: '#e0917a',
         Icon: Home,
         dx: 14,
         dy: 78,
         secciones: [
           {
-            titulo: 'ConstrucciÃ³n',
+            titulo: 'Construcción',
             texto:
-              'Asentamiento ribereÃ±o tradicional surgido alrededor del canal de Bocachica y de las fortificaciones coloniales construidas en piedra coralina.',
+              'Asentamiento ribereño tradicional surgido alrededor del canal de Bocachica y de las fortificaciones coloniales construidas en piedra coralina.',
           },
           {
-            titulo: 'DiseÃ±o e ingenierÃ­a',
+            titulo: 'Diseño e ingeniería',
             texto:
               'Tejido urbano costero de calles peatonales, patios abiertos y vivienda adaptada a la brisa marina y la vida de pesca artesanal.',
           },
           {
             titulo: 'Componentes',
             texto:
-              'Muelle comunitario, plaza central, oficios de carpinterÃ­a de ribera, cocina tradicional y espacios de encuentro afrocaribeÃ±o.',
+              'Muelle comunitario, plaza central, oficios de carpintería de ribera, cocina tradicional y espacios de encuentro afrocaribeño.',
           },
           {
             titulo: 'Historia',
             texto:
-              'Comunidad guardiana de la entrada marÃ­tima de Cartagena que ha preservado su memoria, bailes y arquitectura isleÃ±a frente al mar.',
+              'Comunidad guardiana de la entrada marítima de Cartagena que ha preservado su memoria, bailes y arquitectura isleña frente al mar.',
           },
           {
-            titulo: 'RestauraciÃ³n y gestiÃ³n',
+            titulo: 'Restauración y gestión',
             texto:
-              'Patrimonio cultural vivo articulado con el Aula Ambiental de Bocachica para fortalecer la economÃ­a local y el cuidado territorial.',
+              'Patrimonio cultural vivo articulado con el Aula Ambiental de Bocachica para fortalecer la economía local y el cuidado territorial.',
           },
         ],
         fuentes: [],
@@ -3088,7 +3091,7 @@ export default function AulaAmbientalBocachica({
           y: raw[a.nodo].y + (a.dy || 0),
         }));
 
-      // SeparaciÃ³n 2D para garantizar que ningÃºn icono ni etiqueta se superponga
+      // Separación 2D para garantizar que ningún icono ni etiqueta se superponga
       const minW = 132;
       const minH = 92;
       for (let it = 0; it < 6; it += 1) {
@@ -3124,15 +3127,15 @@ export default function AulaAmbientalBocachica({
     return () => cancelAnimationFrame(rafId);
   }, [escena, catActiva, panelJuego, modalDiagrama, actividadesIsla, patrimoniosIsla, corregimientosIsla]);
 
-  // ProgramaciÃ³n de clases virtuales de los viernes
+  // Programación de clases virtuales de los viernes
   const [clasesViernes, setClasesViernes] = useState(() => {
     try {
       const saved = localStorage.getItem('tb_clases_viernes_v1');
       if (saved) return JSON.parse(saved);
     } catch { /* ignore */ }
     return [
-      { id: 1, tema: TEMAS_VIERNES[0], nombre: 'Mesa Comunitaria', corregimiento: 'Bocachica', fecha: 'PrÃ³ximo viernes Â· 4:00 p.m.' },
-      { id: 2, tema: TEMAS_VIERNES[1], nombre: 'Maestros de Ribera', corregimiento: 'CaÃ±o de Loro', fecha: 'Viernes Â· 4:00 p.m.' },
+      { id: 1, tema: TEMAS_VIERNES[0], nombre: 'Mesa Comunitaria', corregimiento: 'Bocachica', fecha: 'Próximo viernes · 4:00 p.m.' },
+      { id: 2, tema: TEMAS_VIERNES[1], nombre: 'Maestros de Ribera', corregimiento: 'Caño de Loro', fecha: 'Viernes · 4:00 p.m.' },
     ];
   });
   const [temaViernes, setTemaViernes] = useState(TEMAS_VIERNES[0]);
@@ -3145,7 +3148,7 @@ export default function AulaAmbientalBocachica({
     e.preventDefault();
     const beneficioTexto =
       beneficioViernes === 'alimentacion'
-        ? 'Bono de alimentaciÃ³n'
+        ? 'Bono de alimentación'
         : 'Cupo lancha ida y vuelta a Cartagena';
     const nueva = {
       id: Date.now(),
@@ -3153,7 +3156,7 @@ export default function AulaAmbientalBocachica({
       nombre: nombreViernes.trim() || 'Habitante de la isla',
       corregimiento: corregViernes,
       beneficio: beneficioTexto,
-      fecha: 'PrÃ³ximo viernes Â· 4:00 p.m.',
+      fecha: 'Próximo viernes · 4:00 p.m.',
     };
     const next = [nueva, ...clasesViernes].slice(0, 6);
     setClasesViernes(next);
@@ -3227,6 +3230,7 @@ export default function AulaAmbientalBocachica({
       mostrarCasas: nextCapas.casas,
       mostrarArboles: nextCapas.arboles,
       mostrarPilotos: nextCapas.pilotos,
+      mostrarVias: nextCapas.vias,
     });
   };
 
@@ -3289,7 +3293,7 @@ export default function AulaAmbientalBocachica({
     return () => clearInterval(id);
   }, [autoTourActivo, escena, catActiva, panelJuego, modalDiagrama, patrimonioSel, actividadViernesSel, patrimoniosIsla, actividadesIsla]);
 
-  // Control de cÃ¡mara y pasos por scroll (El mapa 3D es protagonista en todos los capÃ­tulos 00..06)
+  // Control de cámara y pasos por scroll (El mapa 3D es protagonista en todos los capítulos 00..06)
   useEffect(() => {
     let raf = 0;
     const evaluarScroll = () => {
@@ -3302,7 +3306,7 @@ export default function AulaAmbientalBocachica({
         setEnVistaAula(rr.top <= vh * 0.35);
       }
 
-      // Detectar capÃ­tulo activo para la pÃ­ldora superior
+      // Detectar capítulo activo para la píldora superior
       let cap = CAPITULOS[0];
       for (const c of CAPITULOS) {
         const el = document.getElementById(c.ancla);
@@ -3396,7 +3400,7 @@ export default function AulaAmbientalBocachica({
     };
   }, [escena]);
 
-  // InteracciÃ³n directa con el mapa 3D cuando `libre` estÃ¡ activo
+  // Interacción directa con el mapa 3D cuando `libre` está activo
   useEffect(() => {
     const el = mount3DRef.current;
     if (!el || !escena || !libre) return undefined;
@@ -3459,7 +3463,7 @@ export default function AulaAmbientalBocachica({
     window.scrollTo({ top: topDoc + localIdx * pasoPx + 12, behavior: 'smooth' });
   };
 
-  // Tour 3D automÃ¡tico cuando el usuario activa "â–¶ Tour 3D"
+  // Tour 3D automático cuando el usuario activa "â–¶ Tour 3D"
   useEffect(() => {
     if (!tour3DActivo || animPausada || !enPasos3D) return undefined;
     const id = setInterval(() => {
@@ -3510,7 +3514,7 @@ export default function AulaAmbientalBocachica({
         </div>
       )}
 
-      {/* CABECERA ÃšNICA Y LIMPIA Â· HUD ESPACIAL */}
+      {/* CABECERA ÚNICA Y LIMPIA · HUD ESPACIAL */}
       {enVistaAula && (
       <header className="fixed top-3.5 inset-x-0 z-30 px-3 md:px-6 flex flex-wrap items-center justify-between gap-2.5 pointer-events-none">
         <div className="tc-vidrio h-10 px-3.5 !rounded-full flex items-center gap-2.5 pointer-events-auto">
@@ -3528,7 +3532,7 @@ export default function AulaAmbientalBocachica({
           <span className="text-xs font-semibold tracking-wide text-white">Tierra Bomba</span>
         </div>
 
-        {/* 4 pestaÃ±as guiadas en orden con iconos vectoriales */}
+        {/* 4 pestañas guiadas en orden con iconos vectoriales */}
         <nav className="tc-vidrio h-10 px-1.5 !rounded-full flex items-center gap-1 overflow-x-auto max-w-full pointer-events-auto order-3 lg:order-2">
           {EXPLORA_CATEGORIAS.map((cat) => {
             const on = (cat.id === 'memorias' ? panelJuego : catActiva?.id === cat.id && !panelJuego);
@@ -3572,7 +3576,7 @@ export default function AulaAmbientalBocachica({
                   </button>
                 </div>
                 {resultadosBusqueda.length === 0 ? (
-                  <div className="px-2.5 py-3 text-xs text-white/60">Prueba con &ldquo;Bocachica&rdquo;, &ldquo;CaÃ±o de Loro&rdquo;, &ldquo;Fuerte&rdquo; o &ldquo;Taller&rdquo;.</div>
+                  <div className="px-2.5 py-3 text-xs text-white/60">Prueba con &ldquo;Bocachica&rdquo;, &ldquo;Caño de Loro&rdquo;, &ldquo;Fuerte&rdquo; o &ldquo;Taller&rdquo;.</div>
                 ) : (
                   resultadosBusqueda.map((it) => (
                     <button
@@ -3618,6 +3622,20 @@ export default function AulaAmbientalBocachica({
         <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-20 tc-vidrio h-10 px-1.5 !rounded-full flex items-center gap-0.5 pointer-events-auto">
           <button
             type="button"
+            onClick={() => setMostrarViasCard((v) => !v)}
+            className={`h-7 px-3 rounded-full text-[11px] font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+              mostrarViasCard
+                ? 'bg-[#ff7a50] text-[#0b1016] font-semibold shadow-sm'
+                : 'text-white/80 hover:bg-white/10 hover:text-white'
+            }`}
+            title="Ver desglose de las vías cartografiadas (73 km)"
+          >
+            <Navigation className="w-3.5 h-3.5" />
+            <span>Vías (73 km)</span>
+          </button>
+          <span className="w-px h-4 bg-white/12 mx-0.5" />
+          <button
+            type="button"
             onClick={() => setLibre((v) => !v)}
             className={`h-7 px-3 rounded-full text-[11px] font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
               libre ? 'bg-[#e0917a] text-[#0b1016] font-semibold shadow-sm' : 'text-white/80 hover:bg-white/10 hover:text-white'
@@ -3629,11 +3647,85 @@ export default function AulaAmbientalBocachica({
           </button>
           <span className="w-px h-4 bg-white/12 mx-0.5" />
           <button type="button" onClick={() => escena?.vista.zoom(0.8)} className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white transition cursor-pointer" title="Acercar" aria-label="Acercar mapa">+</button>
-          <button type="button" onClick={() => escena?.vista.zoom(1.25)} className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white transition cursor-pointer" title="Alejar" aria-label="Alejar mapa">âˆ’</button>
+          <button type="button" onClick={() => escena?.vista.zoom(1.25)} className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white transition cursor-pointer" title="Alejar" aria-label="Alejar mapa">−</button>
           <button type="button" onClick={() => escena?.vista.reset()} className="w-7 h-7 rounded-full flex items-center justify-center text-white/80 hover:bg-white/10 hover:text-white transition cursor-pointer" title="Reiniciar vista" aria-label="Reiniciar vista">
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
+      )}
+
+      {/* TARJETA CARTOGRÁFICA DE TODAS LAS VÍAS (Idéntica a tesis_tercer_corte) */}
+      {enVistaAula && mostrarViasCard && !panelJuego && !modalDiagrama && (
+        <aside className="fixed bottom-16 left-4 md:bottom-20 md:left-6 z-20 w-[min(92vw,22rem)] tc-vidrio p-4 md:p-5 rounded-2xl border border-white/20 shadow-2xl tc-paso-anim space-y-3 pointer-events-auto">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-widest text-[#ff7a50] font-semibold">
+                04 · TODAS LAS VÍAS
+              </p>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-4xl font-extrabold text-white tracking-tight">73,0</span>
+                <span className="text-sm font-semibold text-white/70">km</span>
+              </div>
+              <p className="text-[11px] text-white/75 mt-0.5 leading-snug">
+                de vías cartografiadas sobre la isla, en 1.642 tramos.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setMostrarViasCard(false)}
+              className="p-1 rounded-full text-white/50 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              title="Cerrar panel de vías"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="pt-2 border-t border-white/10 space-y-2 text-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-white/90">
+                <span className="w-4 h-1 rounded bg-[#f0f4f8]" />
+                <span>Calles y caminos</span>
+              </div>
+              <span className="font-mono text-white/80 font-bold">53,5 km</span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-white/90">
+                <span className="w-4 h-1 rounded bg-[#8ee6f5]" />
+                <span>Servicio y trochas</span>
+              </div>
+              <span className="font-mono text-white/80 font-bold">4,1 km</span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-white/90">
+                <span className="w-4 h-1 rounded bg-[#ff7a50]" />
+                <span>Senderos y peatonales</span>
+              </div>
+              <span className="font-mono text-white/80 font-bold">15,4 km</span>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-white/10 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => {
+                const next = !viasVisible;
+                setViasVisible(next);
+                escena?.set({ mostrarVias: next });
+              }}
+              className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-semibold text-white flex items-center gap-1.5 cursor-pointer transition"
+            >
+              <span>{viasVisible ? 'Ocultar líneas 3D' : 'Mostrar líneas 3D'}</span>
+            </button>
+            <span className="text-[10px] text-white/45 font-mono">1.642 tramos</span>
+          </div>
+
+          <div className="text-[10px] text-white/45 leading-snug">
+            © OpenStreetMap contributors, ODbL 1.0, consultado el 2026-11-03.<br />
+            Cobertura de vías y caminos de toda la isla de Tierra Bomba.
+          </div>
+        </aside>
       )}
 
       {enPasos3D && !catActiva && !panelJuego && !lugarActivo && (
@@ -3657,7 +3749,7 @@ export default function AulaAmbientalBocachica({
                         : 'border-white/20 text-white/75 hover:text-white'
                     }`}
                   >
-                    {tour3DActivo ? 'â¸ Pausar recorrido' : 'â–¶ Recorrido automÃ¡tico'}
+                    {tour3DActivo ? 'â¸ Pausar recorrido' : 'â–¶ Recorrido automático'}
                   </button>
                   <span className="tc-num font-mono">{pasoActual.pasoGrupo}</span>
                 </div>
@@ -3676,7 +3768,7 @@ export default function AulaAmbientalBocachica({
                 </div>
               </div>
 
-              {/* MINI-CONTROLES INTERACTIVOS EN EL MAPA 3D SEGÃšN EL CAPÃTULO */}
+              {/* MINI-CONTROLES INTERACTIVOS EN EL MAPA 3D SEGÚN EL CAPÍTULO */}
               {pasoActual.interactivo === 'corpusR9' && (
                 <div className="mt-2.5 pt-2.5 tc-regla">
                   <div className="flex flex-wrap gap-1">
@@ -3711,7 +3803,7 @@ export default function AulaAmbientalBocachica({
                     }}
                     className={`tc-ficha flex-1 text-center ${!conProyectoHud ? 'tc-ficha-activa !border-[#e0917a]' : ''}`}
                   >
-                    â˜€ Hoy: 36,0 Â°C (18% sombra)
+                    â˜€ Hoy: 36,0 °C (18% sombra)
                   </button>
                   <button
                     type="button"
@@ -3721,7 +3813,7 @@ export default function AulaAmbientalBocachica({
                     }}
                     className={`tc-ficha flex-1 text-center ${conProyectoHud ? 'tc-ficha-activa !border-[#35d08a]' : ''}`}
                   >
-                    ðŸŒ³ Con Piloto R9: 31,5 Â°C
+                    ðŸŒ³ Con Piloto R9: 31,5 °C
                   </button>
                 </div>
               )}
@@ -3729,7 +3821,7 @@ export default function AulaAmbientalBocachica({
               {pasoActual.interactivo === 'cronograma24m' && (
                 <div className="mt-2.5 pt-2.5 tc-regla">
                   <div className="flex items-center justify-between text-[11px] mb-1">
-                    <span className="font-mono text-[#e0917a]">{faseHudActual.id} Â· {faseHudActual.nombre}</span>
+                    <span className="font-mono text-[#e0917a]">{faseHudActual.id} · {faseHudActual.nombre}</span>
                     <span className="tc-num text-white font-semibold">Mes {mesHud}/24</span>
                   </div>
                   <input
@@ -3754,12 +3846,12 @@ export default function AulaAmbientalBocachica({
                 </div>
               )}
 
-              {/* PestaÃ±as interactivas dentro de la tarjeta flotante en lenguaje sencillo */}
+              {/* Pestañas interactivas dentro de la tarjeta flotante en lenguaje sencillo */}
               <div className="flex gap-1.5 mt-2.5 pt-2.5 tc-regla">
                 {[
-                  { id: 'resumen', label: 'Â¿QuÃ© pasa hoy?' },
-                  { id: 'piloto', label: 'Â¿QuÃ© haremos?' },
-                  { id: 'producto', label: 'Â¿QuÃ© queda?' },
+                  { id: 'resumen', label: '¿Qué pasa hoy?' },
+                  { id: 'piloto', label: '¿Qué haremos?' },
+                  { id: 'producto', label: '¿Qué queda?' },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -3778,7 +3870,7 @@ export default function AulaAmbientalBocachica({
                 {lentePaso === 'producto' && pasoActual.producto}
               </p>
 
-              {/* BotÃ³n opcional para abrir diagramas 2D interactivos sin tapar el mapa por defecto */}
+              {/* Botón opcional para abrir diagramas 2D interactivos sin tapar el mapa por defecto */}
               <div className="mt-2.5 pt-2 tc-regla flex flex-wrap items-center justify-between gap-2">
                 {pasoActual.capId === '01' && (
                   <button
@@ -3786,7 +3878,7 @@ export default function AulaAmbientalBocachica({
                     onClick={() => setModalDiagrama(pasoActual.id === 'p01' ? 'simulador4pasos' : 'redProblema')}
                     className="tc-ficha !border-[#e0917a]/60 !text-[#f4f1ec]"
                   >
-                    âœ¦ {pasoActual.id === 'p01' ? 'Ver dibujos explicativos en 4 pasos' : 'Ver cÃ³mo se conectan los problemas y soluciones'}
+                    âœ¦ {pasoActual.id === 'p01' ? 'Ver dibujos explicativos en 4 pasos' : 'Ver cómo se conectan los problemas y soluciones'}
                   </button>
                 )}
                 {pasoActual.capId === '02' && (
@@ -3804,7 +3896,7 @@ export default function AulaAmbientalBocachica({
                     onClick={() => setModalDiagrama('plano2D')}
                     className="tc-ficha !border-[#35d08a]/60 !text-[#f4f1ec]"
                   >
-                    âœ¦ Ver plano del colegio y comparar antes/despuÃ©s
+                    âœ¦ Ver plano del colegio y comparar antes/después
                   </button>
                 )}
                 {pasoActual.capId === '06' && (
@@ -3813,12 +3905,12 @@ export default function AulaAmbientalBocachica({
                     onClick={() => setModalDiagrama('hojaRuta')}
                     className="tc-ficha !border-[#f5b45a]/60 !text-[#f4f1ec]"
                   >
-                    âœ¦ Ver plan a 2 aÃ±os y quiÃ©nes participan
+                    âœ¦ Ver plan a 2 años y quiénes participan
                   </button>
                 )}
               </div>
 
-              {/* Controles rÃ¡pidos de navegaciÃ³n de pasos y progreso */}
+              {/* Controles rápidos de navegación de pasos y progreso */}
               <div className="mt-2.5 pt-2 tc-regla flex items-center justify-between text-xs text-white/65">
                 <button
                   type="button"
@@ -3826,7 +3918,7 @@ export default function AulaAmbientalBocachica({
                   onClick={() => irAPaso3D(Math.max(0, pasoIdx - 1))}
                   className="hover:text-white disabled:opacity-30"
                 >
-                  â† Anterior
+                  ← Anterior
                 </button>
                 <span className="tc-num text-[11px]">Vista 3D {pasoIdx + 1} / {PASOS_3D.length}</span>
                 <button
@@ -3835,7 +3927,7 @@ export default function AulaAmbientalBocachica({
                   onClick={() => irAPaso3D(Math.min(PASOS_3D.length - 1, pasoIdx + 1))}
                   className="hover:text-white disabled:opacity-30"
                 >
-                  Siguiente â†’
+                  Siguiente →
                 </button>
               </div>
               <div className="h-0.5 bg-white/10 rounded mt-2 overflow-hidden">
@@ -3952,7 +4044,7 @@ export default function AulaAmbientalBocachica({
                       <span>{item.corto}</span>
                       {esCorreg && item.nodo === 'tierraBomba' && (
                         <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded-full bg-[#e8a86b]/20 text-[#f7c896] group-hover:bg-[#0b1016]/15 group-hover:text-[#0b1016]">
-                          180Â° Â· 2x
+                          180° · 2x
                         </span>
                       )}
                       {!esCorreg && (
@@ -3969,7 +4061,7 @@ export default function AulaAmbientalBocachica({
         );
       })()}
 
-      {/* TARJETA ÃšNICA IZQUIERDA (O CARD GRANDE AL TOCAR UN ICONO EN TALLERES) */}
+      {/* TARJETA ÚNICA IZQUIERDA (O CARD GRANDE AL TOCAR UN ICONO EN TALLERES) */}
       {enVistaAula && catActiva && !panelJuego && !modalDiagrama && (() => {
         const IconoCat = ICONOS_CAT[catActiva.id] || MapPin;
         const idxCat = EXPLORA_CATEGORIAS.findIndex((c) => c.id === catActiva.id);
@@ -4003,7 +4095,7 @@ export default function AulaAmbientalBocachica({
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: corActual.color }}>
-                        Recorrido Â· {pasoRecorridoIdx + 1}/4
+                        Recorrido · {pasoRecorridoIdx + 1}/4
                       </span>
                       <button
                         type="button"
@@ -4025,7 +4117,7 @@ export default function AulaAmbientalBocachica({
                     <div className="text-[11px] text-white/65 truncate">{corActual.zona}</div>
                   </div>
                 </div>
-                <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guÃ­a">
+                <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -4244,7 +4336,7 @@ export default function AulaAmbientalBocachica({
                       className="w-full py-2.5 px-4 rounded-2xl bg-[#e8a86b] hover:brightness-110 text-xs font-black text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer shadow-xl transition"
                     >
                       <Sparkles className="w-4 h-4" />
-                      <span>Ver panorÃ¡mica 180Â° de Tierra Bomba</span>
+                      <span>Ver panorámica 180° de Tierra Bomba</span>
                     </button>
                   )}
                   {cor.nodo === 'canoDeLoro' && (
@@ -4258,7 +4350,7 @@ export default function AulaAmbientalBocachica({
                       className="w-full py-2.5 px-4 rounded-2xl bg-[#35d08a] hover:brightness-110 text-xs font-black text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer shadow-xl transition"
                     >
                       <Sparkles className="w-4 h-4" />
-                      <span>Ver carrusel 180Â° de CaÃ±o de Loro (4 vistas)</span>
+                      <span>Ver carrusel 180° de Caño de Loro (4 vistas)</span>
                     </button>
                   )}
                 </CardIluminada>
@@ -4282,13 +4374,13 @@ export default function AulaAmbientalBocachica({
                   </span>
                   <div className="min-w-0">
                     <div className="text-[10px] font-mono uppercase tracking-widest text-white/65">
-                      Patrimonio Â· {patAct.anio}
+                      Patrimonio · {patAct.anio}
                     </div>
                     <div className="text-sm font-bold text-white truncate">{patAct.nombre}</div>
                     <div className="text-[11px] text-white/65 truncate">{patAct.ubicacion}</div>
                   </div>
                 </div>
-                <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guÃ­a">
+                <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -4372,11 +4464,11 @@ export default function AulaAmbientalBocachica({
                     <span>Ver todos los fuertes</span>
                   </button>
                   <span className="px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/90 text-[10px] font-bold uppercase tracking-wider">
-                    Patrimonio HistÃ³rico
+                    Patrimonio Histórico
                   </span>
                 </div>
 
-                {/* ICONO GRANDE + TÃTULO + AÃ‘O */}
+                {/* ICONO GRANDE + TÍTULO + AÑO */}
                 <div className="flex items-center justify-between gap-3">
                   <span
                     className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border-2 shadow-xl"
@@ -4469,7 +4561,7 @@ export default function AulaAmbientalBocachica({
                   </div>
                 )}
 
-                {/* NAVEGACIÃ“N DIRECTA SIN RETROCEDER */}
+                {/* NAVEGACIÓN DIRECTA SIN RETROCEDER */}
                 <div className="pt-2.5 border-t border-white/15 flex items-center justify-between gap-2">
                   <button
                     type="button"
@@ -4511,13 +4603,13 @@ export default function AulaAmbientalBocachica({
                   </span>
                   <div className="min-w-0">
                     <div className="text-[10px] font-mono uppercase tracking-widest" style={{ color: actPreview.color }}>
-                      Viernes {actPreview.dia} {actPreview.mes} Â· {actPreview.lugar}
+                      Viernes {actPreview.dia} {actPreview.mes} · {actPreview.lugar}
                     </div>
                     <div className="text-sm font-bold text-white truncate">{actPreview.titulo}</div>
                     <div className="text-[11px] text-white/65 truncate">{actPreview.sub}</div>
                   </div>
                 </div>
-                <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guÃ­a">
+                <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -4598,7 +4690,7 @@ export default function AulaAmbientalBocachica({
                     <span>Ver toda la isla</span>
                   </button>
                   <span className="px-2.5 py-0.5 rounded-full bg-[#35d08a]/20 border border-[#35d08a]/50 text-[#9ff3c9] text-[10px] font-bold uppercase tracking-wider">
-                    Cupos abiertos Â· Gratis
+                    Cupos abiertos · Gratis
                   </span>
                 </div>
 
@@ -4633,7 +4725,7 @@ export default function AulaAmbientalBocachica({
                   </div>
                 </div>
 
-                {/* FORMULARIO ANIMADO DE INSCRIPCIÃ“N */}
+                {/* FORMULARIO ANIMADO DE INSCRIPCIÓN */}
                 <form onSubmit={agendarClaseViernes} className="space-y-2.5 pt-2 border-t border-white/15">
                   <div className="grid grid-cols-2 gap-2">
                     <input
@@ -4648,7 +4740,7 @@ export default function AulaAmbientalBocachica({
                       onChange={(e) => setCorregViernes(e.target.value)}
                       className="bg-white/10 border border-white/20 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-white"
                     >
-                      {['Bocachica', 'Tierra Bomba', 'CaÃ±o de Loro', 'Punta Arena'].map((c) => (
+                      {['Bocachica', 'Tierra Bomba', 'Caño de Loro', 'Punta Arena'].map((c) => (
                         <option key={c} value={c} className="bg-[#0b1016] text-white">{c}</option>
                       ))}
                     </select>
@@ -4670,7 +4762,7 @@ export default function AulaAmbientalBocachica({
                         }`}
                       >
                         <Utensils className="w-3.5 h-3.5 shrink-0" style={{ color: act.color }} />
-                        <span className="text-[11px] font-semibold leading-tight">Bono de alimentaciÃ³n</span>
+                        <span className="text-[11px] font-semibold leading-tight">Bono de alimentación</span>
                       </button>
                       <button
                         type="button"
@@ -4693,7 +4785,7 @@ export default function AulaAmbientalBocachica({
                     style={{ backgroundColor: act.color }}
                   >
                     <Sparkles className="w-4 h-4" />
-                    <span>Â¡Quiero inscribirme este viernes!</span>
+                    <span>¡Quiero inscribirme este viernes!</span>
                   </button>
                 </form>
 
@@ -4701,16 +4793,16 @@ export default function AulaAmbientalBocachica({
                   <div className="p-2.5 rounded-xl bg-[#35d08a]/20 border border-[#35d08a]/50 flex items-center gap-2 text-xs text-[#9ff3c9] font-bold">
                     <Check className="w-4 h-4 shrink-0" />
                     <span>
-                      Â¡InscripciÃ³n lista! Incluye tu{' '}
+                      ¡Inscripción lista! Incluye tu{' '}
                       {beneficioViernes === 'alimentacion'
-                        ? 'Bono de alimentaciÃ³n'
+                        ? 'Bono de alimentación'
                         : 'Cupo ida y vuelta a Cartagena'}{' '}
                       para el viernes {act.dia} {act.mes} (4:00 PM).
                     </span>
                   </div>
                 )}
 
-                {/* NAVEGACIÃ“N DIRECTA ENTRE ACTIVIDADES SIN RETROCEDER */}
+                {/* NAVEGACIÓN DIRECTA ENTRE ACTIVIDADES SIN RETROCEDER */}
                 <div className="pt-2.5 border-t border-white/15 flex items-center justify-between gap-2">
                   <button
                     type="button"
@@ -4844,7 +4936,7 @@ export default function AulaAmbientalBocachica({
                             </span>
                             <div className="text-right leading-none">
                               <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: cv.color }}>
-                                VIERNES Â· 4:00 PM
+                                VIERNES · 4:00 PM
                               </div>
                               <div className="text-4xl font-black text-white mt-0.5 tracking-tight">
                                 {cv.dia}
@@ -4872,7 +4964,7 @@ export default function AulaAmbientalBocachica({
                                 tema: cv.titulo,
                                 nombre: nombreViernes.trim() || 'Habitante de la isla',
                                 corregimiento: corregViernes,
-                                fecha: `Viernes ${cv.dia} ${cv.mes} Â· 4:00 p.m.`,
+                                fecha: `Viernes ${cv.dia} ${cv.mes} · 4:00 p.m.`,
                               };
                               const next = [nueva, ...clasesViernes].slice(0, 6);
                               setClasesViernes(next);
@@ -4891,7 +4983,7 @@ export default function AulaAmbientalBocachica({
                     })}
                   </div>
 
-                  {/* Fila inferior compacta: nombre + corregimiento + confirmaciÃ³n + talleres del mapa */}
+                  {/* Fila inferior compacta: nombre + corregimiento + confirmación + talleres del mapa */}
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/15">
                     <div className="flex flex-wrap items-center gap-1.5">
                       {catActiva.lugares.map((lug) => (
@@ -4920,7 +5012,7 @@ export default function AulaAmbientalBocachica({
               );
             })()}
 
-            {/* CALL TO ACTIONS DE NAVEGACIÃ“N DIRECTA */}
+            {/* CALL TO ACTIONS DE NAVEGACIÓN DIRECTA */}
             <div className="mt-4 pt-3 border-t border-white/15 flex items-center justify-between gap-2">
               {catAnt ? (
                 <button
@@ -4980,7 +5072,7 @@ export default function AulaAmbientalBocachica({
         </aside>
       )}
 
-      {/* INFOGRAFÃA INTERACTIVA GRANDE DE MEMORIAS Y SABERES: COMIDA, BAILES Y TRADICIONES */}
+      {/* INFOGRAFÍA INTERACTIVA GRANDE DE MEMORIAS Y SABERES: COMIDA, BAILES Y TRADICIONES */}
       {enVistaAula && panelJuego && !modalDiagrama && (() => {
         const catMem = MEMORIAS_SABERES[memCategoria] || MEMORIAS_SABERES.comida;
         const IconoCatMem = catMem.Icon;
@@ -5003,7 +5095,7 @@ export default function AulaAmbientalBocachica({
                   </span>
                   <div>
                     <div className="text-[11px] font-bold uppercase tracking-widest" style={{ color: catMem.color }}>
-                      InfografÃ­a interactiva Â· Tierra Bomba
+                      Infografía interactiva · Tierra Bomba
                     </div>
                     <h2 className="text-lg md:text-xl font-extrabold text-white leading-tight">
                       4. Memorias y Saberes de la Comunidad
@@ -5025,7 +5117,7 @@ export default function AulaAmbientalBocachica({
                 </button>
               </div>
 
-              {/* 3 CATEGORÃAS GRANDES: COMIDA Â· BAILES Â· TRADICIONES */}
+              {/* 3 CATEGORÍAS GRANDES: COMIDA · BAILES · TRADICIONES */}
               <div className="grid grid-cols-3 gap-3 mb-6">
                 {Object.entries(MEMORIAS_SABERES).map(([key, cat]) => {
                   const IconoTab = cat.Icon;
@@ -5123,7 +5215,7 @@ export default function AulaAmbientalBocachica({
                       }}
                       className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
                     >
-                      <span>Cambiar a otra opciÃ³n</span>
+                      <span>Cambiar a otra opción</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -5146,9 +5238,9 @@ export default function AulaAmbientalBocachica({
                     />
                   )}
 
-                  {/* INFOGRAFÃA DE 2 COLUMNAS */}
+                  {/* INFOGRAFÍA DE 2 COLUMNAS */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                    {/* COLUMNA IZQUIERDA: FOTO GRANDE + MÃšSICA + INGREDIENTES/ELEMENTOS */}
+                    {/* COLUMNA IZQUIERDA: FOTO GRANDE + MÚSICA + INGREDIENTES/ELEMENTOS */}
                     <div className="lg:col-span-5 space-y-4">
                       <div className="relative rounded-3xl overflow-hidden border border-white/20 shadow-2xl">
                         <img
@@ -5159,7 +5251,7 @@ export default function AulaAmbientalBocachica({
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0b1016] via-[#0b1016]/25 to-transparent" />
                         <div className="absolute bottom-3 left-4 right-4">
                           <div className="text-[11px] font-extrabold uppercase tracking-widest" style={{ color: catMem.color }}>
-                            {catMem.label} Â· Tierra Bomba
+                            {catMem.label} · Tierra Bomba
                           </div>
                           <h3 className="text-xl font-extrabold text-white leading-tight mt-0.5">{memItemSel.titulo}</h3>
                         </div>
@@ -5174,7 +5266,7 @@ export default function AulaAmbientalBocachica({
                             style={{ backgroundColor: catMem.color }}
                           >
                             {sonandoMem ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                            <span>{sonandoMem ? 'Pausar mÃºsica del baile' : `Reproducir mÃºsica (${pistaMem.bpm} BPM)`}</span>
+                            <span>{sonandoMem ? 'Pausar música del baile' : `Reproducir música (${pistaMem.bpm} BPM)`}</span>
                           </button>
                           <button
                             type="button"
@@ -5218,7 +5310,7 @@ export default function AulaAmbientalBocachica({
                       </div>
                     </div>
 
-                    {/* COLUMNA DERECHA: INFOGRAFÃA PASO A PASO INTERACTIVA */}
+                    {/* COLUMNA DERECHA: INFOGRAFÍA PASO A PASO INTERACTIVA */}
                     {(() => {
                       const pasoActualMem = memItemSel.pasos[memPasoIdx] || memItemSel.pasos[0];
                       const antIdx = (memPasoIdx - 1 + memItemSel.pasos.length) % memItemSel.pasos.length;
@@ -5235,7 +5327,7 @@ export default function AulaAmbientalBocachica({
                               </span>
                             </div>
 
-                            {/* LÃNEA DE TIEMPO VISUAL CONECTADA */}
+                            {/* LÍNEA DE TIEMPO VISUAL CONECTADA */}
                             <div className="grid grid-cols-4 gap-2 mb-5">
                               {memItemSel.pasos.map((p, idx) => {
                                 const activo = idx === memPasoIdx;
@@ -5280,7 +5372,7 @@ export default function AulaAmbientalBocachica({
                                 </span>
                                 <div>
                                   <div className="text-[11px] font-extrabold uppercase tracking-wider" style={{ color: catMem.color }}>
-                                    {catMem.label} Â· InfografÃ­a interactiva
+                                    {catMem.label} · Infografía interactiva
                                   </div>
                                   <h4 className="text-lg md:text-xl font-extrabold text-white leading-snug">
                                     {pasoActualMem.titulo.replace(/^\d+\.\s*/, '')}
@@ -5293,7 +5385,7 @@ export default function AulaAmbientalBocachica({
                             </CardIluminada>
                           </div>
 
-                          {/* CONTROLES DE NAVEGACIÃ“N DE LA INFOGRAFÃA */}
+                          {/* CONTROLES DE NAVEGACIÓN DE LA INFOGRAFÍA */}
                           <div className="pt-3 border-t border-white/15 flex items-center justify-between gap-3">
                             <button
                               type="button"
@@ -5324,18 +5416,18 @@ export default function AulaAmbientalBocachica({
         );
       })()}
 
-      {/* VISOR PANORÃMICO 180Â° DE TIERRA BOMBA (AL PRESIONAR 2 VECES TIERRA BOMBA) */}
+      {/* VISOR PANORÁMICO 180° DE TIERRA BOMBA (AL PRESIONAR 2 VECES TIERRA BOMBA) */}
       {ver180 && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 md:p-6">
           <div className="relative w-full max-w-5xl h-[86svh] rounded-3xl overflow-hidden border border-white/25 bg-[#0b1016] shadow-2xl flex flex-col">
             <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-white/15 bg-[#0b1016]/95">
               <div className="flex items-center gap-2.5">
                 <span className="px-2.5 py-0.5 rounded-full bg-[#e8a86b] text-[#0b1016] text-[11px] font-black uppercase tracking-wider">
-                  180Â°
+                  180°
                 </span>
                 <div>
-                  <div className="text-sm font-extrabold text-white leading-tight">Tierra Bomba Â· PanorÃ¡mica 180Â°</div>
-                  <div className="text-[11px] text-white/65">Arrastra para girar 180Â° Â· Usa la rueda o pellizca para acercar</div>
+                  <div className="text-sm font-extrabold text-white leading-tight">Tierra Bomba · Panorámica 180°</div>
+                  <div className="text-[11px] text-white/65">Arrastra para girar 180° · Usa la rueda o pellizca para acercar</div>
                 </div>
               </div>
               <button
@@ -5349,12 +5441,12 @@ export default function AulaAmbientalBocachica({
                 className="px-3.5 py-1.5 rounded-full bg-white text-[#0b1016] hover:bg-white/90 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer transition"
               >
                 <X className="w-4 h-4" />
-                <span>Cerrar 180Â°</span>
+                <span>Cerrar 180°</span>
               </button>
             </div>
             <iframe
               src={`${MEMORIAS_BASE}panoramas/tierra-bomba-180.html`}
-              title="PanorÃ¡mica 180 grados de Tierra Bomba"
+              title="Panorámica 180 grados de Tierra Bomba"
               className="w-full flex-1 border-0 bg-[#101b1d]"
               allowFullScreen
             />
@@ -5362,27 +5454,27 @@ export default function AulaAmbientalBocachica({
         </div>
       )}
 
-      {/* CARRUSEL PANORÃMICO 360Â° DE CAÃ‘O DE LORO (AL PRESIONAR 2 VECES CAÃ‘O DE LORO) */}
+      {/* CARRUSEL PANORÁMICO 360° DE CAÑO DE LORO (AL PRESIONAR 2 VECES CAÑO DE LORO) */}
       {ver180Cano && (() => {
         const VISTAS_CANO = [
           {
             id: 'general',
             titulo: 'Vista general',
-            sub: 'PanorÃ¡mica principal de CaÃ±o de Loro',
+            sub: 'Panorámica principal de Caño de Loro',
             archivo: 'panoramas/cano-de-loro/general.html',
             popups: [
-              { etiqueta: 'Historia', titulo: 'Origen y memoria de CaÃ±o de Loro', texto: 'Comunidad resiliente asentada entre esteros de manglar y aguas calmas de la bahÃ­a de Cartagena. Su historia estÃ¡ ligada al cuidado del mangle, la pesca artesanal y la reconstrucciÃ³n colectiva.' },
-              { etiqueta: 'Territorio', titulo: 'Entre el manglar y la bahÃ­a', texto: 'Su paisaje conecta canales de mangle rojo, senderos de arena coralina y frentes de agua donde atracan las lanchas comunitarias.' },
+              { etiqueta: 'Historia', titulo: 'Origen y memoria de Caño de Loro', texto: 'Comunidad resiliente asentada entre esteros de manglar y aguas calmas de la bahía de Cartagena. Su historia está ligada al cuidado del mangle, la pesca artesanal y la reconstrucción colectiva.' },
+              { etiqueta: 'Territorio', titulo: 'Entre el manglar y la bahía', texto: 'Su paisaje conecta canales de mangle rojo, senderos de arena coralina y frentes de agua donde atracan las lanchas comunitarias.' },
             ],
           },
           {
             id: 'costa',
-            titulo: 'Costa y bahÃ­a',
-            sub: 'Orilla sobre la bahÃ­a y manglares',
+            titulo: 'Costa y bahía',
+            sub: 'Orilla sobre la bahía y manglares',
             archivo: 'panoramas/cano-de-loro/costa.html',
             popups: [
-              { etiqueta: 'Ecosistema', titulo: 'Borde costero y manglares', texto: 'El manglar actÃºa como barrera natural contra la erosiÃ³n marina y refugio de peces, cangrejos y aves del Caribe.' },
-              { etiqueta: 'Llegada en lancha', titulo: 'Acceso desde Cartagena', texto: 'Desde el Muelle de la Bodeguita o Bazurto, las lanchas cruzan la bahÃ­a hacia el costado oriental de Tierra Bomba en unos 20 minutos.' },
+              { etiqueta: 'Ecosistema', titulo: 'Borde costero y manglares', texto: 'El manglar actúa como barrera natural contra la erosión marina y refugio de peces, cangrejos y aves del Caribe.' },
+              { etiqueta: 'Llegada en lancha', titulo: 'Acceso desde Cartagena', texto: 'Desde el Muelle de la Bodeguita o Bazurto, las lanchas cruzan la bahía hacia el costado oriental de Tierra Bomba en unos 20 minutos.' },
             ],
           },
           {
@@ -5391,8 +5483,8 @@ export default function AulaAmbientalBocachica({
             sub: 'Calles y viviendas tradicionales',
             archivo: 'panoramas/cano-de-loro/pueblo.html',
             popups: [
-              { etiqueta: 'Arquitectura', titulo: 'Vivienda caribeÃ±a y patios', texto: 'Casas de un piso con terrazas sombreadas, techos metÃ¡licos a dos aguas y patios compartidos donde se teje la vida diaria.' },
-              { etiqueta: 'Comunidad', titulo: 'Oficios y saberes vivos', texto: 'Pescadores de chinchorro, cocineras tradicionales y jÃ³venes que lideran jornadas de siembra de manglar y aula abierta.' },
+              { etiqueta: 'Arquitectura', titulo: 'Vivienda caribeña y patios', texto: 'Casas de un piso con terrazas sombreadas, techos metálicos a dos aguas y patios compartidos donde se teje la vida diaria.' },
+              { etiqueta: 'Comunidad', titulo: 'Oficios y saberes vivos', texto: 'Pescadores de chinchorro, cocineras tradicionales y jóvenes que lideran jornadas de siembra de manglar y aula abierta.' },
             ],
           },
           {
@@ -5401,8 +5493,8 @@ export default function AulaAmbientalBocachica({
             sub: 'Patrimonio e historia de la comunidad',
             archivo: 'panoramas/cano-de-loro/iglesia.html',
             popups: [
-              { etiqueta: 'Patrimonio', titulo: 'Iglesia de CaÃ±o de Loro', texto: 'Punto de encuentro espiritual e histÃ³rico del corregimiento, testimonio de la permanencia y la identidad de sus familias.' },
-              { etiqueta: 'Encuentro', titulo: 'Plaza y celebraciones', texto: 'Alrededor del templo se reÃºnen las fiestas patronales, los cantos tradicionales y las asambleas comunitarias.' },
+              { etiqueta: 'Patrimonio', titulo: 'Iglesia de Caño de Loro', texto: 'Punto de encuentro espiritual e histórico del corregimiento, testimonio de la permanencia y la identidad de sus familias.' },
+              { etiqueta: 'Encuentro', titulo: 'Plaza y celebraciones', texto: 'Alrededor del templo se reúnen las fiestas patronales, los cantos tradicionales y las asambleas comunitarias.' },
             ],
           },
         ];
@@ -5423,11 +5515,11 @@ export default function AulaAmbientalBocachica({
               <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-white/15 bg-[#0b1016]/95">
                 <div className="flex items-center gap-2.5">
                   <span className="px-2.5 py-0.5 rounded-full bg-[#35d08a] text-[#07140d] text-[11px] font-black uppercase tracking-wider">
-                    360Â° Â· {cano180Idx + 1}/4
+                    360° · {cano180Idx + 1}/4
                   </span>
                   <div>
                     <div className="text-sm font-extrabold text-white leading-tight">
-                      CaÃ±o de Loro Â· {vistaAct.titulo}
+                      Caño de Loro · {vistaAct.titulo}
                     </div>
                     <div className="text-[11px] text-white/65">{vistaAct.sub}</div>
                   </div>
@@ -5490,12 +5582,12 @@ export default function AulaAmbientalBocachica({
                 <iframe
                   key={vistaAct.id}
                   src={`${MEMORIAS_BASE}${vistaAct.archivo}`}
-                  title={`CaÃ±o de Loro 360Â° â€” ${vistaAct.titulo}`}
+                  title={`Caño de Loro 360° — ${vistaAct.titulo}`}
                   className="w-full h-full border-0"
                   allowFullScreen
                 />
 
-                {/* BOTONES DE POP-UPS INTERACTIVOS DENTRO DEL 360Â° */}
+                {/* BOTONES DE POP-UPS INTERACTIVOS DENTRO DEL 360° */}
                 <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-2">
                   {popupsVista.map((pp, pi) => {
                     const activo = cano360Popup === pi;
@@ -5517,13 +5609,13 @@ export default function AulaAmbientalBocachica({
                   })}
                 </div>
 
-                {/* POP-UP FLOTANTE DE TEXTO DENTRO DEL 360Â° */}
+                {/* POP-UP FLOTANTE DE TEXTO DENTRO DEL 360° */}
                 {popupAct && (
                   <div className="absolute bottom-4 left-4 z-10 w-[min(92vw,24rem)] tc-vidrio p-4 rounded-2xl border border-[#35d08a]/40 shadow-2xl tc-paso-anim space-y-2.5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="text-[10px] font-mono uppercase tracking-widest text-[#35d08a]">
-                          {vistaAct.titulo} Â· {popupAct.etiqueta}
+                          {vistaAct.titulo} · {popupAct.etiqueta}
                         </div>
                         <h4 className="text-sm font-extrabold text-white leading-tight mt-0.5">
                           {popupAct.titulo}
@@ -5560,12 +5652,12 @@ export default function AulaAmbientalBocachica({
         );
       })()}
 
-      {/* MODAL DE VIDRIO TRANSLÃšCIDO SOBRE EL MAPA 3D (Cuando el usuario quiere ver un diagrama 2D en detalle) */}
+      {/* MODAL DE VIDRIO TRANSLÚCIDO SOBRE EL MAPA 3D (Cuando el usuario quiere ver un diagrama 2D en detalle) */}
       {modalDiagrama && (
         <div className="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 md:p-10 overflow-y-auto">
           <div className="relative w-full max-w-6xl max-h-[88svh] overflow-y-auto tc-vidrio p-5 md:p-8 tc-paso-anim">
             <div className="sticky top-0 z-10 flex items-center justify-between pb-3 mb-4 border-b border-white/15 bg-[#070a0e]/85 backdrop-blur-md px-2 py-1.5 rounded">
-              <span className="tc-etiqueta !text-[#e0917a]">ExplicaciÃ³n visual sobre el mapa de Bocachica</span>
+              <span className="tc-etiqueta !text-[#e0917a]">Explicación visual sobre el mapa de Bocachica</span>
               <button
                 type="button"
                 onClick={() => setModalDiagrama(null)}
@@ -5613,7 +5705,7 @@ export default function AulaAmbientalBocachica({
         ref={secJuegoRef}
         style={{ height: '115svh' }}
         className="relative z-10 pointer-events-none"
-        aria-label="Memorias, bailes y mÃºsica tradicional de Tierra Bomba"
+        aria-label="Memorias, bailes y música tradicional de Tierra Bomba"
       />
 
       {/* =====================================================================
@@ -5621,11 +5713,11 @@ export default function AulaAmbientalBocachica({
       ===================================================================== */}
       <footer id="cap-07" className="relative z-10 bg-black/55 backdrop-blur-md px-6 md:px-16 py-12 border-t border-white/10">
         <div className="max-w-5xl mx-auto">
-          {/* NavegaciÃ³n de retorno a los otros mÃ³dulos de #/comunidad sin borrar nada */}
+          {/* Navegación de retorno a los otros módulos de #/comunidad sin borrar nada */}
           {(volverFn || navegarFn) && (
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="text-xs text-white/60">
-                ContinÃºa explorando los demÃ¡s capÃ­tulos de <span className="text-white font-medium">Tierra Bomba Â· Comunidad</span>
+                Continúa explorando los demás capítulos de <span className="text-white font-medium">Tierra Bomba · Comunidad</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {volverFn && (
@@ -5634,19 +5726,19 @@ export default function AulaAmbientalBocachica({
                     onClick={volverFn}
                     className="tc-ficha tc-ficha-activa !text-white !border-[#e0917a]"
                   >
-                    â† Volver a la portada de Comunidad
+                    ← Volver a la portada de Comunidad
                   </button>
                 )}
                 {navegarFn && (
                   <>
                     <button type="button" onClick={() => navegarFn('resumen')} className="tc-ficha">
-                      00 Â· Isla de Tierra Bomba
+                      00 · Isla de Tierra Bomba
                     </button>
                     <button type="button" onClick={() => navegarFn('territorio')} className="tc-ficha">
-                      01 Â· ErosiÃ³n costera 3D
+                      01 · Erosión costera 3D
                     </button>
                     <button type="button" onClick={() => navegarFn('3dviewer')} className="tc-ficha">
-                      04 Â· Territorio en 3D
+                      04 · Territorio en 3D
                     </button>
                   </>
                 )}
@@ -5655,8 +5747,8 @@ export default function AulaAmbientalBocachica({
           )}
 
           <div className="mt-12 pt-6 tc-regla flex flex-wrap justify-between gap-4 text-xs text-white/50">
-            <span>Tierra Bomba Â· Comunidad y Territorio</span>
-            <span>Pontificia Universidad Javeriana Â· Facultad de Arquitectura y DiseÃ±o</span>
+            <span>Tierra Bomba · Comunidad y Territorio</span>
+            <span>Pontificia Universidad Javeriana · Facultad de Arquitectura y Diseño</span>
           </div>
         </div>
       </footer>
