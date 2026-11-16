@@ -1,6 +1,7 @@
-﻿import React from 'react';
+﻿import React, { Suspense, lazy } from 'react';
 import { projectInfo } from '../data/projectData';
-import AulaAmbientalBocachica from './AulaAmbientalBocachica';
+
+const AulaAmbientalBocachica = lazy(() => import('./AulaAmbientalBocachica'));
 
 const INDICE = [
   { id: 'resumen', n: '00', label: 'Resumen del proyecto' },
@@ -103,12 +104,14 @@ export default function IntroLandingIndex({ onNavigateModule, onBackToThesis }) 
       </section>
 
       {/* Nueva sección íntegra: Tierra Bomba, Aula Ambiental (Bocachica) con estética de tesis_tercer_corte */}
-      <AulaAmbientalBocachica
-        onBackToPortada={() =>
-          document.getElementById('comunidad-portada-hero')?.scrollIntoView({ behavior: 'smooth' })
-        }
-        onNavigateModule={onNavigateModule}
-      />
+      <Suspense fallback={<div className="min-h-screen bg-[#070b10]" />}>
+        <AulaAmbientalBocachica
+          onBackToPortada={() =>
+            document.getElementById('comunidad-portada-hero')?.scrollIntoView({ behavior: 'smooth' })
+          }
+          onNavigateModule={onNavigateModule}
+        />
+      </Suspense>
     </div>
   );
 }

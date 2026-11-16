@@ -1845,11 +1845,12 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const t0 = last;
   let raf = 0;
   let shown = false;
+  let pausado = false;
   const expo = (dt, k) => 1 - Math.exp(-dt * k);
 
   const tick = (now) => {
     raf = requestAnimationFrame(tick);
-    if (disposed || document.hidden) { last = now; return; }
+    if (disposed || document.hidden || pausado) { last = now; return; }
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     const t = (now - t0) / 1000;
@@ -2036,8 +2037,12 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       }
       return out;
     },
+    setPausado(v) {
+      pausado = Boolean(v);
+    },
     dispose() {
       disposed = true;
+      if (raf) cancelAnimationFrame(raf);
       cleanups.forEach((fn) => fn());
     },
   };
