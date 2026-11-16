@@ -3024,6 +3024,8 @@ export default function AulaAmbientalBocachica({
   const [ver180, setVer180] = useState(false);
   const [ver180Cano, setVer180Cano] = useState(false);
   const [cano180Idx, setCano180Idx] = useState(0);
+  const [cano360Popup, setCano360Popup] = useState(0);
+  const pinClickTimerRef = useRef(null);
   const ultimoTapTBRef = useRef(0);
 
   const corregimientosIsla = useMemo(
@@ -4259,17 +4261,32 @@ export default function AulaAmbientalBocachica({
                   }}
                   onClick={() => {
                     setAutoTourActivo(false);
-                    if (esPatrimonio) seleccionarPatrimonio(item);
-                    else if (esCorreg) seleccionarCorregimiento(item);
-                    else seleccionarActividad(item);
+                    if (esPatrimonio) {
+                      seleccionarPatrimonio(item);
+                    } else if (esCorreg && (item.nodo === 'tierraBomba' || item.nodo === 'canoDeLoro')) {
+                      if (pinClickTimerRef.current) clearTimeout(pinClickTimerRef.current);
+                      pinClickTimerRef.current = setTimeout(() => {
+                        pinClickTimerRef.current = null;
+                        seleccionarCorregimiento(item);
+                      }, 240);
+                    } else if (esCorreg) {
+                      seleccionarCorregimiento(item);
+                    } else {
+                      seleccionarActividad(item);
+                    }
                   }}
                   onDoubleClick={() => {
+                    if (pinClickTimerRef.current) {
+                      clearTimeout(pinClickTimerRef.current);
+                      pinClickTimerRef.current = null;
+                    }
                     if (esCorreg && item.nodo === 'tierraBomba') {
                       setCorregSel(null);
                       setVer180(true);
                     } else if (esCorreg && item.nodo === 'canoDeLoro') {
                       setCorregSel(null);
                       setCano180Idx(0);
+                      setCano360Popup(0);
                       setVer180Cano(true);
                     }
                   }}
@@ -5694,24 +5711,68 @@ export default function AulaAmbientalBocachica({
         </div>
       )}
 
-      {/* CARRUSEL PANORÁMICO 180° DE CAÑO DE LORO (AL PRESIONAR 2 VECES CAÑO DE LORO) */}
+      {/* CARRUSEL PANORÁMICO 360° DE CAÑO DE LORO (AL PRESIONAR 2 VECES CAÑO DE LORO) */}
       {ver180Cano && (() => {
         const VISTAS_CANO = [
-          { id: 'general', titulo: 'Vista general', sub: 'Panorámica principal de Caño de Loro', archivo: 'panoramas/cano-de-loro/general.html' },
-          { id: 'costa', titulo: 'Costa y bahía', sub: 'Orilla sobre la bahía y manglares', archivo: 'panoramas/cano-de-loro/costa.html' },
-          { id: 'pueblo', titulo: 'El pueblo', sub: 'Calles y viviendas tradicionales', archivo: 'panoramas/cano-de-loro/pueblo.html' },
-          { id: 'iglesia', titulo: 'Iglesia', sub: 'Patrimonio e historia de la comunidad', archivo: 'panoramas/cano-de-loro/iglesia.html' },
+          {
+            id: 'general',
+            titulo: 'Vista general',
+            sub: 'Panorámica principal de Caño de Loro',
+            archivo: 'panoramas/cano-de-loro/general.html',
+            popups: [
+              { etiqueta: 'Historia', titulo: 'Origen y memoria de Caño de Loro', texto: 'Comunidad resiliente asentada entre esteros de manglar y aguas calmas de la bahía de Cartagena. Su historia está ligada al cuidado del mangle, la pesca artesanal y la reconstrucción colectiva.' },
+              { etiqueta: 'Territorio', titulo: 'Entre el manglar y la bahía', texto: 'Su paisaje conecta canales de mangle rojo, senderos de arena coralina y frentes de agua donde atracan las lanchas comunitarias.' },
+            ],
+          },
+          {
+            id: 'costa',
+            titulo: 'Costa y bahía',
+            sub: 'Orilla sobre la bahía y manglares',
+            archivo: 'panoramas/cano-de-loro/costa.html',
+            popups: [
+              { etiqueta: 'Ecosistema', titulo: 'Borde costero y manglares', texto: 'El manglar actúa como barrera natural contra la erosión marina y refugio de peces, cangrejos y aves del Caribe.' },
+              { etiqueta: 'Llegada en lancha', titulo: 'Acceso desde Cartagena', texto: 'Desde el Muelle de la Bodeguita o Bazurto, las lanchas cruzan la bahía hacia el costado oriental de Tierra Bomba en unos 20 minutos.' },
+            ],
+          },
+          {
+            id: 'pueblo',
+            titulo: 'El pueblo',
+            sub: 'Calles y viviendas tradicionales',
+            archivo: 'panoramas/cano-de-loro/pueblo.html',
+            popups: [
+              { etiqueta: 'Arquitectura', titulo: 'Vivienda caribeña y patios', texto: 'Casas de un piso con terrazas sombreadas, techos metálicos a dos aguas y patios compartidos donde se teje la vida diaria.' },
+              { etiqueta: 'Comunidad', titulo: 'Oficios y saberes vivos', texto: 'Pescadores de chinchorro, cocineras tradicionales y jóvenes que lideran jornadas de siembra de manglar y aula abierta.' },
+            ],
+          },
+          {
+            id: 'iglesia',
+            titulo: 'Iglesia',
+            sub: 'Patrimonio e historia de la comunidad',
+            archivo: 'panoramas/cano-de-loro/iglesia.html',
+            popups: [
+              { etiqueta: 'Patrimonio', titulo: 'Iglesia de Caño de Loro', texto: 'Punto de encuentro espiritual e histórico del corregimiento, testimonio de la permanencia y la identidad de sus familias.' },
+              { etiqueta: 'Encuentro', titulo: 'Plaza y celebraciones', texto: 'Alrededor del templo se reúnen las fiestas patronales, los cantos tradicionales y las asambleas comunitarias.' },
+            ],
+          },
         ];
         const vistaAct = VISTAS_CANO[cano180Idx % VISTAS_CANO.length] || VISTAS_CANO[0];
-        const prevVista = () => setCano180Idx((i) => (i - 1 + VISTAS_CANO.length) % VISTAS_CANO.length);
-        const nextVista = () => setCano180Idx((i) => (i + 1) % VISTAS_CANO.length);
+        const popupsVista = vistaAct.popups || [];
+        const popupAct = cano360Popup !== null ? popupsVista[cano360Popup % popupsVista.length] : null;
+        const prevVista = () => {
+          setCano180Idx((i) => (i - 1 + VISTAS_CANO.length) % VISTAS_CANO.length);
+          setCano360Popup(0);
+        };
+        const nextVista = () => {
+          setCano180Idx((i) => (i + 1) % VISTAS_CANO.length);
+          setCano360Popup(0);
+        };
         return (
           <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 md:p-6">
             <div className="relative w-full max-w-6xl h-[88svh] rounded-3xl overflow-hidden border border-white/25 bg-[#0b1016] shadow-2xl flex flex-col">
               <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-white/15 bg-[#0b1016]/95">
                 <div className="flex items-center gap-2.5">
                   <span className="px-2.5 py-0.5 rounded-full bg-[#35d08a] text-[#07140d] text-[11px] font-black uppercase tracking-wider">
-                    180° · {cano180Idx + 1}/4
+                    360° · {cano180Idx + 1}/4
                   </span>
                   <div>
                     <div className="text-sm font-extrabold text-white leading-tight">
@@ -5726,7 +5787,10 @@ export default function AulaAmbientalBocachica({
                     <button
                       key={v.id}
                       type="button"
-                      onClick={() => setCano180Idx(i)}
+                      onClick={() => {
+                        setCano180Idx(i);
+                        setCano360Popup(0);
+                      }}
                       className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
                         i === cano180Idx
                           ? 'bg-[#35d08a] text-[#07140d]'
@@ -5775,10 +5839,70 @@ export default function AulaAmbientalBocachica({
                 <iframe
                   key={vistaAct.id}
                   src={`${MEMORIAS_BASE}${vistaAct.archivo}`}
-                  title={`Caño de Loro 180° — ${vistaAct.titulo}`}
+                  title={`Caño de Loro 360° — ${vistaAct.titulo}`}
                   className="w-full h-full border-0"
                   allowFullScreen
                 />
+
+                {/* BOTONES DE POP-UPS INTERACTIVOS DENTRO DEL 360° */}
+                <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-2">
+                  {popupsVista.map((pp, pi) => {
+                    const activo = cano360Popup === pi;
+                    return (
+                      <button
+                        key={pp.etiqueta}
+                        type="button"
+                        onClick={() => setCano360Popup(activo ? null : pi)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-md border shadow-lg transition cursor-pointer flex items-center gap-1.5 ${
+                          activo
+                            ? 'bg-[#35d08a] text-[#07140d] border-[#35d08a]'
+                            : 'bg-black/70 text-white border-white/25 hover:bg-black/90'
+                        }`}
+                      >
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>{pp.etiqueta}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* POP-UP FLOTANTE DE TEXTO DENTRO DEL 360° */}
+                {popupAct && (
+                  <div className="absolute bottom-4 left-4 z-10 w-[min(92vw,24rem)] tc-vidrio p-4 rounded-2xl border border-[#35d08a]/40 shadow-2xl tc-paso-anim space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="text-[10px] font-mono uppercase tracking-widest text-[#35d08a]">
+                          {vistaAct.titulo} · {popupAct.etiqueta}
+                        </div>
+                        <h4 className="text-sm font-extrabold text-white leading-tight mt-0.5">
+                          {popupAct.titulo}
+                        </h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setCano360Popup(null)}
+                        className="p-1 rounded-full text-white/60 hover:text-white hover:bg-white/10 cursor-pointer"
+                        aria-label="Cerrar pop-up 360"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <p className="text-xs text-white/90 leading-relaxed">{popupAct.texto}</p>
+                    <div className="flex items-center justify-between pt-1 border-t border-white/10 text-[11px]">
+                      <span className="text-white/55 font-mono">
+                        Nota {(cano360Popup % popupsVista.length) + 1}/{popupsVista.length}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setCano360Popup((i) => ((i ?? 0) + 1) % popupsVista.length)}
+                        className="text-[#35d08a] hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Siguiente nota</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
