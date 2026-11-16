@@ -91,6 +91,86 @@ function makeLeafTex() {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAXANI; return t;
 }
 
+function makeFishTex(fried = false) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 256;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 0, 256);
+  if (!fried) {
+    g.addColorStop(0, '#4d6575'); g.addColorStop(0.45, '#9ab0bd'); g.addColorStop(1, '#dce4e8');
+  } else {
+    g.addColorStop(0, '#8f4710'); g.addColorStop(0.48, '#cc721d'); g.addColorStop(1, '#e39a3b');
+  }
+  x.fillStyle = g; x.fillRect(0, 0, 512, 256);
+  // Escamas detalladas
+  for (let row = 0; row < 16; row++) {
+    for (let col = 0; col < 30; col++) {
+      const cx = col * 18 + (row % 2) * 9;
+      const cy = row * 16 + 8;
+      x.strokeStyle = fried ? 'rgba(85,32,6,0.42)' : 'rgba(255,255,255,0.34)';
+      x.lineWidth = 1.6;
+      x.beginPath(); x.arc(cx, cy, 9.5, -Math.PI * 0.45, Math.PI * 0.45); x.stroke();
+      if (fried && Math.random() > 0.45) {
+        x.fillStyle = `rgba(110,42,8,${rnd(0.12, 0.35)})`;
+        x.beginPath(); x.arc(cx + rnd(-3, 3), cy + rnd(-3, 3), rnd(2, 5), 0, Math.PI * 2); x.fill();
+      }
+    }
+  }
+  // Cortes diagonales de adobo / fritura
+  x.strokeStyle = fried ? '#3d1804' : '#733d22';
+  x.lineWidth = 10; x.lineCap = 'round';
+  for (const cx of [170, 245, 320]) {
+    x.beginPath(); x.moveTo(cx - 18, 45); x.lineTo(cx + 22, 210); x.stroke();
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAXANI; return t;
+}
+
+function makeRiceTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const x = c.getContext('2d');
+  x.fillStyle = '#5a3519'; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 900; i++) {
+    const px = rnd(256), py = rnd(256), ang = rnd(Math.PI * 2);
+    x.save(); x.translate(px, py); x.rotate(ang);
+    x.fillStyle = i % 5 === 0 ? '#3a1e0a' : i % 3 === 0 ? '#8c5d36' : '#a97b50';
+    x.beginPath(); x.ellipse(0, 0, 5.2, 2.2, 0, 0, Math.PI * 2); x.fill();
+    x.restore();
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAXANI; return t;
+}
+
+function makePataconTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(128, 128, 20, 128, 128, 128);
+  g.addColorStop(0, '#f3c13a'); g.addColorStop(0.75, '#d99316'); g.addColorStop(1, '#9c5c09');
+  x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 220; i++) {
+    x.fillStyle = `rgba(115,62,8,${rnd(0.1, 0.28)})`;
+    x.fillRect(rnd(256), rnd(256), rnd(3, 12), rnd(1, 3));
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAXANI; return t;
+}
+
+function makeLimeTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const x = c.getContext('2d');
+  x.fillStyle = '#e8f5c8'; x.fillRect(0, 0, 256, 256);
+  x.fillStyle = '#a3e635';
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    x.beginPath(); x.moveTo(128, 128);
+    x.arc(128, 128, 110, a + 0.06, a + Math.PI / 4 - 0.06);
+    x.closePath(); x.fill();
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAXANI; return t;
+}
+
+const texFishRaw = makeFishTex(false);
+const texFishFried = makeFishTex(true);
+const texRice = makeRiceTex();
+const texPatacon = makePataconTex();
+const texLime = makeLimeTex();
+
 const M = {
   table: new THREE.MeshStandardMaterial({ ...texWood, roughness: 0.85, metalness: 0, envMapIntensity: 0.55 }),
   linen: new THREE.MeshStandardMaterial({ ...texLinen, roughness: 0.95, metalness: 0, envMapIntensity: 0.4 }),
@@ -99,20 +179,21 @@ const M = {
   brass: new THREE.MeshStandardMaterial({ color: 0xc29348, roughness: 0.34, metalness: 0.88, envMapIntensity: 1.2 }),
   iron: new THREE.MeshStandardMaterial({ color: 0x222020, roughness: 0.72, metalness: 0.75 }),
   oil: new THREE.MeshStandardMaterial({ color: 0xe6a128, roughness: 0.14, metalness: 0.05, transparent: true, opacity: 0.84 }),
-  fishRaw: new THREE.MeshStandardMaterial({ color: 0x9aa9b2, roughness: 0.38, metalness: 0.25 }),
-  fishFin: new THREE.MeshStandardMaterial({ color: 0xc77e45, roughness: 0.65, metalness: 0.05, side: THREE.DoubleSide }),
-  fishCut: new THREE.MeshStandardMaterial({ color: 0x6b3a1a, roughness: 0.8 }),
-  lime: new THREE.MeshStandardMaterial({ color: 0x4d9927, roughness: 0.55 }),
-  limePulp: new THREE.MeshStandardMaterial({ color: 0xbef264, roughness: 0.35 }),
+  fishRaw: new THREE.MeshStandardMaterial({ map: texFishRaw, bumpMap: texFishRaw, bumpScale: 0.035, roughness: 0.34, metalness: 0.18 }),
+  fishFried: new THREE.MeshStandardMaterial({ map: texFishFried, bumpMap: texFishFried, bumpScale: 0.055, roughness: 0.58, metalness: 0.04 }),
+  fishFin: new THREE.MeshStandardMaterial({ color: 0xc77e45, roughness: 0.62, metalness: 0.05, side: THREE.DoubleSide }),
+  fishCut: new THREE.MeshStandardMaterial({ color: 0x5c2e12, roughness: 0.8 }),
+  lime: new THREE.MeshStandardMaterial({ color: 0x3f8a1e, roughness: 0.52 }),
+  limePulp: new THREE.MeshStandardMaterial({ map: texLime, roughness: 0.28 }),
   salt: new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.45 }),
-  rice: new THREE.MeshStandardMaterial({ color: 0x6b4222, roughness: 0.78 }),
-  patacon: new THREE.MeshStandardMaterial({ color: 0xeab308, roughness: 0.68 }),
-  tomato: new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.35 }),
-  onion: new THREE.MeshStandardMaterial({ color: 0xa21caf, roughness: 0.4 }),
+  rice: new THREE.MeshStandardMaterial({ map: texRice, bumpMap: texRice, bumpScale: 0.045, roughness: 0.82 }),
+  patacon: new THREE.MeshStandardMaterial({ map: texPatacon, bumpMap: texPatacon, bumpScale: 0.035, roughness: 0.65 }),
+  tomato: new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.32 }),
+  onion: new THREE.MeshStandardMaterial({ color: 0xa21caf, roughness: 0.38 }),
   spoon: new THREE.MeshStandardMaterial({ color: 0x926238, roughness: 0.72 }),
   board: new THREE.MeshStandardMaterial({ ...texWood, color: 0xc89d6c, roughness: 0.68 }),
-  leaf: new THREE.MeshStandardMaterial({ map: makeLeafTex(), roughness: 0.56, side: THREE.DoubleSide }),
-  bubble: new THREE.MeshStandardMaterial({ color: 0xffe4a0, roughness: 0.16, transparent: true, opacity: 0.68 }),
+  leaf: new THREE.MeshStandardMaterial({ map: makeLeafTex(), roughness: 0.52, side: THREE.DoubleSide }),
+  bubble: new THREE.MeshStandardMaterial({ color: 0xffe4a0, roughness: 0.16, transparent: true, opacity: 0.72 }),
 };
 
 function shadowed(o) { o.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } }); return o; }
@@ -129,13 +210,13 @@ table.rotation.x = -Math.PI / 2; table.receiveShadow = true; scene.add(table);
 /* ───────────── geometría de Mojarra 3D ───────────── */
 function makeMojarra(cookFactor = 0) {
   const g = new THREE.Group();
-  const matBody = M.fishRaw.clone();
-  const rawC = new THREE.Color(0x9aa9b2);
-  const goldC = new THREE.Color(0xd17a22);
-  const burnC = new THREE.Color(0x2d180a);
+  const matBody = (cookFactor > 0.35 ? M.fishFried : M.fishRaw).clone();
+  const rawC = new THREE.Color(0xd9e4eb);
+  const goldC = new THREE.Color(0xf2b56b);
+  const burnC = new THREE.Color(0x4a240c);
   if (cookFactor <= 1) matBody.color.lerpColors(rawC, goldC, cookFactor);
   else matBody.color.lerpColors(goldC, burnC, clamp(cookFactor - 1, 0, 1));
-  matBody.roughness = lerp(0.36, 0.68, clamp(cookFactor, 0, 1));
+  matBody.roughness = lerp(0.32, 0.65, clamp(cookFactor, 0, 1));
 
   const body = new THREE.Mesh(new THREE.SphereGeometry(0.56, 28, 18), matBody);
   body.scale.set(1.55, 0.34, 0.74);
@@ -326,10 +407,30 @@ function initAudio() {
 }
 function playSound(type) {
   if (S.muted || !AC) return;
-  const now = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
-  o.connect(g).connect(AC.destination);
-  if (type === 'drop') { o.type = 'triangle'; o.frequency.setValueAtTime(240, now); o.frequency.exponentialRampToValueAtTime(110, now + 0.14); g.gain.setValueAtTime(0.16, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.16); o.start(now); o.stop(now + 0.17); }
-  else if (type === 'ding') { o.type = 'sine'; o.frequency.setValueAtTime(880, now); o.frequency.setValueAtTime(1174, now + 0.09); g.gain.setValueAtTime(0.14, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.45); o.start(now); o.stop(now + 0.46); }
+  const now = AC.currentTime;
+  if (type === 'drop') {
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = 'triangle'; o.frequency.setValueAtTime(280, now); o.frequency.exponentialRampToValueAtTime(95, now + 0.16);
+    g.gain.setValueAtTime(0.24, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    o.connect(g).connect(AC.destination); o.start(now); o.stop(now + 0.19);
+  } else if (type === 'ignite') {
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(90, now); o.frequency.exponentialRampToValueAtTime(220, now + 0.28);
+    g.gain.setValueAtTime(0.18, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+    o.connect(g).connect(AC.destination); o.start(now); o.stop(now + 0.35);
+  } else if (type === 'pop') {
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(rnd(520, 980), now); o.frequency.exponentialRampToValueAtTime(220, now + 0.045);
+    g.gain.setValueAtTime(0.09, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+    o.connect(g).connect(AC.destination); o.start(now); o.stop(now + 0.055);
+  } else if (type === 'ding') {
+    [880, 1174, 1396].forEach((freq, idx) => {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(freq, now + idx * 0.08);
+      g.gain.setValueAtTime(0.18, now + idx * 0.08); g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.42);
+      o.connect(g).connect(AC.destination); o.start(now + idx * 0.08); o.stop(now + idx * 0.08 + 0.44);
+    });
+  }
 }
 
 /* ───────────── UI ───────────── */
@@ -392,6 +493,7 @@ async function addIng(ing) {
 async function toCook() {
   if (S.phase !== 'ing' || S.busy) return;
   S.phase = 'cook'; S.cook = 0; S.scorch = 0; syncUI();
+  initAudio(); playSound('ignite');
   $('#labels').style.opacity = '0';
   $('#gauge').classList.remove('hide');
   spoon.visible = true;
@@ -535,7 +637,12 @@ function loop(now) {
     spoon.position.lerp(spoonTarget, 1 - Math.exp(-dt * 12));
     if (fishInPan.userData.matBody) {
       const f = clamp(S.cook * 1.3, 0, 1.9);
-      const rawC = new THREE.Color(0x9aa9b2), goldC = new THREE.Color(0xd17a22), burnC = new THREE.Color(0x2d180a);
+      if (f > 0.35 && fishInPan.userData.matBody.map !== texFishFried) {
+        fishInPan.userData.matBody.map = texFishFried;
+        fishInPan.userData.matBody.bumpMap = texFishFried;
+        fishInPan.userData.matBody.needsUpdate = true;
+      }
+      const rawC = new THREE.Color(0xd9e4eb), goldC = new THREE.Color(0xf2b56b), burnC = new THREE.Color(0x4a240c);
       if (f <= 1) fishInPan.userData.matBody.color.lerpColors(rawC, goldC, f);
       else fishInPan.userData.matBody.color.lerpColors(goldC, burnC, f - 1);
     }
@@ -553,7 +660,8 @@ function loop(now) {
       s.scale.setScalar(0.6 + t * 1.2);
       s.material.opacity = Math.sin(t * Math.PI) * 0.24;
     });
-    if (sizzleGain) sizzleGain.gain.setTargetAtTime(S.muted ? 0 : 0.04 + S.stir * 0.05, AC.currentTime, 0.08);
+    if (Math.random() < dt * 7.5) playSound('pop');
+    if (sizzleGain) sizzleGain.gain.setTargetAtTime(S.muted ? 0 : 0.14 + S.stir * 0.12, AC.currentTime, 0.08);
     syncUI();
   } else {
     fireLight.intensity = 0;
