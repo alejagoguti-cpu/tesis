@@ -2877,6 +2877,8 @@ export default function AulaAmbientalBocachica({
   const [lugarActivo, setLugarActivo] = useState(null);
   const [catActiva, setCatActiva] = useState(EXPLORA_CATEGORIAS[0]); // Inicia directo mostrando toda la isla y corregimientos
   const [pasoRecorridoIdx, setPasoRecorridoIdx] = useState(0);
+  const [patPreviewIdx, setPatPreviewIdx] = useState(0);
+  const [tallerPreviewIdx, setTallerPreviewIdx] = useState(0);
   const [recorridoCompletado, setRecorridoCompletado] = useState(false);
   const [saltoDirectoPatrimonio, setSaltoDirectoPatrimonio] = useState(false);
   const [avisoBloqueoRecorrido, setAvisoBloqueoRecorrido] = useState(false);
@@ -4248,27 +4250,48 @@ export default function AulaAmbientalBocachica({
           const ordenNodos = ['tierraBomba', 'puntaArena', 'canoDeLoro', 'casco'];
           const nodoActual = ordenNodos[pasoRecorridoIdx] || 'tierraBomba';
           const corActual = corregimientosIsla.find((c) => c.nodo === nodoActual) || corregimientosIsla[0];
+          const pctRecorrido = Math.round(((pasoRecorridoIdx + 1) / ordenNodos.length) * 100);
+          const irAStop = (i) => {
+            const elCorreg = secCorregRef.current;
+            if (elCorreg) {
+              const vh = window.innerHeight || 1;
+              const span = Math.max(1, elCorreg.offsetHeight - vh);
+              window.scrollTo({ top: elCorreg.offsetTop + (i / 4 + 0.08) * span, behavior: 'smooth' });
+            }
+          };
           return (
-            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-sm tc-vidrio pl-3.5 pr-3 py-3 tc-paso-anim space-y-2.5 border-l-2 border-l-[#e0917a]">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-9 h-9 rounded-xl bg-[#e0917a]/15 border border-[#e0917a]/30 text-[#e0917a] flex items-center justify-center shrink-0">
+            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,25rem)] tc-vidrio p-4 tc-paso-anim space-y-3 border-l-2 border-l-[#e0917a]">
+              <div className="flex items-start justify-between gap-2">
+                <div key={corActual.nodo} className="flex items-center gap-3 min-w-0 tc-paso-anim">
+                  <span
+                    className="w-9 h-9 rounded-xl border flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: `${corActual.color}20`, borderColor: `${corActual.color}55`, color: corActual.color }}
+                  >
                     <MapPin className="w-4 h-4" />
                   </span>
                   <div className="min-w-0">
-                    <div className="text-[10px] font-mono uppercase tracking-widest text-[#e0917a]">
-                      Recorrido por scroll · {pasoRecorridoIdx + 1}/4
+                    <div className="text-[10px] font-mono uppercase tracking-widest" style={{ color: corActual.color }}>
+                      Recorrido activo · {pasoRecorridoIdx + 1}/4
                     </div>
-                    <div className="text-xs font-bold text-white truncate">{corActual.nombre}</div>
-                    <div className="text-[11px] text-white/70 leading-snug mt-0.5">
-                      {corActual.zona}
-                    </div>
+                    <div className="text-sm font-bold text-white truncate">{corActual.nombre}</div>
+                    <div className="text-[11px] text-white/65 truncate">{corActual.zona}</div>
                   </div>
                 </div>
                 <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
+
+              <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${pctRecorrido}%`, backgroundColor: corActual.color }}
+                />
+              </div>
+
+              <p key={`${corActual.nodo}-txt`} className="text-xs text-white/85 leading-relaxed line-clamp-2 tc-paso-anim">
+                {corActual.fichas?.[0]?.texto}
+              </p>
 
               <div className="grid grid-cols-4 gap-1.5">
                 {ordenNodos.map((nId, i) => {
@@ -4279,19 +4302,12 @@ export default function AulaAmbientalBocachica({
                     <button
                       key={nId}
                       type="button"
-                      onClick={() => {
-                        const elCorreg = secCorregRef.current;
-                        if (elCorreg) {
-                          const vh = window.innerHeight || 1;
-                          const span = Math.max(1, elCorreg.offsetHeight - vh);
-                          window.scrollTo({ top: elCorreg.offsetTop + (i / 4 + 0.08) * span, behavior: 'smooth' });
-                        }
-                      }}
+                      onClick={() => irAStop(i)}
                       className={`px-1.5 py-1 rounded-lg text-[10px] font-semibold truncate transition cursor-pointer ${
                         activo
-                          ? 'bg-[#e0917a] text-[#0b1016]'
+                          ? 'bg-[#e0917a] text-[#0b1016] shadow-sm'
                           : visitado
-                            ? 'bg-white/15 text-white'
+                            ? 'bg-white/15 text-white hover:bg-white/25'
                             : 'bg-white/5 text-white/50 hover:bg-white/10'
                       }`}
                     >
@@ -4301,15 +4317,42 @@ export default function AulaAmbientalBocachica({
                 })}
               </div>
 
-              {avisoBloqueoRecorrido && !recorridoCompletado && !saltoDirectoPatrimonio ? (
+              <div className="flex items-center justify-between gap-2 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCorregSecIdx(0);
+                    setCorregSel(corActual);
+                    escena?.irANodo?.(corActual.nodo, 300);
+                  }}
+                  className="flex-1 py-2 px-3 rounded-xl text-xs font-bold text-[#0b1016] flex items-center justify-center gap-1.5 cursor-pointer transition hover:brightness-110"
+                  style={{ backgroundColor: corActual.color }}
+                >
+                  <span>Explorar {corActual.corto}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+                {pasoRecorridoIdx < ordenNodos.length - 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => irAStop(pasoRecorridoIdx + 1)}
+                    className="py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white cursor-pointer transition"
+                  >
+                    Siguiente
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => activarCategoria(EXPLORA_CATEGORIAS[1])}
+                    className="py-2 px-3 rounded-xl bg-white text-[#0b1016] hover:bg-white/90 text-xs font-bold cursor-pointer transition"
+                  >
+                    Ir a Patrimonio
+                  </button>
+                )}
+              </div>
+
+              {avisoBloqueoRecorrido && !recorridoCompletado && !saltoDirectoPatrimonio && (
                 <div className="text-[11px] text-[#fbbf24] bg-[#fbbf24]/10 border border-[#fbbf24]/30 rounded-xl px-2.5 py-1.5 leading-snug">
                   Completa el recorrido hasta Bocachica haciendo scroll, o pulsa <strong>2. Patrimonio</strong> arriba para ir directo.
-                </div>
-              ) : (
-                <div className="text-[11px] text-white/65 leading-snug">
-                  {recorridoCompletado || saltoDirectoPatrimonio
-                    ? 'Recorrido completo. Sigue bajando para entrar a 2. Patrimonio.'
-                    : 'Haz scroll para recorrer Tierra Bomba, Punta Arena, Caño de Loro y Bocachica.'}
                 </div>
               )}
             </div>
@@ -4459,22 +4502,66 @@ export default function AulaAmbientalBocachica({
         }
 
         if (catActiva.id === 'patrimonio' && !patrimonioSel) {
+          const patAct = patrimoniosIsla[patPreviewIdx % patrimoniosIsla.length] || patrimoniosIsla[0];
+          const IconoPatAct = patAct.Icon || Landmark;
           return (
-            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-sm tc-vidrio pl-3.5 pr-3 py-3 tc-paso-anim flex items-center justify-between gap-3 border-l-2 border-l-[#f4f1ec]">
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 text-[#f4f1ec] flex items-center justify-center shrink-0">
-                  <Landmark className="w-4 h-4" />
-                </span>
-                <div className="min-w-0">
-                  <div className="text-[10px] font-mono uppercase tracking-widest text-white/65">Guía del mapa · 02</div>
-                  <div className="text-xs font-semibold text-white">Patrimonio de Bocachica y Tierra Bomba</div>
-                  <div className="text-[11px] text-white/70 leading-snug mt-0.5">
-                    Toca un pin sobre los fuertes para abrir su historia y arquitectura.
+            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,25rem)] tc-vidrio p-4 tc-paso-anim space-y-3 border-l-2 border-l-[#f4f1ec]">
+              <div className="flex items-start justify-between gap-2">
+                <div key={patAct.nodo} className="flex items-center gap-3 min-w-0 tc-paso-anim">
+                  <span
+                    className="w-9 h-9 rounded-xl border flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: `${patAct.color}20`, borderColor: `${patAct.color}55`, color: patAct.color }}
+                  >
+                    <IconoPatAct className="w-4 h-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[10px] font-mono uppercase tracking-widest text-white/65">
+                      Patrimonio · {patAct.anio}
+                    </div>
+                    <div className="text-sm font-bold text-white truncate">{patAct.nombre}</div>
+                    <div className="text-[11px] text-white/65 truncate">{patAct.ubicacion}</div>
                   </div>
                 </div>
+                <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
-                <X className="w-3.5 h-3.5" />
+
+              <p key={`${patAct.nodo}-txt`} className="text-xs text-white/85 leading-relaxed line-clamp-2 tc-paso-anim">
+                {patAct.secciones?.[0]?.texto}
+              </p>
+
+              <div className="flex flex-wrap gap-1.5">
+                {patrimoniosIsla.map((p, idx) => (
+                  <button
+                    key={p.nodo}
+                    type="button"
+                    onClick={() => {
+                      setPatPreviewIdx(idx);
+                      escena?.irANodo?.(p.nodo, 280);
+                    }}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer ${
+                      idx === patPreviewIdx % patrimoniosIsla.length
+                        ? 'bg-white text-[#0b1016] shadow-sm'
+                        : 'bg-white/10 text-white/75 hover:bg-white/20 hover:text-white'
+                    }`}
+                  >
+                    {p.corto}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setPatrimonioSecIdx(0);
+                  setPatrimonioSel(patAct);
+                  escena?.irANodo?.(patAct.nodo, 260);
+                }}
+                className="w-full py-2 px-3 rounded-xl bg-white text-[#0b1016] hover:bg-white/90 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition"
+              >
+                <span>Abrir ficha de {patAct.corto}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           );
@@ -4630,22 +4717,63 @@ export default function AulaAmbientalBocachica({
         }
 
         if (catActiva.id === 'talleres' && !actividadViernesSel) {
+          const actPreview = actividadesIsla[tallerPreviewIdx % actividadesIsla.length] || actividadesIsla[0];
+          const IconoActPrev = actPreview.Icon || Calendar;
           return (
-            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-sm tc-vidrio pl-3.5 pr-3 py-3 tc-paso-anim flex items-center justify-between gap-3 border-l-2 border-l-[#e8a86b]">
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="w-9 h-9 rounded-xl bg-[#e8a86b]/15 border border-[#e8a86b]/30 text-[#e8a86b] flex items-center justify-center shrink-0">
-                  <Calendar className="w-4 h-4" />
-                </span>
-                <div className="min-w-0">
-                  <div className="text-[10px] font-mono uppercase tracking-widest text-[#e8a86b]">Guía del mapa · 03</div>
-                  <div className="text-xs font-semibold text-white">Clases cada viernes · Toda la isla</div>
-                  <div className="text-[11px] text-white/70 leading-snug mt-0.5">
-                    Toca cualquier pin en el mapa para abrir el taller e inscribirte gratis.
+            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,25rem)] tc-vidrio p-4 tc-paso-anim space-y-3 border-l-2 border-l-[#e8a86b]">
+              <div className="flex items-start justify-between gap-2">
+                <div key={actPreview.nodo} className="flex items-center gap-3 min-w-0 tc-paso-anim">
+                  <span
+                    className="w-9 h-9 rounded-xl border flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: `${actPreview.color}20`, borderColor: `${actPreview.color}55`, color: actPreview.color }}
+                  >
+                    <IconoActPrev className="w-4 h-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[10px] font-mono uppercase tracking-widest" style={{ color: actPreview.color }}>
+                      Viernes {actPreview.dia} {actPreview.mes} · {actPreview.lugar}
+                    </div>
+                    <div className="text-sm font-bold text-white truncate">{actPreview.titulo}</div>
+                    <div className="text-[11px] text-white/65 truncate">{actPreview.sub}</div>
                   </div>
                 </div>
+                <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
-                <X className="w-3.5 h-3.5" />
+
+              <div className="flex flex-wrap gap-1.5">
+                {actividadesIsla.map((a, idx) => (
+                  <button
+                    key={a.nodo}
+                    type="button"
+                    onClick={() => {
+                      setTallerPreviewIdx(idx);
+                      escena?.irANodo?.(a.nodo, 300);
+                    }}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer ${
+                      idx === tallerPreviewIdx % actividadesIsla.length
+                        ? 'text-[#0b1016] shadow-sm'
+                        : 'bg-white/10 text-white/75 hover:bg-white/20 hover:text-white'
+                    }`}
+                    style={idx === tallerPreviewIdx % actividadesIsla.length ? { backgroundColor: a.color } : undefined}
+                  >
+                    {a.corto}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActividadViernesSel(actPreview);
+                  escena?.irANodo?.(actPreview.nodo, 300);
+                }}
+                className="w-full py-2 px-3 rounded-xl text-xs font-bold text-[#0b1016] flex items-center justify-center gap-1.5 cursor-pointer transition hover:brightness-110"
+                style={{ backgroundColor: actPreview.color }}
+              >
+                <span>Inscribirme + Elegir beneficio</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           );
