@@ -3022,6 +3022,8 @@ export default function AulaAmbientalBocachica({
   const [corregSel, setCorregSel] = useState(null);
   const [corregSecIdx, setCorregSecIdx] = useState(0);
   const [ver180, setVer180] = useState(false);
+  const [ver180Cano, setVer180Cano] = useState(false);
+  const [cano180Idx, setCano180Idx] = useState(0);
   const ultimoTapTBRef = useRef(0);
 
   const corregimientosIsla = useMemo(
@@ -3623,8 +3625,8 @@ export default function AulaAmbientalBocachica({
   }, [escena]);
 
   useEffect(() => {
-    escena?.setPausado?.(Boolean(panelJuego || modalDiagrama));
-  }, [escena, panelJuego, modalDiagrama]);
+    escena?.setPausado?.(Boolean(panelJuego || modalDiagrama || ver180 || ver180Cano));
+  }, [escena, panelJuego, modalDiagrama, ver180, ver180Cano]);
 
   useEffect(() => {
     if (!autoTourActivo || !escena || panelJuego || modalDiagrama || patrimonioSel || actividadViernesSel) return undefined;
@@ -4265,6 +4267,10 @@ export default function AulaAmbientalBocachica({
                     if (esCorreg && item.nodo === 'tierraBomba') {
                       setCorregSel(null);
                       setVer180(true);
+                    } else if (esCorreg && item.nodo === 'canoDeLoro') {
+                      setCorregSel(null);
+                      setCano180Idx(0);
+                      setVer180Cano(true);
                     }
                   }}
                   style={{ left: `${p.x}px`, top: `${p.y}px` }}
@@ -4582,6 +4588,20 @@ export default function AulaAmbientalBocachica({
                     >
                       <Sparkles className="w-4 h-4" />
                       <span>Ver panorámica 180° de Tierra Bomba</span>
+                    </button>
+                  )}
+                  {cor.nodo === 'canoDeLoro' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCorregSel(null);
+                        setCano180Idx(0);
+                        setVer180Cano(true);
+                      }}
+                      className="w-full py-2.5 px-4 rounded-2xl bg-[#35d08a] hover:brightness-110 text-xs font-black text-[#0b1016] flex items-center justify-center gap-2 cursor-pointer shadow-xl transition"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>Ver carrusel 180° de Caño de Loro (4 vistas)</span>
                     </button>
                   )}
                 </CardIluminada>
@@ -5664,6 +5684,92 @@ export default function AulaAmbientalBocachica({
           </div>
         </div>
       )}
+
+      {/* CARRUSEL PANORÁMICO 180° DE CAÑO DE LORO (AL PRESIONAR 2 VECES CAÑO DE LORO) */}
+      {ver180Cano && (() => {
+        const VISTAS_CANO = [
+          { id: 'general', titulo: 'Vista general', sub: 'Panorámica principal de Caño de Loro', archivo: 'panoramas/cano-de-loro/general.html' },
+          { id: 'costa', titulo: 'Costa y bahía', sub: 'Orilla sobre la bahía y manglares', archivo: 'panoramas/cano-de-loro/costa.html' },
+          { id: 'pueblo', titulo: 'El pueblo', sub: 'Calles y viviendas tradicionales', archivo: 'panoramas/cano-de-loro/pueblo.html' },
+          { id: 'iglesia', titulo: 'Iglesia', sub: 'Patrimonio e historia de la comunidad', archivo: 'panoramas/cano-de-loro/iglesia.html' },
+        ];
+        const vistaAct = VISTAS_CANO[cano180Idx % VISTAS_CANO.length] || VISTAS_CANO[0];
+        const prevVista = () => setCano180Idx((i) => (i - 1 + VISTAS_CANO.length) % VISTAS_CANO.length);
+        const nextVista = () => setCano180Idx((i) => (i + 1) % VISTAS_CANO.length);
+        return (
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 md:p-6">
+            <div className="relative w-full max-w-6xl h-[88svh] rounded-3xl overflow-hidden border border-white/25 bg-[#0b1016] shadow-2xl flex flex-col">
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-white/15 bg-[#0b1016]/95">
+                <div className="flex items-center gap-2.5">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#35d08a] text-[#07140d] text-[11px] font-black uppercase tracking-wider">
+                    180° · {cano180Idx + 1}/4
+                  </span>
+                  <div>
+                    <div className="text-sm font-extrabold text-white leading-tight">
+                      Caño de Loro · {vistaAct.titulo}
+                    </div>
+                    <div className="text-[11px] text-white/65">{vistaAct.sub}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {VISTAS_CANO.map((v, i) => (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => setCano180Idx(i)}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
+                        i === cano180Idx
+                          ? 'bg-[#35d08a] text-[#07140d]'
+                          : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
+                      }`}
+                    >
+                      {v.titulo}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={prevVista}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white cursor-pointer transition"
+                    aria-label="Vista anterior"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={nextVista}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white cursor-pointer transition"
+                    aria-label="Siguiente vista"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVer180Cano(false)}
+                    className="px-3.5 py-1.5 rounded-full bg-white text-[#0b1016] hover:bg-white/90 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer transition"
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Cerrar</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="relative flex-1 bg-[#101b1d]">
+                <iframe
+                  key={vistaAct.id}
+                  src={`${MEMORIAS_BASE}${vistaAct.archivo}`}
+                  title={`Caño de Loro 180° — ${vistaAct.titulo}`}
+                  className="w-full h-full border-0"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* MODAL DE VIDRIO TRANSLÚCIDO SOBRE EL MAPA 3D (Cuando el usuario quiere ver un diagrama 2D en detalle) */}
       {modalDiagrama && (
