@@ -14,6 +14,8 @@
   .intro-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
   .intro-btns button{padding:12px 10px;border-radius:6px;font-weight:800;font-size:13.5px}
   .btn-sec{background:#2a1a10;color:#f6efe0;box-shadow:0 3px 0 #120a05}
+  #flip-btn{margin-top:8px;width:100%;padding:10px;border-radius:6px;background:#d69a2d;color:#2a1a10;font-weight:800;font-size:13px;box-shadow:0 3px 0 #8a5e10}
+  #flip-btn.hide{display:none}
 </style>
 </head>
 <body>
@@ -35,18 +37,19 @@
   <h2 id="rec-num">Receta 1 de 2</h2>
   <h1 id="rec-title">Arroz con coco</h1>
   <ol id="steps">
-    <li data-s="ing">Prepara base</li>
-    <li data-s="cook">Al fogón</li>
-    <li data-s="serve">Termina y sirve</li>
+    <li data-s="ing">Primera leche</li>
+    <li data-s="cook">Cocina en caldero</li>
+    <li data-s="serve">Seca y sirve</li>
   </ol>
   <ul id="inglist"></ul>
-  <p id="hint">Toca cada cuenco para aprender paso a paso.</p>
+  <p id="hint">Toca cada cuenco para preparar la receta real.</p>
   <button id="btn" disabled>Encender el fogón</button>
+  <button id="flip-btn" class="hide" type="button">Voltear mojarra (Lado 2)</button>
   <div class="barcode"></div>
 </aside>
 
 <div id="gauge" class="hide">
-  <div id="warn">¡Revuelve para que no se queme!</div>
+  <div id="warn">¡Revuelve / voltea para que no se queme!</div>
   <div class="track">
     <div class="zone"></div>
     <div id="marker"></div>
@@ -57,7 +60,7 @@
 <div id="intro" class="overlay">
   <div class="card">
     <div class="logo big"><span class="l1">Cocina de</span><span class="l2">Bocachica</span></div>
-    <p>Aprende paso a paso las <strong>2 recetas reales</strong> del plato tradicional: primero el <strong>arroz con coco (titoté)</strong> y luego la <strong>mojarra frita crocante</strong>.</p>
+    <p>Aprende paso a paso las <strong>2 recetas reales</strong>: primero el <strong>arroz con coco</strong> (reduciendo la primera leche a titoté y cocinando el arroz en el caldero) y luego la <strong>mojarra frita</strong> volteándola al punto junto a los patacones.</p>
     <div class="intro-btns">
       <button id="start-arroz" type="button">1. Hacer Arroz con coco</button>
       <button id="start-mojarra" class="btn-sec" type="button">2. Hacer Mojarra frita</button>
