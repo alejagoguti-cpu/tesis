@@ -3,17 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>La Mojarra Dorada — Bocachica</title>
+<title>Cocina de Bocachica — 2 Recetas: Arroz con coco y Mojarra frita</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="../la-paila-dulce/style.css">
 <script type="importmap">{"imports":{"three":"../la-paila-dulce/vendor/three.module.js"}}</script>
+<style>
+  .rec-tabs{display:flex;gap:6px;pointer-events:auto}
+  .rec-tab{padding:7px 12px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px)}
+  .rec-tab.on{background:#ffd58a;color:#2a1a10;border-color:#ffd58a}
+  .intro-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+  .intro-btns button{padding:12px 10px;border-radius:6px;font-weight:800;font-size:13.5px}
+  .btn-sec{background:#2a1a10;color:#f6efe0;box-shadow:0 3px 0 #120a05}
+</style>
 </head>
 <body>
 <canvas id="c"></canvas>
 
 <header id="top">
-  <div class="logo"><span class="l1">La Mojarra</span><span class="l2">Dorada</span></div>
-  <div class="tag">Cocina de Bocachica · hecha al fogón</div>
+  <div class="logo"><span class="l1">Cocina de</span><span class="l2">Bocachica</span></div>
+  <div class="rec-tabs">
+    <button id="tab-arroz" class="rec-tab on" type="button">1. Arroz con coco</button>
+    <button id="tab-mojarra" class="rec-tab" type="button">2. Mojarra frita</button>
+  </div>
   <button id="snd" title="Sonido">♪</button>
 </header>
 
@@ -21,33 +32,36 @@
 
 <aside id="ticket">
   <div class="perf"></div>
-  <h2>Receta N.º 08</h2>
-  <h1>Mojarra frita</h1>
+  <h2 id="rec-num">Receta 1 de 2</h2>
+  <h1 id="rec-title">Arroz con coco</h1>
   <ol id="steps">
-    <li data-s="ing">Adoba el pescado</li>
-    <li data-s="cook">Fríe en aceite</li>
-    <li data-s="serve">Emplata y sirve</li>
+    <li data-s="ing">Prepara base</li>
+    <li data-s="cook">Al fogón</li>
+    <li data-s="serve">Termina y sirve</li>
   </ol>
   <ul id="inglist"></ul>
-  <p id="hint">Toca los cuencos de adobo para preparar la mojarra.</p>
-  <button id="btn" disabled>Llevar al caldero</button>
+  <p id="hint">Toca cada cuenco para aprender paso a paso.</p>
+  <button id="btn" disabled>Encender el fogón</button>
   <div class="barcode"></div>
 </aside>
 
 <div id="gauge" class="hide">
-  <div id="warn">¡Voltea y baña, que se quema!</div>
+  <div id="warn">¡Revuelve para que no se queme!</div>
   <div class="track">
     <div class="zone"></div>
     <div id="marker"></div>
   </div>
-  <div class="scale"><span>Cruda</span><span>Dorando</span><span class="ok">Punto perfecto</span><span>Quemada</span></div>
+  <div class="scale" id="scale-lbl"><span>Crudo</span><span>Reduciendo</span><span class="ok">Punto exacto</span><span>Quemado</span></div>
 </div>
 
 <div id="intro" class="overlay">
   <div class="card">
-    <div class="logo big"><span class="l1">La Mojarra</span><span class="l2">Dorada</span></div>
-    <p>Adoba la mojarra con limón, ajo y sal, fríela en aceite caliente hasta quedar crocante y emplátala con arroz con coco y patacones.</p>
-    <button id="start">Empezar a cocinar</button>
+    <div class="logo big"><span class="l1">Cocina de</span><span class="l2">Bocachica</span></div>
+    <p>Aprende paso a paso las <strong>2 recetas reales</strong> del plato tradicional: primero el <strong>arroz con coco (titoté)</strong> y luego la <strong>mojarra frita crocante</strong>.</p>
+    <div class="intro-btns">
+      <button id="start-arroz" type="button">1. Hacer Arroz con coco</button>
+      <button id="start-mojarra" class="btn-sec" type="button">2. Hacer Mojarra frita</button>
+    </div>
     <small id="loading">Cargando texturas…</small>
   </div>
 </div>
@@ -57,7 +71,10 @@
     <div id="stars"></div>
     <h1 id="rtitle"></h1>
     <p id="rtext"></p>
-    <button id="again">Otra mojarra</button>
+    <div class="intro-btns">
+      <button id="next-rec" type="button">Pasar a Receta 2</button>
+      <button id="again" class="btn-sec" type="button">Repetir receta</button>
+    </div>
   </div>
 </div>
 
