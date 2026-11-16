@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   MapPin,
   Landmark,
@@ -130,12 +131,77 @@ function JuegoCocinarMojarra({ color = '#e8a86b', onCerrar }) {
   };
 
   const activos = INGREDIENTES_MESA.filter((i) => seleccionados[i.id]);
+  const minutosTotales = activos.reduce((acc, it) => acc + parseInt(it.tiempo, 10), 0);
 
-  return (
+  const renderIconoIngrediente = (id) => {
+    switch (id) {
+      case 'mojarra':
+        return (
+          <svg viewBox="0 0 64 64" className="w-12 h-12 drop-shadow-sm">
+            <ellipse cx="34" cy="32" rx="20" ry="11" fill="#d97724" stroke="#8a420d" strokeWidth="2" />
+            <polygon points="14,32 4,22 7,32 4,42" fill="#c25e14" stroke="#8a420d" strokeWidth="1.5" />
+            <path d="M26 24 L29 40 M33 23 L36 41 M40 24 L42 40" stroke="#7c3608" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="46" cy="29" r="2.2" fill="#fff" />
+            <circle cx="46.5" cy="29" r="1.1" fill="#171717" />
+          </svg>
+        );
+      case 'arroz':
+        return (
+          <svg viewBox="0 0 64 64" className="w-12 h-12 drop-shadow-sm">
+            <circle cx="32" cy="32" r="20" fill="#7c4f2b" stroke="#533219" strokeWidth="2" />
+            <circle cx="25" cy="26" r="2.5" fill="#d6b48a" />
+            <circle cx="35" cy="24" r="2.2" fill="#c79e6b" />
+            <circle cx="39" cy="33" r="2.4" fill="#d6b48a" />
+            <circle cx="27" cy="37" r="2.3" fill="#c79e6b" />
+            <circle cx="33" cy="32" r="2.1" fill="#e4c9a4" />
+            <circle cx="22" cy="32" r="1.9" fill="#462812" />
+          </svg>
+        );
+      case 'patacones':
+        return (
+          <svg viewBox="0 0 64 64" className="w-12 h-12 drop-shadow-sm">
+            <circle cx="26" cy="35" r="12" fill="#eab308" stroke="#a16207" strokeWidth="2" />
+            <circle cx="39" cy="27" r="12" fill="#facc15" stroke="#a16207" strokeWidth="2" />
+            <path d="M33 24 L45 30 M35 32 L43 22" stroke="#ca8a04" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+        );
+      case 'limon':
+        return (
+          <svg viewBox="0 0 64 64" className="w-12 h-12 drop-shadow-sm">
+            <circle cx="32" cy="32" r="18" fill="#65a30d" stroke="#365314" strokeWidth="2" />
+            <circle cx="32" cy="32" r="14" fill="#bef264" />
+            <path d="M32 18 L32 46 M18 32 L46 32 M22 22 L42 42 M42 22 L22 42" stroke="#65a30d" strokeWidth="1.8" />
+          </svg>
+        );
+      case 'ensalada':
+        return (
+          <svg viewBox="0 0 64 64" className="w-12 h-12 drop-shadow-sm">
+            <ellipse cx="26" cy="34" rx="11" ry="8" fill="#22c55e" />
+            <ellipse cx="38" cy="30" rx="10" ry="7" fill="#16a34a" />
+            <circle cx="28" cy="28" r="5.5" fill="#ef4444" stroke="#b91c1c" strokeWidth="1.2" />
+            <circle cx="37" cy="37" r="5" fill="#ef4444" stroke="#b91c1c" strokeWidth="1.2" />
+            <circle cx="33" cy="24" r="3.5" fill="#f5d0fe" />
+          </svg>
+        );
+      default:
+        return (
+          <svg viewBox="0 0 64 64" className="w-12 h-12 drop-shadow-sm">
+            <circle cx="32" cy="32" r="19" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="2" />
+            <circle cx="32" cy="32" r="14" fill="#ffffff" />
+            <path d="M25 32 Q32 25 39 32 Q32 39 25 32" fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="1.5" />
+          </svg>
+        );
+    }
+  };
+
+  const contenido = (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto flex flex-col justify-between text-[#171717]"
+      className="fixed inset-0 z-[120] overflow-y-auto flex flex-col justify-between text-[#171717]"
       style={{
-        background: 'radial-gradient(circle at 50% 48%, #f1efe9 0%, #dcd8d0 65%, #c5c0b6 100%)',
+        backgroundColor: '#e7e4dc',
+        backgroundImage:
+          'radial-gradient(circle at 20% 25%, rgba(0,0,0,0.06) 1px, transparent 1.5px), radial-gradient(circle at 75% 65%, rgba(0,0,0,0.05) 1px, transparent 1.5px), radial-gradient(circle at 50% 48%, rgba(255,255,255,0.65) 0%, rgba(220,215,205,0.45) 70%, rgba(190,185,175,0.65) 100%)',
+        backgroundSize: '28px 28px, 34px 34px, 100% 100%',
       }}
     >
       {/* CABECERA EDITORIAL PANTALLA COMPLETA */}
@@ -176,53 +242,60 @@ function JuegoCocinarMojarra({ color = '#e8a86b', onCerrar }) {
 
       {/* MESA DE TRABAJO 3 COLUMNAS ESTILO EDITORIAL A PANTALLA COMPLETA */}
       <div className="flex-1 w-full max-w-7xl mx-auto p-5 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-        {/* COLUMNA IZQUIERDA: BANDEJA DE INGREDIENTES */}
-        <div className="lg:col-span-4 bg-white rounded-2xl p-4 shadow-[0_14px_34px_-14px_rgba(0,0,0,0.22)] border border-black/8 space-y-3">
-          <div className="flex items-center justify-between border-b border-black/10 pb-2">
-            <div>
-              <div className="text-[10px] font-mono uppercase tracking-widest text-[#b83b24] font-bold">Mesa de cocina</div>
-              <h4 className="text-sm font-black text-[#171717]">Ingredientes de la isla</h4>
+        {/* COLUMNA IZQUIERDA: BANDEJA DE INGREDIENTES + RELOJ DE COCINA */}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="bg-gradient-to-br from-[#d9dde2] via-[#eef0f3] to-[#c9ced6] rounded-3xl p-4 shadow-[0_18px_38px_-14px_rgba(0,0,0,0.28)] border border-white/80 space-y-3">
+            <div className="flex items-center justify-between border-b border-black/10 pb-2">
+              <div>
+                <div className="text-[10px] font-mono uppercase tracking-widest text-[#b83b24] font-bold">Mesa de cocina</div>
+                <h4 className="text-base font-black text-[#171717]">Ármalo a tu gusto</h4>
+              </div>
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white/80 text-black/75 border border-black/10">
+                {activos.length}/6
+              </span>
             </div>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/5 text-black/70">
-              {activos.length}/6
-            </span>
-          </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            {INGREDIENTES_MESA.map((ing) => {
-              const on = seleccionados[ing.id];
-              const activoCursor = herramienta === ing.id;
-              return (
-                <button
-                  key={ing.id}
-                  type="button"
-                  disabled={!abierta || servido}
-                  onClick={() => toggleIngrediente(ing.id)}
-                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer relative ${
-                    !abierta || servido ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'
-                  } ${
-                    on
-                      ? 'bg-[#fff7f4] border-[#b83b24] shadow-sm'
-                      : 'bg-[#f8f7f5] border-black/10 hover:border-black/25'
-                  } ${activoCursor && abierta && !servido ? 'ring-2 ring-[#b83b24]/40' : ''}`}
-                >
-                  <div className="flex items-center justify-between gap-1 mb-1">
-                    <span
-                      className="w-6 h-6 rounded-full border border-black/15 shadow-inner shrink-0"
-                      style={{ backgroundColor: ing.color }}
-                    />
+            <div className="grid grid-cols-2 gap-2.5">
+              {INGREDIENTES_MESA.map((ing) => {
+                const on = seleccionados[ing.id];
+                const activoCursor = herramienta === ing.id;
+                return (
+                  <button
+                    key={ing.id}
+                    type="button"
+                    disabled={!abierta || servido}
+                    onClick={() => toggleIngrediente(ing.id)}
+                    className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer relative flex flex-col items-center text-center ${
+                      !abierta || servido ? 'opacity-55 cursor-not-allowed' : 'hover:-translate-y-0.5'
+                    } ${
+                      on
+                        ? 'bg-white border-[#b83b24] shadow-md'
+                        : 'bg-white/80 border-black/10 hover:bg-white hover:border-black/25'
+                    } ${activoCursor && abierta && !servido ? 'ring-2 ring-[#b83b24]/45' : ''}`}
+                  >
                     {on && (
-                      <span className="w-4 h-4 rounded-full bg-[#b83b24] text-white flex items-center justify-center">
+                      <span className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#b83b24] text-white flex items-center justify-center shadow">
                         <Check className="w-2.5 h-2.5" />
                       </span>
                     )}
-                  </div>
-                  <div className="text-xs font-extrabold text-[#171717] leading-tight">{ing.nombre}</div>
-                  <div className="text-[10px] text-black/55 leading-tight mt-0.5">{ing.sub}</div>
-                </button>
-              );
-            })}
+                    <div className="w-14 h-14 rounded-full bg-[#f5f3ee] border border-black/10 shadow-inner flex items-center justify-center mb-1.5">
+                      {renderIconoIngrediente(ing.id)}
+                    </div>
+                    <div className="text-xs font-extrabold text-[#171717] leading-tight">{ing.nombre}</div>
+                    <div className="text-[10px] text-black/55 leading-tight mt-0.5">{ing.sub}</div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {cocinando && (
+            <div className="mx-auto w-28 h-28 rounded-full bg-white border-4 border-[#b83b24] shadow-xl flex flex-col items-center justify-center animate-pulse">
+              <div className="text-[9px] font-mono uppercase tracking-widest text-[#b83b24] font-bold">Fogón</div>
+              <div className="text-2xl font-black text-[#171717]">{minutosTotales}&apos;</div>
+              <div className="text-[10px] font-bold text-black/60">Friendo...</div>
+            </div>
+          )}
         </div>
 
         {/* COLUMNA CENTRAL: PLATO CENITAL INTERACTIVO */}
@@ -354,8 +427,8 @@ function JuegoCocinarMojarra({ color = '#e8a86b', onCerrar }) {
           </div>
 
           <div className="border-t border-dashed border-black/20 pt-2 flex justify-between text-[11px] font-bold">
-            <span>Ingredientes</span>
-            <span>{activos.length} seleccionados</span>
+            <span>Ingredientes ({activos.length})</span>
+            <span>{minutosTotales} min</span>
           </div>
 
           {!servido ? (
@@ -385,6 +458,8 @@ function JuegoCocinarMojarra({ color = '#e8a86b', onCerrar }) {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(contenido, document.body) : contenido;
 }
 
 function JuegoBailarCartagenero({ item, color = '#35d08a', sonando, onToggleMusica }) {
@@ -2801,6 +2876,13 @@ export default function AulaAmbientalBocachica({
   const [retoPuntos, setRetoPuntos] = useState(0);
   const [lugarActivo, setLugarActivo] = useState(null);
   const [catActiva, setCatActiva] = useState(EXPLORA_CATEGORIAS[0]); // Inicia directo mostrando toda la isla y corregimientos
+  const [pasoRecorridoIdx, setPasoRecorridoIdx] = useState(0);
+  const [recorridoCompletado, setRecorridoCompletado] = useState(false);
+  const [saltoDirectoPatrimonio, setSaltoDirectoPatrimonio] = useState(false);
+  const [avisoBloqueoRecorrido, setAvisoBloqueoRecorrido] = useState(false);
+  const recorridoCompletadoRef = useRef(false);
+  const saltoDirectoRef = useRef(false);
+  const ultimoPasoRecorridoRef = useRef(-1);
 
   // Reproductor de música tradicional y bailes de la comunidad
   const repRef = useRef(null);
@@ -3418,6 +3500,11 @@ export default function AulaAmbientalBocachica({
     setActividadViernesSel(null);
     setPatrimonioSel(null);
     setCorregSel(null);
+    if (conScroll && cat.id !== 'corregimientos') {
+      saltoDirectoRef.current = true;
+      setSaltoDirectoPatrimonio(true);
+      setAvisoBloqueoRecorrido(false);
+    }
     if (cat.id === 'memorias') {
       setPanelJuego(true);
       setCatActiva(null);
@@ -3526,6 +3613,37 @@ export default function AulaAmbientalBocachica({
         if (el && el.getBoundingClientRect().top <= mid) cap = c;
       }
       setCapActual(cap);
+
+      const elCorreg = secCorregRef.current;
+      if (elCorreg) {
+        const topCorreg = elCorreg.offsetTop;
+        const spanCorreg = Math.max(1, elCorreg.offsetHeight - vh);
+        const maxScrollCorreg = topCorreg + spanCorreg;
+
+        if (!recorridoCompletadoRef.current && !saltoDirectoRef.current && window.scrollY > maxScrollCorreg + 6) {
+          window.scrollTo({ top: maxScrollCorreg, behavior: 'auto' });
+          setAvisoBloqueoRecorrido(true);
+          return;
+        }
+
+        if (window.scrollY <= maxScrollCorreg + 20) {
+          const frac = Math.max(0, Math.min(1, (window.scrollY - topCorreg) / spanCorreg));
+          const ordenNodos = ['tierraBomba', 'puntaArena', 'canoDeLoro', 'casco'];
+          const idx = Math.min(ordenNodos.length - 1, Math.floor(frac * ordenNodos.length));
+          if (idx !== ultimoPasoRecorridoRef.current) {
+            ultimoPasoRecorridoRef.current = idx;
+            setPasoRecorridoIdx(idx);
+            if (!libre) {
+              escena?.irANodo?.(ordenNodos[idx], 340);
+            }
+          }
+          if (idx === ordenNodos.length - 1 && frac >= 0.78 && !recorridoCompletadoRef.current) {
+            recorridoCompletadoRef.current = true;
+            setRecorridoCompletado(true);
+            setAvisoBloqueoRecorrido(false);
+          }
+        }
+      }
 
       const tramos = [
         { ref: secCorregRef, cat: EXPLORA_CATEGORIAS[0] },
@@ -4123,23 +4241,73 @@ export default function AulaAmbientalBocachica({
         const catSig = idxCat < EXPLORA_CATEGORIAS.length - 1 ? EXPLORA_CATEGORIAS[idxCat + 1] : null;
 
         if (catActiva.id === 'corregimientos' && !corregSel) {
+          const ordenNodos = ['tierraBomba', 'puntaArena', 'canoDeLoro', 'casco'];
+          const nodoActual = ordenNodos[pasoRecorridoIdx] || 'tierraBomba';
+          const corActual = corregimientosIsla.find((c) => c.nodo === nodoActual) || corregimientosIsla[0];
           return (
-            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-sm tc-vidrio pl-3.5 pr-3 py-3 tc-paso-anim flex items-center justify-between gap-3 border-l-2 border-l-[#e0917a]">
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="w-9 h-9 rounded-xl bg-[#e0917a]/15 border border-[#e0917a]/30 text-[#e0917a] flex items-center justify-center shrink-0">
-                  <MapPin className="w-4 h-4" />
-                </span>
-                <div className="min-w-0">
-                  <div className="text-[10px] font-mono uppercase tracking-widest text-[#e0917a]">Guía del mapa · 01</div>
-                  <div className="text-xs font-semibold text-white">Los 4 Corregimientos de Tierra Bomba</div>
-                  <div className="text-[11px] text-white/70 leading-snug mt-0.5">
-                    Toca un pin para su historia · 2x en Tierra Bomba abre vista 180°.
+            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-sm tc-vidrio pl-3.5 pr-3 py-3 tc-paso-anim space-y-2.5 border-l-2 border-l-[#e0917a]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="w-9 h-9 rounded-xl bg-[#e0917a]/15 border border-[#e0917a]/30 text-[#e0917a] flex items-center justify-center shrink-0">
+                    <MapPin className="w-4 h-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[10px] font-mono uppercase tracking-widest text-[#e0917a]">
+                      Recorrido por scroll · {pasoRecorridoIdx + 1}/4
+                    </div>
+                    <div className="text-xs font-bold text-white truncate">{corActual.nombre}</div>
+                    <div className="text-[11px] text-white/70 leading-snug mt-0.5">
+                      {corActual.zona}
+                    </div>
                   </div>
                 </div>
+                <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
-                <X className="w-3.5 h-3.5" />
-              </button>
+
+              <div className="grid grid-cols-4 gap-1.5">
+                {ordenNodos.map((nId, i) => {
+                  const item = corregimientosIsla.find((c) => c.nodo === nId);
+                  const activo = i === pasoRecorridoIdx;
+                  const visitado = i <= pasoRecorridoIdx || recorridoCompletado;
+                  return (
+                    <button
+                      key={nId}
+                      type="button"
+                      onClick={() => {
+                        const elCorreg = secCorregRef.current;
+                        if (elCorreg) {
+                          const vh = window.innerHeight || 1;
+                          const span = Math.max(1, elCorreg.offsetHeight - vh);
+                          window.scrollTo({ top: elCorreg.offsetTop + (i / 4 + 0.08) * span, behavior: 'smooth' });
+                        }
+                      }}
+                      className={`px-1.5 py-1 rounded-lg text-[10px] font-semibold truncate transition cursor-pointer ${
+                        activo
+                          ? 'bg-[#e0917a] text-[#0b1016]'
+                          : visitado
+                            ? 'bg-white/15 text-white'
+                            : 'bg-white/5 text-white/50 hover:bg-white/10'
+                      }`}
+                    >
+                      {item?.corto || nId}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {avisoBloqueoRecorrido && !recorridoCompletado && !saltoDirectoPatrimonio ? (
+                <div className="text-[11px] text-[#fbbf24] bg-[#fbbf24]/10 border border-[#fbbf24]/30 rounded-xl px-2.5 py-1.5 leading-snug">
+                  Completa el recorrido hasta Bocachica haciendo scroll, o pulsa <strong>2. Patrimonio</strong> arriba para ir directo.
+                </div>
+              ) : (
+                <div className="text-[11px] text-white/65 leading-snug">
+                  {recorridoCompletado || saltoDirectoPatrimonio
+                    ? 'Recorrido completo. Sigue bajando para entrar a 2. Patrimonio.'
+                    : 'Haz scroll para recorrer Tierra Bomba, Punta Arena, Caño de Loro y Bocachica.'}
+                </div>
+              )}
             </div>
           );
         }
@@ -5277,7 +5445,7 @@ export default function AulaAmbientalBocachica({
       <section
         id="sec-corregimientos"
         ref={secCorregRef}
-        style={{ height: '100svh' }}
+        style={{ height: '420svh' }}
         className="relative z-10 pointer-events-none"
         aria-label="Los 4 corregimientos de Tierra Bomba"
       />
