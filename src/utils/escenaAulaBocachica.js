@@ -216,12 +216,13 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     return JSON.parse(new TextDecoder().decode(u8));
   };
 
-  const [satImg, maskImg, geoRef, veg, construcciones, normalsImg, especies, ...demImgs] = await Promise.all([
+  const [satImg, maskImg, geoRef, veg, construcciones, sintaxis, normalsImg, especies, ...demImgs] = await Promise.all([
     track(loadImg(`${BASE}textures/sat_base.jpg`)),
     track(loadImg(`${BASE}textures/isla_mascara.png`)),
     track(jsonOf(`${DATA_URL}georef.json`)),
     track(jsonOf(`${DATA_URL}vegetacion.json`)),
     track(gunzipJSON(`${BASE}data/construcciones_tierra_bomba.json.gz`)),
+    track(jsonOf(`${BASE}data/sintaxis.json`)),
     track(loadImg(`${BASE}textures/water_normals_fine.jpg`)),
     track(prepareTreeSpecies()),
     track(loadImg(`${BASE}data/elevation/1187_1929.png`)),
@@ -446,6 +447,45 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   parchearTerrenoAula(terrainMat, U);
   const terrain = new THREE.Mesh(geo, terrainMat);
   terrain.receiveShadow = true;
+
+  // Red completa de vías, calles y senderos peatonales (1.642 tramos · 73,0 km de Tierra Bomba)
+  if (sintaxis?.peatonal?.coords?.length) {
+    const COLOR_TIPO = {
+      residential: new THREE.Color('#e8eef0'),
+      unclassified: new THREE.Color('#e8eef0'),
+      service: new THREE.Color('#9fd3e0'),
+      track: new THREE.Color('#9fd3e0'),
+      path: new THREE.Color('#ff8a6a'),
+      footway: new THREE.Color('#ff8a6a'),
+      steps: new THREE.Color('#ff8a6a'),
+      pedestrian: new THREE.Color('#ff8a6a'),
+    };
+    const defCol = new THREE.Color('#e8eef0');
+    const P = sintaxis.peatonal;
+    const posArr = [];
+    const colArr = [];
+    P.coords.forEach(([lo0, la0, lo1, la1], idx) => {
+      const [x0, z0] = llToXZ(lo0, la0);
+      const [x1, z1] = llToXZ(lo1, la1);
+      const y0 = heightAtXZ(x0, z0) + 1.4;
+      const y1 = heightAtXZ(x1, z1) + 1.4;
+      const c = COLOR_TIPO[P.tipo?.[idx]] || defCol;
+      posArr.push(x0, y0, z0, x1, y1, z1);
+      colArr.push(c.r, c.g, c.b, c.r, c.g, c.b);
+    });
+    const viasGeo = new THREE.BufferGeometry();
+    viasGeo.setAttribute('position', new THREE.Float32BufferAttribute(posArr, 3));
+    viasGeo.setAttribute('color', new THREE.Float32BufferAttribute(colArr, 3));
+    const viasMat = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.92,
+      depthWrite: false,
+    });
+    const viasLines = new THREE.LineSegments(viasGeo, viasMat);
+    viasLines.renderOrder = 3;
+    scene.add(viasLines);
+  }
 
   // Coordenadas XZ de los nodos de Bocachica
   const nodosXZ = {};
