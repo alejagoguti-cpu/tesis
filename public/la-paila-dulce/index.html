@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>La Paila Dulce — Haz tu cocada</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<header id="top">
+  <div class="logo"><span class="l1">La Paila</span><span class="l2">Dulce</span></div>
+  <div class="tag">Cocadas de panela · hechas a mano</div>
+  <button id="snd" title="Sonido">♪</button>
+</header>
+
+<div id="labels"></div>
+
+<aside id="ticket">
+  <div class="perf"></div>
+  <h2>Receta N.º 07</h2>
+  <h1>Cocada de panela</h1>
+  <ol id="steps">
+    <li data-s="ing">Echa los ingredientes</li>
+    <li data-s="cook">Revuelve al fuego</li>
+    <li data-s="serve">Arma las cocadas</li>
+  </ol>
+  <ul id="inglist"></ul>
+  <p id="hint">Toca cada cuenco para echarlo a la paila.</p>
+  <button id="btn" disabled>Encender el fogón</button>
+  <div class="barcode"></div>
+</aside>
+
+<div id="gauge" class="hide">
+  <div id="warn">¡Revuelve, que se pega!</div>
+  <div class="track">
+    <div class="zone"></div>
+    <div id="marker"></div>
+  </div>
+  <div class="scale"><span>Crudo</span><span>Melcocha</span><span class="ok">Punto de cocada</span><span>Quemado</span></div>
+</div>
+
+<div id="intro" class="overlay">
+  <div class="card">
+    <div class="logo big"><span class="l1">La Paila</span><span class="l2">Dulce</span></div>
+    <p>Coco rallado, panela y paciencia.<br>Prepara tu tanda de cocadas paso a paso.</p>
+    <button id="start">Empezar a cocinar</button>
+    <small id="loading">Cargando texturas…</small>
+  </div>
+</div>
+
+<div id="result" class="overlay hide">
+  <div class="card">
+    <div id="stars"></div>
+    <h1 id="rtitle"></h1>
+    <p id="rtext"></p>
+    <button id="again">Otra tanda</button>
+  </div>
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>

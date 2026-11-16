@@ -462,6 +462,31 @@ function JuegoCocinarMojarra({ color = '#e8a86b', onCerrar }) {
   return typeof document !== 'undefined' ? createPortal(contenido, document.body) : contenido;
 }
 
+function JuegoPailaDulce({ onCerrar }) {
+  const contenido = (
+    <div className="fixed inset-0 z-[120] bg-[#1a110b] flex flex-col">
+      <iframe
+        src={`${import.meta.env.BASE_URL}la-paila-dulce/index.html`}
+        title="La Paila Dulce — Haz tu cocada"
+        className="w-full h-full border-0 flex-1"
+        allow="autoplay"
+      />
+      {onCerrar && (
+        <button
+          type="button"
+          onClick={onCerrar}
+          className="fixed bottom-4 left-4 z-[130] px-4 py-2 rounded-full bg-black/80 hover:bg-black text-white border border-white/25 shadow-2xl text-xs font-bold flex items-center gap-1.5 cursor-pointer backdrop-blur-md transition"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Volver a Comida</span>
+        </button>
+      )}
+    </div>
+  );
+
+  return typeof document !== 'undefined' ? createPortal(contenido, document.body) : contenido;
+}
+
 function JuegoBailarCartagenero({ item, color = '#35d08a', sonando, onToggleMusica }) {
   const esMapale = item?.id === 'mapale_cumbia';
   const pasos = esMapale
@@ -5407,6 +5432,9 @@ export default function AulaAmbientalBocachica({
                       color={catMem.color}
                       onCerrar={() => setMemItemSel(null)}
                     />
+                  )}
+                  {memItemSel.id === 'dulces_isnelia' && (
+                    <JuegoPailaDulce onCerrar={() => setMemItemSel(null)} />
                   )}
                   {(memItemSel.id === 'bullerengue' || memItemSel.id === 'mapale_cumbia') && (
                     <JuegoBailarCartagenero
