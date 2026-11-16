@@ -192,6 +192,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.02;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const el = renderer.domElement;
   el.style.cssText = 'display:block;width:100%;height:100%;opacity:0;transition:opacity 0.9s ease';
   mount.appendChild(el);
@@ -443,6 +445,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const terrainMat = new THREE.MeshStandardMaterial({ map: textureFrom(satImg, maxTex), roughness: 1, metalness: 0 });
   parchearTerrenoAula(terrainMat, U);
   const terrain = new THREE.Mesh(geo, terrainMat);
+  terrain.receiveShadow = true;
 
   // Coordenadas XZ de los nodos de Bocachica
   const nodosXZ = {};
@@ -589,7 +592,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       const sa = Math.sin(h.ang);
       const lx = Math.abs(dx * ca + dz * sa);
       const lz = Math.abs(-dx * sa + dz * ca);
-      if (lx < h.w * 0.54 + 1.2 && lz < h.d * 0.54 + 1.2) return true;
+      if (lx < h.w * 0.54 + 5.5 && lz < h.d * 0.54 + 5.5) return true;
     }
     return false;
   };
@@ -657,43 +660,78 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     return true;
   };
 
+  const enZonaPatrimonio = (X, Z) => {
+    if (Math.hypot(X - nodosXZ.sanFernando.x, Z - nodosXZ.sanFernando.z) < 155) return true;
+    if (Math.hypot(X - nodosXZ.sanRafael.x, Z - nodosXZ.sanRafael.z) < 105) return true;
+    if (Math.hypot(X - nodosXZ.sanJose.x, Z - nodosXZ.sanJose.z) < 90) return true;
+    if (Math.hypot(X - nodosXZ.casco.x, Z - nodosXZ.casco.z) < 45) return true;
+    if (Math.hypot(X - nodosXZ.escuelaR9.x, Z - nodosXZ.escuelaR9.z) < 45) return true;
+    if (Math.hypot(X - nodosXZ.ribera.x, Z - nodosXZ.ribera.z) < 38) return true;
+    return false;
+  };
+
+  // Muestreo estricto sobre la imagen satelital de Tierra Bomba (satImg)
+  await tick0();
+  const W4 = Math.round(W / 4);
+  const H4 = Math.round(H / 4);
+  const satC = document.createElement('canvas');
+  satC.width = W4;
+  satC.height = H4;
+  const sctx2 = satC.getContext('2d', { willReadFrequently: true });
+  const sx0 = (WIN.left / (MOSAIC.nx * 256)) * satImg.width;
+  const sy0 = (WIN.top / (MOSAIC.ny * 256)) * satImg.height;
+  const sw0 = (WIN.w / (MOSAIC.nx * 256)) * satImg.width;
+  const sh0 = (WIN.h / (MOSAIC.ny * 256)) * satImg.height;
+  sctx2.drawImage(satImg, sx0, sy0, sw0, sh0, 0, 0, W4, H4);
+  const srgb = sctx2.getImageData(0, 0, W4, H4).data;
+
+  const evalSatelital = (X, Z) => {
+    const tx = X / mpt + txc;
+    const ty = Z / mpt + tyc;
+    const u = (tx - tx0) / (tx1 - tx0);
+    const v = (ty - ty0) / (ty1 - ty0);
+    if (u < 0 || u >= 1 || v < 0 || v >= 1) return { ok: false, score: 0, r: 0, g: 0 };
+    const px = Math.min(W4 - 1, Math.max(0, Math.floor(u * W4)));
+    const py = Math.min(H4 - 1, Math.max(0, Math.floor(v * H4)));
+    const o = (py * W4 + px) * 4;
+    const bR = srgb[o];
+    const bG = srgb[o + 1];
+    const bB = srgb[o + 2];
+    const bestScore = (2 * bG - bR - bB) + (bG - bR) * 1.4;
+    const ok =
+      bG >= 24 &&
+      bG <= 148 &&
+      bR <= 134 &&
+      bG >= bR * 1.02 &&
+      bG >= bB * 1.06 &&
+      bestScore >= 9;
+    return { ok, score: bestScore, r: bR, g: bG };
+  };
+
   const treeBase = [];
-  // Fuente 1: 100% de los árboles de vegetacion.json (sin truncar a 1200)
+  // Fuente 1: Árboles de vegetacion.json validados contra la foto satelital y fuera de casas/patrimonio
   veg.arboles.forEach(([x, y, size, dense], i) => {
     if (small && i % 2 === 1) return;
     const [lo, la] = modelToLL(x, y);
     const [X, Z] = llToXZ(lo, la);
     if (distAt(X, Z) <= 0) return;
-    if (enHuellaCasa(X, Z)) return;
+    if (enHuellaCasa(X, Z) || enZonaPatrimonio(X, Z)) return;
+    if (!evalSatelital(X, Z).ok) return;
     if (!marcarArbol(X, Z)) return;
     const elev = heightAtXZ(X, Z);
     treeBase.push({
       x: X,
-      y: elev + 0.35,
+      y: elev + 0.25,
       z: Z,
       rot: ((Math.imul(i + 7, 40503) >>> 0) % 628) / 100,
-      height: 8.5 * size * 1.25 * (dense ? 0.94 : 1.06),
+      height: 8.8 * size * 1.22 * (dense ? 0.94 : 1.06),
       tone: ((Math.imul(i + 3, 69069) >>> 0) % 100) / 100,
       ecotipo: elev < 3.6 ? 'manglar' : 'bosque_seco',
     });
   });
 
-  // Fuente 2: Detección rápida (1/4 resolución) de copas reales sobre la imagen satelital de Tierra Bomba (satImg)
-  await tick0();
+  // Fuente 2: Detección estricta de copas reales sobre la imagen satelital de Tierra Bomba (satImg)
   {
-    const W4 = Math.round(W / 4);
-    const H4 = Math.round(H / 4);
-    const satC = document.createElement('canvas');
-    satC.width = W4;
-    satC.height = H4;
-    const sctx2 = satC.getContext('2d', { willReadFrequently: true });
-    const sx0 = (WIN.left / (MOSAIC.nx * 256)) * satImg.width;
-    const sy0 = (WIN.top / (MOSAIC.ny * 256)) * satImg.height;
-    const sw0 = (WIN.w / (MOSAIC.nx * 256)) * satImg.width;
-    const sh0 = (WIN.h / (MOSAIC.ny * 256)) * satImg.height;
-    sctx2.drawImage(satImg, sx0, sy0, sw0, sh0, 0, 0, W4, H4);
-    const srgb = sctx2.getImageData(0, 0, W4, H4).data;
-
     const pasoBase = small ? 3 : 2;
     let seed = 17;
     for (let py = 1; py < H4 - 1; py += pasoBase) {
@@ -707,14 +745,13 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
         const bB = srgb[o + 2];
         const bestScore = (2 * bG - bR - bB) + (bG - bR) * 1.4;
 
-        // Umbral de copa vegetal real en la ortofoto Esri de Tierra Bomba
         const esCopaSatelital =
-          bG >= 20 &&
-          bG <= 156 &&
-          bR <= 146 &&
-          bG >= bR * 0.91 &&
-          bG >= bB * 1.01 &&
-          bestScore >= 3;
+          bG >= 24 &&
+          bG <= 148 &&
+          bR <= 134 &&
+          bG >= bR * 1.02 &&
+          bG >= bB * 1.06 &&
+          bestScore >= 9;
 
         if (!esCopaSatelital) continue;
 
@@ -728,25 +765,24 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
         const distBoca = Math.hypot(X - bx, Z - bz);
         if (distBoca > 2400 && (seed & 1) === 1 && bestScore < 16) continue;
 
-        if (enHuellaCasa(X, Z)) continue;
-        if (Math.hypot(X - nodosXZ.escuelaR9.x, Z - nodosXZ.escuelaR9.z) < 24) continue;
+        if (enHuellaCasa(X, Z) || enZonaPatrimonio(X, Z)) continue;
         if (!marcarArbol(X, Z)) continue;
 
         const elev = heightAtUV(u, v);
-        const esManglar = elev < 4.2 && bG > bR * 1.03 && bR < 92;
+        const esManglar = elev < 4.2 && bG > bR * 1.04 && bR < 92;
         const esUrbano = distBoca < 950 && elev < 14;
         const ecotipo = esManglar ? 'manglar' : esUrbano ? 'sombra' : 'bosque_seco';
 
-        const vigor = clamp01((bestScore - 3) / 38);
+        const vigor = clamp01((bestScore - 9) / 36);
         const hArbol = esManglar
-          ? 8.5 + vigor * 5.2 + ((seed % 7) * 0.35)
+          ? 8.8 + vigor * 5.0 + ((seed % 7) * 0.35)
           : esUrbano
-            ? 7.2 + vigor * 4.2 + ((seed % 5) * 0.3)
-            : 7.8 + vigor * 5.8 + ((seed % 9) * 0.35);
+            ? 7.5 + vigor * 4.2 + ((seed % 5) * 0.3)
+            : 8.2 + vigor * 5.6 + ((seed % 9) * 0.35);
 
         treeBase.push({
           x: X,
-          y: elev + 0.35,
+          y: elev + 0.25,
           z: Z,
           rot: ((seed >>> 8) % 628) / 100,
           height: hArbol,
@@ -756,28 +792,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       }
     }
   }
-
-  // Fuente 3: Corredor de silvicultura comunitaria, vivero de manglar y arbolado perimetral del colegio R9 (Línea 9.3)
-  for (let i = 0; i < 160; i++) {
-    const ang = i * 2.39996;
-    const rad = 28 + (i % 18) * 12;
-    const centro = i % 2 === 0 ? nodosXZ.vivero : nodosXZ.escuelaR9;
-    const X = centro.x + Math.cos(ang) * rad;
-    const Z = centro.z + Math.sin(ang) * rad;
-    if (distAt(X, Z) > 0 && !enHuellaCasa(X, Z) && marcarArbol(X, Z)) {
-      const elev = heightAtXZ(X, Z);
-      treeBase.push({
-        x: X,
-        y: elev + 0.35,
-        z: Z,
-        rot: (i * 1.7) % 6.28,
-        height: 9.2 + (i % 5) * 1.6,
-        tone: (i % 10) / 10,
-        ecotipo: i % 2 === 0 ? 'manglar' : 'sombra',
-      });
-    }
-  }
-  const treesGroup = instanceTrees(especies, treeBase, 420, false);
+  const treesGroup = instanceTrees(especies, treeBase, 420, true);
   treesGroup.matrixAutoUpdate = false;
   treesGroup.updateMatrix();
 
@@ -1030,7 +1045,18 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
 
   const sun = new THREE.DirectionalLight(0xfff1dc, 2.7);
   sun.position.copy(sunDir).multiplyScalar(3000);
-  scene.add(sun, new THREE.HemisphereLight(0xd9ecff, 0x5c5346, 0.85));
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(small ? 1024 : 2048, small ? 1024 : 2048);
+  sun.shadow.camera.left = -2200;
+  sun.shadow.camera.right = 2200;
+  sun.shadow.camera.top = 2200;
+  sun.shadow.camera.bottom = -2200;
+  sun.shadow.camera.near = 200;
+  sun.shadow.camera.far = 6500;
+  sun.shadow.bias = -0.0005;
+  sun.shadow.normalBias = 0.04;
+  sun.target.position.set(bx, 0, bz);
+  scene.add(sun, sun.target, new THREE.HemisphereLight(0xd9ecff, 0x5c5346, 0.85));
 
   // ===========================================================================
   // CAPAS 3D DEL AULA AMBIENTAL EN BOCACHICA:
@@ -1934,6 +1960,12 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     // LOD por distancia: en vista de isla completa (>4.8 km) ocultamos hojas 3D sub-píxel para mantener 60 FPS
     houseBasesMesh.visible = houseWallsMesh.visible = houseRoofsMesh.visible = !!T.mostrarCasas;
     treesGroup.visible = !enNubePura && !!T.mostrarArboles && dist < 4800;
+    if (treesGroup.visible) {
+      const lx = camLook.x + vi.px;
+      const lz = camLook.z + vi.pz;
+      sun.target.position.set(lx, 0, lz);
+      sun.position.set(lx + sunDir.x * 3000, sunDir.y * 3000, lz + sunDir.z * 3000);
+    }
     const escalaArbol = 1 + cur.sombraExtra * 0.38;
     treesGroup.scale.set(escalaArbol, escalaArbol, escalaArbol);
     aulaGroup.visible = !!T.mostrarPilotos;

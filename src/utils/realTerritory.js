@@ -249,16 +249,17 @@ export async function prepareTreeSpecies() {
       p.material.side = THREE.DoubleSide;
       p.material.envMapIntensity = 0.85;
       if (p.kind === 'leaf') {
-        p.material.alphaTest = Math.max(p.material.alphaTest || 0, 0.42);
-        p.material.roughness = 0.65;
+        p.material.alphaTest = Math.max(p.material.alphaTest || 0, 0.35);
+        p.material.roughness = 0.72;
         p.material.metalness = 0.0;
-        p.material.emissive = new THREE.Color(0x183d1e);
-        p.material.emissiveIntensity = 0.28;
+        p.material.emissive = new THREE.Color(0x123018);
+        p.material.emissiveIntensity = 0.08;
       } else {
-        p.material.roughness = 0.85;
-        p.material.metalness = 0.04;
-        p.material.emissive = new THREE.Color(0x22160e);
-        p.material.emissiveIntensity = 0.12;
+        p.material.color = new THREE.Color(0x5c3d24);
+        p.material.roughness = 0.90;
+        p.material.metalness = 0.02;
+        p.material.emissive = new THREE.Color(0x1f1209);
+        p.material.emissiveIntensity = 0.04;
       }
     });
     species.push(parts);
@@ -339,17 +340,17 @@ export function instanceTrees(species, list, cell = 6, castShadow = true) {
         euler.set(tiltX, t.rot, tiltZ, 'YXZ');
         q.setFromEuler(euler);
         const multTam =
-          sp === 2 ? (1.65 + s1 * 1.15)
-          : sp === 3 ? (1.05 + s0 * 0.75)
-          : sp === 4 ? (1.25 + s1 * 0.85)
-          : sp === 0 ? (0.42 + s1 * 0.34)
-          : (0.76 + s1 * 0.48);
-        const wx = t.height * multTam * (0.78 + s0 * 0.44);
-        const wy = t.height * multTam * (0.82 + s1 * 0.42);
-        const wz = t.height * multTam * (0.78 + s2 * 0.44);
+          sp === 2 ? (1.32 + s1 * 0.65)
+          : sp === 3 ? (0.95 + s0 * 0.48)
+          : sp === 4 ? (1.15 + s1 * 0.55)
+          : sp === 0 ? (0.78 + s1 * 0.42)
+          : (0.88 + s1 * 0.45);
+        const wx = t.height * multTam * (0.88 + s0 * 0.28);
+        const wy = t.height * multTam * (0.92 + s1 * 0.28);
+        const wz = t.height * multTam * (0.88 + s2 * 0.28);
         sc.set(wx, wy, wz);
-        // Desplazamiento orgánico para romper la retícula uniforme y crear claros/bosquetes naturales
-        pos.set(t.x + (s0 - 0.5) * 6.5, t.y, t.z + (s2 - 0.5) * 6.5);
+        // Desplazamiento leve para no invadir huellas de casas o patrimonio
+        pos.set(t.x + (s0 - 0.5) * 1.8, t.y, t.z + (s2 - 0.5) * 1.8);
         m4.compose(pos, q, sc);
         mesh.setMatrixAt(k, m4);
         if (part.kind === 'leaf') {
