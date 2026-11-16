@@ -191,7 +191,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   renderer.setPixelRatio(prBase);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.02;
+  renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const el = renderer.domElement;
@@ -202,7 +202,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   let disposed = false;
   const tick0 = () => new Promise((r) => setTimeout(r, 0));
 
-  const TOTAL = 10;
+  const TOTAL = 14;
   let hechas = 0;
   const track = (p) => p.then((r) => { hechas++; onProgreso(0.65 * (hechas / TOTAL), 'Cargando mapa rápido 3D'); return r; });
   const jsonOf = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(u); return r.json(); });
@@ -216,7 +216,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     return JSON.parse(new TextDecoder().decode(u8));
   };
 
-  const [satImg, maskImg, geoRef, veg, construcciones, sintaxis, normalsImg, especies, ...demImgs] = await Promise.all([
+  const [satImg, maskImg, geoRef, veg, construcciones, sintaxis, normalsImg, especies, ctxJson, ctgImg, ...demImgs] = await Promise.all([
     track(loadImg(`${BASE}textures/sat_base.jpg`)),
     track(loadImg(`${BASE}textures/isla_mascara.png`)),
     track(jsonOf(`${DATA_URL}georef.json`)),
@@ -225,10 +225,12 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     track(jsonOf(`${BASE}data/sintaxis.json`)),
     track(loadImg(`${BASE}textures/water_normals_fine.jpg`)),
     track(prepareTreeSpecies()),
+    track(gunzipJSON(`${BASE}data/cartagena_contexto.json.gz`)),
+    track(loadImg(`${BASE}textures/cartagena_z14.jpg`)),
     track(loadImg(`${BASE}data/elevation/1187_1929.png`)),
     track(loadImg(`${BASE}data/elevation/1188_1929.png`)),
     track(loadImg(`${BASE}data/elevation/1187_1930.png`)),
-    loadImg(`${BASE}data/elevation/1188_1930.png`),
+    track(loadImg(`${BASE}data/elevation/1188_1930.png`)),
   ]);
   if (disposed) return null;
   await tick0();
@@ -1066,11 +1068,11 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const sky = new Sky();
   sky.scale.setScalar(450000);
   const su = sky.material.uniforms;
-  su.turbidity.value = 2.1;
-  su.rayleigh.value = 2.3;
+  su.turbidity.value = 2;
+  su.rayleigh.value = 2.4;
   su.mieCoefficient.value = 0.004;
   su.mieDirectionalG.value = 0.82;
-  const sunDir = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 36), THREE.MathUtils.degToRad(218));
+  const sunDir = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 38), THREE.MathUtils.degToRad(215));
   su.sunPosition.value.copy(sunDir);
   scene.add(sky);
 
@@ -1109,10 +1111,26 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     {
       uTime: { value: 0 }, uNormals: { value: normals }, uShore: { value: shoreTex }, uSun: { value: sunDir.clone() },
       uWin: { value: new THREE.Vector4(txc - tx0, tyc - ty0, tx1 - tx0, ty1 - ty0) }, uMpt: { value: mpt },
-      uDeep: { value: new THREE.Color(0x02151f) }, uMid: { value: new THREE.Color(0x07323f) }, uShallow: { value: new THREE.Color(0x2a5f60) },
+      uDeep: { value: new THREE.Color(0x06293a) }, uMid: { value: new THREE.Color(0x0d4a5c) }, uShallow: { value: new THREE.Color(0x2f8a8c) },
       uHorizon: { value: new THREE.Color(0xa9cfdc) }, uZenith: { value: new THREE.Color(0x2c6fb0) },
     },
   ]);
+  // ---------- agua realista ----------
+  // 1) reflejo plano real: una cámara espejo bajo el nivel del mar dibuja la isla, las casas, los árboles y el cielo
+  //    en una textura (como un espejo de agua); las olas la deforman.
+  // 2) color del agua y del fondo: la imagen satelital del propio mar (arrecifes, bajos, aguas profundas), sin colores inventados.
+  // 3) Fresnel: mirando hacia abajo se ve el fondo; mirando rasante domina el reflejo. Destello del sol y espuma suave en la orilla.
+  const reflOn = !small;
+  const reflRT = new THREE.WebGLRenderTarget(2, 2, { type: THREE.HalfFloatType, depthBuffer: true });
+  reflRT.texture.generateMipmaps = false;
+  const reflCam = new THREE.PerspectiveCamera();
+  const reflTexMat = new THREE.Matrix4();
+  waterUniforms.uRefl = { value: reflRT.texture };
+  waterUniforms.uDim = U.uDim; // mismo objeto que el terreno: se oscurecen juntos
+  waterUniforms.uTexMat = { value: reflTexMat };
+  waterUniforms.uReflOn = { value: reflOn ? 1 : 0 };
+  waterUniforms.uSat = { value: terrainMat.map };
+  waterUniforms.uMos = { value: new THREE.Vector4(txc - MOSAIC.x0, tyc - MOSAIC.y0, MOSAIC.nx, MOSAIC.ny) };
   const waterMat = new THREE.ShaderMaterial({
     uniforms: waterUniforms,
     fog: true,
@@ -1129,46 +1147,260 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     fragmentShader: `
       uniform float uTime; uniform sampler2D uNormals; uniform sampler2D uShore; uniform vec3 uSun; uniform vec4 uWin; uniform float uMpt;
       uniform vec3 uDeep; uniform vec3 uMid; uniform vec3 uShallow; uniform vec3 uHorizon; uniform vec3 uZenith;
+      uniform sampler2D uRefl; uniform mat4 uTexMat; uniform float uReflOn; uniform sampler2D uSat; uniform vec4 uMos; uniform float uDim;
       varying vec3 vWorld;
       #include <fog_pars_fragment>
-      vec2 nm(vec2 p) { return texture2D(uNormals, p).rg * 2.0 - 1.0; }
+      // olas generadas por cálculo (sin textura que se repita: la textura en mosaico se veía como cuadrados)
+      float hash1(float x) { return fract(sin(x * 127.1) * 43758.5453); }
+      // ruido continuo hecho con ondas en varias direcciones: no tiene cuadrícula (el ruido de valores dejaba cuadraditos)
+      float ondas(vec2 x) {
+        float s = 0.0;
+        s += sin(dot(x, vec2(0.83, 0.56)) * 1.0 + 1.3);
+        s += sin(dot(x, vec2(-0.47, 0.88)) * 1.37 + 4.1);
+        s += sin(dot(x, vec2(0.21, -0.98)) * 1.91 + 2.2);
+        s += sin(dot(x, vec2(-0.95, -0.31)) * 2.63 + 0.7);
+        s += sin(dot(x, vec2(0.64, -0.77)) * 3.47 + 5.3);
+        return 0.5 + 0.5 * s / 5.0;
+      }
       void main() {
         float dc = length(cameraPosition - vWorld);
         vec2 p = vWorld.xz;
-        float lod = 1.0 - smoothstep(250.0, 2600.0, dc);
-        vec2 n2 = nm(p / 180.0 + vec2(uTime * 0.012, uTime * 0.008)) * 0.9
-                + nm(p / 61.0 + vec2(-uTime * 0.02, uTime * 0.013)) * 0.7;
-        if (lod > 0.02) {
-          n2 += nm(p / 17.0 + vec2(uTime * 0.035, -uTime * 0.03)) * 0.55 * lod
-              + nm(p / 5.3 + vec2(-uTime * 0.05, uTime * 0.045)) * 0.3 * lod;
+        float lod = 1.0 - smoothstep(300.0, 3200.0, dc);
+        float mpx = dc * 0.0011; // metros por píxel, aproximado
+        // la fuerza del oleaje cambia por zonas, suave y sin repetirse
+        float zona = 0.55 + 0.45 * ondas(p / 700.0 + vec2(uTime * 0.008, 0.0));
+        // oleaje: 10 trenes de olas de 26 a 210 m, con direcciones alrededor del viento del noreste y su velocidad real √(g/k).
+        // Las olas más pequeñas que unos píxeles se apagan (si no, parpadean de lejos)
+        vec2 g = vec2(0.0); float cresta = 0.0; float sTot = 0.0;
+        for (int i = 0; i < 7; i++) {
+          float fi = float(i);
+          float ang = 2.2 + (hash1(fi + 1.3) - 0.5) * 1.4;
+          vec2 dd = vec2(cos(ang), sin(ang));
+          float L = mix(26.0, 210.0, pow(hash1(fi + 7.7), 1.3));
+          float kk = 6.2832 / L;
+          float ph = dot(dd, p) * kk - uTime * sqrt(9.8 * kk) + hash1(fi + 3.1) * 6.2832;
+          float s = 0.042 * (1.0 - smoothstep(L * 0.05, L * 0.14, mpx)); // solo olas de al menos ~8 píxeles
+          g += dd * cos(ph) * s; cresta += sin(ph) * s; sTot += s;
         }
-        float k = mix(0.16, 0.32, lod);
-        vec3 n = normalize(vec3(n2.x * k, 1.0, n2.y * k));
+        g *= zona; cresta = sTot > 0.0 ? cresta / sTot * zona : 0.0;
+        // rizado fino solo cerca de la cámara
+        vec2 rizo = vec2(ondas(p / 3.4 + vec2(uTime * 0.8, 0.0)), ondas(p.yx / 2.8 + vec2(3.1, -uTime * 0.7))) - 0.5;
+        g += rizo * 0.045 * (1.0 - smoothstep(40.0, 220.0, dc));
+        vec2 n2 = g * 4.0;
+        // pendiente acotada: con olas muy inclinadas el reflejo rasante del cielo daba rayas blancas vistas desde arriba
+        vec2 gc = g * 0.55; float lg = length(gc); if (lg > 0.065) gc *= 0.065 / lg;
+        vec3 n = normalize(vec3(-gc.x, 1.0, -gc.y));
         vec3 V = normalize(cameraPosition - vWorld);
         float cosT = max(dot(n, V), 0.0);
         float F = 0.02 + 0.98 * pow(1.0 - cosT, 5.0);
         vec3 R = reflect(-V, n);
         R.y = abs(R.y);
-        vec3 skyCol = mix(uHorizon, uZenith, pow(clamp(R.y, 0.0, 1.0), 0.45));
-        vec2 uv = (p / uMpt + uWin.xy) / uWin.zw;
-        float enVentana = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
-        float dNorm = mix(1.0, texture2D(uShore, clamp(uv, 0.0, 1.0)).r, enVentana);
-        vec3 body = mix(uShallow, uMid, smoothstep(0.0, 0.22, dNorm));
-        body = mix(body, uDeep, smoothstep(0.18, 0.85, dNorm));
-        vec3 col = mix(body, skyCol, F * 0.65);
-        vec3 H = normalize(uSun + V);
-        float spec = pow(max(dot(n, H), 0.0), 180.0) * 1.9;
-        col += vec3(1.0, 0.92, 0.78) * spec;
+        // reflejo: textura espejo deformada por las olas (si no hay espejo, cielo analítico)
+        vec3 skyA = mix(uHorizon, uZenith, pow(clamp(R.y, 0.0, 1.0), 0.45));
+        vec4 rp = uTexMat * vec4(vWorld, 1.0);
+        vec2 ruv = rp.xy / rp.w + n.xz * (0.035 / (1.0 + dc / 2500.0));
+        vec4 rt = texture2D(uRefl, clamp(ruv, 0.001, 0.999));
+        vec3 refl = mix(skyA, min(rt.rgb, vec3(0.85)), rt.a * uReflOn); // donde el espejo no ve nada, cielo sin disco solar
+        refl = min(refl, vec3(0.62, 0.72, 0.8)); refl *= vec3(0.74, 0.84, 0.92); // el agua refleja menos que un espejo y tiñe el reflejo de azul
+        // costa: distancia del mar a la tierra
+        vec2 uv = vec2((vWorld.x / uMpt + uWin.x) / uWin.z, (vWorld.z / uMpt + uWin.y) / uWin.w);
+        float inWin = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+        float dm = texture2D(uShore, clamp(uv, 0.0, 1.0)).r * 900.0;
+        vec2 eb = min(uv, 1.0 - uv);
+        float borde = smoothstep(0.0, 0.05, min(eb.x, eb.y)) * inWin;
+        dm = mix(900.0, dm, borde);
+        // fondo y color del agua: la foto satelital del mar, solo en la franja costera de la isla (bajos y arrecifes);
+        // mar adentro, agua profunda (así no se pinta la ciudad ni el borde de la foto sobre el mar)
+        vec2 suv = vec2((vWorld.x / uMpt + uMos.x) / uMos.z, 1.0 - (vWorld.z / uMpt + uMos.y) / uMos.w);
+        vec3 sat = texture2D(uSat, clamp(suv + n.xz * 0.0006, 0.0, 1.0)).rgb;
+        // la foto trae el reflejo del sol del día en que se tomó (zonas beige claras): se limita su brillo y se conserva el color
+        float lumS = dot(sat, vec3(0.3, 0.59, 0.11));
+        sat *= min(1.0, 0.075 / max(lumS, 1e-4)); // brillo limitado: los bajos se ven, pero sin halo claro alrededor de la isla
+        sat = mix(sat, sat * vec3(0.75, 1.0, 1.1), 0.6);
+        // el mapa de distancias cubre solo un rectángulo alrededor de la isla: se desvanece en unos pocos píxeles de su borde
+        // (antes lo hacía en una franja ancha y se veía un corte recto en el lado oeste)
+        float bordeAncho = smoothstep(0.0, 0.008, min(eb.x, eb.y)) * inWin;
+        // el color de la foto junto a la costa solo de cerca (de lejos se leía como un halo alrededor de la isla)
+        float cercaCam = mix(0.32, 1.0, 1.0 - smoothstep(900.0, 2600.0, dc)); // de lejos queda un borde un poco más claro
+        float costa = (1.0 - smoothstep(40.0, 320.0, dm)) * bordeAncho * cercaCam;
+        // un solo azul profundo, con variaciones suaves y grandes (no un degradé alrededor de la isla)
+        float var = ondas(p / 900.0 + vec2(uTime * 0.003, 0.0));
+        vec3 hondo = uDeep * (0.88 + 0.24 * var);
+        vec3 body = mix(hondo, sat * 1.05, costa);
+        // luz que atraviesa la cresta de la ola
+        body *= 0.86 + 0.22 * (n2.x + n2.y) * 0.5;
+        body += uShallow * 0.05 * max(0.0, n2.x + n2.y);
+        body *= 1.0 + 0.09 * cresta; // la cresta de cada ola se ve más clara (luz que la atraviesa)
+        vec3 col = mix(body, refl, clamp(F, 0.0, 1.0));
+        // destellos del sol sobre las olas (finos, no un disco)
+        float sd = max(dot(R, uSun), 0.0);
+        col += vec3(1.0, 0.94, 0.84) * pow(sd, 700.0) * 1.1 * lod * lod * smoothstep(0.15, 0.6, 1.0 - cosT); // destello solo mirando rasante, no desde arriba // de lejos el destello se apaga (si no, forma una mancha)
+        // espuma: una línea fina que respira donde rompe la ola
+        float ws = 0.5 + 0.5 * sin(dm / 5.0 - uTime * 1.1 + n2.x * 3.0);
+        float rompe = (1.0 - smoothstep(0.0, 14.0, dm)) * (0.35 + 0.65 * ws) * borde;
+        col = mix(col, vec3(0.86, 0.9, 0.9), clamp(rompe * 0.45, 0.0, 0.45));
+        // espuma suave solo en las crestas más altas, cerca de la cámara
+        float blanca = smoothstep(0.68, 0.95, cresta) * (1.0 - smoothstep(200.0, 900.0, dc));
+        // (sin espuma en crestas: desde arriba se veía como rayas blancas)
+        // en las vistas de mapa el terreno se oscurece para leer las líneas: el agua se oscurece igual (si no, la orilla brilla como neón)
+        col *= mix(1.0, 0.42, uDim);
         gl_FragColor = vec4(col, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
         #include <fog_fragment>
       }`,
   });
-  const water = new THREE.Mesh(new THREE.PlaneGeometry(240000, 240000), waterMat);
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(200000, 200000), waterMat);
   water.rotation.x = -Math.PI / 2;
-  water.position.y = 0.05;
   scene.add(water);
+  // cámara espejo (misma idea que Reflector de three.js): posición, mira y vector "arriba" reflejados en el plano y = 0
+  const rClear = new THREE.Color();
+  const rPos = new THREE.Vector3(); const rLook = new THREE.Vector3(); const rRot = new THREE.Matrix4(); const rUp = new THREE.Vector3();
+  const BIAS = new THREE.Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
+  const renderReflejo = (cam) => {
+    if (!reflOn || !water.visible) return;
+    cam.updateMatrixWorld();
+    rPos.setFromMatrixPosition(cam.matrixWorld);
+    if (rPos.y <= 0.5) return;
+    rRot.extractRotation(cam.matrixWorld);
+    rLook.set(0, 0, -1).applyMatrix4(rRot).add(rPos);
+    rUp.set(0, 1, 0).applyMatrix4(rRot);
+    reflCam.position.set(rPos.x, 2 * water.position.y - rPos.y, rPos.z);
+    reflCam.up.set(rUp.x, -rUp.y, rUp.z);
+    reflCam.lookAt(rLook.x, 2 * water.position.y - rLook.y, rLook.z);
+    reflCam.near = cam.near; reflCam.far = cam.far;
+    reflCam.updateMatrixWorld();
+    reflCam.projectionMatrix.copy(cam.projectionMatrix);
+    reflTexMat.copy(BIAS).multiply(reflCam.projectionMatrix).multiply(reflCam.matrixWorldInverse);
+    water.visible = false;
+    const ocultos = [treesGroup, houseBasesMesh, houseWallsMesh, houseRoofsMesh, ctgGroup].map((o) => [o, o.visible]); ocultos.forEach(([o]) => { o.visible = false; });
+    const etqV = etiquetasGroup.visible; etiquetasGroup.visible = false; const rutV = rutasGroup.visible; rutasGroup.visible = false; // sin etiquetas ni rutas en el reflejo (salían duplicadas)
+    sky.visible = false; // el cielo se pone en el shader (sin el disco del sol, que en el reflejo era una mancha)
+    const prev = renderer.getRenderTarget();
+    renderer.getClearColor(rClear); const ca = renderer.getClearAlpha();
+    renderer.setClearColor(0x000000, 0);
+    renderer.setRenderTarget(reflRT);
+    renderer.clear();
+    renderer.render(scene, reflCam);
+    renderer.setRenderTarget(prev);
+    renderer.setClearColor(rClear, ca);
+    sky.visible = true;
+    etiquetasGroup.visible = etqV; rutasGroup.visible = rutV; ocultos.forEach(([o, v]) => { o.visible = v; });
+    water.visible = true;
+  };
+
+  // ---------- contexto: toda Cartagena con foto aérea (Esri World Imagery z14), recortada a la tierra ----------
+  // Extensión del mosaico z14: x 4748–4759, y 7711–7722 (en coordenadas z15: ×2). Solo se ve la tierra (masas de tierra del catastro).
+  const cx0 = 4748 * 2; const cx1 = 4760 * 2; const cy0 = 7711 * 2; const cy1 = 7723 * 2;
+  const [qx0, qz0] = toXZ(cx0, cy0); const [qx1, qz1] = toXZ(cx1, cy1);
+  const ctxGeo = new THREE.BufferGeometry();
+  ctxGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([qx0, 1, qz0, qx1, 1, qz0, qx0, 1, qz1, qx1, 1, qz1]), 3));
+  ctxGeo.setAttribute('normal', new THREE.BufferAttribute(new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]), 3));
+  ctxGeo.setAttribute('uv', new THREE.BufferAttribute(new Float32Array([0, 1, 1, 1, 0, 0, 1, 0]), 2));
+  ctxGeo.setIndex([0, 2, 1, 1, 2, 3]);
+  const ctxMaskCanvas = document.createElement('canvas'); ctxMaskCanvas.width = ctgImg.width; ctxMaskCanvas.height = ctgImg.height;
+  {
+    const mc = ctxMaskCanvas.getContext('2d'); mc.fillStyle = '#000'; mc.fillRect(0, 0, ctxMaskCanvas.width, ctxMaskCanvas.height); mc.fillStyle = '#fff';
+    const aPx = (lon, lat) => { const [tx, ty] = lonLatToTile(lon, lat); return [((tx - cx0) / (cx1 - cx0)) * ctxMaskCanvas.width, ((ty - cy0) / (cy1 - cy0)) * ctxMaskCanvas.height]; };
+    mc.beginPath();
+    ctxJson.tierras.forEach((ring) => {
+      let sx = 0; let sy = 0; ring.forEach(([lo, la]) => { sx += lo; sy += la; }); sx /= ring.length; sy /= ring.length;
+      if (sy < 10.388 && sx < -75.536) return; // Tierra Bomba ya está modelada
+      ring.forEach(([lo, la], k) => { const [px, py] = aPx(lo, la); if (k) mc.lineTo(px, py); else mc.moveTo(px, py); }); mc.closePath();
+    });
+    mc.fill('evenodd');
+  }
+  const ctxMask = new THREE.CanvasTexture(ctxMaskCanvas);
+  const ctxTex = new THREE.Texture(ctgImg); ctxTex.colorSpace = THREE.SRGBColorSpace; ctxTex.anisotropy = aniso; ctxTex.needsUpdate = true;
+  const ctxMat = new THREE.MeshStandardMaterial({
+    map: ctxTex, alphaMap: ctxMask, roughness: 1, metalness: 0, transparent: true, opacity: 1, alphaTest: 0.5,
+    polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+  });  const contexto = new THREE.Mesh(ctxGeo, ctxMat);
+  contexto.visible = true;
+  contexto.renderOrder = 1;
+
+
+  scene.add(contexto);
+
+  // ---------- lanchas: rutas documentadas trazadas por el agua, con lanchas que las recorren ----------
+  const rutasGroup = new THREE.Group();
+  rutasGroup.visible = true;
+  scene.add(rutasGroup);
+  const rutaMats = [];
+  const rutasPts = [];
+  const COLOR_RUTA = { colectiva: 0x8fd3ee, turística: 0xf2c27b };
+  const lanchasMov = []; // { pts: [[x,z]...], acum: [...], largo, vel, fase, mesh }
+  const cascoGeo = new THREE.SphereGeometry(1, 10, 8);
+  const lanchaMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1 });
+  const estelaMat = new THREE.MeshBasicMaterial({ color: 0xbfe9ff, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false });
+  ctxJson.rutas.forEach((r, ri) => {
+    const pts = r.puntos.filter((_, i) => i % 3 === 0 || i === r.puntos.length - 1).map(([lo, la]) => llToXZ(lo, la));
+    // pequeño desplazamiento lateral por ruta para que las que comparten corredor no se encimen
+    const off = ((ri % 5) - 2) * 16;
+    const despl = pts.map(([px, pz], i) => { const a = pts[Math.max(0, i - 1)]; const b = pts[Math.min(pts.length - 1, i + 1)]; const dxx = b[0] - a[0]; const dzz = b[1] - a[1]; const L = Math.hypot(dxx, dzz) || 1; const k = Math.min(1, i / 6, (pts.length - 1 - i) / 6); return [px - (dzz / L) * off * k, pz + (dxx / L) * off * k]; });
+    const arr = [];
+    for (let i = 0; i < despl.length - 1; i++) { arr.push(despl[i][0], 2.2, despl[i][1], despl[i + 1][0], 2.2, despl[i + 1][1]); rutasPts.push(despl[i]); }
+    const col = COLOR_RUTA[r.tipo] ?? 0xffffff;
+    const g = new LineSegmentsGeometry(); g.setPositions(arr);
+    const halo = new LineSegments2(g, new LineMaterial({ color: col, linewidth: 0.7, transparent: true, opacity: 0.45, depthWrite: false }));
+    const linea = new LineSegments2(g, new LineMaterial({ color: col, linewidth: 1.6, transparent: true, opacity: 0.45, depthWrite: false, dashed: true, dashSize: 60, gapSize: 50 }));
+    linea.computeLineDistances(); linea.material.userData.flujo = r.tipo === 'colectiva' ? 1 : 0.8;
+    halo.renderOrder = 6; linea.renderOrder = 7; halo.frustumCulled = linea.frustumCulled = false;
+    halo.material.userData.k = 0.35; linea.material.userData.k = 1;
+    rutasGroup.add(halo, linea); rutaMats.push(halo.material, linea.material);
+    // lanchas en movimiento: más lanchas en las rutas colectivas
+    const acum = [0]; for (let i = 1; i < despl.length; i++) acum.push(acum[i - 1] + Math.hypot(despl[i][0] - despl[i - 1][0], despl[i][1] - despl[i - 1][1]));
+    const n = r.tipo === 'colectiva' ? 2 : 1;
+    for (let q = 0; q < n; q++) {
+      const casco = new THREE.Mesh(cascoGeo, lanchaMat); casco.scale.set(6, 2, 2.6);
+      const estela = new THREE.Mesh(cascoGeo, estelaMat); estela.scale.set(18, 0.4, 3.2);
+      const gL = new THREE.Group(); gL.add(casco, estela); estela.position.x = -16; gL.renderOrder = 9;
+      rutasGroup.add(gL);
+      lanchasMov.push({ pts: despl, acum, largo: acum[acum.length - 1], vel: 9 + (ri % 3) * 2, fase: q / n + ri * 0.13, ida: q % 2 === 0, g: gL });
+    }
+  });
+  const moverLanchas = (t) => {
+    lanchasMov.forEach((L) => {
+      let s = ((t * L.vel) / L.largo + L.fase) % 1; if (!L.ida) s = 1 - s;
+      const d = s * L.largo; let i = 1; while (i < L.acum.length - 1 && L.acum[i] < d) i++;
+      const a = L.pts[i - 1]; const b = L.pts[i]; const f = (d - L.acum[i - 1]) / Math.max(1e-6, L.acum[i] - L.acum[i - 1]);
+      L.g.position.set(a[0] + (b[0] - a[0]) * f, 2.6, a[1] + (b[1] - a[1]) * f);
+      const ang = Math.atan2(b[1] - a[1], b[0] - a[0]); L.g.rotation.y = -(L.ida ? ang : ang + Math.PI);
+    });
+  };
+
+  lineMats.push(...rutaMats);
+
+  // ---------- contexto de Cartagena: suelo (masas de tierra) y edificios del Catastro Multipropósito 2026 ----------
+  const ctgGroup = new THREE.Group(); ctgGroup.visible = true; scene.add(ctgGroup);
+  const sueloMat = new THREE.MeshStandardMaterial({ color: 0x5a5a48, roughness: 1, metalness: 0, transparent: true, opacity: 1, depthWrite: true });
+  {
+    const shapes = [];
+    ctxJson.tierras.forEach((ring) => {
+      let sx = 0; let sy = 0; ring.forEach(([lo, la]) => { sx += lo; sy += la; }); sx /= ring.length; sy /= ring.length;
+      if (sy < 10.388 && sx < -75.536) return; // Tierra Bomba ya está modelada
+      const pts = ring.map(([lo, la]) => { const [X, Z] = llToXZ(lo, la); return new THREE.Vector2(X, -Z); });
+      shapes.push(new THREE.Shape(pts));
+    });
+    const geo = new THREE.ShapeGeometry(shapes); geo.rotateX(-Math.PI / 2); geo.translate(0, 0.5, 0);
+    // (el suelo plano ya no se agrega: la foto aérea cubre toda la tierra de Cartagena)
+    geo.dispose();
+  }
+  const edMat = new THREE.MeshStandardMaterial({ color: 0xe9e3d6, roughness: 0.85, metalness: 0, transparent: true, opacity: 1 });
+  const edGeo = new THREE.BoxGeometry(1, 1, 1); edGeo.translate(0, 0.5, 0);
+  const edificios = new THREE.InstancedMesh(edGeo, edMat, ctxJson.edificios.length);
+  {
+    const m4 = new THREE.Matrix4(); const q = new THREE.Quaternion(); const s = new THREE.Vector3(); const p = new THREE.Vector3(); const up = new THREE.Vector3(0, 1, 0); const c = new THREE.Color();
+    ctxJson.edificios.forEach(([lo, la, w, d, ang, h, alto], k) => {
+      const [X, Z] = llToXZ(lo, la);
+      q.setFromAxisAngle(up, ang); s.set(w, Math.max(3, h) * 1.3, d); p.set(X, 1, Z); m4.compose(p, q, s); edificios.setMatrixAt(k, m4);
+      const v = alto ? 0.95 : 0.78 + ((k * 2654435761) % 1000) / 1000 * 0.16; c.setRGB(v, v * 0.98, v * 0.93); edificios.setColorAt(k, c);
+    });
+    edificios.instanceMatrix.needsUpdate = true; edificios.instanceColor.needsUpdate = true;
+  }
+  edificios.frustumCulled = false;
+  ctgGroup.add(edificios);
+
 
   const sun = new THREE.DirectionalLight(0xfff1dc, 2.7);
   sun.position.copy(sunDir).multiplyScalar(3000);
@@ -1856,8 +2088,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       look: new THREE.Vector3(0, 0, -180),
     }),
     isla_axo: () => ({
-      pos: new THREE.Vector3(2400, 7600, 8800),
-      look: new THREE.Vector3(0, 0, -180),
+      pos: new THREE.Vector3(1500, 8200, 12500),
+      look: new THREE.Vector3(0, 0, -1800),
     }),
     hero: (t) => {
       const a = THREE.MathUtils.degToRad(202) + Math.sin(t * 0.06) * 0.38;
@@ -1998,12 +2230,15 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     lineMats.forEach((m) => m.resolution.set(w, h));
+    reflRT.setSize(Math.min(768, Math.max(2, Math.round(w * 0.4))), Math.min(512, Math.max(2, Math.round(h * 0.4))));
   };
   resize();
   const ro = new ResizeObserver(resize);
   ro.observe(mount);
   cleanups.push(() => ro.disconnect());
 
+  cleanups.push(() => reflRT.dispose());
+  let reflectionFrame = 0;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let last = performance.now();
   const t0 = last;
@@ -2159,6 +2394,9 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       }
     }
 
+    moverLanchas(reduce ? 0 : t);
+    rutaMats.forEach((mat) => { if (mat.dashed) mat.dashOffset = reduce ? 0 : -t * 12; });
+    if (!small && reflectionFrame++ % 3 === 0) renderReflejo(camera);
     renderer.render(scene, camera);
     if (!shown) {
       shown = true;
