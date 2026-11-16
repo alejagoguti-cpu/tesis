@@ -1767,10 +1767,16 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       look: new THREE.Vector3(bx + dx() * 0.3, 10, bz - 20),
     }),
     custom: (t) => {
-      const f = T.customFocus || { x: bx, y: 10, z: bz, dist: 340 };
+      const f = T.customFocus || { x: bx, y: 10, z: bz, dist: 340, vista: 'planta' };
       const d = f.dist || 340;
+      if (f.vista === 'axo') {
+        return {
+          pos: new THREE.Vector3(f.x + Math.sin(t * 0.14) * d * 0.35 + d * 0.42, f.y + d * 0.56, f.z + d * 0.88),
+          look: new THREE.Vector3(f.x, f.y + 4, f.z),
+        };
+      }
       return {
-        pos: new THREE.Vector3(f.x + Math.sin(t * 0.1) * d * 0.06, f.y + d * 1.45, f.z + d * 0.22),
+        pos: new THREE.Vector3(f.x + Math.sin(t * 0.08) * d * 0.04, f.y + d * 1.55, f.z + d * 0.16),
         look: new THREE.Vector3(f.x, f.y + 4, f.z),
       };
     },
@@ -1989,11 +1995,11 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
 
   return {
     nodos: NODOS_BOCACHICA,
-    irANodo(clave, dist = 320) {
+    irANodo(clave, dist = 320, vista = 'planta') {
       const n = nodosXZ[clave];
       if (!n) return false;
       resetVista();
-      T.customFocus = { x: n.x, y: n.y, z: n.z, dist };
+      T.customFocus = { x: n.x, y: n.y, z: n.z, dist, vista };
       T.cam = 'custom';
       T.nodosActivos = [];
       return true;

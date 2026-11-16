@@ -2877,6 +2877,7 @@ export default function AulaAmbientalBocachica({
   const [lugarActivo, setLugarActivo] = useState(null);
   const [catActiva, setCatActiva] = useState(EXPLORA_CATEGORIAS[0]); // Inicia directo mostrando toda la isla y corregimientos
   const [pasoRecorridoIdx, setPasoRecorridoIdx] = useState(0);
+  const [vistaRecorrido, setVistaRecorrido] = useState('planta');
   const [patPreviewIdx, setPatPreviewIdx] = useState(0);
   const [tallerPreviewIdx, setTallerPreviewIdx] = useState(0);
   const [autoTourActivo, setAutoTourActivo] = useState(false);
@@ -3608,14 +3609,14 @@ export default function AulaAmbientalBocachica({
         setPatPreviewIdx((prev) => {
           const next = (prev + 1) % patrimoniosIsla.length;
           const p = patrimoniosIsla[next];
-          if (p) escena.irANodo?.(p.nodo, 280);
+          if (p) escena.irANodo?.(p.nodo, 280, next % 2 === 0 ? 'planta' : 'axo');
           return next;
         });
       } else if (catActiva.id === 'talleres') {
         setTallerPreviewIdx((prev) => {
           const next = (prev + 1) % actividadesIsla.length;
           const a = actividadesIsla[next];
-          if (a) escena.irANodo?.(a.nodo, 300);
+          if (a) escena.irANodo?.(a.nodo, 300, next % 2 === 0 ? 'planta' : 'axo');
           return next;
         });
       }
@@ -3659,15 +3660,18 @@ export default function AulaAmbientalBocachica({
         if (window.scrollY <= maxScrollCorreg + 20) {
           const frac = Math.max(0, Math.min(1, (window.scrollY - topCorreg) / spanCorreg));
           const ordenNodos = ['tierraBomba', 'puntaArena', 'canoDeLoro', 'casco'];
-          const idx = Math.min(ordenNodos.length - 1, Math.floor(frac * ordenNodos.length));
-          if (idx !== ultimoPasoRecorridoRef.current) {
-            ultimoPasoRecorridoRef.current = idx;
+          const beat = Math.min(ordenNodos.length * 2 - 1, Math.floor(frac * ordenNodos.length * 2));
+          const idx = Math.floor(beat / 2);
+          const vista = beat % 2 === 0 ? 'planta' : 'axo';
+          if (beat !== ultimoPasoRecorridoRef.current) {
+            ultimoPasoRecorridoRef.current = beat;
             setPasoRecorridoIdx(idx);
+            setVistaRecorrido(vista);
             if (!libre) {
-              escena?.irANodo?.(ordenNodos[idx], 340);
+              escena?.irANodo?.(ordenNodos[idx], vista === 'axo' ? 310 : 380, vista);
             }
           }
-          if (idx === ordenNodos.length - 1 && frac >= 0.78 && !recorridoCompletadoRef.current) {
+          if (beat === ordenNodos.length * 2 - 1 && frac >= 0.85 && !recorridoCompletadoRef.current) {
             recorridoCompletadoRef.current = true;
             setRecorridoCompletado(true);
             setAvisoBloqueoRecorrido(false);
@@ -4308,8 +4312,21 @@ export default function AulaAmbientalBocachica({
                     <MapPin className="w-4 h-4" />
                   </span>
                   <div className="min-w-0">
-                    <div className="text-[10px] font-mono uppercase tracking-widest" style={{ color: corActual.color }}>
-                      Recorrido activo · {pasoRecorridoIdx + 1}/4
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: corActual.color }}>
+                        Recorrido · {pasoRecorridoIdx + 1}/4
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextVista = vistaRecorrido === 'planta' ? 'axo' : 'planta';
+                          setVistaRecorrido(nextVista);
+                          escena?.irANodo?.(corActual.nodo, nextVista === 'axo' ? 310 : 380, nextVista);
+                        }}
+                        className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[9px] font-mono uppercase tracking-wider text-white/90 cursor-pointer transition"
+                      >
+                        {vistaRecorrido === 'planta' ? 'Vista Planta' : 'Vista Axo'}
+                      </button>
                     </div>
                     <div className="text-sm font-bold text-white truncate">{corActual.nombre}</div>
                     <div className="text-[11px] text-white/65 truncate">{corActual.zona}</div>
@@ -5641,7 +5658,7 @@ export default function AulaAmbientalBocachica({
       <section
         id="sec-corregimientos"
         ref={secCorregRef}
-        style={{ height: '420svh' }}
+        style={{ height: '480svh' }}
         className="relative z-10 pointer-events-none"
         aria-label="Los 4 corregimientos de Tierra Bomba"
       />
