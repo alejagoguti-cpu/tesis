@@ -3685,23 +3685,22 @@ export default function AulaAmbientalBocachica({
         if (window.scrollY <= maxScrollCorreg + 20) {
           const frac = Math.max(0, Math.min(1, (window.scrollY - topCorreg) / spanCorreg));
           const ordenNodos = ['tierraBomba', 'puntaArena', 'canoDeLoro', 'casco'];
-          const totalBeats = ordenNodos.length * 2 + 1; // Beat 0 = Toda la isla en Planta, luego Planta/Axo por cada corregimiento
-          const beat = Math.min(totalBeats - 1, Math.floor(frac * totalBeats));
-          const idx = beat === 0 ? 0 : Math.floor((beat - 1) / 2);
-          const vista = beat === 0 ? 'planta' : (beat - 1) % 2 === 0 ? 'planta' : 'axo';
-          if (beat !== ultimoPasoRecorridoRef.current) {
-            ultimoPasoRecorridoRef.current = beat;
+          const idx = Math.min(ordenNodos.length - 1, Math.floor(frac * ordenNodos.length));
+          const vista = frac < 0.5 ? 'planta' : 'axo';
+          const beatKey = `${idx}-${vista}`;
+          if (beatKey !== ultimoPasoRecorridoRef.current) {
+            ultimoPasoRecorridoRef.current = beatKey;
             setPasoRecorridoIdx(idx);
             setVistaRecorrido(vista);
             if (!libre) {
-              if (beat === 0) {
-                escena?.set?.({ cam: 'isla_completa', cartografia: 0.32, nodosActivos: [] });
-              } else {
-                escena?.irANodo?.(ordenNodos[idx], vista === 'axo' ? 310 : 380, vista);
-              }
+              escena?.set?.({
+                cam: vista === 'axo' ? 'isla_axo' : 'isla_completa',
+                cartografia: 0.32,
+                nodosActivos: [],
+              });
             }
           }
-          if (beat === totalBeats - 1 && frac >= 0.85 && !recorridoCompletadoRef.current) {
+          if (frac >= 0.72 && !recorridoCompletadoRef.current) {
             recorridoCompletadoRef.current = true;
             setRecorridoCompletado(true);
             setAvisoBloqueoRecorrido(false);
@@ -4329,8 +4328,7 @@ export default function AulaAmbientalBocachica({
               const vh = window.innerHeight || 1;
               const topDoc = elCorreg.getBoundingClientRect().top + window.scrollY;
               const span = Math.max(1, elCorreg.offsetHeight - vh);
-              const targetBeat = i * 2 + 1;
-              window.scrollTo({ top: topDoc + (targetBeat / 9 + 0.02) * span, behavior: 'smooth' });
+              window.scrollTo({ top: topDoc + (i / 4 + 0.05) * span, behavior: 'smooth' });
             }
           };
           return (
@@ -4353,7 +4351,11 @@ export default function AulaAmbientalBocachica({
                         onClick={() => {
                           const nextVista = vistaRecorrido === 'planta' ? 'axo' : 'planta';
                           setVistaRecorrido(nextVista);
-                          escena?.irANodo?.(corActual.nodo, nextVista === 'axo' ? 310 : 380, nextVista);
+                          escena?.set?.({
+                            cam: nextVista === 'axo' ? 'isla_axo' : 'isla_completa',
+                            cartografia: 0.32,
+                            nodosActivos: [],
+                          });
                         }}
                         className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[9px] font-mono uppercase tracking-wider text-white/90 cursor-pointer transition"
                       >
@@ -5693,7 +5695,7 @@ export default function AulaAmbientalBocachica({
       <section
         id="sec-corregimientos"
         ref={secCorregRef}
-        style={{ height: '480svh' }}
+        style={{ height: '260svh' }}
         className="relative z-10 pointer-events-none"
         aria-label="Los 4 corregimientos de Tierra Bomba"
       />

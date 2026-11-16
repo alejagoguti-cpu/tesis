@@ -1703,6 +1703,10 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       pos: new THREE.Vector3(0, 14800, -170),
       look: new THREE.Vector3(0, 0, -180),
     }),
+    isla_axo: () => ({
+      pos: new THREE.Vector3(2400, 7600, 8800),
+      look: new THREE.Vector3(0, 0, -180),
+    }),
     hero: (t) => {
       const a = THREE.MathUtils.degToRad(202) + Math.sin(t * 0.06) * 0.38;
       return {
