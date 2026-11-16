@@ -3672,7 +3672,7 @@ export default function AulaAmbientalBocachica({
 
       const elCorreg = secCorregRef.current;
       if (elCorreg) {
-        const topCorreg = elCorreg.offsetTop;
+        const topCorreg = elCorreg.getBoundingClientRect().top + window.scrollY;
         const spanCorreg = Math.max(1, elCorreg.offsetHeight - vh);
         const maxScrollCorreg = topCorreg + spanCorreg;
 
@@ -4327,8 +4327,10 @@ export default function AulaAmbientalBocachica({
             const elCorreg = secCorregRef.current;
             if (elCorreg) {
               const vh = window.innerHeight || 1;
+              const topDoc = elCorreg.getBoundingClientRect().top + window.scrollY;
               const span = Math.max(1, elCorreg.offsetHeight - vh);
-              window.scrollTo({ top: elCorreg.offsetTop + (i / 4 + 0.08) * span, behavior: 'smooth' });
+              const targetBeat = i * 2 + 1;
+              window.scrollTo({ top: topDoc + (targetBeat / 9 + 0.02) * span, behavior: 'smooth' });
             }
           };
           return (

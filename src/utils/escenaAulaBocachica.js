@@ -1700,7 +1700,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const dxIsla = () => (window.innerWidth >= 1024 ? -1350 : 0);
   const POSES = {
     isla_completa: () => ({
-      pos: new THREE.Vector3(0, 13600, -170),
+      pos: new THREE.Vector3(0, 14800, -170),
       look: new THREE.Vector3(0, 0, -180),
     }),
     hero: (t) => {
