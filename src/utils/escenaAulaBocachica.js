@@ -556,7 +556,6 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     viasHalo = new LineSegments2(viasGeo, viasHaloMat);
     viasHalo.renderOrder = 14;
     viasHalo.frustumCulled = false;
-    scene.add(viasHalo);
 
     // Cinta central brillante (blanco calles, celeste trochas, naranja senderos)
     viasMainMat = new LineMaterial({
@@ -569,7 +568,6 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     viasMain = new LineSegments2(viasGeo, viasMainMat);
     viasMain.renderOrder = 15;
     viasMain.frustumCulled = false;
-    scene.add(viasMain);
 
     lineMats.push(viasHaloMat, viasMainMat);
   }
@@ -1062,6 +1060,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x9fc6d4, 0.000012);
   scene.add(terrain, houseBasesMesh, houseWallsMesh, houseRoofsMesh, treesGroup);
+  if (viasHalo) scene.add(viasHalo);
+  if (viasMain) scene.add(viasMain);
 
   const sky = new Sky();
   sky.scale.setScalar(450000);
