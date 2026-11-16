@@ -4474,7 +4474,9 @@ export default function AulaAmbientalBocachica({
                       type="button"
                       onClick={() => {
                         setCorregSel(null);
-                        escena?.set({ cam: 'isla_completa', nodosActivos: [] });
+                        setVistaRecorrido('planta');
+                        escena?.vista?.reset?.();
+                        escena?.set({ cam: 'isla_completa', cartografia: 0.32, nodosActivos: [] });
                       }}
                       className="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-semibold text-white flex items-center gap-1 cursor-pointer"
                     >
@@ -4489,7 +4491,9 @@ export default function AulaAmbientalBocachica({
                         type="button"
                         onClick={() => {
                           setCorregSel(null);
-                          escena?.set({ cam: 'isla_completa', nodosActivos: [] });
+                          setVistaRecorrido('planta');
+                          escena?.vista?.reset?.();
+                          escena?.set({ cam: 'isla_completa', cartografia: 0.32, nodosActivos: [] });
                         }}
                         aria-label="Cerrar pop-up"
                         className="p-1 rounded-full text-white/60 hover:text-white hover:bg-white/10 cursor-pointer"
@@ -5668,7 +5672,12 @@ export default function AulaAmbientalBocachica({
               </div>
               <button
                 type="button"
-                onClick={() => setVer180(false)}
+                onClick={() => {
+                  setVer180(false);
+                  setVistaRecorrido('planta');
+                  escena?.vista?.reset?.();
+                  escena?.set({ cam: 'isla_completa', cartografia: 0.32, nodosActivos: [] });
+                }}
                 className="px-3.5 py-1.5 rounded-full bg-white text-[#0b1016] hover:bg-white/90 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer transition"
               >
                 <X className="w-4 h-4" />
@@ -5748,7 +5757,12 @@ export default function AulaAmbientalBocachica({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setVer180Cano(false)}
+                    onClick={() => {
+                      setVer180Cano(false);
+                      setVistaRecorrido('planta');
+                      escena?.vista?.reset?.();
+                      escena?.set({ cam: 'isla_completa', cartografia: 0.32, nodosActivos: [] });
+                    }}
                     className="px-3.5 py-1.5 rounded-full bg-white text-[#0b1016] hover:bg-white/90 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer transition"
                   >
                     <X className="w-4 h-4" />
