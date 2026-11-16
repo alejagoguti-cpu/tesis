@@ -147,10 +147,39 @@ function makeLimeTex() {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAXANI; return t;
 }
 
+function makeGrainTex(baseHex, fleckHex, darkHex, count = 450) {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const x = c.getContext('2d');
+  x.fillStyle = baseHex; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < count; i++) {
+    x.fillStyle = i % 3 === 0 ? darkHex : fleckHex;
+    x.globalAlpha = rnd(0.18, 0.52);
+    x.beginPath(); x.ellipse(rnd(256), rnd(256), rnd(1.5, 5), rnd(1, 3), rnd(3.14), 0, Math.PI * 2); x.fill();
+  }
+  x.globalAlpha = 1;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAXANI; return t;
+}
+
+function makeCitrusPeelTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const x = c.getContext('2d');
+  x.fillStyle = '#367c18'; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 650; i++) {
+    x.fillStyle = i % 2 ? '#275e10' : '#58a82b';
+    x.beginPath(); x.arc(rnd(256), rnd(256), rnd(1, 2.6), 0, Math.PI * 2); x.fill();
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAXANI; return t;
+}
+
 const texFishRaw = makeFishTex(false);
 const texFishFried = makeFishTex(true);
 const texPatacon = makePataconTex();
 const texLime = makeLimeTex();
+const texLimePeel = makeCitrusPeelTex();
+const texPanela = makeGrainTex('#7c3d13', '#b86c32', '#471e05', 520);
+const texGarlic = makeGrainTex('#efe4cc', '#ffffff', '#cbb894', 280);
+const texFlour = makeGrainTex('#f7f2e4', '#ffffff', '#e2d8be', 360);
+const texRaisin = makeGrainTex('#2d1620', '#4f2838', '#14080d', 400);
 
 const M = {
   table: new THREE.MeshStandardMaterial({ ...texWood, roughness: 0.85, metalness: 0, envMapIntensity: 0.55 }),
@@ -160,20 +189,20 @@ const M = {
   ironPan: new THREE.MeshStandardMaterial({ color: 0x262425, roughness: 0.44, metalness: 0.82, envMapIntensity: 1.2 }),
   brass: new THREE.MeshStandardMaterial({ color: 0xc29348, roughness: 0.34, metalness: 0.88, envMapIntensity: 1.2 }),
   iron: new THREE.MeshStandardMaterial({ color: 0x222020, roughness: 0.72, metalness: 0.75 }),
-  cocoMilk: new THREE.MeshStandardMaterial({ color: 0xfaf7ef, roughness: 0.25, metalness: 0.02 }),
-  panela: new THREE.MeshStandardMaterial({ color: 0x8a481a, roughness: 0.72 }),
-  salt: new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.45 }),
-  raisin: new THREE.MeshStandardMaterial({ color: 0x2d1824, roughness: 0.52 }),
+  cocoMilk: new THREE.MeshStandardMaterial({ color: 0xfaf7ef, roughness: 0.18, metalness: 0.04 }),
+  panela: new THREE.MeshStandardMaterial({ map: texPanela, bumpMap: texPanela, bumpScale: 0.05, roughness: 0.78 }),
+  salt: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.15, metalness: 0.1 }),
+  raisin: new THREE.MeshStandardMaterial({ map: texRaisin, bumpMap: texRaisin, bumpScale: 0.045, roughness: 0.55 }),
   riceWhite: new THREE.MeshStandardMaterial({ color: 0xf5f2ea, roughness: 0.65 }),
   riceTitote: new THREE.MeshStandardMaterial({ color: 0x6e421e, roughness: 0.68 }),
   fishRaw: new THREE.MeshStandardMaterial({ map: texFishRaw, bumpMap: texFishRaw, bumpScale: 0.03, roughness: 0.3, metalness: 0.18 }),
   fishFried: new THREE.MeshStandardMaterial({ map: texFishFried, bumpMap: texFishFried, bumpScale: 0.06, roughness: 0.55, metalness: 0.02 }),
   fishFinRaw: new THREE.MeshStandardMaterial({ color: 0x7b8d96, roughness: 0.55, side: THREE.DoubleSide }),
   fishFinFried: new THREE.MeshStandardMaterial({ color: 0xb85f14, roughness: 0.65, side: THREE.DoubleSide }),
-  lime: new THREE.MeshStandardMaterial({ color: 0x3b841b, roughness: 0.52 }),
-  limePulp: new THREE.MeshStandardMaterial({ map: texLime, roughness: 0.25 }),
-  garlic: new THREE.MeshStandardMaterial({ color: 0xf4ead2, roughness: 0.65 }),
-  flour: new THREE.MeshStandardMaterial({ color: 0xfaf6ec, roughness: 0.95 }),
+  lime: new THREE.MeshStandardMaterial({ map: texLimePeel, bumpMap: texLimePeel, bumpScale: 0.03, roughness: 0.48 }),
+  limePulp: new THREE.MeshStandardMaterial({ map: texLime, bumpMap: texLime, bumpScale: 0.02, roughness: 0.22 }),
+  garlic: new THREE.MeshStandardMaterial({ map: texGarlic, bumpMap: texGarlic, bumpScale: 0.025, roughness: 0.68 }),
+  flour: new THREE.MeshStandardMaterial({ map: texFlour, bumpMap: texFlour, bumpScale: 0.02, roughness: 0.96 }),
   patacon: new THREE.MeshStandardMaterial({ map: texPatacon, bumpMap: texPatacon, bumpScale: 0.04, roughness: 0.65 }),
   spoonWood: new THREE.MeshStandardMaterial({ color: 0x926238, roughness: 0.72 }),
   board: new THREE.MeshStandardMaterial({ ...texWood, color: 0xc89d6c, roughness: 0.68 }),
@@ -382,7 +411,16 @@ function buildBowls(recKey) {
     } else if (ing.id === 'panela') {
       for (let k = 0; k < 3; k++) { const b = makeIngPiece('panela'); b.position.set(rnd(-0.12, 0.12), 0.22 + k * 0.04, rnd(-0.12, 0.12)); b.rotation.y = rnd(3); inner.add(b); }
     } else if (ing.id === 'sal') {
-      const m = new THREE.Mesh(new THREE.SphereGeometry(0.38, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), M.salt); m.scale.set(1, 0.45, 1); m.position.y = 0.15; inner.add(m);
+      const crystalGeo = new THREE.OctahedronGeometry(0.032, 0);
+      const im = new THREE.InstancedMesh(crystalGeo, M.salt, 90);
+      const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), s = new THREE.Vector3();
+      for (let k = 0; k < 90; k++) {
+        const r = 0.36 * Math.sqrt(rnd()), th = rnd(6.28);
+        p.set(Math.cos(th) * r, 0.17 + (0.36 - r) * 0.22 + rnd(0.02), Math.sin(th) * r);
+        e.set(rnd(6), rnd(6), rnd(6)); q.setFromEuler(e); s.setScalar(rnd(0.7, 1.35));
+        m4.compose(p, q, s); im.setMatrixAt(k, m4);
+      }
+      im.instanceMatrix.needsUpdate = true; inner.add(im);
     } else if (ing.id === 'arroz_crudo') {
       const rd = makeRiceDome(0.42, 0.22, 220, true); rd.position.y = 0.12; inner.add(rd);
     } else if (ing.id === 'pasas') {
@@ -515,10 +553,55 @@ function layout() {
 }
 addEventListener('resize', layout);
 
-/* ───────────── WebAudio ───────────── */
-let AC = null, sizzleGain = null;
+/* ───────────── WebAudio + Música de Cartagena (Cumbia / Bullerengue) ───────────── */
+let AC = null, sizzleGain = null, musicGain = null, musicTimer = null, beatStep = 0;
+function startCartagenaMusic() {
+  if (!AC || musicTimer) return;
+  const gaitaNotes = [293.66, 349.23, 392.00, 440.00, 523.25, 440.00, 392.00, 349.23];
+  musicTimer = setInterval(() => {
+    if (!AC || S.muted || AC.state !== 'running') return;
+    const now = AC.currentTime;
+    const step = beatStep % 16;
+    // Tambor llamador / alegre en tiempos fuertes y síncopa costeña
+    if (step % 4 === 0 || step % 8 === 6) {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = 'sine';
+      const baseF = step % 4 === 0 ? 128 : 175;
+      o.frequency.setValueAtTime(baseF, now);
+      o.frequency.exponentialRampToValueAtTime(54, now + 0.14);
+      g.gain.setValueAtTime(0.18, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+      o.connect(g).connect(musicGain);
+      o.start(now); o.stop(now + 0.17);
+    }
+    // Guache / maraca en contratiempos
+    if (step % 2 === 1) {
+      const len = Math.floor(AC.sampleRate * 0.045);
+      const b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      const src = AC.createBufferSource(); src.buffer = b;
+      const hp = AC.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3800;
+      const g = AC.createGain(); g.gain.setValueAtTime(0.055, now);
+      src.connect(hp).connect(g).connect(musicGain);
+      src.start(now);
+    }
+    // Gaita caribeña suave
+    if (step % 2 === 0) {
+      const f = gaitaNotes[(beatStep >> 1) % gaitaNotes.length];
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(f, now);
+      g.gain.setValueAtTime(0.001, now);
+      g.gain.linearRampToValueAtTime(0.048, now + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      o.connect(g).connect(musicGain);
+      o.start(now); o.stop(now + 0.29);
+    }
+    beatStep++;
+  }, 190);
+}
 function initAudio() {
-  if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+  if (AC) { if (AC.state === 'suspended') AC.resume(); startCartagenaMusic(); return; }
   AC = new (window.AudioContext || window.webkitAudioContext)();
   const buf = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate), ch = buf.getChannelData(0);
   for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
@@ -526,6 +609,9 @@ function initAudio() {
   const flt = AC.createBiquadFilter(); flt.type = 'bandpass'; flt.frequency.value = 1850; flt.Q.value = 0.85;
   sizzleGain = AC.createGain(); sizzleGain.gain.value = 0;
   src.connect(flt).connect(sizzleGain).connect(AC.destination); src.start();
+  musicGain = AC.createGain(); musicGain.gain.value = S.muted ? 0 : 0.75;
+  musicGain.connect(AC.destination);
+  startCartagenaMusic();
 }
 function playSound(type) {
   if (S.muted || !AC) return;
@@ -837,7 +923,11 @@ $('#next-rec').onclick = () => startRecipe('mojarra');
 $('#again').onclick = () => startRecipe(S.recipe);
 $('#flip-btn').onclick = flipMojarra;
 $('#btn').onclick = () => { if (S.phase === 'ing') toCook(); else if (S.phase === 'cook') toServe(); else finishGame(); };
-$('#snd').onclick = () => { S.muted = !S.muted; $('#snd').classList.toggle('off', S.muted); };
+$('#snd').onclick = () => {
+  S.muted = !S.muted;
+  $('#snd').classList.toggle('off', S.muted);
+  if (musicGain && AC) musicGain.gain.setTargetAtTime(S.muted ? 0 : 0.75, AC.currentTime, 0.05);
+};
 
 manager.onLoad = () => { $('#loading').textContent = 'Listo para cocinar'; };
 layout(); buildBowls('arroz'); syncUI();
