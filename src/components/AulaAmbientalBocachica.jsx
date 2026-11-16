@@ -3685,18 +3685,23 @@ export default function AulaAmbientalBocachica({
         if (window.scrollY <= maxScrollCorreg + 20) {
           const frac = Math.max(0, Math.min(1, (window.scrollY - topCorreg) / spanCorreg));
           const ordenNodos = ['tierraBomba', 'puntaArena', 'canoDeLoro', 'casco'];
-          const beat = Math.min(ordenNodos.length * 2 - 1, Math.floor(frac * ordenNodos.length * 2));
-          const idx = Math.floor(beat / 2);
-          const vista = beat % 2 === 0 ? 'planta' : 'axo';
+          const totalBeats = ordenNodos.length * 2 + 1; // Beat 0 = Toda la isla en Planta, luego Planta/Axo por cada corregimiento
+          const beat = Math.min(totalBeats - 1, Math.floor(frac * totalBeats));
+          const idx = beat === 0 ? 0 : Math.floor((beat - 1) / 2);
+          const vista = beat === 0 ? 'planta' : (beat - 1) % 2 === 0 ? 'planta' : 'axo';
           if (beat !== ultimoPasoRecorridoRef.current) {
             ultimoPasoRecorridoRef.current = beat;
             setPasoRecorridoIdx(idx);
             setVistaRecorrido(vista);
             if (!libre) {
-              escena?.irANodo?.(ordenNodos[idx], vista === 'axo' ? 310 : 380, vista);
+              if (beat === 0) {
+                escena?.set?.({ cam: 'isla_completa', cartografia: 0.32, nodosActivos: [] });
+              } else {
+                escena?.irANodo?.(ordenNodos[idx], vista === 'axo' ? 310 : 380, vista);
+              }
             }
           }
-          if (beat === ordenNodos.length * 2 - 1 && frac >= 0.85 && !recorridoCompletadoRef.current) {
+          if (beat === totalBeats - 1 && frac >= 0.85 && !recorridoCompletadoRef.current) {
             recorridoCompletadoRef.current = true;
             setRecorridoCompletado(true);
             setAvisoBloqueoRecorrido(false);

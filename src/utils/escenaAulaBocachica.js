@@ -1700,8 +1700,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const dxIsla = () => (window.innerWidth >= 1024 ? -1350 : 0);
   const POSES = {
     isla_completa: () => ({
-      pos: new THREE.Vector3(dxIsla() * 0.28, 12600, 1200),
-      look: new THREE.Vector3(dxIsla() * 0.28, 0, -180),
+      pos: new THREE.Vector3(0, 13600, -170),
+      look: new THREE.Vector3(0, 0, -180),
     }),
     hero: (t) => {
       const a = THREE.MathUtils.degToRad(202) + Math.sin(t * 0.06) * 0.38;
@@ -1776,7 +1776,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
         };
       }
       return {
-        pos: new THREE.Vector3(f.x + Math.sin(t * 0.08) * d * 0.04, f.y + d * 1.55, f.z + d * 0.16),
+        pos: new THREE.Vector3(f.x, f.y + d * 1.6, f.z + 4),
         look: new THREE.Vector3(f.x, f.y + 4, f.z),
       };
     },
