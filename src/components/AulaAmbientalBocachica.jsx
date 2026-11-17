@@ -2532,7 +2532,7 @@ export default function AulaAmbientalBocachica({
   const [tabJuego, setTabJuego] = useState('isla'); // 'isla' | 'reto' | 'herramientas'
   const [sombraJuego, setSombraJuego] = useState(0); // 0..100
   const [lluviaJuego, setLluviaJuego] = useState(0); // 0..100
-  const [capasJuego, setCapasJuego] = useState({ casas: true, arboles: true, pilotos: true, vias: true });
+  const [capasJuego, setCapasJuego] = useState({ casas: true, arboles: true, pilotos: true, vias: false });
   const [mostrarViasCard, setMostrarViasCard] = useState(false);
   const [viasVisible, setViasVisible] = useState(true);
   const [retoIdx, setRetoIdx] = useState(0);

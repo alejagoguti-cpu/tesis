@@ -382,51 +382,29 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   const maxTex = renderer.capabilities.maxTextureSize;
   const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
 
-  // Trazo tenue de senderos y caminos de tierra sobre la textura base del terreno (estilo tesis_tercer_corte)
-  const pintarViasEnTextura = (ctx, sc) => {
-    if (!sintaxis?.peatonal?.coords?.length) return;
-    const G = sintaxis.peatonal;
-    const Lc = { residential: 9, unclassified: 8, service: 6, track: 5.5, path: 3.2, footway: 3, steps: 2.6, pedestrian: 4 };
-    let seed = 7;
-    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-    const layers = [
-      { k: 1.5, col: 'rgba(110, 92, 64, 0.40)' },
-      { k: 1.0, col: 'rgba(214, 192, 148, 0.85)' },
-      { k: 0.55, col: 'rgba(240, 230, 205, 0.65)' },
+  // Misma cartografía y acabado de caminos que tesis_tercer_corte.
+  const ANCHO_VIA = { residential: 9, unclassified: 8, service: 6, track: 5.5, path: 3.2, footway: 3, steps: 2.6, pedestrian: 4 };
+  const pintarVias = (ctx, aPx, mPorPx, escala) => {
+    const P = sintaxis.peatonal;
+    let sem = 7; const rnd = () => { sem = (sem * 16807) % 2147483647; return sem / 2147483647; };
+    const pasadas = [
+      { k: 1.5, col: 'rgba(110,92,64,0.3)' }, // borde sucio
+      { k: 1.0, col: 'rgba(214,192,148,0.95)' }, // arena
+      { k: 0.55, col: 'rgba(236,222,190,0.6)' }, // centro pisado, más claro
     ];
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    const toPx = (lon, lat) => {
-      const [X, Z] = llToXZ(lon, lat);
-      return [
-        ((X / mpt + txc - tx0) / (tx1 - tx0)) * ctx.canvas.width,
-        ((Z / mpt + tyc - ty0) / (ty1 - ty0)) * ctx.canvas.height,
-      ];
-    };
-    for (const de of layers) {
-      ctx.strokeStyle = de.col;
-      G.coords.forEach(([lo0, la0, lo1, la1], idx) => {
-        const ot = Math.max(1.6, ((Lc[G.tipo?.[idx]] || 4) / mpp) * sc * de.k * 0.42);
-        const [px0, py0] = toPx(lo0, la0);
-        const [px1, py1] = toPx(lo1, la1);
-        const dist = Math.hypot(px1 - px0, py1 - py0);
-        const steps = Math.max(1, Math.ceil(dist / Math.max(2, ot * 1.5)));
-        ctx.beginPath();
-        ctx.moveTo(px0, py0);
-        for (let s = 1; s <= steps; s++) {
-          const kn = s / steps;
-          const an = s < steps ? (rnd() - 0.5) * ot * 0.35 : 0;
-          ctx.lineTo(
-            px0 + (px1 - px0) * kn + an * (-(py1 - py0) / (dist || 1)),
-            py0 + (py1 - py0) * kn + an * ((px1 - px0) / (dist || 1))
-          );
-        }
-        ctx.lineWidth = ot * (0.85 + rnd() * 0.3);
-        ctx.stroke();
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (const pas of pasadas) {
+      ctx.strokeStyle = pas.col;
+      P.coords.forEach(([a, b, c2, d], s) => {
+        const w = Math.max(1.6, ((ANCHO_VIA[P.tipo[s]] || 4) / mPorPx) * escala * pas.k);
+        const [x0, y0] = aPx(a, b); const [x1, y1] = aPx(c2, d);
+        const L = Math.hypot(x1 - x0, y1 - y0); const n = Math.max(1, Math.ceil(L / Math.max(2, w * 1.5)));
+        ctx.beginPath(); ctx.moveTo(x0, y0);
+        for (let k = 1; k <= n; k++) { const t = k / n; const j = k < n ? (rnd() - 0.5) * w * 0.35 : 0; ctx.lineTo(x0 + (x1 - x0) * t + j * (-(y1 - y0) / (L || 1)), y0 + (y1 - y0) * t + j * ((x1 - x0) / (L || 1))); }
+        ctx.lineWidth = w * (0.85 + rnd() * 0.3); ctx.stroke();
       });
     }
   };
-
   const textureFrom = (img, maxSide) => {
     const sc = Math.min(1, maxSide / Math.max(img.width, img.height));
     const c = document.createElement('canvas');
@@ -434,7 +412,11 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     c.height = Math.round(img.height * sc);
     const ctx = c.getContext('2d');
     ctx.drawImage(img, 0, 0, c.width, c.height);
-    pintarViasEnTextura(ctx, sc);
+    // La foto abarca el mosaico completo, no la ventana recortada WIN.
+    pintarVias(ctx, (lon, lat) => {
+      const [tx, ty] = lonLatToTile(lon, lat);
+      return [(tx - MOSAIC.x0) * 256 * sc, (ty - MOSAIC.y0) * 256 * sc];
+    }, mpp, sc);
     const t = new THREE.CanvasTexture(c);
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = aniso;
@@ -508,16 +490,16 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
 
   if (sintaxis?.peatonal?.coords?.length) {
     const COLOR_TIPO = {
-      residential: new THREE.Color('#f0f4f8'),
-      unclassified: new THREE.Color('#f0f4f8'),
-      service: new THREE.Color('#8ee6f5'),
-      track: new THREE.Color('#8ee6f5'),
-      path: new THREE.Color('#ff7a50'),
-      footway: new THREE.Color('#ff7a50'),
-      steps: new THREE.Color('#ff7a50'),
-      pedestrian: new THREE.Color('#ff7a50'),
+      residential: new THREE.Color('#e8eef0'),
+      unclassified: new THREE.Color('#e8eef0'),
+      service: new THREE.Color('#9fd3e0'),
+      track: new THREE.Color('#9fd3e0'),
+      path: new THREE.Color('#ff8a6a'),
+      footway: new THREE.Color('#ff8a6a'),
+      steps: new THREE.Color('#ff8a6a'),
+      pedestrian: new THREE.Color('#ff8a6a'),
     };
-    const defCol = new THREE.Color('#f0f4f8');
+    const defCol = new THREE.Color('#e8eef0');
     const P = sintaxis.peatonal;
     const posList = [];
     const colList = [];
@@ -527,7 +509,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       const [x0, z0] = llToXZ(lo0, la0);
       const [x1, z1] = llToXZ(lo1, la1);
       const len = Math.hypot(x1 - x0, z1 - z0);
-      const steps = Math.max(1, Math.ceil(len / 14));
+      const steps = Math.max(1, Math.ceil(len / 16));
       const c = COLOR_TIPO[P.tipo?.[s]] || defCol;
 
       for (let b = 0; b < steps; b++) {
@@ -535,8 +517,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
         const sz0 = z0 + ((z1 - z0) * b) / steps;
         const sx1 = x0 + ((x1 - x0) * (b + 1)) / steps;
         const sz1 = z0 + ((z1 - z0) * (b + 1)) / steps;
-        const sy0 = heightAtXZ(sx0, sz0) + 3.2;
-        const sy1 = heightAtXZ(sx1, sz1) + 3.2;
+        const sy0 = heightAtXZ(sx0, sz0) + 3;
+        const sy1 = heightAtXZ(sx1, sz1) + 3;
 
         posList.push(sx0, sy0, sz0, sx1, sy1, sz1);
         colList.push(c.r, c.g, c.b, c.r, c.g, c.b);
@@ -2183,7 +2165,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     mostrarCasas: true,
     mostrarArboles: true,
     mostrarPilotos: true,
-    mostrarVias: true,
+    mostrarVias: false,
     viasOpacidad: 1,
     customFocus: null,
     zonas: [0.35, 0.35, 0.35], // [memoria/patrimonio, verde/escuela, agua/oficios]
@@ -2336,14 +2318,17 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     escuelaG.scale.set(1, Math.max(0.001, cur.escuela), 1);
 
     // Control dinámico de la red de vías (73,0 km en 1.642 tramos de OpenStreetMap)
-    const mostrarVias = T.mostrarVias !== false;
+    const mostrarVias = T.mostrarVias === true;
     const wantViasOp = mostrarVias ? (T.viasOpacidad ?? 1.0) : 0;
     if (viasHalo && viasMain) {
       const vis = wantViasOp > 0.02;
       viasHalo.visible = viasMain.visible = vis;
       if (vis) {
-        viasHaloMat.opacity = wantViasOp * 0.88;
-        viasMainMat.opacity = wantViasOp * 0.98;
+        const uw = clamp01((dist - 900) / 6000);
+        viasHaloMat.opacity = wantViasOp * 0.55;
+        viasMainMat.opacity = wantViasOp;
+        viasMainMat.linewidth = THREE.MathUtils.lerp(3.8, 2.3, uw) * (small ? 0.85 : 1);
+        viasHaloMat.linewidth = THREE.MathUtils.lerp(7.2, 4.6, uw) * (small ? 0.85 : 1);
       }
     }
 
