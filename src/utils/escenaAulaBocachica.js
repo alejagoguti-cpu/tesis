@@ -1913,53 +1913,6 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
     marcadores[k] = { beam, ring, bMat, rMat, x: n.x, y: n.y, z: n.z };
   }
 
-  // Rutas 3D con LineSegments2
-  const rutas3D = {};
-  const crearRuta3D = (clave, ptsLL, hexColor, ancho = 4.2) => {
-    const pts = ptsLL.map(([lo, la]) => llToXZ(lo, la));
-    const posArr = [];
-    for (let i = 0; i < pts.length - 1; i++) {
-      const [x0, z0] = pts[i];
-      const [x1, z1] = pts[i + 1];
-      const L = Math.hypot(x1 - x0, z1 - z0);
-      const steps = Math.max(1, Math.ceil(L / 12));
-      for (let j = 0; j < steps; j++) {
-        const ax = x0 + ((x1 - x0) * j) / steps;
-        const az = z0 + ((z1 - z0) * j) / steps;
-        const bx2 = x0 + ((x1 - x0) * (j + 1)) / steps;
-        const bz2 = z0 + ((z1 - z0) * (j + 1)) / steps;
-        posArr.push(ax, heightAtXZ(ax, az) + 3.2, az, bx2, heightAtXZ(bx2, bz2) + 3.2, bz2);
-      }
-    }
-    const g = new LineSegmentsGeometry();
-    g.setPositions(posArr);
-    const haloMat = new LineMaterial({ color: 0x05080c, linewidth: ancho + 2.8, transparent: true, opacity: 0, depthWrite: false });
-    const mainMat = new LineMaterial({
-      color: new THREE.Color(hexColor).getHex(),
-      linewidth: ancho,
-      transparent: true,
-      opacity: 0,
-      dashed: true,
-      dashSize: 18,
-      gapSize: 10,
-      depthWrite: false,
-    });
-    const halo = new LineSegments2(g, haloMat);
-    const main = new LineSegments2(g, mainMat);
-    main.computeLineDistances();
-    halo.renderOrder = 16;
-    main.renderOrder = 17;
-    halo.frustumCulled = main.frustumCulled = false;
-    aulaGroup.add(halo, main);
-    lineMats.push(haloMat, mainMat);
-    rutas3D[clave] = { g, halo, main, haloMat, mainMat, op: 0 };
-  };
-  crearRuta3D('agua', RUTAS_BOCACHICA.agua, '#6ec6e6', 4.4);
-  crearRuta3D('verde', RUTAS_BOCACHICA.verde, '#35d08a', 4.4);
-  crearRuta3D('residuos', RUTAS_BOCACHICA.residuos, '#f5b45a', 4.0);
-  crearRuta3D('oficios', RUTAS_BOCACHICA.oficios, '#e8a86b', 4.0);
-  crearRuta3D('patrimonio', RUTAS_BOCACHICA.patrimonio, '#e0917a', 4.6);
-
   // Etiquetas 3D flotantes (Sprites con tipografía Inter)
   try { document.fonts?.load?.('600 40px "Inter"').catch(() => {}); } catch { /* fallback */ }
   const crearEtiqueta = (texto, sub, X, Z, alto = 38, hexBar = '#e0917a') => {
@@ -2363,19 +2316,6 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
         const soloUno = Array.isArray(T.nodosActivos) && T.nodosActivos.length === 1 && activo;
         const wantEtq = soloUno && dist < 1300 && cur.dim < 0.4 ? 0.92 : 0;
         etqMap[k].material.opacity += (wantEtq - etqMap[k].material.opacity) * expo(dt, 6);
-      }
-    }
-
-    // Rutas 3D con flujo animado
-    for (const [k, r] of Object.entries(rutas3D)) {
-      const want = (T.rutas && T.rutas[k]) || 0;
-      r.op += (want - r.op) * expo(dt, 4.2);
-      const vis = r.op > 0.01;
-      r.halo.visible = r.main.visible = vis;
-      if (vis) {
-        r.mainMat.opacity = r.op * 0.95;
-        r.haloMat.opacity = r.op * 0.6;
-        r.mainMat.dashOffset -= dt * 14;
       }
     }
 
