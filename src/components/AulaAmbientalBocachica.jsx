@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   MapPin,
@@ -2507,6 +2507,8 @@ export default function AulaAmbientalBocachica({
   onBack,
   onBackToPortada,
   accionInicial,
+  onExplorarCanal,
+  canalAbierto = false,
   enPortada = false,
   onSelectProject,
   onNavigateModule,
@@ -3307,8 +3309,8 @@ export default function AulaAmbientalBocachica({
   }, [escena, enPortada]);
 
   useEffect(() => {
-    escena?.setPausado?.(Boolean((!enVistaAula && !enPortada) || panelJuego || mostrarTalleres || actividadViernesSel || modalDiagrama || ver180 || ver180Cano));
-  }, [escena, enVistaAula, enPortada, panelJuego, mostrarTalleres, actividadViernesSel, modalDiagrama, ver180, ver180Cano]);
+    escena?.setPausado?.(Boolean(canalAbierto || (!enVistaAula && !enPortada) || panelJuego || mostrarTalleres || actividadViernesSel || modalDiagrama || ver180 || ver180Cano));
+  }, [escena, enVistaAula, enPortada, canalAbierto, panelJuego, mostrarTalleres, actividadViernesSel, modalDiagrama, ver180, ver180Cano]);
 
   useEffect(() => {
     if (!autoTourActivo || !escena || panelJuego || modalDiagrama || patrimonioSel || actividadViernesSel) return undefined;
@@ -4294,6 +4296,8 @@ export default function AulaAmbientalBocachica({
                 </button>
               </div>
 
+              {onExplorarCanal && <button type="button" onClick={onExplorarCanal} className="w-full p-3 border border-[#ef9a79]/40 bg-[#ef9a79]/10 text-[#ef9a79] text-left text-sm flex items-center justify-between gap-3"><span>Explorar el canal y sus fuertes en puntos</span><ArrowRight size={18}/></button>}
+
               <p key={`${patAct.nodo}-txt`} className="cf-guide-description text-xs text-white/85 leading-relaxed line-clamp-2 tc-paso-anim">
                 {patAct.secciones?.[0]?.texto}
               </p>
@@ -4405,6 +4409,8 @@ export default function AulaAmbientalBocachica({
                     <span className="text-lg font-black leading-none mt-0.5">{pat.anio}</span>
                   </div>
                 </div>
+
+                {onExplorarCanal && (pat.nodo === 'sanFernando' || pat.nodo === 'sanJose') && <button type="button" onClick={onExplorarCanal} className="w-full p-3 border border-[#ef9a79]/40 bg-[#ef9a79]/10 text-[#ef9a79] text-left text-sm flex items-center justify-between gap-3"><span>Explorar su relación con el canal</span><ArrowRight size={18}/></button>}
 
                 {/* FICHAS INTERACTIVAS: UNO A LA VEZ AL HACER CLIC */}
                 {(() => {
