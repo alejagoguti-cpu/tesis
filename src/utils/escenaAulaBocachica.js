@@ -2018,7 +2018,14 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   // ---------- poses de cámara sobre Tierra Bomba y Bocachica ----------
   const dx = () => (window.innerWidth >= 1024 ? -220 : 0);
   const dxIsla = () => (window.innerWidth >= 1024 ? -1350 : 0);
+  const crPortada = Math.cos(geoRef.rot), srPortada = Math.sin(geoRef.rot);
+  const pxPortada = (40 - geoRef.tx) / geoRef.sc, pyPortada = (390 - geoRef.ty) / geoRef.sc;
+  const [portadaX, portadaZ] = llToXZ(geoRef.lon0 + (pxPortada * crPortada + pyPortada * srPortada) / geoRef.kx, geoRef.lat0 + (-pxPortada * srPortada + pyPortada * crPortada) / geoRef.ky);
   const POSES = {
+    portada_comunidad: (t) => {
+      const a = THREE.MathUtils.degToRad(205) + Math.sin(t * 0.05) * 0.55;
+      return { pos: new THREE.Vector3(portadaX + Math.sin(a) * 470, 170, portadaZ + Math.cos(a) * 470), look: new THREE.Vector3(portadaX, -6, portadaZ) };
+    },
     isla_completa: () => ({
       pos: new THREE.Vector3(0, 14800, -170),
       look: new THREE.Vector3(0, 0, -180),
