@@ -5,14 +5,14 @@ Fuente: https://commons.wikimedia.org/wiki/File:San_Fernando.jpg
 Original: https://upload.wikimedia.org/wikipedia/commons/e/ee/San_Fernando.jpg
 Licencia elegida: CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/
 
-Transformación: muestreo de los colores de la fotografía y reconstrucción animada
-con puntos en un lienzo 2D. La adaptación visual de esta fotografía se comparte
-bajo CC BY-SA 4.0. No es una nube de puntos levantada en campo ni un modelo
-tridimensional del monumento.
+Uso: miniatura de acceso en la portada de Comunidad. La fotografía no se
+renderiza dentro de la experiencia animada.
 
-El esquema separado del canal es interpretativo y no está a escala. El recorrido
-de la embarcación y las líneas de relación no son rutas de navegación, campos de
-visión calculados ni alcances de artillería históricos.
+La escena de San Fernando se construye con puntos tridimensionales sobre una
+geometría interpretativa propia (batería semicircular, patio y bastiones). No es
+un levantamiento ni una reproducción exacta del monumento. Las posiciones, la
+embarcación y su recorrido son esquemáticos. Las líneas expresan una relación
+territorial, no campos de visión medidos ni alcances históricos de artillería.
 
 Referencias históricas:
 - https://fortificacionescartagena.com.co/es/servicios/reservas/fortificaciones-de-bocachica/

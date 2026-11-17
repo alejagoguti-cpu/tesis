@@ -3055,6 +3055,7 @@ export default function AulaAmbientalBocachica({
     if (!pat) return;
     setPatrimonioSel(pat);
     setPatrimonioSecIdx(0);
+    if (pat.nodo === 'sanFernando') { setAutoTourActivo(false); onExplorarCanal?.(); }
     escena?.irANodo?.(pat.nodo, 340);
   };
 
@@ -4309,7 +4310,8 @@ export default function AulaAmbientalBocachica({
                     type="button"
                     onClick={() => {
                       setPatPreviewIdx(idx);
-                      escena?.irANodo?.(p.nodo, 280);
+                      if (p.nodo === 'sanFernando') seleccionarPatrimonio(p);
+                      else escena?.irANodo?.(p.nodo, 280);
                     }}
                     className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer ${
                       idx === patPreviewIdx % patrimoniosIsla.length
@@ -4327,9 +4329,7 @@ export default function AulaAmbientalBocachica({
                   type="button"
                   onClick={() => {
                     setAutoTourActivo(false);
-                    setPatrimonioSecIdx(0);
-                    setPatrimonioSel(patAct);
-                    escena?.irANodo?.(patAct.nodo, 260);
+                    seleccionarPatrimonio(patAct);
                   }}
                   className="flex-1 py-2 px-3 rounded-xl bg-white text-[#0b1016] hover:bg-white/90 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition"
                 >

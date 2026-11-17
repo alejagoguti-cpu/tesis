@@ -4,7 +4,7 @@ import './comunidad-facil.css';
 const PatrimonioCanal = lazy(() => import('./PatrimonioCanal'));
 const AulaAmbientalBocachica = lazy(() => import('./AulaAmbientalBocachica'));
 const ACTIVIDADES = [
-  { id:'canal', titulo:'Explorar el canal y sus fuertes', Icon:Landmark, foto:'images/patrimonio/san-fernando-aerea.jpg' },
+  { id:'canal', titulo:'San Fernando en movimiento', Icon:Landmark, foto:'images/patrimonio/san-fernando-aerea.jpg' },
   { id:'pescado', titulo:'Cocinar pescado', Icon:Utensils, foto:'images/memorias/arroz_coco_pescado.jpg' },
   { id:'cocada', titulo:'Hacer cocadas', Icon:Utensils, foto:'images/memorias/dulces_isnelia.jpg' },
   { id:'bullerengue', titulo:'Bailar bullerengue', Icon:Music, foto:'images/memorias/bullerengue.jpg' },
