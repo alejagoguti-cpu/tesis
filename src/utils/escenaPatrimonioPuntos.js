@@ -3,7 +3,7 @@
 // animation also works on devices without WebGL. No photograph is drawn.
 const TAU = Math.PI * 2;
 const smooth = t => { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); };
-export function crearEscenaPatrimonio(canvas, { onFase, onError, reducida = false, lugar = 'sanFernando' } = {}) {
+export function crearEscenaPatrimonio(canvas, { onFase, onError, reducida = false, lugar = 'sanFernando', rotulos = true } = {}) {
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) { onError?.(); return () => {}; }
   let seed = 71;
@@ -246,12 +246,12 @@ export function crearEscenaPatrimonio(canvas, { onFase, onError, reducida = fals
     buffer.sort((a,b)=>b.z-a.z);
     for(const p of buffer){ctx.globalAlpha=p.a;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.s,0,TAU);ctx.fill();}
     ctx.globalAlpha=1;
-    if(build>.9)for(const [text,x,y,z] of etiquetas)label(text,x,y,z,'#e6d7b8');
-    ctx.fillStyle='#739a9c';ctx.font='10px "Geist Mono",monospace';ctx.textAlign='left';ctx.fillText(esCasco?'BORDE DE AGUA':esRafael?'CERRO DEL HORNO':'MAR CARIBE',w*.08,h*.63);
-    ctx.textAlign='right';ctx.fillText(esCasco?'RECORRIDO PEATONAL':esRafael?'PAISAJE DE BOCACHICA':'BAHÍA DE CARTAGENA →',w*.93,h*.71);
+    if(rotulos&&build>.9)for(const [text,x,y,z] of etiquetas)label(text,x,y,z,'#e6d7b8');
+    if(rotulos){ctx.fillStyle='#739a9c';ctx.font='10px "Geist Mono",monospace';ctx.textAlign='left';ctx.fillText(esCasco?'BORDE DE AGUA':esRafael?'CERRO DEL HORNO':'MAR CARIBE',w*.08,h*.63);
+    ctx.textAlign='right';ctx.fillText(esCasco?'RECORRIDO PEATONAL':esRafael?'PAISAJE DE BOCACHICA':'BAHÍA DE CARTAGENA →',w*.93,h*.71);}
   }
   function label(text,x,y,z,color){const p=project(x,y,z);ctx.font=`${mobile?9:10}px "Geist Mono",monospace`;ctx.textAlign='center';ctx.fillStyle=color;ctx.fillText(text,p.x,p.y-15);ctx.strokeStyle=color;ctx.globalAlpha=.4;ctx.beginPath();ctx.moveTo(p.x,p.y-9);ctx.lineTo(p.x,p.y);ctx.stroke();ctx.globalAlpha=1;}
-  const frame=t=>{if(!alive)return;raf=requestAnimationFrame(frame);const dt=last?Math.min(t-last,1000):0;last=t;if(!visible||document.hidden)return;if(!pausado&&!reducida)elapsed+=dt/1000;if(t-lastDraw<40)return;lastDraw=t;draw(reducida?13:elapsed);};
+  const frame=t=>{if(!alive)return;if(reducida){draw(13);return;}raf=requestAnimationFrame(frame);const dt=last?Math.min(t-last,1000):0;last=t;if(!visible||document.hidden)return;if(!pausado&&!reducida)elapsed+=dt/1000;if(t-lastDraw<40)return;lastDraw=t;draw(reducida?13:elapsed);};
   const move=e=>{const r=canvas.getBoundingClientRect();mouseX=(e.clientX-r.left)/r.width-.5;mouseY=(e.clientY-r.top)/r.height-.5;};
   const leave=()=>{mouseX=0;mouseY=0;};
   const ro=new ResizeObserver(resize);ro.observe(canvas);

@@ -79,7 +79,7 @@ function CardIluminada({ children, color = '#e8a86b', className = '', onClick })
   );
 }
 
-function JuegoCocinarMojarra({ onCerrar }) {
+function JuegoCocinarMojarra({ onCerrar, onInicio }) {
   const contenido = (
     <div className="fixed inset-0 z-[120] bg-[#1a110b] flex flex-col">
       <iframe
@@ -88,6 +88,7 @@ function JuegoCocinarMojarra({ onCerrar }) {
         className="w-full h-full border-0 flex-1"
         allow="autoplay"
       />
+      {onInicio && <button type="button" onClick={onInicio} className="fixed bottom-4 right-4 z-[130] px-4 py-2 rounded-full bg-black/80 text-white border border-white/25 text-xs flex items-center gap-2"><Home size={14}/>Inicio</button>}
       {onCerrar && (
         <button
           type="button"
@@ -104,7 +105,7 @@ function JuegoCocinarMojarra({ onCerrar }) {
   return typeof document !== 'undefined' ? createPortal(contenido, document.body) : contenido;
 }
 
-function JuegoPailaDulce({ onCerrar }) {
+function JuegoPailaDulce({ onCerrar, onInicio }) {
   const contenido = (
     <div className="fixed inset-0 z-[120] bg-[#1a110b] flex flex-col">
       <iframe
@@ -113,6 +114,7 @@ function JuegoPailaDulce({ onCerrar }) {
         className="w-full h-full border-0 flex-1"
         allow="autoplay"
       />
+      {onInicio && <button type="button" onClick={onInicio} className="fixed bottom-4 right-4 z-[130] px-4 py-2 rounded-full bg-black/80 text-white border border-white/25 text-xs flex items-center gap-2"><Home size={14}/>Inicio</button>}
       {onCerrar && (
         <button
           type="button"
@@ -2525,7 +2527,7 @@ export default function AulaAmbientalBocachica({
   const [capActual, setCapActual] = useState(CAPITULOS[0]);
   const [enVistaAula, setEnVistaAula] = useState(false);
   const [iniciarMapa, setIniciarMapa] = useState(false);
-  useEffect(() => { if (accionInicial?.id === 'isla' || (enVistaAula && !accionInicial) || (enPortada && window.innerWidth >= 768)) setIniciarMapa(true); }, [enVistaAula, accionInicial, enPortada]);
+  useEffect(() => { if (accionInicial?.id === 'isla' || (enVistaAula && !accionInicial)) setIniciarMapa(true); }, [enVistaAula, accionInicial, enPortada]);
   const [enPasos3D, setEnPasos3D] = useState(false);
   const [pasoIdx, setPasoIdx] = useState(0);
   const [pasoProg, setPasoProg] = useState(0);
@@ -3255,6 +3257,8 @@ export default function AulaAmbientalBocachica({
       setModalDiagrama(item.modal);
       return;
     }
+    const patrimonio = patrimoniosIsla.find(p => p.nodo === item.nodo);
+    if (patrimonio) { seleccionarPatrimonio(patrimonio); return; }
     setLugarActivo(item);
     escena?.irANodo?.(item.nodo, 300);
   };
@@ -3542,7 +3546,7 @@ export default function AulaAmbientalBocachica({
 
       {sin3D && (enVistaAula || enPortada) && <div className="cf-map-fallback"><img src={`${import.meta.env.BASE_URL}textures/tierrabomba_satelite.jpg`} alt="Isla de Tierra Bomba" /></div>}
       {/* INDICADOR DE CARGA */}
-      {enVistaAula && progreso.p < 1 && (
+      {enVistaAula && iniciarMapa && progreso.p < 1 && (
         <div className="fixed bottom-6 right-8 z-50 tc-vidrio px-4 py-3 w-64 pointer-events-none">
           <div className="flex justify-between text-xs text-white/80">
             <span>{progreso.texto}</span>
@@ -5020,6 +5024,7 @@ export default function AulaAmbientalBocachica({
                 <button
                   type="button"
                   onClick={() => {
+                    if (volverFn) { volverFn(); return; }
                     setPanelJuego(false);
                     setMemItemSel(null);
                     escena?.vista?.reset?.();
@@ -5028,7 +5033,7 @@ export default function AulaAmbientalBocachica({
                   className="px-3.5 py-2 rounded-full bg-white/10 hover:bg-white/20 text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer transition"
                 >
                   <X className="w-4 h-4" />
-                  <span>Volver al mapa</span>
+                  <span>{volverFn ? 'Volver al inicio' : 'Volver al mapa'}</span>
                 </button>
               </div>
 
@@ -5138,12 +5143,13 @@ export default function AulaAmbientalBocachica({
 
                   {memItemSel.id === 'arroz_coco_pescado' && (
                     <JuegoCocinarMojarra
+                      onInicio={volverFn}
                       color={catMem.color}
                       onCerrar={() => setMemItemSel(null)}
                     />
                   )}
                   {memItemSel.id === 'dulces_isnelia' && (
-                    <JuegoPailaDulce onCerrar={() => setMemItemSel(null)} />
+                    <JuegoPailaDulce onInicio={volverFn} onCerrar={() => setMemItemSel(null)} />
                   )}
                   {(memItemSel.id === 'bullerengue' || memItemSel.id === 'mapale_cumbia') && (
                     <JuegoBailarCartagenero

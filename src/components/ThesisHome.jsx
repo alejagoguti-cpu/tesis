@@ -1,9 +1,9 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { Reveal, CountUp, supportsScrollTimeline } from './Motion';
 import { projectInfo } from '../data/projectData';
-import IslaReal3D from './IslaReal3D';
-import IslaErosion3D from './IslaErosion3D';
+import HeroTerritorio from './HeroTerritorio';
+const IslaErosion3D = lazy(() => import('./IslaErosion3D'));
 
 const AULA_URL = 'https://alejagoguti-cpu.github.io/bocachica/';
 const A = (f) => `${import.meta.env.BASE_URL}assets/${f}`;
@@ -124,55 +124,12 @@ export default function ThesisHome({ onGoCommunity }) {
     <div className="bg-[#0b1015] text-white font-sans overflow-x-hidden">
       <ProgressBar />
 
-      {/* Barra */}
-      <header className="fixed top-0 inset-x-0 z-40 flex items-center justify-between px-4 sm:px-8 h-14 bg-[#0b1015]/70 backdrop-blur-md border-b border-white/10">
-        <span className="text-sm font-semibold tracking-tight drop-shadow">Tierra Bomba · Tesis</span>
-        <button
-          onClick={onGoCommunity}
-          className="flex items-center gap-2 text-sm px-3 h-9 rounded-md border border-white/40 bg-black/20 backdrop-blur-md hover:bg-white hover:text-[#16181d] transition-colors cursor-pointer"
-        >
-          Versión para la comunidad <ArrowRight className="h-4 w-4" />
-        </button>
-      </header>
+      <HeroTerritorio academico onExplorar={onGoCommunity} onPatrimonio={() => {
+        const el = document.getElementById('problema');
+        el?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+      }}/>
 
-      {/* 1. PORTADA */}
-      <section className="relative h-[100svh] min-h-[620px] overflow-hidden">
-        <img
-          src={A('vivienda_erosion_ruinas.png')}
-          alt="Ruinas de una vivienda frente al mar, con la ciudad de Cartagena al fondo"
-          className="absolute inset-0 h-full w-full object-cover anim-ken-burns"
-          fetchPriority="high"
-        />
-        {!import.meta.env.VITE_NO_HERO && <IslaReal3D className="absolute inset-0" />}`n        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0b1015] via-[#0b1015]/10 to-transparent" />
-        <div className="relative z-10 h-full flex flex-col justify-end px-4 sm:px-10 lg:px-16 pb-8 sm:pb-12">
-          <p className="anim-fade-up text-sm sm:text-base text-white/80">Tesis de grado · Arquitectura y Urbanismo · 2026</p>
-          <h1
-            className="anim-fade-up mt-3 font-semibold tracking-tighter leading-[0.88] text-[clamp(3.5rem,14vw,12rem)]"
-            style={{ animationDelay: '150ms' }}
-          >
-            Tierra<br className="sm:hidden" /> Bomba
-          </h1>
-          <p className="anim-fade-up mt-4 max-w-2xl text-lg sm:text-2xl font-light text-white/90" style={{ animationDelay: '350ms' }}>
-            Planificación y adaptación territorial frente a la pérdida de suelo costero
-          </p>
-
-          <div className="anim-fade-up mt-8 grid grid-cols-3 gap-px max-w-2xl overflow-hidden rounded-lg border border-white/25 bg-white/20 backdrop-blur-xl" style={{ animationDelay: '550ms' }}>
-            {[
-              ['1,8 m', 'de costa por año'],
-              ['10·20·30', 'años proyectados'],
-              ['+22 m', 'cota segura'],
-            ].map(([a, b]) => (
-              <div key={a} className="bg-black/35 px-3 sm:px-5 py-3">
-                <p className="text-lg sm:text-2xl font-semibold leading-none">{a}</p>
-                <p className="mt-1 text-[11px] sm:text-xs text-white/65">{b}</p>
-              </div>
-            ))}
-          </div>
-          <a href="#problema" className="mt-6 text-sm text-white/80 w-fit">
-            Formulación del problema <span className="anim-float-y inline-block ml-1">↓</span>
-          </a>
-        </div>
-      </section>
+      <nav className="ex-section-nav" aria-label="Recorrer la tesis"><span>Tierra Bomba · Investigación</span><div><button type="button" onClick={() => window.scrollTo({top:0,behavior:'smooth'})}>Inicio</button><button type="button" className="ex-nav-mapa" onClick={onGoCommunity}>Explorar la comunidad <ArrowUpRight size={14}/></button></div></nav>
 
       {/* 2. PROBLEMA (texto que se ilumina) */}
       <section id="problema" className="px-4 sm:px-10 lg:px-16 py-24 sm:py-36 bg-[#0b1015]">
@@ -193,7 +150,7 @@ export default function ThesisHome({ onGoCommunity }) {
             </p>
           </Reveal>
           <Reveal delay={100} className="mt-8">
-            <LazyMount minHeight="70svh"><IslaErosion3D /></LazyMount>
+            <LazyMount minHeight="70svh"><Suspense fallback={<div className="min-h-[60svh] flex items-center justify-center text-sm text-white/50" role="status">Preparando la simulación del territorio…</div>}><IslaErosion3D /></Suspense></LazyMount>
           </Reveal>
         </div>
       </section>
