@@ -18,3 +18,18 @@ Referencias históricas:
 - https://fortificacionescartagena.com.co/es/servicios/reservas/fortificaciones-de-bocachica/
 - https://fortificacionescartagena.com.co/es/destination/fuerte-de-san-jose/
 - https://fortificacionescartagena.com.co/es/historia/fortificaciones-de-la-bahia/bahia-exterior/
+
+## Otras escenas del patrimonio
+
+San José: interpretación de batería angular baja y cuerpo abovedado; barco en
+movimiento frente al canal. San Rafael: batería sobre relieve ilustrativo, figura
+que asciende por un camino esquemático. Casco Histórico: tejido conceptual de
+viviendas, iglesia y plaza con figuras caminando; no replica una manzana ni una
+iglesia levantada en campo. Los recorridos y personas son recursos narrativos,
+no observaciones de movilidad ni rutas verificadas.
+
+Fuentes adicionales:
+- https://fortificacionescartagena.com.co/es/destination/bateria-del-angel-san-rafael/
+- https://vuc.cartagena.gov.co/documentos/normatividad/DECRETO_0977_de_2001.pdf
+- POT Cartagena, caracterización físico espacial del centro poblado de Bocachica
+  (la referencia cartográfica exacta se enlaza en la escena).

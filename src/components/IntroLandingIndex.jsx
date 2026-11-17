@@ -14,12 +14,16 @@ const ACTIVIDADES = [
 ];
 export default function IntroLandingIndex({onNavigateModule,onBackToThesis}) {
   const [accion,setAccion]=useState(null);
-  const [canalAbierto,setCanalAbierto]=useState(() => new URLSearchParams(window.location.search).get('experiencia') === 'canal');
-  const abrirCanal = useCallback(() => setCanalAbierto(true), []);
+  const [canalAbierto,setCanalAbierto]=useState(() => { const id = new URLSearchParams(window.location.search).get('experiencia'); return id === 'canal' ? 'sanFernando' : ['sanFernando','sanJose','sanRafael','casco'].includes(id) ? id : null; });
+  const abrirCanal = useCallback((nodo = 'sanFernando') => {
+    const id = ['sanFernando','sanJose','sanRafael','casco'].includes(nodo) ? nodo : 'sanFernando';
+    setCanalAbierto(id);
+    const url = new URL(window.location.href); url.searchParams.set('experiencia', id); window.history.replaceState(null, '', url);
+  }, []);
   const cerrarCanal = useCallback(() => {
-    setCanalAbierto(false);
+    setCanalAbierto(null);
     const url = new URL(window.location.href);
-    if (url.searchParams.get('experiencia') === 'canal') { url.searchParams.delete('experiencia'); window.history.replaceState(null, '', url); }
+    if (['canal','sanFernando','sanJose','sanRafael','casco'].includes(url.searchParams.get('experiencia'))) { url.searchParams.delete('experiencia'); window.history.replaceState(null, '', url); }
   }, []);
   const [enPortada,setEnPortada]=useState(true);
   return <div className="community-entry cf-hub-root">
@@ -40,6 +44,6 @@ export default function IntroLandingIndex({onNavigateModule,onBackToThesis}) {
     <Suspense fallback={<div className="cf-hub-loading" role="status">Preparando la isla…</div>}>
       <AulaAmbientalBocachica onExplorarCanal={abrirCanal} canalAbierto={canalAbierto} accionInicial={accion} enPortada={enPortada} onBackToPortada={()=>{setEnPortada(true);document.getElementById('comunidad-portada-hero')?.scrollIntoView({behavior:'instant'});}} onNavigateModule={onNavigateModule}/>
     </Suspense>
-    {canalAbierto && <Suspense fallback={<div className="cf-hub-loading" role="status">Preparando el fuerte en puntos…</div>}><PatrimonioCanal onClose={cerrarCanal}/></Suspense>}
+    {canalAbierto && <Suspense fallback={<div className="cf-hub-loading" role="status">Preparando el patrimonio en puntos…</div>}><PatrimonioCanal key={canalAbierto} lugar={canalAbierto} onElegirLugar={abrirCanal} onClose={cerrarCanal}/></Suspense>}
   </div>;
 }

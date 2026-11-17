@@ -3055,7 +3055,7 @@ export default function AulaAmbientalBocachica({
     if (!pat) return;
     setPatrimonioSel(pat);
     setPatrimonioSecIdx(0);
-    if (pat.nodo === 'sanFernando') { setAutoTourActivo(false); onExplorarCanal?.(); }
+    if (['sanFernando','sanJose','sanRafael','casco'].includes(pat.nodo)) { setAutoTourActivo(false); onExplorarCanal?.(pat.nodo); }
     escena?.irANodo?.(pat.nodo, 340);
   };
 
@@ -4297,7 +4297,7 @@ export default function AulaAmbientalBocachica({
                 </button>
               </div>
 
-              {onExplorarCanal && <button type="button" onClick={onExplorarCanal} className="w-full p-3 border border-[#ef9a79]/40 bg-[#ef9a79]/10 text-[#ef9a79] text-left text-sm flex items-center justify-between gap-3"><span>Explorar el canal y sus fuertes en puntos</span><ArrowRight size={18}/></button>}
+              {onExplorarCanal && <button type="button" onClick={() => onExplorarCanal(patAct.nodo)} className="w-full p-3 border border-[#ef9a79]/40 bg-[#ef9a79]/10 text-[#ef9a79] text-left text-sm flex items-center justify-between gap-3"><span>Ver este lugar en movimiento</span><ArrowRight size={18}/></button>}
 
               <p key={`${patAct.nodo}-txt`} className="cf-guide-description text-xs text-white/85 leading-relaxed line-clamp-2 tc-paso-anim">
                 {patAct.secciones?.[0]?.texto}
@@ -4310,7 +4310,7 @@ export default function AulaAmbientalBocachica({
                     type="button"
                     onClick={() => {
                       setPatPreviewIdx(idx);
-                      if (p.nodo === 'sanFernando') seleccionarPatrimonio(p);
+                      if (['sanFernando','sanJose','sanRafael','casco'].includes(p.nodo)) seleccionarPatrimonio(p);
                       else escena?.irANodo?.(p.nodo, 280);
                     }}
                     className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer ${
@@ -4410,7 +4410,7 @@ export default function AulaAmbientalBocachica({
                   </div>
                 </div>
 
-                {onExplorarCanal && (pat.nodo === 'sanFernando' || pat.nodo === 'sanJose') && <button type="button" onClick={onExplorarCanal} className="w-full p-3 border border-[#ef9a79]/40 bg-[#ef9a79]/10 text-[#ef9a79] text-left text-sm flex items-center justify-between gap-3"><span>Explorar su relación con el canal</span><ArrowRight size={18}/></button>}
+                {onExplorarCanal && ['sanFernando','sanJose','sanRafael','casco'].includes(pat.nodo) && <button type="button" onClick={() => onExplorarCanal(pat.nodo)} className="w-full p-3 border border-[#ef9a79]/40 bg-[#ef9a79]/10 text-[#ef9a79] text-left text-sm flex items-center justify-between gap-3"><span>Ver la animación del lugar</span><ArrowRight size={18}/></button>}
 
                 {/* FICHAS INTERACTIVAS: UNO A LA VEZ AL HACER CLIC */}
                 {(() => {
