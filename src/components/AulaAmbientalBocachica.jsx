@@ -37,9 +37,11 @@ import {
   Fish,
   Navigation,
 } from 'lucide-react';
+import { Escuchar, MenuComunidad, JuegoCocinaFacil, decir } from './ComunidadFacil';
+import './comunidad-facil.css';
 import { crearEscenaAula } from '../utils/escenaAulaBocachica';
 import { crearReproductorComunidad, PISTAS_MEMORIA } from '../utils/musicaComunidad';
-import { Escena3DMojarra, Escena3DBailarCartagenero } from './Juegos3DComunidad';
+import { Escena3DBailarCartagenero } from './Juegos3DComunidad';
 
 /** Card interactiva que se ilumina suavemente donde pasa el cursor */
 function CardIluminada({ children, color = '#e8a86b', className = '', onClick }) {
@@ -60,6 +62,9 @@ function CardIluminada({ children, color = '#e8a86b', className = '', onClick })
       onMouseMove={handleMove}
       onMouseLeave={() => setPos((p) => ({ ...p, on: false }))}
       onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
       style={{
         backgroundImage: pos.on
           ? `radial-gradient(240px circle at ${pos.x}% ${pos.y}%, ${color}33, transparent 70%)`
@@ -75,53 +80,10 @@ function CardIluminada({ children, color = '#e8a86b', className = '', onClick })
 }
 
 function JuegoCocinarMojarra({ onCerrar }) {
-  const contenido = (
-    <div className="fixed inset-0 z-[120] bg-[#1a110b] flex flex-col">
-      <iframe
-        src={`${import.meta.env.BASE_URL}la-mojarra-dorada/index.html`}
-        title="La Mojarra Dorada — Mojarra frita de Bocachica"
-        className="w-full h-full border-0 flex-1"
-        allow="autoplay"
-      />
-      {onCerrar && (
-        <button
-          type="button"
-          onClick={onCerrar}
-          className="fixed bottom-4 left-4 z-[130] px-4 py-2 rounded-full bg-black/80 hover:bg-black text-white border border-white/25 shadow-2xl text-xs font-bold flex items-center gap-1.5 cursor-pointer backdrop-blur-md transition"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Volver a Comida</span>
-        </button>
-      )}
-    </div>
-  );
-
-  return typeof document !== 'undefined' ? createPortal(contenido, document.body) : contenido;
+  return <JuegoCocinaFacil tipo="mojarra" onCerrar={onCerrar} />;
 }
-
 function JuegoPailaDulce({ onCerrar }) {
-  const contenido = (
-    <div className="fixed inset-0 z-[120] bg-[#1a110b] flex flex-col">
-      <iframe
-        src={`${import.meta.env.BASE_URL}la-paila-dulce/index.html`}
-        title="La Paila Dulce — Haz tu cocada"
-        className="w-full h-full border-0 flex-1"
-        allow="autoplay"
-      />
-      {onCerrar && (
-        <button
-          type="button"
-          onClick={onCerrar}
-          className="fixed bottom-4 left-4 z-[130] px-4 py-2 rounded-full bg-black/80 hover:bg-black text-white border border-white/25 shadow-2xl text-xs font-bold flex items-center gap-1.5 cursor-pointer backdrop-blur-md transition"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Volver a Comida</span>
-        </button>
-      )}
-    </div>
-  );
-
-  return typeof document !== 'undefined' ? createPortal(contenido, document.body) : contenido;
+  return <JuegoCocinaFacil tipo="cocada" onCerrar={onCerrar} />;
 }
 
 function JuegoBailarCartagenero({ item, color = '#35d08a', sonando, onToggleMusica }) {
@@ -2428,7 +2390,7 @@ const EXPLORA_CATEGORIAS = [
   {
     id: 'corregimientos',
     ancla: 'sec-corregimientos',
-    label: '1. Corregimientos',
+    label: 'Pueblos',
     cta: 'Explorar los 4 corregimientos',
     color: '#e0917a',
     cam: 'isla_completa',
@@ -2446,7 +2408,7 @@ const EXPLORA_CATEGORIAS = [
   {
     id: 'patrimonio',
     ancla: 'sec-patrimonio',
-    label: '2. Patrimonio',
+    label: 'Historia y fuertes',
     cta: 'Descubrir fuertes',
     color: '#f4f1ec',
     cam: 'isla_completa',
@@ -2464,7 +2426,7 @@ const EXPLORA_CATEGORIAS = [
   {
     id: 'talleres',
     ancla: 'sec-talleres',
-    label: '3. Talleres y Viernes',
+    label: 'Talleres',
     cta: 'Ver clases en la isla',
     color: '#e8a86b',
     cam: 'isla_completa',
@@ -2483,7 +2445,7 @@ const EXPLORA_CATEGORIAS = [
   {
     id: 'memorias',
     ancla: 'sec-memorias',
-    label: '4. Memorias y Bailes',
+    label: 'Jugar',
     cta: 'Escuchar y bailar',
     color: '#35d08a',
     cam: 'escuela_r9',
@@ -2509,6 +2471,7 @@ export default function AulaAmbientalBocachica({
   const rootRef = useRef(null);
   const mount3DRef = useRef(null);
   const [escena, setEscena] = useState(null);
+  const [sin3D, setSin3D] = useState(false);
   const [progreso, setProgreso] = useState({ p: 0, texto: 'Iniciando escena 3D de Tierra Bomba' });
   const [capActual, setCapActual] = useState(CAPITULOS[0]);
   const [enVistaAula, setEnVistaAula] = useState(true);
@@ -2534,7 +2497,7 @@ export default function AulaAmbientalBocachica({
   const [lluviaJuego, setLluviaJuego] = useState(0); // 0..100
   const [capasJuego, setCapasJuego] = useState({ casas: true, arboles: true, pilotos: true, vias: false });
   const [mostrarViasCard, setMostrarViasCard] = useState(false);
-  const [viasVisible, setViasVisible] = useState(true);
+  const [viasVisible, setViasVisible] = useState(false);
   const [retoIdx, setRetoIdx] = useState(0);
   const [retoResp, setRetoResp] = useState(null);
   const [retoPuntos, setRetoPuntos] = useState(0);
@@ -2664,8 +2627,6 @@ export default function AulaAmbientalBocachica({
   const [ver180Cano, setVer180Cano] = useState(false);
   const [cano180Idx, setCano180Idx] = useState(0);
   const [cano360Popup, setCano360Popup] = useState(0);
-  const pinClickTimerRef = useRef(null);
-  const ultimoTapTBRef = useRef(0);
 
   const corregimientosIsla = useMemo(
     () => [
@@ -2755,7 +2716,7 @@ export default function AulaAmbientalBocachica({
             titulo: 'Pescado frito con arroz con coco',
             resumen: 'Plato emblemático de Bocachica con mojarra fresca, titoté y patacones.',
             foto: `${MEMORIAS_BASE}images/memorias/arroz_coco_pescado.jpg`,
-            etiquetaPaso: 'Jugar: Cocina y emplata la mojarra',
+            etiquetaPaso: 'Jugar',
             ingredientes: ['1 mojarra o pargo fresco', '1 coco seco rallado', '2 tazas de arroz', 'Plátano verde', 'Limón y sal marina'],
             pasos: [
               { titulo: '1. Sacar el titoté', texto: 'Licúa el coco con agua tibia, cuela la primera leche y cocínala a fuego lento hasta que se reduzca y dore en aceite natural (titoté).' },
@@ -2769,7 +2730,7 @@ export default function AulaAmbientalBocachica({
             titulo: 'Cocadas y alegrías de Doña Isnelia',
             resumen: 'Dulces tradicionales de coco, panela y millo hechos en paila de patio.',
             foto: `${MEMORIAS_BASE}images/memorias/dulces_isnelia.jpg`,
-            etiquetaPaso: 'Receta paso a paso',
+            etiquetaPaso: 'Jugar',
             ingredientes: ['2 cocos frescos picados o rallados', '1 panela oscura', 'Millo tostado', 'Canela y clavo', 'Hojas de bijao o palma'],
             pasos: [
               { titulo: '1. Melao de panela', texto: 'Derrite la panela en poca agua con astillas de canela y clavo hasta lograr un melao espeso y brillante.' },
@@ -3047,16 +3008,6 @@ export default function AulaAmbientalBocachica({
 
   const seleccionarCorregimiento = (cor) => {
     if (!cor) return;
-    if (cor.nodo === 'tierraBomba') {
-      const ahora = Date.now();
-      if (ahora - ultimoTapTBRef.current < 650 || corregSel?.nodo === 'tierraBomba') {
-        ultimoTapTBRef.current = 0;
-        setCorregSel(null);
-        setVer180(true);
-        return;
-      }
-      ultimoTapTBRef.current = ahora;
-    }
     setCorregSel(cor);
     setCorregSecIdx(0);
     escena?.irANodo?.(cor.nodo, 340);
@@ -3077,7 +3028,10 @@ export default function AulaAmbientalBocachica({
     }
     let rafId = 0;
     const claves = listaMapa.map((a) => a.nodo);
-    const loop = () => {
+    let ultimoFrame = 0;
+    const loop = (ahora = 0) => {
+      if (document.hidden || ahora - ultimoFrame < 100) { rafId = requestAnimationFrame(loop); return; }
+      ultimoFrame = ahora;
       const raw = escena.proyectarNodos(claves);
       const w = window.innerWidth || 1280;
       const h = window.innerHeight || 720;
@@ -3126,6 +3080,17 @@ export default function AulaAmbientalBocachica({
     rafId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafId);
   }, [escena, catActiva, panelJuego, modalDiagrama, actividadesIsla, patrimoniosIsla, corregimientosIsla]);
+
+  useEffect(() => {
+    const cerrar = (event) => {
+      if (event.key !== 'Escape') return;
+      setCorregSel(null); setPatrimonioSel(null); setActividadViernesSel(null);
+      setLugarActivo(null); setBusqAbierta(false); setMostrarViasCard(false);
+      setModalDiagrama(null); setVer180(false); setVer180Cano(false); setLibre(false);
+    };
+    window.addEventListener('keydown', cerrar);
+    return () => window.removeEventListener('keydown', cerrar);
+  }, []);
 
   // Programación de clases virtuales de los viernes
   const [clasesViernes, setClasesViernes] = useState(() => {
@@ -3253,7 +3218,7 @@ export default function AulaAmbientalBocachica({
       setEscena(s);
     }).catch((err) => {
       console.error(err);
-      if (viva) setProgreso({ p: 1, texto: 'Modo interactivo listo' });
+      if (viva) { setSin3D(true); setProgreso({ p: 1, texto: 'Listo' }); }
     });
     return () => {
       viva = false;
@@ -3262,7 +3227,6 @@ export default function AulaAmbientalBocachica({
   }, []);
 
   useEffect(() => {
-    if (!escena) return;
     activarCategoria(EXPLORA_CATEGORIAS[0], false);
   }, [escena]);
 
@@ -3319,12 +3283,6 @@ export default function AulaAmbientalBocachica({
         const topCorreg = elCorreg.getBoundingClientRect().top + window.scrollY;
         const spanCorreg = Math.max(1, elCorreg.offsetHeight - vh);
         const maxScrollCorreg = topCorreg + spanCorreg;
-
-        if (!recorridoCompletadoRef.current && !saltoDirectoRef.current && window.scrollY > maxScrollCorreg + 6) {
-          window.scrollTo({ top: maxScrollCorreg, behavior: 'auto' });
-          setAvisoBloqueoRecorrido(true);
-          return;
-        }
 
         if (window.scrollY <= maxScrollCorreg + 20) {
           const frac = Math.max(0, Math.min(1, (window.scrollY - topCorreg) / spanCorreg));
@@ -3501,6 +3459,7 @@ export default function AulaAmbientalBocachica({
         } ${libre ? 'pointer-events-auto cursor-grab active:cursor-grabbing' : 'pointer-events-none'}`}
       />
 
+      {sin3D && enVistaAula && <div className="cf-map-fallback"><img src={`${import.meta.env.BASE_URL}textures/tierrabomba_satelite.jpg`} alt="Isla de Tierra Bomba" /></div>}
       {/* INDICADOR DE CARGA */}
       {enVistaAula && progreso.p < 1 && (
         <div className="fixed bottom-6 right-8 z-50 tc-vidrio px-4 py-3 w-64 pointer-events-none">
@@ -3516,7 +3475,7 @@ export default function AulaAmbientalBocachica({
 
       {/* CABECERA ÚNICA Y LIMPIA · HUD ESPACIAL */}
       {enVistaAula && (
-      <header className="fixed top-3.5 inset-x-0 z-30 px-3 md:px-6 flex flex-wrap items-center justify-between gap-2.5 pointer-events-none">
+      <header className="cf-header fixed top-3.5 inset-x-0 z-30 px-3 md:px-6 flex flex-wrap items-center justify-between gap-2.5 pointer-events-none">
         <div className="tc-vidrio h-10 px-3.5 !rounded-full flex items-center gap-2.5 pointer-events-auto">
           {volverFn && (
             <button
@@ -3525,7 +3484,7 @@ export default function AulaAmbientalBocachica({
               className="text-xs font-medium text-[#e0917a] hover:text-white transition-colors pr-2.5 border-r border-white/15 flex items-center gap-1 cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Comunidad</span>
+              <span>Inicio</span>
             </button>
           )}
           <span className="w-2 h-2 rounded-full bg-[#e0917a] shadow-[0_0_8px_#e0917a]" />
@@ -3533,7 +3492,7 @@ export default function AulaAmbientalBocachica({
         </div>
 
         {/* 4 pestañas guiadas en orden con iconos vectoriales */}
-        <nav className="tc-vidrio h-10 px-1.5 !rounded-full flex items-center gap-1 overflow-x-auto max-w-full pointer-events-auto order-3 lg:order-2">
+        <nav aria-label="Qué quieres explorar" className="tc-vidrio min-h-12 px-1.5 !rounded-full flex items-center gap-1 overflow-x-auto max-w-full pointer-events-auto order-3 lg:order-2">
           {EXPLORA_CATEGORIAS.map((cat) => {
             const on = (cat.id === 'memorias' ? panelJuego : catActiva?.id === cat.id && !panelJuego);
             const Icono = ICONOS_CAT[cat.id] || MapPin;
@@ -3542,7 +3501,8 @@ export default function AulaAmbientalBocachica({
                 key={cat.id}
                 type="button"
                 onClick={() => activarCategoria(cat)}
-                className={`whitespace-nowrap h-7 px-3.5 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
+                aria-current={on ? "page" : undefined}
+                className={`whitespace-nowrap min-h-11 px-3.5 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
                   on
                     ? 'bg-white text-[#0b1016] shadow-[0_2px_12px_rgba(255,255,255,0.28)] font-semibold'
                     : 'text-white/75 hover:bg-white/10 hover:text-white'
@@ -3555,7 +3515,7 @@ export default function AulaAmbientalBocachica({
           })}
         </nav>
 
-        <div className="tc-vidrio h-10 px-1.5 !rounded-full text-xs text-white/85 flex items-center gap-1.5 pointer-events-auto relative order-2 lg:order-3">
+        <div className="cf-search tc-vidrio h-10 px-1.5 !rounded-full text-xs text-white/85 flex items-center gap-1.5 pointer-events-auto relative order-2 lg:order-3">
           <div className="relative flex items-center">
             <Search className="w-3.5 h-3.5 text-white/50 absolute left-3 pointer-events-none" />
             <input
@@ -3601,29 +3561,34 @@ export default function AulaAmbientalBocachica({
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => activarCategoria(EXPLORA_CATEGORIAS[3])}
-            className={`h-7 px-3 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-              panelJuego || musicaSonando
-                ? 'bg-[#35d08a] text-[#07140d] shadow-[0_2px_12px_rgba(53,208,138,0.35)]'
-                : 'bg-[#35d08a]/15 border border-[#35d08a]/40 text-[#9ff3c9] hover:bg-[#35d08a] hover:text-[#07140d]'
-            }`}
-          >
-            <Music className={`w-3.5 h-3.5 ${musicaSonando ? 'animate-pulse' : ''}`} />
-            <span>{musicaSonando ? 'Sonando' : 'Bailes'}</span>
-          </button>
+
+        </div>
+        <div className="cf-control-audio pointer-events-auto">
+          <Escuchar texto={corregSel ? `${corregSel.nombre}. ${corregSel.fichas?.[corregSecIdx]?.texto || ''}` : catActiva?.resumen || 'Toca Pueblos para conocer la isla. Toca Jugar para cocinar o bailar. Cada dibujo es un botón.'} />
         </div>
       </header>
       )}
 
+      {enVistaAula && !ver180 && !ver180Cano && !modalDiagrama && !panelJuego && (
+        <MenuComunidad activo={catActiva?.id} onElegir={(id) => activarCategoria(EXPLORA_CATEGORIAS.find(c => c.id === id))} />
+      )}
+
       {/* CONTROLES MINIMALISTAS DEL MAPA 3D */}
       {enVistaAula && !modalDiagrama && (
-        <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-20 tc-vidrio h-10 px-1.5 !rounded-full flex items-center gap-0.5 pointer-events-auto">
+        <div className="cf-map-controls fixed bottom-4 inset-x-4 md:left-auto md:bottom-6 md:right-6 z-20 tc-vidrio min-h-12 px-1.5 rounded-2xl md:!rounded-full flex flex-wrap md:flex-nowrap justify-center items-center gap-0.5 pointer-events-auto">
+          <button type="button" onClick={() => {
+            setLibre(false); setAutoTourActivo(false); setCorregSel(null);
+            setPatrimonioSel(null); setActividadViernesSel(null); setLugarActivo(null);
+            setMostrarViasCard(false); setVistaRecorrido('planta');
+            activarCategoria(EXPLORA_CATEGORIAS[0]);
+            escena?.vista?.reset?.();
+          }} className="min-h-11 px-3 rounded-full text-xs font-semibold text-white hover:bg-white/10 cursor-pointer">
+            Ver toda la isla
+          </button>
           <button
             type="button"
             onClick={() => setMostrarViasCard((v) => !v)}
-            className={`h-7 px-3 rounded-full text-[11px] font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`cf-secondary h-7 px-3 rounded-full text-[11px] font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
               mostrarViasCard
                 ? 'bg-[#ff7a50] text-[#0b1016] font-semibold shadow-sm'
                 : 'text-white/80 hover:bg-white/10 hover:text-white'
@@ -3631,7 +3596,7 @@ export default function AulaAmbientalBocachica({
             title="Ver desglose de las vías cartografiadas (73 km)"
           >
             <Navigation className="w-3.5 h-3.5" />
-            <span>Vías (73 km)</span>
+            <span>Capas</span>
           </button>
           <span className="w-px h-4 bg-white/12 mx-0.5" />
           <button
@@ -3643,15 +3608,21 @@ export default function AulaAmbientalBocachica({
             title="Arrastra y gira el mapa 3D libremente"
           >
             {libre ? <Check className="w-3.5 h-3.5" /> : <Hand className="w-3.5 h-3.5" />}
-            <span>{libre ? 'Soltar' : 'Mover mapa'}</span>
+            <span>{libre ? 'Terminar' : 'Girar mapa'}</span>
           </button>
           <span className="w-px h-4 bg-white/12 mx-0.5" />
-          <button type="button" onClick={() => escena?.vista.zoom(0.8)} className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white transition cursor-pointer" title="Acercar" aria-label="Acercar mapa">+</button>
-          <button type="button" onClick={() => escena?.vista.zoom(1.25)} className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white transition cursor-pointer" title="Alejar" aria-label="Alejar mapa">−</button>
-          <button type="button" onClick={() => escena?.vista.reset()} className="w-7 h-7 rounded-full flex items-center justify-center text-white/80 hover:bg-white/10 hover:text-white transition cursor-pointer" title="Reiniciar vista" aria-label="Reiniciar vista">
+          <button type="button" onClick={() => escena?.vista.zoom(0.8)} className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white transition cursor-pointer" title="Acercar" aria-label="Acercar mapa">+</button>
+          <button type="button" onClick={() => escena?.vista.zoom(1.25)} className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white transition cursor-pointer" title="Alejar" aria-label="Alejar mapa">−</button>
+          <button type="button" onClick={() => escena?.vista.reset()} className="w-11 h-11 rounded-full flex items-center justify-center text-white/80 hover:bg-white/10 hover:text-white transition cursor-pointer" title="Recentrar mapa" aria-label="Recentrar mapa">
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
+      )}
+
+      {enVistaAula && libre && !modalDiagrama && (
+        <p role="status" className="cf-map-tip fixed bottom-32 md:bottom-20 right-4 z-20 max-w-[85vw] rounded-xl bg-[#0b1016]/95 border border-white/20 px-4 py-3 text-xs text-white pointer-events-none">
+          Arrastra para girar. Usa + y − para acercarte o alejarte. Pulsa Terminar para seguir explorando.
+        </p>
       )}
 
       {/* TARJETA CARTOGRÁFICA DE TODAS LAS VÍAS (Idéntica a tesis_tercer_corte) */}
@@ -3978,45 +3949,12 @@ export default function AulaAmbientalBocachica({
                 <button
                   key={item.nodo}
                   type="button"
-                  onMouseEnter={() => {
-                    if (esPatrimonio) setPatPreviewIdx(idx);
-                    else if (!esCorreg) setTallerPreviewIdx(idx);
-                    else {
-                      const ord = ['tierraBomba', 'puntaArena', 'canoDeLoro', 'casco'];
-                      const oi = ord.indexOf(item.nodo);
-                      if (oi >= 0) setPasoRecorridoIdx(oi);
-                    }
-                  }}
+                  aria-label={`Abrir ${item.nombre || item.corto}`}
                   onClick={() => {
                     setAutoTourActivo(false);
-                    if (esPatrimonio) {
-                      seleccionarPatrimonio(item);
-                    } else if (esCorreg && (item.nodo === 'tierraBomba' || item.nodo === 'canoDeLoro')) {
-                      if (pinClickTimerRef.current) clearTimeout(pinClickTimerRef.current);
-                      pinClickTimerRef.current = setTimeout(() => {
-                        pinClickTimerRef.current = null;
-                        seleccionarCorregimiento(item);
-                      }, 240);
-                    } else if (esCorreg) {
-                      seleccionarCorregimiento(item);
-                    } else {
-                      seleccionarActividad(item);
-                    }
-                  }}
-                  onDoubleClick={() => {
-                    if (pinClickTimerRef.current) {
-                      clearTimeout(pinClickTimerRef.current);
-                      pinClickTimerRef.current = null;
-                    }
-                    if (esCorreg && item.nodo === 'tierraBomba') {
-                      setCorregSel(null);
-                      setVer180(true);
-                    } else if (esCorreg && item.nodo === 'canoDeLoro') {
-                      setCorregSel(null);
-                      setCano180Idx(0);
-                      setCano360Popup(0);
-                      setVer180Cano(true);
-                    }
+                    if (esPatrimonio) seleccionarPatrimonio(item);
+                    else if (esCorreg) seleccionarCorregimiento(item);
+                    else seleccionarActividad(item);
                   }}
                   style={{ left: `${p.x}px`, top: `${p.y}px` }}
                   className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto group cursor-pointer focus:outline-none"
@@ -4044,7 +3982,7 @@ export default function AulaAmbientalBocachica({
                       <span>{item.corto}</span>
                       {esCorreg && item.nodo === 'tierraBomba' && (
                         <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded-full bg-[#e8a86b]/20 text-[#f7c896] group-hover:bg-[#0b1016]/15 group-hover:text-[#0b1016]">
-                          180° · 2x
+                          Vista 180°
                         </span>
                       )}
                       {!esCorreg && (
@@ -4083,8 +4021,8 @@ export default function AulaAmbientalBocachica({
             }
           };
           return (
-            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,25rem)] tc-vidrio p-4 tc-paso-anim space-y-3 border-l-2 border-l-[#e0917a]">
-              <div className="flex items-start justify-between gap-2">
+            <div className="cf-map-guide fixed bottom-32 left-4 md:bottom-6 md:left-6 z-20 max-h-[calc(100svh-17rem)] overflow-y-auto w-[min(92vw,25rem)] tc-vidrio p-4 tc-paso-anim space-y-3 border-l-2 border-l-[#e0917a]">
+              <div className="cf-guide-heading flex items-start justify-between gap-2">
                 <div key={corActual.nodo} className="flex items-center gap-3 min-w-0 tc-paso-anim">
                   <span
                     className="w-9 h-9 rounded-xl border flex items-center justify-center shrink-0"
@@ -4095,7 +4033,7 @@ export default function AulaAmbientalBocachica({
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: corActual.color }}>
-                        Recorrido · {pasoRecorridoIdx + 1}/4
+                        Elige un pueblo · {pasoRecorridoIdx + 1}/4
                       </span>
                       <button
                         type="button"
@@ -4110,7 +4048,7 @@ export default function AulaAmbientalBocachica({
                         }}
                         className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[9px] font-mono uppercase tracking-wider text-white/90 cursor-pointer transition"
                       >
-                        {vistaRecorrido === 'planta' ? 'Vista Planta' : 'Vista Axo'}
+                        {vistaRecorrido === 'planta' ? 'Ver en 3D' : 'Ver desde arriba'}
                       </button>
                     </div>
                     <div className="text-sm font-bold text-white truncate">{corActual.nombre}</div>
@@ -4122,18 +4060,19 @@ export default function AulaAmbientalBocachica({
                 </button>
               </div>
 
-              <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+              <div className="cf-guide-progress h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{ width: `${pctRecorrido}%`, backgroundColor: corActual.color }}
                 />
               </div>
 
-              <p key={`${corActual.nodo}-txt`} className="text-xs text-white/85 leading-relaxed line-clamp-2 tc-paso-anim">
+              <p key={`${corActual.nodo}-txt`} className="cf-guide-description text-xs text-white/85 leading-relaxed line-clamp-2 tc-paso-anim">
                 {corActual.fichas?.[0]?.texto}
               </p>
 
-              <div className="grid grid-cols-4 gap-1.5">
+              <p className="text-xs text-white/70">Toca un nombre aquí o un punto del mapa para conocer el lugar.</p>
+              <div className="cf-place-grid grid grid-cols-2 gap-2">
                 {ordenNodos.map((nId, i) => {
                   const item = corregimientosIsla.find((c) => c.nodo === nId);
                   const activo = i === pasoRecorridoIdx;
@@ -4142,8 +4081,8 @@ export default function AulaAmbientalBocachica({
                     <button
                       key={nId}
                       type="button"
-                      onClick={() => irAStop(i)}
-                      className={`px-1.5 py-1 rounded-lg text-[10px] font-semibold truncate transition cursor-pointer ${
+                      onClick={() => { setPasoRecorridoIdx(i); seleccionarCorregimiento(item); }}
+                      className={`px-2 py-3 rounded-lg text-xs font-semibold truncate transition cursor-pointer ${
                         activo
                           ? 'bg-[#e0917a] text-[#0b1016] shadow-sm'
                           : visitado
@@ -4190,11 +4129,7 @@ export default function AulaAmbientalBocachica({
                 )}
               </div>
 
-              {avisoBloqueoRecorrido && !recorridoCompletado && !saltoDirectoPatrimonio && (
-                <div className="text-[11px] text-[#fbbf24] bg-[#fbbf24]/10 border border-[#fbbf24]/30 rounded-xl px-2.5 py-1.5 leading-snug">
-                  Completa el recorrido hasta Bocachica haciendo scroll, o pulsa <strong>2. Patrimonio</strong> arriba para ir directo.
-                </div>
-              )}
+
             </div>
           );
         }
@@ -4208,7 +4143,7 @@ export default function AulaAmbientalBocachica({
           const fichaActual = cor.fichas[corregSecIdx] || cor.fichas[0];
           const sigFichaIdx = (corregSecIdx + 1) % cor.fichas.length;
           return (
-            <div className="fixed inset-0 z-30 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="cf-place-dialog fixed inset-0 z-30 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4">
               <div className="w-[min(94vw,32rem)] tc-paso-anim">
                 <CardIluminada
                   color={cor.color}
@@ -4267,6 +4202,7 @@ export default function AulaAmbientalBocachica({
                     </div>
                   </div>
 
+                  <Escuchar texto={`${cor.nombre}. ${fichaActual.texto}`} />
                   <div className="space-y-2.5 pt-2 border-t border-white/15">
                     <div className="flex flex-wrap gap-1.5">
                       {cor.fichas.map((f, i) => {
@@ -4363,7 +4299,7 @@ export default function AulaAmbientalBocachica({
           const patAct = patrimoniosIsla[patPreviewIdx % patrimoniosIsla.length] || patrimoniosIsla[0];
           const IconoPatAct = patAct.Icon || Landmark;
           return (
-            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,25rem)] tc-vidrio p-4 tc-paso-anim space-y-3 border-l-2 border-l-[#f4f1ec]">
+            <div className="cf-map-guide fixed bottom-32 left-4 md:bottom-6 md:left-6 z-20 max-h-[calc(100svh-17rem)] overflow-y-auto w-[min(92vw,25rem)] tc-vidrio p-4 tc-paso-anim space-y-3 border-l-2 border-l-[#f4f1ec]">
               <div className="flex items-start justify-between gap-2">
                 <div key={patAct.nodo} className="flex items-center gap-3 min-w-0 tc-paso-anim">
                   <span
@@ -4385,7 +4321,7 @@ export default function AulaAmbientalBocachica({
                 </button>
               </div>
 
-              <p key={`${patAct.nodo}-txt`} className="text-xs text-white/85 leading-relaxed line-clamp-2 tc-paso-anim">
+              <p key={`${patAct.nodo}-txt`} className="cf-guide-description text-xs text-white/85 leading-relaxed line-clamp-2 tc-paso-anim">
                 {patAct.secciones?.[0]?.texto}
               </p>
 
@@ -4592,7 +4528,7 @@ export default function AulaAmbientalBocachica({
           const actPreview = actividadesIsla[tallerPreviewIdx % actividadesIsla.length] || actividadesIsla[0];
           const IconoActPrev = actPreview.Icon || Calendar;
           return (
-            <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,25rem)] tc-vidrio p-4 tc-paso-anim space-y-3 border-l-2 border-l-[#e8a86b]">
+            <div className="cf-map-guide fixed bottom-32 left-4 md:bottom-6 md:left-6 z-20 max-h-[calc(100svh-17rem)] overflow-y-auto w-[min(92vw,25rem)] tc-vidrio p-4 tc-paso-anim space-y-3 border-l-2 border-l-[#e8a86b]">
               <div className="flex items-start justify-between gap-2">
                 <div key={actPreview.nodo} className="flex items-center gap-3 min-w-0 tc-paso-anim">
                   <span
@@ -4727,7 +4663,7 @@ export default function AulaAmbientalBocachica({
 
                 {/* FORMULARIO ANIMADO DE INSCRIPCIÓN */}
                 <form onSubmit={agendarClaseViernes} className="space-y-2.5 pt-2 border-t border-white/15">
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="cf-place-grid grid grid-cols-2 gap-2">
                     <input
                       type="text"
                       value={nombreViernes}
@@ -4751,7 +4687,7 @@ export default function AulaAmbientalBocachica({
                     <div className="text-[10px] font-mono uppercase tracking-wider text-white/65">
                       Elige tu beneficio incluido en esta actividad
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="cf-place-grid grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => setBeneficioViernes('alimentacion')}
@@ -5082,8 +5018,8 @@ export default function AulaAmbientalBocachica({
         const sonandoMem = pistaMem && pistaActiva.id === pistaMem.id && musicaSonando;
 
         return (
-          <div className="fixed inset-0 z-30 bg-black/55 backdrop-blur-md flex items-center justify-center p-3 md:p-8">
-            <section className="w-full max-w-5xl max-h-[90svh] overflow-y-auto tc-vidrio p-5 md:p-7 rounded-3xl border border-white/20 tc-paso-anim shadow-2xl">
+          <div className="cf-games-panel fixed inset-0 z-30 bg-black/55 backdrop-blur-md flex items-center justify-center p-3 md:p-8">
+            <section className="cf-games-sheet w-full max-w-5xl max-h-[90svh] overflow-y-auto tc-vidrio p-5 md:p-7 rounded-3xl border border-white/20 tc-paso-anim shadow-2xl">
               {/* CABECERA AMPLIA */}
               <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-white/15">
                 <div className="flex items-center gap-3">
@@ -5095,10 +5031,10 @@ export default function AulaAmbientalBocachica({
                   </span>
                   <div>
                     <div className="text-[11px] font-bold uppercase tracking-widest" style={{ color: catMem.color }}>
-                      Infografía interactiva · Tierra Bomba
+                      Tierra Bomba
                     </div>
                     <h2 className="text-lg md:text-xl font-extrabold text-white leading-tight">
-                      4. Memorias y Saberes de la Comunidad
+                      Cocina, baila y aprende
                     </h2>
                   </div>
                 </div>
@@ -5118,7 +5054,7 @@ export default function AulaAmbientalBocachica({
               </div>
 
               {/* 3 CATEGORÍAS GRANDES: COMIDA · BAILES · TRADICIONES */}
-              <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="cf-game-tabs grid grid-cols-3 gap-3 mb-6">
                 {Object.entries(MEMORIAS_SABERES).map(([key, cat]) => {
                   const IconoTab = cat.Icon;
                   const activa = memCategoria === key;
@@ -5147,7 +5083,7 @@ export default function AulaAmbientalBocachica({
 
               {!memItemSel ? (
                 <div className="space-y-4">
-                  <p className="text-sm text-white/80">{catMem.subtitulo}</p>
+                  <div className="cf-ayuda"><p>Toca una foto.</p><Escuchar texto={catMem.subtitulo} /></div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {catMem.items.map((item) => (
                       <CardIluminada
@@ -5155,6 +5091,7 @@ export default function AulaAmbientalBocachica({
                         color={catMem.color}
                         onClick={() => {
                           setMemItemSel(item);
+                          decir(`${item.titulo}. Toca Jugar para comenzar. Puedes escuchar cada paso.`);
                           setMemPasoIdx(0);
                           setMemIngMarcados({});
                         }}
@@ -5238,8 +5175,9 @@ export default function AulaAmbientalBocachica({
                     />
                   )}
 
+                  {memItemSel.id !== 'arroz_coco_pescado' && memItemSel.id !== 'dulces_isnelia' && <Escuchar texto={`${memItemSel.titulo}. ${memItemSel.resumen}. ${(memItemSel.pasos || []).map(p=>`${p.titulo}. ${p.texto}`).join(' ')}`} />}
                   {/* INFOGRAFÍA DE 2 COLUMNAS */}
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                  <div className={`${memItemSel.id === 'arroz_coco_pescado' || memItemSel.id === 'dulces_isnelia' ? 'cf-cook-detail' : ''} grid grid-cols-1 lg:grid-cols-12 gap-5 items-start`}>
                     {/* COLUMNA IZQUIERDA: FOTO GRANDE + MÚSICA + INGREDIENTES/ELEMENTOS */}
                     <div className="lg:col-span-5 space-y-4">
                       <div className="relative rounded-3xl overflow-hidden border border-white/20 shadow-2xl">

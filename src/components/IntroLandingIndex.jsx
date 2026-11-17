@@ -1,4 +1,6 @@
 ﻿import React, { Suspense, lazy } from 'react';
+import { Escuchar } from './ComunidadFacil';
+import './comunidad-facil.css';
 import { projectInfo } from '../data/projectData';
 
 const AulaAmbientalBocachica = lazy(() => import('./AulaAmbientalBocachica'));
@@ -23,7 +25,7 @@ export default function IntroLandingIndex({ onNavigateModule, onBackToThesis }) 
   };
 
   return (
-    <div className="w-full bg-black">
+    <div className="community-entry w-full bg-black">
       {/* Portada original de #/comunidad preservada íntegramente */}
       <section
         id="comunidad-portada-hero"
@@ -47,7 +49,7 @@ export default function IntroLandingIndex({ onNavigateModule, onBackToThesis }) 
 
         <div className="relative z-10 flex h-full items-end lg:items-center p-4 sm:p-8 lg:p-14">
           {/* Panel de vidrio */}
-          <div className="w-full max-w-md rounded-2xl border border-white/30 bg-white/15 p-6 sm:p-8 shadow-2xl shadow-black/30 backdrop-blur-xl backdrop-saturate-150 glass-sheen anim-fade-up">
+          <div className="cf-entry-panel w-full max-w-md rounded-2xl border border-white/30 bg-white/15 p-6 sm:p-8 shadow-2xl shadow-black/30 backdrop-blur-xl backdrop-saturate-150 glass-sheen anim-fade-up">
             <p className="text-sm text-white/80 anim-fade-up" style={{ animationDelay: '250ms' }}>
               Tesis de grado · Arquitectura y Urbanismo · 2026
             </p>
@@ -66,7 +68,13 @@ export default function IntroLandingIndex({ onNavigateModule, onBackToThesis }) 
             </p>
             <p className="mt-1 text-sm text-white/70">Cartagena de Indias, Colombia</p>
 
-            <ul className="mt-6 sm:mt-8 border-t border-white/30">
+            <button type="button" onClick={irAAula}
+              className="mt-6 flex min-h-12 w-full items-center justify-between rounded-xl bg-white px-5 py-3 text-base font-semibold text-slate-900 hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+              <span>Explorar la isla</span><span aria-hidden="true">→</span>
+            </button>
+            <div className="mt-3"><Escuchar texto="Bienvenido a Tierra Bomba. Toca el botón Explorar la isla. Después elige un pueblo para conocerlo, o toca Jugar para cocinar y bailar." /></div>
+            <details className="mt-5"><summary className="cursor-pointer py-3 text-white/80">Más sobre el proyecto</summary>
+            <ul className="mt-3 sm:mt-8 border-t border-white/30">
               {INDICE.map(({ id, n, label, scrollId }, i) => (
                 <li
                   key={id}
@@ -85,7 +93,7 @@ export default function IntroLandingIndex({ onNavigateModule, onBackToThesis }) 
                   </button>
                 </li>
               ))}
-            </ul>
+            </ul></details>
 
             <p className="mt-5 text-sm text-white/70">{projectInfo.author}</p>
           </div>
@@ -98,7 +106,7 @@ export default function IntroLandingIndex({ onNavigateModule, onBackToThesis }) 
           className="hidden sm:flex items-center gap-2.5 absolute bottom-6 right-8 z-20 px-4 py-2.5 rounded-full border border-[#4fb6b0]/50 bg-black/80 text-xs font-mono uppercase tracking-wider text-[#f1f5f9] backdrop-blur-md hover:border-[#4fb6b0] hover:bg-black transition-all cursor-pointer shadow-xl"
         >
           <span className="inline-block h-2 w-2 rounded-full bg-[#4fb6b0]" />
-          <span>Programa Marco · Aula Ambiental Bocachica</span>
+          <span>Explorar la isla y Bocachica</span>
           <span className="text-[#4fb6b0] anim-float-y">↓</span>
         </button>
       </section>

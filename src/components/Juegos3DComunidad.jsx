@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
@@ -408,12 +408,14 @@ export function Escena3DMojarra({ etapa, adobos, friendo, coccion, plato, fullHe
 
 export function Escena3DBailarCartagenero({ esMapale, animPose, combo, terminado, sonando }) {
   const mountRef = useRef(null);
+  const [ligero, setLigero] = useState(false);
   const stateRef = useRef({ esMapale, animPose, combo, terminado, sonando });
   stateRef.current = { esMapale, animPose, combo, terminado, sonando };
 
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return undefined;
+    if (window.matchMedia('(max-width: 767px)').matches) { setLigero(true); return undefined; }
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0b1c2c);
@@ -422,7 +424,9 @@ export function Escena3DBailarCartagenero({ esMapale, animPose, combo, terminado
     const camera = new THREE.PerspectiveCamera(42, mount.clientWidth / Math.max(1, mount.clientHeight), 0.1, 60);
     camera.position.set(0, 2.5, 5.6);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', stencil: false });
+    let renderer;
+    try { renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', stencil: false }); }
+    catch { setLigero(true); return undefined; }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.shadowMap.enabled = true;
@@ -608,6 +612,21 @@ export function Escena3DBailarCartagenero({ esMapale, animPose, combo, terminado
       if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement);
     };
   }, []);
+
+  if (ligero) return <svg viewBox="0 0 360 260" className="cf-dance" role="img" aria-label={terminado ? 'Baile completado' : 'Bailador que muestra el paso'}>
+    <ellipse cx="180" cy="237" rx="100" ry="13" fill="#061f29" />
+    <g style={{ transform: `translate(${animPose % 2 ? 12 : -8}px, ${animPose === 3 ? -12 : 0}px)`, transition: 'transform .35s ease' }}>
+      <path d="M164 166l-20 65m53-65 25 65" stroke="#eee1bc" strokeWidth="20" strokeLinecap="round"/>
+      <path d="M148 105q32-16 63 0l-8 65h-46Z" fill="#f4e1bd"/>
+      <path d={animPose % 2 ? 'M151 110l-43-30-15-37M207 110l45-31 17-37' : 'M151 110l-42 30-30-14M207 110l40 30 31-14'} fill="none" stroke="#a86f47" strokeWidth="14" strokeLinecap="round"/>
+      <circle cx="180" cy="72" r="25" fill="#a86f47"/>
+      <ellipse cx="180" cy="48" rx="47" ry="9" fill="#f9db9a"/><path d="M157 47l6-22h34l6 22" fill="#f9db9a"/>
+      <path d="M164 105l16 27 16-27" fill="#e58a60"/>
+      <circle cx="172" cy="70" r="2.5" fill="#182f38"/><circle cx="189" cy="70" r="2.5" fill="#182f38"/>
+      <path d="M171 83q9 8 18 0" stroke="#fff1ce" fill="none" strokeWidth="3"/>
+    </g>
+    {terminado && <text x="295" y="55" fill="#f5d98e" fontSize="38">✓</text>}
+  </svg>;
 
   return (
     <div className="relative w-full h-64 md:h-72 rounded-2xl overflow-hidden border border-white/15 bg-[#0b1c2c]">
