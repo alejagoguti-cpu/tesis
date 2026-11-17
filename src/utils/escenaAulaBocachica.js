@@ -192,7 +192,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = !small;
+  renderer.shadowMap.autoUpdate = false;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const el = renderer.domElement;
   el.style.cssText = 'display:block;width:100%;height:100%;opacity:0;transition:opacity 0.9s ease';
@@ -901,7 +902,7 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       }
     }
   }
-  const treesGroup = instanceTrees(especies, treeBase, 420, true);
+  const treesGroup = instanceTrees(especies, treeBase, 420, !small);
   treesGroup.matrixAutoUpdate = false;
   treesGroup.updateMatrix();
 
@@ -1386,8 +1387,8 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
 
   const sun = new THREE.DirectionalLight(0xfff1dc, 2.7);
   sun.position.copy(sunDir).multiplyScalar(3000);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(small ? 1024 : 2048, small ? 1024 : 2048);
+  sun.castShadow = !small;
+  sun.shadow.mapSize.set(1024, 1024);
   sun.shadow.camera.left = -2200;
   sun.shadow.camera.right = 2200;
   sun.shadow.camera.top = 2200;
@@ -2180,11 +2181,13 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
   let raf = 0;
   let shown = false;
   let pausado = false;
+  let ultimaSombra = '';
   const expo = (dt, k) => 1 - Math.exp(-dt * k);
 
   const tick = (now) => {
     raf = requestAnimationFrame(tick);
     if (disposed || document.hidden || pausado) { last = now; return; }
+    if (small && now - last < 1000 / 30) return;
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     const t = (now - t0) / 1000;
@@ -2264,6 +2267,9 @@ export async function crearEscenaAula(mount, { onProgreso = () => {} } = {}) {
       sun.target.position.set(lx, 0, lz);
       sun.position.set(lx + sunDir.x * 3000, sunDir.y * 3000, lz + sunDir.z * 3000);
     }
+    edificios.visible = dist > 4800;
+    const firmaSombra = `${Math.round(camLook.x / 20)}:${Math.round(camLook.z / 20)}:${Math.round(cur.sombraExtra * 20)}`;
+    if (firmaSombra !== ultimaSombra) { ultimaSombra = firmaSombra; renderer.shadowMap.needsUpdate = true; }
     const escalaArbol = 1 + cur.sombraExtra * 0.38;
     treesGroup.scale.set(escalaArbol, escalaArbol, escalaArbol);
     aulaGroup.visible = !!T.mostrarPilotos;

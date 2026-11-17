@@ -1,125 +1,29 @@
-﻿import React, { Suspense, lazy } from 'react';
-import { Escuchar } from './ComunidadFacil';
+import React, { Suspense, lazy, useState } from 'react';
+import { MapPin, Utensils, Music, Hammer, ArrowRight } from 'lucide-react';
+import { Escuchar, decir } from './ComunidadFacil';
 import './comunidad-facil.css';
-import { projectInfo } from '../data/projectData';
-
 const AulaAmbientalBocachica = lazy(() => import('./AulaAmbientalBocachica'));
-
-const INDICE = [
-  { id: 'resumen', n: '00', label: 'Resumen del proyecto' },
-  { id: 'territorio', n: '01', label: 'Nuestro territorio' },
-  { id: 'module11', n: '02', label: 'La historia de la isla' },
-  { id: 'framework', n: '03', label: 'El mapa de los riesgos' },
-  { id: '3dviewer', n: '04', label: 'Así será el nuevo barrio' },
-  { id: 'aula-ambiental', n: '05', label: 'Aula Ambiental · Bocachica', scrollId: 'aula-ambiental-bocachica' },
+const ACTIVIDADES = [
+  { id:'isla', titulo:'Conocer la isla', Icon:MapPin, foto:'textures/tierrabomba_satelite.jpg', voz:'Vamos a conocer la isla. Elige un pueblo.' },
+  { id:'cocinar', titulo:'Cocinar', Icon:Utensils, foto:'images/memorias/arroz_coco_pescado.jpg', voz:'Vamos a cocinar. Elige la foto del pescado o de la cocada.' },
+  { id:'bailar', titulo:'Bailar', Icon:Music, foto:'images/memorias/bullerengue.jpg', voz:'Vamos a bailar. Elige un baile.' },
+  { id:'oficios', titulo:'Oficios', Icon:Hammer, foto:'images/memorias/carpinteria_ribera.jpg', voz:'Conoce los oficios. Toca una foto para descubrir el taller.' },
 ];
-
-export default function IntroLandingIndex({ onNavigateModule, onBackToThesis }) {
-  const irAAula = () => {
-    const el = document.getElementById('aula-ambiental-bocachica');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      onNavigateModule('aula-ambiental');
-    }
-  };
-
-  return (
-    <div className="community-entry w-full bg-black">
-      {/* Portada original de #/comunidad preservada íntegramente */}
-      <section
-        id="comunidad-portada-hero"
-        className="relative h-[100svh] min-h-[640px] w-full overflow-hidden bg-slate-900 font-sans text-white"
-      >
-        <img
-          src={`${import.meta.env.BASE_URL}textures/tierrabomba_satelite.jpg`}
-          alt="Vista satelital de la isla de Tierrabomba, Cartagena"
-          className="absolute inset-0 h-full w-full object-cover object-[55%_25%] anim-ken-burns"
-          fetchPriority="high"
-        />
-
-        {onBackToThesis && (
-          <button
-            onClick={onBackToThesis}
-            className="absolute top-4 right-4 sm:top-6 sm:right-8 z-20 text-sm text-white/90 px-3 h-9 rounded-md border border-white/35 bg-white/10 backdrop-blur-md hover:bg-white hover:text-slate-900 transition-colors cursor-pointer"
-          >
-            Ver la tesis
-          </button>
-        )}
-
-        <div className="relative z-10 flex h-full items-end lg:items-center p-4 sm:p-8 lg:p-14">
-          {/* Panel de vidrio */}
-          <div className="cf-entry-panel w-full max-w-md rounded-2xl border border-white/30 bg-white/15 p-6 sm:p-8 shadow-2xl shadow-black/30 backdrop-blur-xl backdrop-saturate-150 glass-sheen anim-fade-up">
-            <p className="text-sm text-white/80 anim-fade-up" style={{ animationDelay: '250ms' }}>
-              Tesis de grado · Arquitectura y Urbanismo · 2026
-            </p>
-
-            <h1
-              style={{ animationDelay: '400ms' }}
-              className="anim-fade-up mt-6 sm:mt-8 text-5xl sm:text-6xl font-semibold leading-[0.98] tracking-tight"
-            >
-              Tierra Bomba
-            </h1>
-            <p
-              style={{ animationDelay: '550ms' }}
-              className="anim-fade-up mt-3 text-xl sm:text-2xl text-white/90"
-            >
-              Hábitat resiliente
-            </p>
-            <p className="mt-1 text-sm text-white/70">Cartagena de Indias, Colombia</p>
-
-            <button type="button" onClick={irAAula}
-              className="mt-6 flex min-h-12 w-full items-center justify-between rounded-xl bg-white px-5 py-3 text-base font-semibold text-slate-900 hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-              <span>Explorar la isla</span><span aria-hidden="true">→</span>
-            </button>
-            <div className="mt-3"><Escuchar texto="Bienvenido a Tierra Bomba. Toca el botón Explorar la isla. Después elige un pueblo para conocerlo, o toca Jugar para cocinar y bailar." /></div>
-            <details className="mt-5"><summary className="cursor-pointer py-3 text-white/80">Más sobre el proyecto</summary>
-            <ul className="mt-3 sm:mt-8 border-t border-white/30">
-              {INDICE.map(({ id, n, label, scrollId }, i) => (
-                <li
-                  key={id}
-                  className="border-b border-white/30 anim-fade-up"
-                  style={{ animationDelay: `${700 + i * 90}ms` }}
-                >
-                  <button
-                    onClick={() => (scrollId ? irAAula() : onNavigateModule(id))}
-                    className="group flex w-full items-baseline gap-4 py-2.5 sm:py-3 text-left cursor-pointer"
-                  >
-                    <span className="w-6 text-sm text-white/60">{n}</span>
-                    <span className="flex-1 text-base sm:text-lg">{label}</span>
-                    <span className="text-white/60 transition-transform group-hover:translate-x-1 group-hover:text-white">
-                      {scrollId ? '↓' : '→'}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul></details>
-
-            <p className="mt-5 text-sm text-white/70">{projectInfo.author}</p>
-          </div>
-        </div>
-
-        {/* Acceso rápido inferior a la nueva sección Aula Ambiental (estética tercer corte) */}
-        <button
-          type="button"
-          onClick={irAAula}
-          className="hidden sm:flex items-center gap-2.5 absolute bottom-6 right-8 z-20 px-4 py-2.5 rounded-full border border-[#4fb6b0]/50 bg-black/80 text-xs font-mono uppercase tracking-wider text-[#f1f5f9] backdrop-blur-md hover:border-[#4fb6b0] hover:bg-black transition-all cursor-pointer shadow-xl"
-        >
-          <span className="inline-block h-2 w-2 rounded-full bg-[#4fb6b0]" />
-          <span>Explorar la isla y Bocachica</span>
-          <span className="text-[#4fb6b0] anim-float-y">↓</span>
-        </button>
-      </section>
-
-      {/* Nueva sección íntegra: Tierra Bomba, Aula Ambiental (Bocachica) con estética de tesis_tercer_corte */}
-      <Suspense fallback={<div className="min-h-screen bg-[#070b10]" />}>
-        <AulaAmbientalBocachica
-          onBackToPortada={() =>
-            document.getElementById('comunidad-portada-hero')?.scrollIntoView({ behavior: 'smooth' })
-          }
-          onNavigateModule={onNavigateModule}
-        />
-      </Suspense>
-    </div>
-  );
+export default function IntroLandingIndex({onNavigateModule,onBackToThesis}) {
+  const [accion,setAccion]=useState(null);
+  return <div className="community-entry cf-hub-root">
+    <section id="comunidad-portada-hero" className="cf-hub">
+      <header><div><p>Comunidad</p><h1>Tierra Bomba</h1></div><Escuchar texto="Bienvenido a Tierra Bomba. Toca una foto. Puedes conocer la isla, cocinar, bailar o descubrir los oficios. Para regresar, toca la flecha que dice Volver."/></header>
+      <h2>¿Qué quieres hacer?</h2>
+      <div className="cf-hub-grid">{ACTIVIDADES.map(({id,titulo,Icon,foto,voz})=><button type="button" key={id} onClick={()=>{setAccion({id,turno:Date.now()});decir(voz);}}>
+        <img src={`${import.meta.env.BASE_URL}${foto}`} alt="" loading={id==='isla'?'eager':'lazy'}/>
+        <span className="cf-hub-label"><Icon aria-hidden="true" size={28}/><strong>{titulo}</strong><ArrowRight aria-hidden="true" size={23}/></span>
+      </button>)}</div>
+      <p className="cf-hub-pista">Toca una foto para empezar.</p>
+      <footer>{onBackToThesis&&<button type="button" onClick={onBackToThesis}>Ver la tesis</button>}<span>Alejandra Gómez · Ana Casas</span></footer>
+    </section>
+    <Suspense fallback={<div className="cf-hub-loading" role="status">Preparando la isla…</div>}>
+      <AulaAmbientalBocachica accionInicial={accion} onBackToPortada={()=>{window.speechSynthesis?.cancel();document.getElementById('comunidad-portada-hero')?.scrollIntoView({behavior:'instant'});}} onNavigateModule={onNavigateModule}/>
+    </Suspense>
+  </div>;
 }

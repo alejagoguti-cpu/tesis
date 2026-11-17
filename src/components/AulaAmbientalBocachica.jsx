@@ -2463,6 +2463,7 @@ const EXPLORA_CATEGORIAS = [
 export default function AulaAmbientalBocachica({
   onBack,
   onBackToPortada,
+  accionInicial,
   onSelectProject,
   onNavigateModule,
 }) {
@@ -2472,9 +2473,13 @@ export default function AulaAmbientalBocachica({
   const mount3DRef = useRef(null);
   const [escena, setEscena] = useState(null);
   const [sin3D, setSin3D] = useState(false);
+  const [mostrarTalleres, setMostrarTalleres] = useState(false);
+  const navegacionDirectaRef = useRef(false);
   const [progreso, setProgreso] = useState({ p: 0, texto: 'Iniciando escena 3D de Tierra Bomba' });
   const [capActual, setCapActual] = useState(CAPITULOS[0]);
-  const [enVistaAula, setEnVistaAula] = useState(true);
+  const [enVistaAula, setEnVistaAula] = useState(false);
+  const [iniciarMapa, setIniciarMapa] = useState(false);
+  useEffect(() => { if (enVistaAula || accionInicial) setIniciarMapa(true); }, [enVistaAula, accionInicial]);
   const [enPasos3D, setEnPasos3D] = useState(false);
   const [pasoIdx, setPasoIdx] = useState(0);
   const [pasoProg, setPasoProg] = useState(0);
@@ -2993,6 +2998,7 @@ export default function AulaAmbientalBocachica({
 
   const seleccionarActividad = (act) => {
     if (!act) return;
+    setMostrarTalleres(false);
     setActividadViernesSel(act);
     setTemaViernes(act.titulo);
     setConfirmViernes(false);
@@ -3022,7 +3028,7 @@ export default function AulaAmbientalBocachica({
           : catActiva?.id === 'corregimientos'
             ? corregimientosIsla
             : null;
-    if (!escena?.proyectarNodos || !listaMapa || panelJuego || modalDiagrama) {
+    if (!escena?.proyectarNodos || !listaMapa || panelJuego || mostrarTalleres || actividadViernesSel || modalDiagrama) {
       setPinesActividad({});
       return undefined;
     }
@@ -3079,7 +3085,7 @@ export default function AulaAmbientalBocachica({
     };
     rafId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafId);
-  }, [escena, catActiva, panelJuego, modalDiagrama, actividadesIsla, patrimoniosIsla, corregimientosIsla]);
+  }, [escena, catActiva, panelJuego, mostrarTalleres, actividadViernesSel, modalDiagrama, actividadesIsla, patrimoniosIsla, corregimientosIsla]);
 
   useEffect(() => {
     const cerrar = (event) => {
@@ -3132,6 +3138,11 @@ export default function AulaAmbientalBocachica({
   };
 
   const activarCategoria = (cat, conScroll = true) => {
+    if (!cat) return;
+    if (conScroll) navegacionDirectaRef.current = true;
+    setMostrarTalleres(cat.id === 'talleres');
+    setAutoTourActivo(false);
+    setLibre(false);
     setBusqAbierta(false);
     setLugarActivo(null);
     setActividadViernesSel(null);
@@ -3160,11 +3171,19 @@ export default function AulaAmbientalBocachica({
       nodosActivos: cat.nodos,
       gemelo: 0,
     });
-    if (conScroll && cat.ancla) {
-      const el = document.getElementById(cat.ancla);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
+    if (conScroll) rootRef.current?.scrollIntoView({ behavior: 'instant' });
   };
+
+  useEffect(() => {
+    if (!accionInicial) return;
+    if (accionInicial.id === 'isla') activarCategoria(EXPLORA_CATEGORIAS[0]);
+    else if (accionInicial.id === 'oficios') activarCategoria(EXPLORA_CATEGORIAS[2]);
+    else {
+      setMemCategoria(accionInicial.id === 'bailar' ? 'bailes' : 'comida');
+      setMemItemSel(null);
+      activarCategoria(EXPLORA_CATEGORIAS[3]);
+    }
+  }, [accionInicial]);
 
   const resultadosBusqueda = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
@@ -3209,7 +3228,7 @@ export default function AulaAmbientalBocachica({
   useEffect(() => {
     let viva = true;
     let inst = null;
-    if (!mount3DRef.current) return undefined;
+    if (!iniciarMapa || !mount3DRef.current) return undefined;
     crearEscenaAula(mount3DRef.current, {
       onProgreso: (p, texto) => { if (viva) setProgreso({ p, texto }); },
     }).then((s) => {
@@ -3224,15 +3243,15 @@ export default function AulaAmbientalBocachica({
       viva = false;
       inst?.dispose();
     };
-  }, []);
+  }, [iniciarMapa]);
 
   useEffect(() => {
-    activarCategoria(EXPLORA_CATEGORIAS[0], false);
+    if (!accionInicial) activarCategoria(EXPLORA_CATEGORIAS[0], false);
   }, [escena]);
 
   useEffect(() => {
-    escena?.setPausado?.(Boolean(panelJuego || modalDiagrama || ver180 || ver180Cano));
-  }, [escena, panelJuego, modalDiagrama, ver180, ver180Cano]);
+    escena?.setPausado?.(Boolean(!enVistaAula || panelJuego || mostrarTalleres || actividadViernesSel || modalDiagrama || ver180 || ver180Cano));
+  }, [escena, enVistaAula, panelJuego, mostrarTalleres, actividadViernesSel, modalDiagrama, ver180, ver180Cano]);
 
   useEffect(() => {
     if (!autoTourActivo || !escena || panelJuego || modalDiagrama || patrimonioSel || actividadViernesSel) return undefined;
@@ -3269,6 +3288,8 @@ export default function AulaAmbientalBocachica({
         const rr = rootRef.current.getBoundingClientRect();
         setEnVistaAula(rr.top <= vh * 0.35);
       }
+
+      if (navegacionDirectaRef.current) return;
 
       // Detectar capítulo activo para la píldora superior
       let cap = CAPITULOS[0];
@@ -3571,6 +3592,22 @@ export default function AulaAmbientalBocachica({
 
       {enVistaAula && !ver180 && !ver180Cano && !modalDiagrama && !panelJuego && (
         <MenuComunidad activo={catActiva?.id} onElegir={(id) => activarCategoria(EXPLORA_CATEGORIAS.find(c => c.id === id))} />
+      )}
+
+      {enVistaAula && mostrarTalleres && (
+        <section className="cf-talleres" role="dialog" aria-modal="true" aria-label="Elige un taller">
+          <header><button type="button" onClick={() => { setMostrarTalleres(false); activarCategoria(EXPLORA_CATEGORIAS[0]); }}><ArrowLeft size={26}/> Volver</button><Escuchar texto="Toca una foto para conocer el taller. Puedes aprender sobre botes, plantas, cocina, música o el colegio."/></header>
+          <div className="cf-talleres-body"><h2>¿Qué quieres aprender?</h2>
+            <div className="cf-talleres-grid">{actividadesIsla.map((act) => {
+              const fotos={ribera:'carpinteria_ribera.jpg',vivero:'pesca_chinchorro.jpg',tierraBomba:'dulces_isnelia.jpg',puntaArena:'bullerengue.jpg'};
+              const esColegio=act.nodo==='escuelaR9';
+              const src=esColegio ? `${import.meta.env.BASE_URL}assets/colegio_deterioro_1.jpg` : act.nodo==='vivero' ? `${import.meta.env.BASE_URL}textures/tierrabomba_satelite.jpg` : `${import.meta.env.BASE_URL}images/memorias/${fotos[act.nodo] || 'carpinteria_ribera.jpg'}`;
+              return <button type="button" key={act.nodo} onClick={() => { seleccionarActividad(act); decir(`${act.corto}. ${act.sub || act.titulo}`); }}>
+                <img src={src} alt="" loading="lazy"/><span><act.Icon size={28}/><strong>{act.corto}</strong><ArrowRight size={23}/></span>
+              </button>;
+            })}</div>
+          </div>
+        </section>
       )}
 
       {/* CONTROLES MINIMALISTAS DEL MAPA 3D */}
@@ -3910,7 +3947,7 @@ export default function AulaAmbientalBocachica({
       )}
 
       {/* ICONOS ANIMADOS SOBRE EL MAPA (1. CORREGIMIENTOS, 2. PATRIMONIO Y 3. TALLERES Y VIERNES) */}
-      {enVistaAula && (catActiva?.id === 'talleres' || catActiva?.id === 'patrimonio' || catActiva?.id === 'corregimientos') && !panelJuego && !modalDiagrama && (() => {
+      {enVistaAula && (catActiva?.id === 'talleres' || catActiva?.id === 'patrimonio' || catActiva?.id === 'corregimientos') && !panelJuego && !mostrarTalleres && !modalDiagrama && (() => {
         const esPatrimonio = catActiva.id === 'patrimonio';
         const esCorreg = catActiva.id === 'corregimientos';
         const listaPines = esPatrimonio ? patrimoniosIsla : esCorreg ? corregimientosIsla : actividadesIsla;
@@ -4000,138 +4037,17 @@ export default function AulaAmbientalBocachica({
       })()}
 
       {/* TARJETA ÚNICA IZQUIERDA (O CARD GRANDE AL TOCAR UN ICONO EN TALLERES) */}
-      {enVistaAula && catActiva && !panelJuego && !modalDiagrama && (() => {
+      {enVistaAula && catActiva && !panelJuego && !mostrarTalleres && !modalDiagrama && (() => {
         const IconoCat = ICONOS_CAT[catActiva.id] || MapPin;
         const idxCat = EXPLORA_CATEGORIAS.findIndex((c) => c.id === catActiva.id);
         const catAnt = idxCat > 0 ? EXPLORA_CATEGORIAS[idxCat - 1] : null;
         const catSig = idxCat < EXPLORA_CATEGORIAS.length - 1 ? EXPLORA_CATEGORIAS[idxCat + 1] : null;
 
         if (catActiva.id === 'corregimientos' && !corregSel) {
-          const ordenNodos = ['tierraBomba', 'puntaArena', 'canoDeLoro', 'casco'];
-          const nodoActual = ordenNodos[pasoRecorridoIdx] || 'tierraBomba';
-          const corActual = corregimientosIsla.find((c) => c.nodo === nodoActual) || corregimientosIsla[0];
-          const pctRecorrido = Math.round(((pasoRecorridoIdx + 1) / ordenNodos.length) * 100);
-          const irAStop = (i) => {
-            const elCorreg = secCorregRef.current;
-            if (elCorreg) {
-              const vh = window.innerHeight || 1;
-              const topDoc = elCorreg.getBoundingClientRect().top + window.scrollY;
-              const span = Math.max(1, elCorreg.offsetHeight - vh);
-              window.scrollTo({ top: topDoc + (i / 4 + 0.05) * span, behavior: 'smooth' });
-            }
-          };
-          return (
-            <div className="cf-map-guide fixed bottom-32 left-4 md:bottom-6 md:left-6 z-20 max-h-[calc(100svh-17rem)] overflow-y-auto w-[min(92vw,25rem)] tc-vidrio p-4 tc-paso-anim space-y-3 border-l-2 border-l-[#e0917a]">
-              <div className="cf-guide-heading flex items-start justify-between gap-2">
-                <div key={corActual.nodo} className="flex items-center gap-3 min-w-0 tc-paso-anim">
-                  <span
-                    className="w-9 h-9 rounded-xl border flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: `${corActual.color}20`, borderColor: `${corActual.color}55`, color: corActual.color }}
-                  >
-                    <MapPin className="w-4 h-4" />
-                  </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: corActual.color }}>
-                        Elige un pueblo · {pasoRecorridoIdx + 1}/4
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const nextVista = vistaRecorrido === 'planta' ? 'axo' : 'planta';
-                          setVistaRecorrido(nextVista);
-                          escena?.set?.({
-                            cam: nextVista === 'axo' ? 'isla_axo' : 'isla_completa',
-                            cartografia: 0.32,
-                            nodosActivos: [],
-                          });
-                        }}
-                        className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[9px] font-mono uppercase tracking-wider text-white/90 cursor-pointer transition"
-                      >
-                        {vistaRecorrido === 'planta' ? 'Ver en 3D' : 'Ver desde arriba'}
-                      </button>
-                    </div>
-                    <div className="text-sm font-bold text-white truncate">{corActual.nombre}</div>
-                    <div className="text-[11px] text-white/65 truncate">{corActual.zona}</div>
-                  </div>
-                </div>
-                <button type="button" onClick={() => setCatActiva(null)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition shrink-0 cursor-pointer" aria-label="Ocultar guía">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="cf-guide-progress h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${pctRecorrido}%`, backgroundColor: corActual.color }}
-                />
-              </div>
-
-              <p key={`${corActual.nodo}-txt`} className="cf-guide-description text-xs text-white/85 leading-relaxed line-clamp-2 tc-paso-anim">
-                {corActual.fichas?.[0]?.texto}
-              </p>
-
-              <p className="text-xs text-white/70">Toca un nombre aquí o un punto del mapa para conocer el lugar.</p>
-              <div className="cf-place-grid grid grid-cols-2 gap-2">
-                {ordenNodos.map((nId, i) => {
-                  const item = corregimientosIsla.find((c) => c.nodo === nId);
-                  const activo = i === pasoRecorridoIdx;
-                  const visitado = i <= pasoRecorridoIdx || recorridoCompletado;
-                  return (
-                    <button
-                      key={nId}
-                      type="button"
-                      onClick={() => { setPasoRecorridoIdx(i); seleccionarCorregimiento(item); }}
-                      className={`px-2 py-3 rounded-lg text-xs font-semibold truncate transition cursor-pointer ${
-                        activo
-                          ? 'bg-[#e0917a] text-[#0b1016] shadow-sm'
-                          : visitado
-                            ? 'bg-white/15 text-white hover:bg-white/25'
-                            : 'bg-white/5 text-white/50 hover:bg-white/10'
-                      }`}
-                    >
-                      {item?.corto || nId}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="flex items-center justify-between gap-2 pt-0.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCorregSecIdx(0);
-                    setCorregSel(corActual);
-                    escena?.irANodo?.(corActual.nodo, 300);
-                  }}
-                  className="flex-1 py-2 px-3 rounded-xl text-xs font-bold text-[#0b1016] flex items-center justify-center gap-1.5 cursor-pointer transition hover:brightness-110"
-                  style={{ backgroundColor: corActual.color }}
-                >
-                  <span>Explorar {corActual.corto}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-                {pasoRecorridoIdx < ordenNodos.length - 1 ? (
-                  <button
-                    type="button"
-                    onClick={() => irAStop(pasoRecorridoIdx + 1)}
-                    className="py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white cursor-pointer transition"
-                  >
-                    Siguiente
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => activarCategoria(EXPLORA_CATEGORIAS[1])}
-                    className="py-2 px-3 rounded-xl bg-white text-[#0b1016] hover:bg-white/90 text-xs font-bold cursor-pointer transition"
-                  >
-                    Ir a Patrimonio
-                  </button>
-                )}
-              </div>
-
-
-            </div>
-          );
+          return <aside className="cf-map-guide cf-villages fixed bottom-32 left-4 md:bottom-6 md:left-6 z-20 w-[min(92vw,25rem)] tc-vidrio p-4">
+            <div className="cf-villages-heading"><h2>¿Dónde quieres ir?</h2><Escuchar corto texto="Toca el nombre de un pueblo. Puedes elegir Tierra Bomba, Punta Arena, Caño de Loro o Bocachica."/></div>
+            <div className="cf-place-grid grid grid-cols-2 gap-2">{corregimientosIsla.map(cor=><button type="button" key={cor.nodo} onClick={()=>{seleccionarCorregimiento(cor);decir(`${cor.corto}. ${cor.fichas[0].texto}`);}} className="cf-village-button"><Home aria-hidden="true" size={28}/><span>{cor.corto}</span><ArrowRight size={19}/></button>)}</div>
+          </aside>;
         }
 
         if (catActiva.id === 'corregimientos' && corregSel) {
@@ -4524,7 +4440,7 @@ export default function AulaAmbientalBocachica({
           );
         }
 
-        if (catActiva.id === 'talleres' && !actividadViernesSel) {
+        if (catActiva.id === 'talleres' && !actividadViernesSel && !mostrarTalleres) {
           const actPreview = actividadesIsla[tallerPreviewIdx % actividadesIsla.length] || actividadesIsla[0];
           const IconoActPrev = actPreview.Icon || Calendar;
           return (

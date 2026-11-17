@@ -58,3 +58,50 @@
  .community-entry .cf-entry-panel {padding:24px 20px;background:#0b2638d9;backdrop-filter:blur(10px);}
 }
 @media(prefers-reduced-motion:reduce) {.cf-dance * {animation:none!important;transition:none!important;}}
+/* Community photo hub and direct workshop picker. */
+.cf-hub-root {background:#0d252d;color:#f5f0df;}
+.cf-hub {min-height:100svh;max-width:1100px;margin:auto;padding:28px 32px 16px;display:flex;flex-direction:column;justify-content:center;}
+.cf-hub header,.cf-talleres header {display:flex;align-items:center;justify-content:space-between;gap:14px;}
+.cf-hub header p {font-size:14px;color:#e4ba81;margin:0 0 4px;}
+.cf-hub h1 {font-size:clamp(32px,5vw,52px);line-height:1.05;font-weight:700;margin:0;}
+.cf-hub h2 {font-size:24px;font-weight:500;margin:24px 0 16px;}
+.cf-hub-grid,.cf-talleres-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+.cf-hub-grid>button,.cf-talleres-grid>button {position:relative;overflow:hidden;background:#25434a;border:1px solid #ffffff40;border-radius:22px;color:white;cursor:pointer;text-align:left;padding:0;touch-action:manipulation;}
+.cf-hub-grid img {display:block;width:100%;height:clamp(130px,24svh,220px);object-fit:cover;transition:transform .3s;}
+.cf-hub-grid button:hover img,.cf-talleres-grid button:hover img {transform:scale(1.04);}
+.cf-hub-grid button:active,.cf-talleres-grid button:active {transform:scale(.98);}
+.cf-hub-label,.cf-talleres-grid button>span {display:flex;align-items:center;gap:12px;min-height:64px;background:#183943;padding:12px 18px;}
+.cf-hub-label strong,.cf-talleres-grid strong {flex:1;font-size:22px;font-weight:600;}
+.cf-hub-pista {font-size:16px;color:#cad7d1;margin:14px 0;}
+.cf-hub footer {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:#abbeb9;margin-top:8px;}
+.cf-hub footer button {padding:12px 0;text-decoration:underline;min-height:48px;}
+.cf-hub-loading {text-align:center;padding:40px;background:#0d252d;color:white;}
+.cf-talleres {position:fixed;inset:0;z-index:70;overflow:auto;overscroll-behavior:contain;background:#0d252d;color:#f5f0df;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);}
+.cf-talleres header {position:sticky;top:0;z-index:2;background:#0d252df5;padding:12px 20px;border-bottom:1px solid #ffffff25;}
+.cf-talleres header>button {display:flex;align-items:center;gap:8px;min-height:52px;font-size:18px;font-weight:600;}
+.cf-talleres-body {max-width:900px;margin:auto;padding:20px;}
+.cf-talleres-body h2 {font-size:26px;font-weight:600;margin-bottom:20px;}
+.cf-talleres-grid img {display:block;width:100%;height:180px;object-fit:cover;}
+.cf-talleres-grid strong {font-size:18px;}
+.cf-villages-heading {display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;}
+.cf-villages h2 {font-size:20px;font-weight:700;}
+.cf-village-button {display:flex;flex-wrap:wrap;align-items:center;gap:8px;border-radius:16px;border:1px solid #ffffff30;padding:14px 10px;min-height:76px;background:#ffffff14;cursor:pointer;}
+.cf-village-button span {flex:1;font-size:16px;font-weight:600;}
+@media(max-width:767px){
+ .community-entry .cf-hub {padding:calc(16px + env(safe-area-inset-top)) 14px 16px;justify-content:flex-start;}
+ .community-entry .cf-hub h1 {font-size:32px!important;}
+ .cf-hub h2 {font-size:22px;margin:20px 0 14px;}
+ .cf-hub-grid,.cf-talleres-grid {gap:10px;}
+ .cf-hub-grid img {height:clamp(110px,19svh,180px);}
+ .cf-hub-label {gap:7px;padding:10px;min-height:66px;}
+ .cf-hub-label strong {font-size:18px;}
+ .cf-hub-label>svg:last-child {display:none;}
+ .cf-talleres-grid img {height:125px;}
+ .cf-talleres-grid button>span {flex-wrap:wrap;gap:6px;padding:12px 10px;min-height:76px;}
+ .cf-talleres-grid button>span>svg:last-child {display:none;}
+ .cf-talleres-grid strong {font-size:17px;}
+ .cf-talleres-body {padding:16px 12px;}
+ .tc-aula .cf-villages {max-height:36svh;}
+}
+.cf-token{position:fixed;z-index:170;font-size:64px;line-height:1;transform:translate(-50%,-75%);pointer-events:none;filter:drop-shadow(0 8px 10px #0005);}
+.cf-drop{outline:3px dashed #238668;outline-offset:-10px;border-radius:30px;}

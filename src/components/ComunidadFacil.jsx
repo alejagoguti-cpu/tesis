@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Volume2, ArrowLeft, RotateCcw, Check, MapPin, Landmark, Hammer, Gamepad2 } from 'lucide-react';
 
@@ -52,9 +52,9 @@ const RECETAS = {
   ] },
 };
 
-function Plato({ tipo, paso, completo }) {
+function Plato({ tipo, paso, completo, zonaRef, activo }) {
   const dulce = tipo === 'cocada';
-  return <svg viewBox="0 0 360 220" role="img" aria-label={completo ? 'Plato terminado' : dulce ? 'Paila para preparar cocadas' : 'Pescado para cocinar'} className="cf-plato">
+  return <svg ref={zonaRef} viewBox="0 0 360 220" role="img" aria-label={completo ? 'Plato terminado' : dulce ? 'Paila para preparar cocadas' : 'Pescado para cocinar'} className={`cf-plato ${activo ? 'cf-drop' : ''}`}>
     <ellipse cx="180" cy="178" rx="155" ry="27" fill="#000" opacity=".14" />
     <ellipse cx="180" cy="122" rx="148" ry="80" fill={completo ? '#fff8ea' : '#253742'} stroke={completo ? '#dfd5ba' : '#50636b'} strokeWidth="9" />
     {dulce ? (completo ? [110,180,250].map((x,i)=><g key={x}><ellipse cx={x} cy={105+i%2*30} rx="34" ry="25" fill="#c18b45" /><path d={`M${x-20} ${95+i%2*30}l12 15 9-18 15 13`} fill="none" stroke="#edc68c" strokeWidth="4"/></g>) : <>
@@ -74,6 +74,10 @@ export function JuegoCocinaFacil({ tipo = 'mojarra', onCerrar }) {
   const receta = RECETAS[tipo];
   const [paso, setPaso] = useState(-1);
   const [feedback, setFeedback] = useState('');
+  const zonaRef = useRef(null);
+  const arrastreRef = useRef(null);
+  const omitirClickRef = useRef(false);
+  const [token, setToken] = useState(null);
   const completo = paso >= receta.pasos.length;
   const objetivo = receta.pasos[paso]?.[0];
   const pista = receta.pasos[paso]?.[1] || (completo ? '¡Lo lograste! Tu plato está listo.' : 'Vamos a cocinar. Toca el botón grande para empezar.');
@@ -101,17 +105,30 @@ export function JuegoCocinaFacil({ tipo = 'mojarra', onCerrar }) {
         <div className="cf-progreso" aria-label={`Paso ${Math.min(paso+1,receta.pasos.length)} de ${receta.pasos.length}`}>
           {receta.pasos.map((_,i)=><span key={i} className={i< paso ? 'hecho' : ''}/>)}
         </div>
-        <Plato tipo={tipo} paso={paso} completo={completo}/>
+        <Plato tipo={tipo} paso={paso} completo={completo} zonaRef={zonaRef} activo={!!token}/>
         {completo ? <>
           <h2>¡Lo lograste! <Check size={32}/></h2>
           <button type="button" className="cf-empezar" onClick={empezar}><RotateCcw/> Otra vez</button>
           <button type="button" className="cf-volver" onClick={onCerrar}><ArrowLeft/> Volver</button>
         </> : <>
           <div className="cf-instruccion"><span aria-hidden="true">{OPCIONES.find(o=>o.id===objetivo)?.icono}</span><p>{pista}</p></div>
-          <div className="cf-opciones">{opciones.map(o=><button type="button" key={o.id} onClick={()=>elegir(o.id)} aria-label={o.nombre}><span aria-hidden="true">{o.icono}</span><strong>{o.nombre}</strong></button>)}</div>
+          <div className="cf-opciones">{opciones.map(o=><button type="button" key={o.id} style={{touchAction:'none'}}
+            onPointerDown={e=>{ omitirClickRef.current=false; arrastreRef.current={x:e.clientX,y:e.clientY}; e.currentTarget.setPointerCapture(e.pointerId); }}
+            onPointerMove={e=>{const a=arrastreRef.current;if(a && Math.hypot(e.clientX-a.x,e.clientY-a.y)>14)setToken({icono:o.icono,x:e.clientX,y:e.clientY});}}
+            onPointerUp={e=>{
+              const a=arrastreRef.current;arrastreRef.current=null;setToken(null);
+              if(!a || Math.hypot(e.clientX-a.x,e.clientY-a.y)<14)return;
+              omitirClickRef.current=true;
+              const r=zonaRef.current?.getBoundingClientRect();
+              if(r && e.clientX>=r.left && e.clientX<=r.right && e.clientY>=r.top && e.clientY<=r.bottom)elegir(o.id);
+              else {setFeedback('Llévalo al plato o toca el dibujo.');decir('Llévalo al plato o toca el dibujo.');}
+            }}
+            onPointerCancel={()=>{arrastreRef.current=null;setToken(null);}}
+            onClick={()=>{if(omitirClickRef.current){omitirClickRef.current=false;return;}elegir(o.id);}} aria-label={o.nombre}><span aria-hidden="true">{o.icono}</span><strong>{o.nombre}</strong></button>)}</div>
           <p role="status" aria-live="polite">{feedback}</p>
         </>}
       </>}
     </main>
+    {token && <span className="cf-token" style={{left:token.x,top:token.y}} aria-hidden="true">{token.icono}</span>}
   </section>,document.body);
 }
